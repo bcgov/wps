@@ -32,6 +32,7 @@ class SFMSRunLogJobName(str, enum.Enum):
 
     # FBP
     SFC_CALCULATION = "sfc_calculation"
+    ROS_CALCULATION = "ros_calculation"
 
 
 class SFMSRunLogStatus(str, enum.Enum):

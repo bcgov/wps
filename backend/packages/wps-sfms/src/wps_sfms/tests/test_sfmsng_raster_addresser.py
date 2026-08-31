@@ -212,6 +212,31 @@ class TestSurfaceFuelConsumptionInputs:
     def test_percent_conifer_key_uses_year(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_percent_conifer_key(2024) == "sfms/static/m12_2024.tif"
 
+    def test_percent_dead_conifer_key_uses_year(self, addresser: SFMSNGRasterAddresser):
+        assert addresser.get_percent_dead_conifer_key(2024) == "sfms/static/m34_2024.tif"
+
+    def test_get_rate_of_spread_inputs_uses_ros_output_key(self, addresser: SFMSNGRasterAddresser):
+        fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
+        percent_conifer_key = addresser.gdal_path(addresser.get_percent_conifer_key(2024))
+        sfc_key = addresser.gdal_path("sfms_ng/actual/2024/04/15/sfc_20240415.tif")
+
+        result = addresser.get_rate_of_spread_inputs(
+            TEST_DATETIME,
+            RunType.ACTUAL,
+            fuel_key,
+            percent_conifer_key,
+            sfc_key,
+        )
+
+        assert result.fuel_key == fuel_key
+        assert result.isi_key.endswith("sfms_ng/actual/2024/04/15/isi_20240415.tif")
+        assert result.bui_key.endswith("sfms_ng/actual/2024/04/15/bui_20240415.tif")
+        assert result.fmc_key.endswith("sfms_ng/static/fmc/2024/04/15/fmc_20240415.tif")
+        assert result.sfc_key == sfc_key
+        assert result.percent_conifer_key == percent_conifer_key
+        assert result.output_key == "sfms_ng/actual/2024/04/15/ros_20240415.tif"
+        assert result.run_type == RunType.ACTUAL
+
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
         fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
         percent_conifer_key = addresser.gdal_path(addresser.get_percent_conifer_key(2024))

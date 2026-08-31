@@ -40,6 +40,20 @@ class SurfaceFuelConsumptionInputs:
 
 
 @dataclass(frozen=True)
+class RateOfSpreadInputs:
+    """Raster locations and metadata needed for one ROS calculation."""
+
+    fuel_key: GDALPath
+    isi_key: GDALPath
+    bui_key: GDALPath
+    fmc_key: GDALPath
+    sfc_key: GDALPath
+    percent_conifer_key: GDALPath
+    output_key: S3Key
+    run_type: RunType
+
+
+@dataclass(frozen=True)
 class FoliarMoistureContentInputs:
     """Static dependencies and date-specific outputs for shared daily FMC calculations."""
 
