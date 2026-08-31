@@ -86,7 +86,12 @@ async def test_run_fbp_calculations_resolves_inputs_and_tracks_sfc(mocker: Mocke
     s3_client = MagicMock()
     session = MagicMock()
     sfc_inputs = MagicMock()
+    sfc_inputs.output_key = "sfms_ng/actual/2025/07/04/sfc_20250704.tif"
+    ros_inputs = MagicMock()
     addresser.get_surface_fuel_consumption_inputs.return_value = sfc_inputs
+    addresser.get_rate_of_spread_inputs.return_value = ros_inputs
+    addresser.gdal_path.side_effect = lambda key: f"/vsis3/test/{key}"
+    s3_client.all_objects_exist = AsyncMock(return_value=True)
     resolve_percent_conifer = mocker.patch(
         f"{PIPELINE_PATH}._resolve_percent_conifer_path",
         new=AsyncMock(return_value="/vsis3/test/sfms/static/m12_2025.tif"),
@@ -95,6 +100,11 @@ async def test_run_fbp_calculations_resolves_inputs_and_tracks_sfc(mocker: Mocke
     processor.process = AsyncMock()
     processor_class = mocker.patch(
         f"{PIPELINE_PATH}.SurfaceFuelConsumptionProcessor", return_value=processor
+    )
+    ros_processor = MagicMock()
+    ros_processor.process = AsyncMock()
+    ros_processor_class = mocker.patch(
+        f"{PIPELINE_PATH}.RateOfSpreadProcessor", return_value=ros_processor
     )
     tracked_jobs = []
 
@@ -126,6 +136,10 @@ async def test_run_fbp_calculations_resolves_inputs_and_tracks_sfc(mocker: Mocke
     processor.process.assert_awaited_once()
     assert processor.process.await_args.args[0] is s3_client
     assert processor.process.await_args.args[2] is sfc_inputs
+    ros_processor_class.assert_called_once_with(datetime_to_process)
+    ros_processor.process.assert_awaited_once()
+    assert ros_processor.process.await_args.args[0] is s3_client
+    assert ros_processor.process.await_args.args[2] is ros_inputs
     assert tracked_jobs == [
         SFMSRunLogJobName.SFC_CALCULATION,
         SFMSRunLogJobName.ROS_CALCULATION,
