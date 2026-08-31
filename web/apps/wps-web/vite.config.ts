@@ -1,6 +1,6 @@
 import path, { resolve } from 'node:path'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import istanbul from 'vite-plugin-istanbul'
 import svgr from 'vite-plugin-svgr'
@@ -30,10 +30,7 @@ export default defineConfig({
       }
     },
     react({
-      jsxImportSource: '@emotion/react',
-      babel: {
-        plugins: ['@emotion/babel-plugin']
-      }
+      plugins: [['@swc/plugin-emotion', {}]]
     }),
     svgr(),
     sentryVitePlugin({
