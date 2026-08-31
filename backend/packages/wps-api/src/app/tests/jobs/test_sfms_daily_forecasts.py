@@ -48,6 +48,7 @@ class MockDailyForecastsDeps(NamedTuple):
     fwi_processor: MagicMock
     sfc_processor: MagicMock
     ros_processor: MagicMock
+    hfi_processor: MagicMock
     fmc_processor: MagicMock
     fmc_processor_class: MagicMock
     fmc_inputs: MagicMock
@@ -141,10 +142,16 @@ def mock_dependencies(
     )
 
     mock_ros_inputs = MagicMock()
+    mock_hfi_inputs = MagicMock()
     mock_addresser.get_rate_of_spread_inputs.return_value = mock_ros_inputs
+    mock_addresser.get_primary_fire_behaviour_inputs.return_value = mock_hfi_inputs
     mock_ros_processor = MagicMock()
     mock_ros_processor.process = AsyncMock(return_value=None)
     mocker.patch(f"{PIPELINE_PATH}.RateOfSpreadProcessor", return_value=mock_ros_processor)
+
+    mock_hfi_processor = MagicMock()
+    mock_hfi_processor.process = AsyncMock(return_value=None)
+    mocker.patch(f"{PIPELINE_PATH}.PrimaryFireBehaviourProcessor", return_value=mock_hfi_processor)
 
     db_session = MagicMock(spec=AsyncSession)
     db_execute_result = MagicMock()
@@ -169,6 +176,7 @@ def mock_dependencies(
         fwi_processor=mock_fwi_processor,
         sfc_processor=mock_sfc_processor,
         ros_processor=mock_ros_processor,
+        hfi_processor=mock_hfi_processor,
         fmc_processor=mock_fmc_processor,
         fmc_processor_class=mock_fmc_processor_class,
         fmc_inputs=mock_fmc_inputs,
@@ -245,6 +253,8 @@ class TestRunSfmsDailyForecasts:
         assert mock_dependencies.interpolation_processor.process.call_count == 3
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 18
         assert mock_dependencies.sfc_processor.process.call_count == 3
+        assert mock_dependencies.ros_processor.process.call_count == 3
+        assert mock_dependencies.hfi_processor.process.call_count == 3
         mock_dependencies.get_fuel_type_raster_by_year.assert_awaited_once()
         assert mock_dependencies.get_fuel_type_raster_by_year.call_args.args[1] == 2024
 
