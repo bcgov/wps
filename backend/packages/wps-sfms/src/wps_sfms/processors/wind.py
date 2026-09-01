@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 from osgeo import gdal
-from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 
 from wps_sfms.interpolation.common import SFMS_NO_DATA, log_interpolation_stats
 from wps_sfms.interpolation.field import WindVectorField
@@ -111,8 +111,7 @@ class WindDirectionInterpolator(RasterProcessor):
 
         return WPSDataset.from_array(
             array=wind_direction_array,
-            geotransform=grid.geotransform,
-            projection=grid.projection,
+            georeference=Georeference(grid.geotransform, grid.projection),
             nodata_value=SFMS_NO_DATA,
             datatype=gdal.GDT_Float32,
         )

@@ -9,7 +9,7 @@ from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
 
 from wps_shared import config
-from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +207,9 @@ class S3Client:
         :return: path to temporary written geotiff file
         """
         temp_geotiff = os.path.join(temp_dir, os.path.basename(key))
-        with WPSDataset.from_array(values, transform, projection, no_data_value) as ds:
+        with WPSDataset.from_array(
+            values, Georeference(transform, projection), no_data_value
+        ) as ds:
             ds.export_to_geotiff(temp_geotiff)
 
         logger.info("Writing to S3: %s", key)

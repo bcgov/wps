@@ -1,5 +1,5 @@
 import UpdateIcon from '@mui/icons-material/Update'
-import { createTheme, StyledEngineProvider, ThemeProvider } from '@mui/material'
+import { createTheme, ThemeProvider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import type { StationDaily } from '@wps/api/hfiCalculatorAPI'
 import { theme } from '@wps/ui/theme'
@@ -60,14 +60,12 @@ const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
     const dateString = `${lastUpdate.toFormat('MMMM d, HH:mm')} PST`
 
     return (
-      <StyledEngineProvider injectFirst>
-        <ThemeProvider theme={lastUpdatedTheme}>
-          <Container>
-            <UpdateIcon></UpdateIcon>
-            <HeaderText>Forecast last updated {dateString}</HeaderText>
-          </Container>
-        </ThemeProvider>
-      </StyledEngineProvider>
+      <ThemeProvider theme={lastUpdatedTheme}>
+        <Container>
+          <UpdateIcon></UpdateIcon>
+          <HeaderText>Forecast last updated {dateString}</HeaderText>
+        </Container>
+      </ThemeProvider>
     )
   } else {
     return <div></div>

@@ -219,7 +219,7 @@ jobs:
       - name: Deploy ASA Go API to Dev
         shell: bash
         run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" MEMORY_REQUEST=700Mi MEMORY_LIMIT=1Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" MEMORY_REQUEST=1Gi MEMORY_LIMIT=1.5Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
 
       - name: Allow APS to reach ASA Go API
         shell: bash
@@ -298,9 +298,8 @@ jobs:
     needs: [deploy-dev]
     runs-on: ubuntu-24.04
     steps:
-      - name: ZAP Scan
-        uses: zaproxy/action-baseline@v0.15.0
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/zap-baseline-scan
         with:
           target: "https://wps-pr-${{ github.event.number }}-e1e498-dev.apps.silver.devops.gov.bc.ca"
-          rules_file_name: ".zap/rules.tsv"
-          cmd_options: "-I"
+          cmd-options: "-I"

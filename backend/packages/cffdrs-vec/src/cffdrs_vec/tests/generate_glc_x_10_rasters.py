@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 from cffdrs.constants import FUEL_TYPE_CODES
 from osgeo import osr
-from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 
 from cffdrs_vec.tests._glc_x_10_data import (
     GLC_X_10_SOURCES,
@@ -43,7 +43,7 @@ def _write_raster(raster_dir: Path, name: str, values: list) -> None:
     array = np.array([values], dtype=np.float32)  # shape (1, 20)
     array = np.where(np.isnan(array), SFMS_NO_DATA, array)
     with WPSDataset.from_array(
-        array, RASTER_GEOTRANSFORM, _raster_projection_wkt(), SFMS_NO_DATA
+        array, Georeference(RASTER_GEOTRANSFORM, _raster_projection_wkt()), SFMS_NO_DATA
     ) as ds:
         ds.export_to_geotiff(str(raster_dir / f"{name}.tif"))
 

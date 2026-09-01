@@ -35,12 +35,10 @@ def create_masked_output_dataset(
     # cast before masking so GDAL does not convert Float64 nodata to Float32 inconsistently
     masked_values = values.astype(np.float32, copy=True)
     masked_values[~valid_mask] = nodata_value
-    reference_ds = reference.as_gdal_ds()
 
     with WPSDataset.from_array(
         masked_values,
-        reference_ds.GetGeoTransform(),
-        reference_ds.GetProjection(),
+        reference,
         nodata_value,
     ) as output_ds:
         yield output_ds

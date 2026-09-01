@@ -31,16 +31,25 @@ parameters:
     value: e1e498-tools
   - name: CPU_REQUEST
     description: Requested CPU
-    value: 100m
+    value: 200m
   - name: MEMORY_REQUEST
     description: Requested memory
     value: 2Gi
   - name: MEMORY_LIMIT
     description: Memory upper limit
-    value: 3Gi
+    value: 2.5Gi
   - name: REPLICAS
-    description: Number of replicas
+    description: Number of replicas (also used as the HPA's minimum)
     value: "2"
+  - name: HPA_MAX_REPLICAS
+    description: Upper bound for horizontal autoscaling
+    value: "6"
+  - name: HPA_CPU_TARGET_PERCENTAGE
+    description: Target average CPU utilization (% of requested CPU) the HPA scales around
+    value: "90"
+  - name: HPA_MEMORY_TARGET_PERCENTAGE
+    description: Target average memory utilization (% of requested memory) the HPA scales around
+    value: "90"
   - name: ALLOWED_ORIGINS
     value: wps-*.apps.silver.devops.gov.bc.ca
   - name: PROJECT_NAMESPACE
@@ -59,6 +68,18 @@ parameters:
   - name: GUNICORN_WORKERS
     description: Number of gunicorn workers
     value: "4"
+  - name: POSTGRES_POOL_SIZE
+    description: >-
+      SQLAlchemy pool_size per DB engine (read and write each get their own pool), per gunicorn
+      worker. At GUNICORN_WORKERS=4 and HPA_MAX_REPLICAS=10, pool_size alone (excluding
+      transient overflow) puts a steady-state ceiling of REPLICAS*GUNICORN_WORKERS*2*pool_size
+      client connections on the shared pgbouncer, which caps at max_client_conn: 1000
+      (openshift/templates/crunchy.yaml) shared with every other service on the cluster -- keep
+      well under that when raising this.
+    value: "8"
+  - name: POSTGRES_MAX_OVERFLOW
+    description: Extra SQLAlchemy connections opened above pool_size during a burst, closed again once idle
+    value: "12"
   - name: DEPLOY_VERSION
     description: Changes to force a single rollout after image builds complete
     required: true
@@ -142,6 +163,10 @@ objects:
                       key: pgbouncer-port
                 - name: POSTGRES_DATABASE
                   value: ${POSTGRES_DATABASE}
+                - name: POSTGRES_POOL_SIZE
+                  value: ${POSTGRES_POOL_SIZE}
+                - name: POSTGRES_MAX_OVERFLOW
+                  value: ${POSTGRES_MAX_OVERFLOW}
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
@@ -217,3 +242,49 @@ objects:
           targetPort: 8080
       selector:
         name: ${APP_NAME}-${SUFFIX}-asa-go
+  - apiVersion: autoscaling/v2
+    kind: HorizontalPodAutoscaler
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}-asa-go
+      name: ${APP_NAME}-${SUFFIX}-asa-go
+    spec:
+      scaleTargetRef:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: ${APP_NAME}-${SUFFIX}-asa-go
+      minReplicas: ${{REPLICAS}}
+      maxReplicas: ${{HPA_MAX_REPLICAS}}
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 60
+      metrics:
+        - type: Resource
+          resource:
+            name: cpu
+            target:
+              type: Utilization
+              averageUtilization: ${{HPA_CPU_TARGET_PERCENTAGE}}
+        - type: Resource
+          resource:
+            name: memory
+            target:
+              type: Utilization
+              averageUtilization: ${{HPA_MEMORY_TARGET_PERCENTAGE}}
+  - apiVersion: autoscaling.k8s.io/v1
+    kind: VerticalPodAutoscaler
+    metadata:
+      labels:
+        app: ${APP_NAME}-${SUFFIX}-asa-go
+      name: ${APP_NAME}-${SUFFIX}-asa-go
+    spec:
+      targetRef:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: ${APP_NAME}-${SUFFIX}-asa-go
+      # Recommendation-only: "Auto" would fight the HPA over CPU, and would get
+      # clobbered on every deploy anyway since DEPLOY_VERSION forces a rollout with this
+      # template's static CPU_REQUEST/MEMORY_REQUEST every time. Use the recommendations
+      # this produces (`oc describe vpa`) to tune those params by hand.
+      updatePolicy:
+        updateMode: "Off"

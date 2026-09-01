@@ -46,3 +46,13 @@ def test_get_fuel_raster_key(addresser: BaseRasterAddresser):
 def test_get_unprocessed_raster_key(addresser: BaseRasterAddresser):
     result = addresser.get_unprocessed_fuel_raster_key("test.tif")
     assert result == "sfms/static/test.tif"
+
+
+def test_get_percent_conifer_key(addresser: BaseRasterAddresser):
+    result = addresser.get_percent_conifer_key(2024)
+    assert result == "sfms/static/m12_2024.tif"
+
+
+def test_get_percent_dead_conifer_key(addresser: BaseRasterAddresser):
+    result = addresser.get_percent_dead_conifer_key(2024)
+    assert result == "sfms/static/m34_2024.tif"

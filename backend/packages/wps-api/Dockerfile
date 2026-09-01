@@ -1,7 +1,7 @@
 # NOTE:
 # This Dockerfile is for local development only!
 
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 
 ARG USERNAME=worker
 ARG USER_UID=1000

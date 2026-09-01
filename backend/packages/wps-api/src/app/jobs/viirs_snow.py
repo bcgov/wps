@@ -17,7 +17,8 @@ from wps_shared.db.crud.snow import get_last_processed_snow_by_processed_date, s
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared.geospatial.geospatial import SpatialReferenceSystem
-from wps_shared.utils.polygonize import polygonize_in_memory
+from wps_shared.geospatial.polygonize import polygonize_in_memory
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import vancouver_tz
 from wps_shared.wps_logging import configure_logging
@@ -217,9 +218,8 @@ class ViirsSnowJob:
         input_path = os.path.join(sub_dir, RAW_SNOW_COVERAGE_NAME)
         output_path = os.path.join(sub_dir, RAW_SNOW_COVERAGE_CLIPPED_NAME)
         cut_line_path = os.path.join(temp_dir, "bc_boundary.geojson")
-        gdal.Warp(
-            output_path, input_path, format="GTiff", cutlineDSName=cut_line_path, cropToCutline=True
-        )
+        with WPSDataset(input_path) as mosaic_ds:
+            mosaic_ds.clip_to_geometry(cut_line_path, output_path=output_path)
 
     async def _get_bc_boundary_from_s3(self, path: str):
         """Fetch the bc_boundary.geojson file from S3 and write a copy to the local temporary directory.
@@ -253,30 +253,16 @@ class ViirsSnowJob:
 
     def _classify_snow_coverage(self, path: str):
         source_path = os.path.join(path, RAW_SNOW_COVERAGE_CLIPPED_NAME)
-        source = gdal.Open(source_path, gdal.GA_ReadOnly)
-        source_band = source.GetRasterBand(1)
-        source_data = source_band.ReadAsArray()
-        # Classify the data. Snow coverage in the source data is indicated by values in the range of 0-100. I'm using a range of
-        # 10 - 100 to increase confidence. In the classified data 1 is assigned to snow covered pixels and all other pixels are 0.
-        classified = np.where((source_data > 10) & (source_data <= 100), 1, 0)
-        output_driver = gdal.GetDriverByName("GTiff")
         classified_snow_path = os.path.join(path, BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME)
-        classified_snow = output_driver.Create(
-            classified_snow_path,
-            xsize=source_band.XSize,
-            ysize=source_band.YSize,
-            bands=1,
-            eType=gdal.GDT_Byte,
-        )
-        classified_snow.SetGeoTransform(source.GetGeoTransform())
-        classified_snow.SetProjection(source.GetProjection())
-        classified_snow_band = classified_snow.GetRasterBand(1)
-        classified_snow_band.WriteArray(classified)
-        source_data = None
-        source_band = None
-        source = None
-        classified_snow_band = None
-        classified_snow = None
+        with WPSDataset(source_path) as source:
+            # Classify the data. Snow coverage in the source data is indicated by values in the
+            # range of 0-100. Using a range of 10-100 to increase confidence. In the classified
+            # data, 1 is assigned to snow covered pixels and all other pixels are 0.
+            source_data = source.read_array()
+            classified = np.where((source_data > 10) & (source_data <= 100), 1, 0)
+            WPSDataset.from_array(
+                classified, source, datatype=gdal.GDT_Byte, output_path=classified_snow_path
+            ).close()
 
     async def _create_pmtiles_layer(self, path: str, for_date: date):
         filename = os.path.join(path, BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME)

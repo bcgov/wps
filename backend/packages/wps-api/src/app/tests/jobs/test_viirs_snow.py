@@ -4,17 +4,23 @@ import builtins
 import math
 import os
 import re
+import tempfile
 import types
 from datetime import date, datetime, timedelta
 
+import numpy as np
 import pytest
+from osgeo import gdal, osr
 from pytest_mock import MockerFixture
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 
 from app.jobs import viirs_snow
 from app.jobs.viirs_snow import (
+    BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME,
     GLOBAL_ULX,
     GLOBAL_ULY,
     MODIS_SINUSOIDAL_PROJ4,
+    RAW_SNOW_COVERAGE_CLIPPED_NAME,
     TILE_SIZE_M,
     NoGranulesException,
     ViirsSnowJob,
@@ -341,3 +347,26 @@ def test_viirs_snow_job_fails_on_earthdata_access_auth_failure(
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
     assert chatops_spy.call_count == 1
+
+
+def test_classify_snow_coverage_preserves_georeferencing():
+    """0 = not snow (outside 10-100), 1 = snow covered, preserving georeferencing."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        source_path = os.path.join(temp_dir, RAW_SNOW_COVERAGE_CLIPPED_NAME)
+        # values: 10 (lower bound, exclusive), 50 (snow), 100 (upper bound, inclusive),
+        # 101 (above range)
+        source = WPSDataset.from_array(
+            np.array([[10, 50], [100, 101]], dtype=np.float32),
+            Georeference((0, 1, 0, 0, 0, -1), osr.GetUserInputAsWKT("EPSG:4326")),
+            output_path=source_path,
+        )
+
+        ViirsSnowJob()._classify_snow_coverage(temp_dir)
+
+        classified_path = os.path.join(temp_dir, BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME)
+        with WPSDataset(classified_path) as classified:
+            assert classified.ds.GetRasterBand(1).ReadAsArray().tolist() == [[0, 1], [1, 0]]
+            assert classified.ds.GetRasterBand(1).DataType == gdal.GDT_Byte
+            assert classified.georeference == source.georeference
+
+        source.close()

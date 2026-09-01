@@ -22,6 +22,7 @@ from wps_shared.utils.time import assert_all_utc
 from wps_sfms.raster_inputs import (
     FWIInputs,
     FoliarMoistureContentInputs,
+    RateOfSpreadInputs,
     SurfaceFuelConsumptionInputs,
 )
 
@@ -148,6 +149,31 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             ),
             percent_conifer_key=percent_conifer_key,
             output_key=self.get_fbp_key(datetime_to_process, FBPParameter.SFC, run_type),
+            run_type=run_type,
+        )
+
+    def get_rate_of_spread_inputs(
+        self,
+        datetime_to_process: datetime,
+        run_type: RunType,
+        fuel_key: GDALPath,
+        percent_conifer_key: GDALPath,
+        sfc_key: GDALPath,
+    ) -> RateOfSpreadInputs:
+        """Build the raster dependencies for same-day ROS from completed FBP inputs."""
+        assert_all_utc(datetime_to_process)
+        return RateOfSpreadInputs(
+            fuel_key=fuel_key,
+            isi_key=self.gdal_path(
+                self.get_index_key(datetime_to_process, FWIParameter.ISI, run_type)
+            ),
+            bui_key=self.gdal_path(
+                self.get_index_key(datetime_to_process, FWIParameter.BUI, run_type)
+            ),
+            fmc_key=self.gdal_path(self.get_fmc_key(datetime_to_process.date())),
+            sfc_key=sfc_key,
+            percent_conifer_key=percent_conifer_key,
+            output_key=self.get_fbp_key(datetime_to_process, FBPParameter.ROS, run_type),
             run_type=run_type,
         )
 
