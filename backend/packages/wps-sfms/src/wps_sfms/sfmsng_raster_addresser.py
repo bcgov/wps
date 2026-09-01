@@ -106,6 +106,30 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             f"{fbp_param.value}_{date_str}.tif"
         )
 
+    def get_static_key(self, filename: str) -> S3Key:
+        """S3 key for a static raster under the sfms_ng static prefix."""
+        return S3Key(f"{self.root}/static/{filename}")
+
+    def get_elevation_key(self) -> S3Key:
+        """S3 key for the BC elevation raster used in shared FMC/FBP calculations."""
+        return self.get_static_key("bc_elevation.tif")
+
+    def get_latitude_key(self) -> S3Key:
+        """S3 key for the latitude raster used in shared FMC/FBP calculations."""
+        return self.get_static_key("latitude.tif")
+
+    def get_longitude_key(self) -> S3Key:
+        """S3 key for the longitude raster used in shared FMC/FBP calculations."""
+        return self.get_static_key("longitude.tif")
+
+    def get_slope_key(self) -> S3Key:
+        """S3 key for the BC slope raster used in primary FBP calculations."""
+        return self.get_static_key("bc_slope.tif")
+
+    def get_aspect_key(self) -> S3Key:
+        """S3 key for the BC aspect raster used in primary FBP calculations."""
+        return self.get_static_key("bc_aspect.tif")
+
     def get_fmc_key(self, target_date: date) -> S3Key:
         """S3 key for the shared Foliar Moisture Content raster for one calendar date."""
         date_str = target_date.strftime("%Y%m%d")
@@ -120,12 +144,11 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         fuel_key: GDALPath,
     ) -> FoliarMoistureContentInputs:
         """Build the static dependencies and output keys for daily FMC calculations."""
-        static_root = f"{self.root}/static"
         return FoliarMoistureContentInputs(
             fuel_key=fuel_key,
-            elevation_key=self.gdal_path(S3Key(f"{static_root}/bc_elevation.tif")),
-            latitude_key=self.gdal_path(S3Key(f"{static_root}/latitude.tif")),
-            longitude_key=self.gdal_path(S3Key(f"{static_root}/longitude.tif")),
+            elevation_key=self.gdal_path(self.get_elevation_key()),
+            latitude_key=self.gdal_path(self.get_latitude_key()),
+            longitude_key=self.gdal_path(self.get_longitude_key()),
             output_keys={
                 target_date: self.get_fmc_key(target_date) for target_date in target_dates
             },
@@ -188,8 +211,11 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         wind_direction_key: GDALPath,
         fmc_key: GDALPath,
         isi_key: GDALPath,
-        slope_key: GDALPath | None = None,
-        aspect_key: GDALPath | None = None,
+        slope_key: GDALPath,
+        aspect_key: GDALPath,
+        latitude_key: GDALPath,
+        longitude_key: GDALPath,
+        elevation_key: GDALPath,
     ) -> PrimaryFireBehaviourInputs:
         """Build the raster dependencies for the same-day primary FBP calculation."""
         assert_all_utc(datetime_to_process)
@@ -205,6 +231,9 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             wind_direction_key=wind_direction_key,
             slope_key=slope_key,
             aspect_key=aspect_key,
+            latitude_key=latitude_key,
+            longitude_key=longitude_key,
+            elevation_key=elevation_key,
             percent_conifer_key=percent_conifer_key,
             fmc_key=fmc_key,
             isi_key=isi_key,

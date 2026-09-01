@@ -62,8 +62,11 @@ class PrimaryFireBehaviourInputs:
     bui_key: GDALPath
     wind_speed_key: GDALPath
     wind_direction_key: GDALPath
-    slope_key: GDALPath | None
-    aspect_key: GDALPath | None
+    slope_key: GDALPath
+    aspect_key: GDALPath
+    latitude_key: GDALPath
+    longitude_key: GDALPath
+    elevation_key: GDALPath
     percent_conifer_key: GDALPath
     fmc_key: GDALPath
     isi_key: GDALPath

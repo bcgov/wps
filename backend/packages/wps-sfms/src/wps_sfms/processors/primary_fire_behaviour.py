@@ -42,8 +42,11 @@ class PrimaryFireBehaviourDatasets:
     bui: WPSDataset
     wind_speed: WPSDataset
     wind_direction: WPSDataset
-    slope: WPSDataset | None
-    aspect: WPSDataset | None
+    slope: WPSDataset
+    aspect: WPSDataset
+    latitude: WPSDataset
+    longitude: WPSDataset
+    elevation: WPSDataset
     percent_conifer: WPSDataset
     fmc: WPSDataset
     isi: WPSDataset
@@ -58,18 +61,14 @@ def calculate_primary_fire_behaviour(
     bui, _ = datasets.bui.replace_nodata_with(np.nan)
     wind_speed, _ = datasets.wind_speed.replace_nodata_with(np.nan)
     wind_direction, _ = datasets.wind_direction.replace_nodata_with(np.nan)
+    slope, _ = datasets.slope.replace_nodata_with(np.nan)
+    aspect, _ = datasets.aspect.replace_nodata_with(np.nan)
+    latitude, _ = datasets.latitude.replace_nodata_with(np.nan)
+    longitude, _ = datasets.longitude.replace_nodata_with(np.nan)
+    elevation, _ = datasets.elevation.replace_nodata_with(np.nan)
     fmc, _ = datasets.fmc.replace_nodata_with(np.nan)
     isi, _ = datasets.isi.replace_nodata_with(np.nan)
     percent_conifer, _ = datasets.percent_conifer.replace_nodata_with(np.nan)
-
-    if datasets.slope is None:
-        slope = np.zeros_like(fuel, dtype=np.float32)
-    else:
-        slope, _ = datasets.slope.replace_nodata_with(np.nan)
-    if datasets.aspect is None:
-        aspect = np.zeros_like(fuel, dtype=np.float32)
-    else:
-        aspect, _ = datasets.aspect.replace_nodata_with(np.nan)
 
     fuel_type_codes = fuel_type_codes_from_grid(fuel)
     validate_percent_conifer(fuel, percent_conifer)
@@ -84,6 +83,9 @@ def calculate_primary_fire_behaviour(
         & np.isfinite(wind_direction)
         & np.isfinite(slope)
         & np.isfinite(aspect)
+        & np.isfinite(latitude)
+        & np.isfinite(longitude)
+        & np.isfinite(elevation)
         & np.isfinite(fmc)
         & np.isfinite(isi)
     )
@@ -96,9 +98,6 @@ def calculate_primary_fire_behaviour(
         gfl = np.full(fuel[calculation_mask].shape, 0.35, dtype=np.float32)
         cbh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         cfl = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        lat = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        lon = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        elv = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         dj = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         d0 = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sd = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
@@ -124,9 +123,9 @@ def calculate_primary_fire_behaviour(
             cfl,
             fmc[calculation_mask],
             isi[calculation_mask],
-            lat,
-            lon,
-            elv,
+            latitude[calculation_mask],
+            longitude[calculation_mask],
+            elevation[calculation_mask],
             dj,
             d0,
             sd,
@@ -152,21 +151,21 @@ class PrimaryFireBehaviourProcessor:
 
     @staticmethod
     def _dependency_keys(inputs: PrimaryFireBehaviourInputs) -> tuple[GDALPath, ...]:
-        dependencies = [
+        return (
             inputs.fuel_key,
             inputs.ffmc_key,
             inputs.bui_key,
             inputs.wind_speed_key,
             inputs.wind_direction_key,
+            inputs.slope_key,
+            inputs.aspect_key,
+            inputs.latitude_key,
+            inputs.longitude_key,
+            inputs.elevation_key,
             inputs.percent_conifer_key,
             inputs.fmc_key,
             inputs.isi_key,
-        ]
-        if inputs.slope_key is not None:
-            dependencies.append(inputs.slope_key)
-        if inputs.aspect_key is not None:
-            dependencies.append(inputs.aspect_key)
-        return tuple(dependencies)
+        )
 
     @contextmanager
     def _open_datasets(
@@ -177,44 +176,40 @@ class PrimaryFireBehaviourProcessor:
         with self._raster_dependencies.open_by_key(
             input_dataset_context, self._dependency_keys(inputs)
         ) as datasets_by_key:
-            slope = (
-                datasets_by_key[inputs.slope_key]
-                if inputs.slope_key is not None
-                else None
-            )
-            aspect = (
-                datasets_by_key[inputs.aspect_key]
-                if inputs.aspect_key is not None
-                else None
-            )
             yield PrimaryFireBehaviourDatasets(
                 fuel=datasets_by_key[inputs.fuel_key],
                 ffmc=datasets_by_key[inputs.ffmc_key],
                 bui=datasets_by_key[inputs.bui_key],
                 wind_speed=datasets_by_key[inputs.wind_speed_key],
                 wind_direction=datasets_by_key[inputs.wind_direction_key],
-                slope=slope,
-                aspect=aspect,
+                slope=datasets_by_key[inputs.slope_key],
+                aspect=datasets_by_key[inputs.aspect_key],
+                latitude=datasets_by_key[inputs.latitude_key],
+                longitude=datasets_by_key[inputs.longitude_key],
+                elevation=datasets_by_key[inputs.elevation_key],
                 percent_conifer=datasets_by_key[inputs.percent_conifer_key],
                 fmc=datasets_by_key[inputs.fmc_key],
                 isi=datasets_by_key[inputs.isi_key],
             )
 
     def _validate_grids(self, datasets: PrimaryFireBehaviourDatasets) -> None:
-        grid_map = {
-            "ffmc": datasets.ffmc,
-            "bui": datasets.bui,
-            "wind_speed": datasets.wind_speed,
-            "wind_direction": datasets.wind_direction,
-            "percent_conifer": datasets.percent_conifer,
-            "fmc": datasets.fmc,
-            "isi": datasets.isi,
-        }
-        if datasets.slope is not None:
-            grid_map["slope"] = datasets.slope
-        if datasets.aspect is not None:
-            grid_map["aspect"] = datasets.aspect
-        self._raster_dependencies.validate_grids(datasets.fuel, grid_map)
+        self._raster_dependencies.validate_grids(
+            datasets.fuel,
+            {
+                "ffmc": datasets.ffmc,
+                "bui": datasets.bui,
+                "wind_speed": datasets.wind_speed,
+                "wind_direction": datasets.wind_direction,
+                "slope": datasets.slope,
+                "aspect": datasets.aspect,
+                "latitude": datasets.latitude,
+                "longitude": datasets.longitude,
+                "elevation": datasets.elevation,
+                "percent_conifer": datasets.percent_conifer,
+                "fmc": datasets.fmc,
+                "isi": datasets.isi,
+            },
+        )
 
     async def process(
         self,

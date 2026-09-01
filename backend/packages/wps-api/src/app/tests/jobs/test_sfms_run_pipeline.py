@@ -157,6 +157,11 @@ async def test_run_fbp_calculations_resolves_inputs_and_tracks_sfc(mocker: Mocke
         addresser.gdal_path.return_value,
         addresser.gdal_path.return_value,
         addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
     )
     sfc_processor_class.assert_called_once_with(datetime_to_process)
     sfc_processor.process.assert_awaited_once()
