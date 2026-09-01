@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 
 import numpy as np
@@ -41,6 +42,35 @@ class TestScalarFieldBuilders:
         np.testing.assert_allclose(field.lats, np.array([49.0], dtype=np.float32))
         np.testing.assert_allclose(field.lons, np.array([-123.0], dtype=np.float32))
         np.testing.assert_allclose(field.values, np.array([1.5], dtype=np.float32))
+
+    def test_build_attribute_field_filters_negative_precipitation(self, caplog):
+        actuals = [
+            SFMSDaily(
+                code=1,
+                for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
+                lat=49.0,
+                lon=-123.0,
+                precipitation=1.5,
+            ),
+            SFMSDaily(
+                code=2,
+                for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
+                lat=49.1,
+                lon=-123.1,
+                precipitation=-1.0,
+            ),
+        ]
+
+        with caplog.at_level(logging.WARNING):
+            field = build_attribute_field(actuals, "precipitation")
+
+        np.testing.assert_allclose(field.lats, np.array([49.0], dtype=np.float32))
+        np.testing.assert_allclose(field.lons, np.array([-123.0], dtype=np.float32))
+        np.testing.assert_allclose(field.values, np.array([1.5], dtype=np.float32))
+        assert "Negative precipitation reported for station code 2" in caplog.text
+        assert "Dropping this station from precipitation interpolation" in caplog.text
 
     def test_build_temperature_field_applies_sea_level_adjustment(self):
         actuals = [
