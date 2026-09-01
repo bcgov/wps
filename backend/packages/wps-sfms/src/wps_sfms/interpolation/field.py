@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import List
 
 import numpy as np
@@ -74,7 +74,22 @@ def build_attribute_field(actuals: List[SFMSDaily], attribute: str) -> ScalarFie
             f"Unknown attribute {attribute!r} on SFMSDaily. Valid attributes: {sorted(_VALID_SFMS_ATTRIBUTES)}"
         )
 
-    valid = [s for s in actuals if getattr(s, attribute) is not None]
+    valid = []
+    for station in actuals:
+        value = getattr(station, attribute)
+        if value is None:
+            continue
+        if attribute == "precipitation" and value < 0:
+            logger.warning(
+                "Negative precipitation reported for station code %s at %s (%s). "
+                "Dropping this station from precipitation interpolation like a missing value.",
+                station.code,
+                station.for_datetime,
+                value,
+            )
+            continue
+        valid.append(station)
+
     return ScalarField(
         lats=np.array([s.lat for s in valid], dtype=np.float32),
         lons=np.array([s.lon for s in valid], dtype=np.float32),
