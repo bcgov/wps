@@ -47,6 +47,7 @@ class MockDailyForecastsDeps(NamedTuple):
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     sfc_processor: MagicMock
+    ros_processor: MagicMock
     fmc_processor: MagicMock
     fmc_processor_class: MagicMock
     fmc_inputs: MagicMock
@@ -139,6 +140,12 @@ def mock_dependencies(
         f"{PIPELINE_PATH}.SurfaceFuelConsumptionProcessor", return_value=mock_sfc_processor
     )
 
+    mock_ros_inputs = MagicMock()
+    mock_addresser.get_rate_of_spread_inputs.return_value = mock_ros_inputs
+    mock_ros_processor = MagicMock()
+    mock_ros_processor.process = AsyncMock(return_value=None)
+    mocker.patch(f"{PIPELINE_PATH}.RateOfSpreadProcessor", return_value=mock_ros_processor)
+
     db_session = MagicMock(spec=AsyncSession)
     db_execute_result = MagicMock()
     db_execute_result.scalar = MagicMock(return_value=1)
@@ -161,6 +168,7 @@ def mock_dependencies(
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         sfc_processor=mock_sfc_processor,
+        ros_processor=mock_ros_processor,
         fmc_processor=mock_fmc_processor,
         fmc_processor_class=mock_fmc_processor_class,
         fmc_inputs=mock_fmc_inputs,

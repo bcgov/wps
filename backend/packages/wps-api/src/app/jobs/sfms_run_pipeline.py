@@ -26,6 +26,7 @@ from wps_sfms.processors.fwi import (
     ISICalculator,
 )
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
+from wps_sfms.processors.rate_of_spread import RateOfSpreadProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.surface_fuel_consumption import SurfaceFuelConsumptionProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolator
@@ -123,6 +124,22 @@ async def _resolve_percent_conifer_path(
     )
 
 
+async def _resolve_percent_dead_conifer_path(
+    fuel_raster_year: int,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+) -> GDALPath:
+    """Resolve the percent-dead-conifer raster matching the selected fuel-grid year."""
+    key = raster_addresser.get_percent_dead_conifer_key(fuel_raster_year)
+    if await s3_client.object_exists(key):
+        logger.info("Using percent-dead-conifer raster: %s", key)
+        return raster_addresser.gdal_path(key)
+
+    raise RuntimeError(
+        f"No percent-dead-conifer raster found for fuel-grid year {fuel_raster_year}: {key}"
+    )
+
+
 async def run_fbp_calculations(
     datetime_to_process: datetime,
     raster_addresser: SFMSNGRasterAddresser,
@@ -137,18 +154,32 @@ async def run_fbp_calculations(
     percent_conifer_path = await _resolve_percent_conifer_path(
         fuel_raster_year, raster_addresser, s3_client
     )
-    inputs = raster_addresser.get_surface_fuel_consumption_inputs(
+    sfc_inputs = raster_addresser.get_surface_fuel_consumption_inputs(
         datetime_to_process,
         run_type,
         fuel_raster_path,
         percent_conifer_path,
     )
-    processor = SurfaceFuelConsumptionProcessor(datetime_to_process)
+    sfc_processor = SurfaceFuelConsumptionProcessor(datetime_to_process)
 
-    async def _run() -> None:
-        await processor.process(s3_client, multi_wps_dataset_context, inputs)
+    async def _run_sfc() -> None:
+        await sfc_processor.process(s3_client, multi_wps_dataset_context, sfc_inputs)
 
-    await _run_tracked_job(SFMSRunLogJobName.SFC_CALCULATION, sfms_run_id, session, _run)
+    await _run_tracked_job(SFMSRunLogJobName.SFC_CALCULATION, sfms_run_id, session, _run_sfc)
+
+    ros_inputs = raster_addresser.get_rate_of_spread_inputs(
+        datetime_to_process,
+        run_type,
+        fuel_raster_path,
+        percent_conifer_path,
+        raster_addresser.gdal_path(sfc_inputs.output_key),
+    )
+    ros_processor = RateOfSpreadProcessor(datetime_to_process)
+
+    async def _run_ros() -> None:
+        await ros_processor.process(s3_client, multi_wps_dataset_context, ros_inputs)
+
+    await _run_tracked_job(SFMSRunLogJobName.ROS_CALCULATION, sfms_run_id, session, _run_ros)
 
 
 async def run_weather_interpolation(

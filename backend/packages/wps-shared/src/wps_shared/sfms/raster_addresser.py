@@ -32,6 +32,7 @@ class FWIParameter(enum.Enum):
 
 class FBPParameter(enum.Enum):
     SFC = "sfc"
+    ROS = "ros"
 
 
 class BaseRasterAddresser:
@@ -65,6 +66,10 @@ class BaseRasterAddresser:
     def get_percent_conifer_key(self, year: int) -> S3Key:
         """S3 key for a yearly mixedwood percent-conifer raster."""
         return S3Key(f"sfms/static/m12_{year}.tif")
+
+    def get_percent_dead_conifer_key(self, year: int) -> S3Key:
+        """S3 key for a yearly dead-balsam-fir mixedwood percent raster."""
+        return S3Key(f"sfms/static/m34_{year}.tif")
 
     def get_fuel_raster_key(self, datetime_utc: datetime, version: int) -> S3Key:
         """S3 key for a versioned fuel type raster."""
