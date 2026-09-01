@@ -219,7 +219,7 @@ jobs:
       - name: Deploy ASA Go API to Dev
         shell: bash
         run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" MEMORY_REQUEST=1Gi MEMORY_LIMIT=1.5Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" HPA_MAX_REPLICAS="2" MEMORY_REQUEST=1Gi MEMORY_LIMIT=1.5Gi ENVIRONMENT="development" bash openshift/scripts/oc_deploy_asa_go_api.sh ${SUFFIX} apply
 
       - name: Allow APS to reach ASA Go API
         shell: bash
