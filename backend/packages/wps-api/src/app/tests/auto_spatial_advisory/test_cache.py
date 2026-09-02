@@ -124,3 +124,17 @@ async def test_get_cached_tpi_stats_miss_returns_none(mocker):
     result = await get_cached_tpi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE)
 
     assert result is None
+
+
+def test_create_redis_sets_connect_and_socket_timeouts(mocker):
+    """A hung, unreachable Redis host must not block the event loop indefinitely -- confirm the
+    client is actually built with bounded timeouts, not relying on redis-py's untimed default."""
+    from app.auto_spatial_advisory.advisory_run_stats.cache import create_redis
+
+    mock_strict_redis = mocker.patch("app.auto_spatial_advisory.advisory_run_stats.cache.StrictRedis")
+
+    create_redis()
+
+    _, kwargs = mock_strict_redis.call_args
+    assert kwargs["socket_connect_timeout"] is not None
+    assert kwargs["socket_timeout"] is not None

@@ -9,11 +9,28 @@ import logging
 from typing import Optional, Type, TypeVar
 
 from pydantic import BaseModel
+from redis import StrictRedis
+from wps_shared import config
 from wps_shared.schemas.fba import HFIStatsResponse, ProvincialSummaryResponse, TPIResponse
-from wps_shared.utils.redis import create_redis
 
 logger = logging.getLogger(__name__)
 cache_expiry_seconds = 86400  # 1 day -- generous since a completed run's data never changes
+
+# A short timeout here still gets caught by the except blocks below, same as any other
+# Redis failure, but bounds how long a struggling cache can hold up real traffic.
+_REDIS_TIMEOUT_SECONDS = 1
+
+
+def create_redis():
+    return StrictRedis(
+        host=config.get("REDIS_HOST"),
+        port=config.get("REDIS_PORT", 6379),
+        db=0,
+        password=config.get("REDIS_PASSWORD"),
+        socket_connect_timeout=_REDIS_TIMEOUT_SECONDS,
+        socket_timeout=_REDIS_TIMEOUT_SECONDS,
+    )
+
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -39,7 +56,7 @@ async def _get_cached(key: str, model_cls: Type[T]) -> Optional[T]:
 async def _put_cached(key: str, response: BaseModel):
     cache = create_redis()
     try:
-        cache.set(key, response.json().encode(), ex=cache_expiry_seconds)
+        cache.set(key, response.model_dump_json().encode(), ex=cache_expiry_seconds)
     except Exception as error:
         logger.error(error, exc_info=error)
 
@@ -59,7 +76,9 @@ async def put_cached_provincial_summary(
 
 
 async def get_cached_hfi_stats(run_type: str, run_datetime, for_date) -> Optional[HFIStatsResponse]:
-    return await _get_cached(_run_key("hfi_stats", run_type, run_datetime, for_date), HFIStatsResponse)
+    return await _get_cached(
+        _run_key("hfi_stats", run_type, run_datetime, for_date), HFIStatsResponse
+    )
 
 
 async def put_cached_hfi_stats(run_type: str, run_datetime, for_date, response: HFIStatsResponse):
