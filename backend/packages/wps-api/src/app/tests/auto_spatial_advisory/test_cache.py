@@ -2,6 +2,7 @@
 ASARedisCache used by advisory_run_stats to avoid re-hitting Postgres for data that's immutable
 once an SFMS run completes."""
 
+import time
 from unittest.mock import MagicMock
 
 import pytest
@@ -162,3 +163,23 @@ def test_client_is_built_once_and_reused():
     second = redis_cache.client()
 
     assert first is second
+
+
+@pytest.mark.anyio
+async def test_get_bounded_by_timeout_even_if_redis_call_hangs(mocker):
+    """asyncio.wait_for must bound total latency by itself, not rely solely on redis-py's own
+    socket_connect_timeout -- confirmed live against a real unreachable Redis that DNS
+    resolution isn't covered by that timeout and can add several extra seconds on top of it.
+    A hanging client.get() should still return within roughly the configured timeout, not the
+    full duration of the underlying (mocked, slow) call."""
+    redis_cache = ASARedisCache(timeout_seconds=0.05)
+    slow_client = MagicMock()
+    slow_client.get.side_effect = lambda key: time.sleep(1)  # much longer than the timeout
+    mocker.patch.object(redis_cache, "client", return_value=slow_client)
+
+    start = time.monotonic()
+    result = await redis_cache.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE)
+    elapsed = time.monotonic() - start
+
+    assert result is None
+    assert elapsed < 0.5  # bounded by the 0.05s timeout, not the 1s the mock sleeps for

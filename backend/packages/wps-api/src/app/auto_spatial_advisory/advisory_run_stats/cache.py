@@ -1,11 +1,12 @@
 """Redis cache for advisory run stats (provincial summary, hfi-stats, tpi-stats, and their
 fire-centre-scoped counterparts).
 
-Safe to cache: this data is immutable once an SFMS run completes -- keyed on the run itself
+Safe to cache: this data is immutable once an SFMS run completes because it's keyed on the run itself
 (run_type/run_datetime/for_date, plus fire_centre_name for the scoped variants), so a new run
 gets a new key rather than needing invalidation.
 """
 
+import asyncio
 import logging
 from typing import Optional, TypeVar
 
@@ -52,11 +53,9 @@ class ASARedisCache:
     mock_advisory_run_stats_redis)."""
 
     def __init__(self, timeout_seconds: float = 1):
-        # A short timeout still gets caught by _get()/_put()'s except blocks below, same as any
-        # other Redis failure, but bounds how long a struggling cache can hold up real traffic.
-        # An unreachable-but-not-actively-refusing host (network partition, dropped packets)
-        # would otherwise hang the synchronous redis-py call, and since this runs inside async
-        # request handlers, that stalls the whole event loop, not just one request.
+        # socket_connect_timeout/socket_timeout below don't cover DNS resolution (getaddrinfo)
+        # _get()/_put() wrap the whole call in asyncio.wait_for(timeout_seconds) as the real ceiling,
+        # via asyncio.to_thread so this blocking redis-py call doesn't sit on the event loop.
         self._timeout_seconds = timeout_seconds
         self._client: Optional[StrictRedis] = None
 
@@ -79,9 +78,10 @@ class ASARedisCache:
         return self._client
 
     async def _get(self, key: str, adapter: TypeAdapter) -> Optional[T]:
-        redis = self.client()
         try:
-            cached_json = redis.get(key)
+            cached_json = await asyncio.wait_for(
+                asyncio.to_thread(self.client().get, key), timeout=self._timeout_seconds
+            )
         except Exception as error:
             cached_json = None
             logger.error(error, exc_info=error)
@@ -92,9 +92,13 @@ class ASARedisCache:
         return None
 
     async def _put(self, key: str, value: T, adapter: TypeAdapter):
-        redis = self.client()
         try:
-            redis.set(key, adapter.dump_json(value), ex=cache_expiry_seconds)
+            await asyncio.wait_for(
+                asyncio.to_thread(
+                    self.client().set, key, adapter.dump_json(value), ex=cache_expiry_seconds
+                ),
+                timeout=self._timeout_seconds,
+            )
         except Exception as error:
             logger.error(error, exc_info=error)
 
