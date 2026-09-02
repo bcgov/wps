@@ -381,12 +381,12 @@ async def mock_zone_ids_in_centre(*_, **__):
     return [1]
 
 
-@patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
-@patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
-@patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
-@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
-@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized(client: TestClient):
     """Allowed to get fire centre info when authorized"""
@@ -404,14 +404,14 @@ def test_get_fire_center_info_authorized(client: TestClient):
     assert math.isclose(kfc_json["1"]["min_wind_stats"][0]["min_wind_speed"], 1)
 
 
-@patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
 @patch(
-    "app.routers.fba.get_fuel_type_raster_by_year",
+    "app.auto_spatial_advisory.advisory_run_stats.stats.get_fuel_type_raster_by_year",
     mock_get_fuel_type_raster_by_year,
 )
-@patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
-@patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
-@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_no_wind_speed)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_no_wind_speed)
 @patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
@@ -429,14 +429,14 @@ def test_get_fire_center_info_authorized_no_min_wind_speeds(client: TestClient):
     assert kfc_json["1"]["min_wind_stats"] == []
 
 
-@patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info_with_grass)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_precomputed_stats_for_shape", mock_get_fire_centre_info_with_grass)
 @patch(
-    "app.routers.fba.get_fuel_type_raster_by_year",
+    "app.auto_spatial_advisory.advisory_run_stats.stats.get_fuel_type_raster_by_year",
     mock_get_fuel_type_raster_by_year,
 )
-@patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
-@patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_grass_fuel_types)
-@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_all_sfms_fuel_type_records", mock_sfms_grass_fuel_types)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
 @pytest.mark.usefixtures("mock_jwt_decode")
 def test_get_fire_center_info_authorized_grass_fuel(client: TestClient):
@@ -522,9 +522,9 @@ def test_get_fire_centre_tpi_stats_authorized(client: TestClient):
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
-@patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
-@patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
-@patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.fetch_tpi_stats_rows", mock_get_tpi_stats)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
 def test_get_tpi_stats_authorized(client: TestClient):
     """Allowed to get tpi stats for run parameters when authorized"""
     response = client.get(get_tpi_stats_url)
@@ -580,20 +580,27 @@ FBA_ENDPOINTS = [
     "/api/fba/latest-sfms-run-parameters/2025-08-25/2025-08-26",
     "/api/fba/hfi-stats/forecast/2025-08-25T15:01:47.340947Z/2025-08-26",
     "/api/fba/tpi-stats/forecast/2025-08-25T15:01:47.340947Z/2025-08-26",
+    "/api/fba/provincial-summary/forecast/2025-08-25T15:01:47.340947Z/2025-08-26",
 ]
+
+
+async def mock_get_provincial_rollup(*_, **__):
+    return []
 
 
 @pytest.mark.usefixtures("mock_test_idir_jwt_decode")
 @pytest.mark.parametrize("endpoint", FBA_ENDPOINTS)
-@patch("app.routers.fba.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
-@patch("app.routers.fba.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
-@patch("app.routers.fba.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
-@patch("app.routers.fba.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_provincial_rollup", mock_get_provincial_rollup)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_all_hfi_thresholds_by_id", mock_hfi_thresholds)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_all_sfms_fuel_type_records", mock_sfms_fuel_types)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_min_wind_speed_hfi_thresholds", mock_zone_hfi_wind_speed)
 @patch("app.routers.fba.get_zone_source_ids_in_centre", mock_zone_ids_in_centre)
 @patch("app.routers.fba.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_fuel_type_raster_by_year", mock_get_fuel_type_raster_by_year)
 @patch("app.routers.fba.get_fire_centre_tpi_fuel_areas", mock_get_fire_centre_tpi_fuel_areas)
 @patch("app.routers.fba.get_centre_tpi_stats", mock_get_centre_tpi_stats)
-@patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.fetch_tpi_stats_rows", mock_get_tpi_stats)
 @patch("app.routers.fba.get_run_datetimes", mock_get_sfms_run_datetimes)
 @patch("app.routers.fba.get_sfms_bounds", mock_get_sfms_bounds)
 @patch(
@@ -601,11 +608,10 @@ FBA_ENDPOINTS = [
     mock_get_most_recent_run_datetime_for_date_range,
 )
 @patch(
-    "app.routers.fba.get_all_zone_source_ids",
+    "app.auto_spatial_advisory.advisory_run_stats.stats.get_all_zone_source_ids",
     mock_get_all_zone_source_ids,
 )
-@patch("app.routers.fba.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
-@patch("app.routers.fba.get_tpi_stats", mock_get_tpi_stats)
+@patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_tpi_fuel_areas", mock_get_tpi_fuel_areas)
 def test_fba_endpoints_allowed_for_test_idir(client, endpoint, mocker):
     mocker.patch(
         "app.routers.fba.fetch_fire_centres",
