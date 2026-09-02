@@ -1,17 +1,24 @@
-"""Redis cache wrappers for advisory run stats (provincial summary, hfi-stats, tpi-stats).
+"""Redis cache wrappers for advisory run stats (provincial summary, hfi-stats, tpi-stats, and
+their fire-centre-scoped counterparts).
 
 Safe to cache: this data is immutable once an SFMS run completes -- keyed on the run itself
-(run_type/run_datetime/for_date), so a new run gets a new key rather than needing invalidation.
+(run_type/run_datetime/for_date, plus fire_centre_name for the scoped variants), so a new run
+gets a new key rather than needing invalidation.
 """
 
-import json
 import logging
-from typing import Optional, Type, TypeVar
+from typing import Optional, TypeVar
 
-from pydantic import BaseModel
+from pydantic import TypeAdapter
 from redis import StrictRedis
 from wps_shared import config
-from wps_shared.schemas.fba import HFIStatsResponse, ProvincialSummaryResponse, TPIResponse
+from wps_shared.schemas.fba import (
+    FireCentreTPIResponse,
+    FireZoneHFIStats,
+    HFIStatsResponse,
+    ProvincialSummaryResponse,
+    TPIResponse,
+)
 
 logger = logging.getLogger(__name__)
 cache_expiry_seconds = 86400  # 1 day -- generous since a completed run's data never changes
@@ -32,14 +39,29 @@ def create_redis():
     )
 
 
-T = TypeVar("T", bound=BaseModel)
+T = TypeVar("T")
+
+# TypeAdapter (not just BaseModel) so the fire-centre-hfi-stats endpoint's plain
+# dict[int, FireZoneHFIStats] response can be cached the same way as the BaseModel-shaped ones,
+# without wrapping it in a schema it doesn't otherwise need.
+_PROVINCIAL_SUMMARY_ADAPTER = TypeAdapter(ProvincialSummaryResponse)
+_HFI_STATS_ADAPTER = TypeAdapter(HFIStatsResponse)
+_TPI_STATS_ADAPTER = TypeAdapter(TPIResponse)
+_FIRE_CENTRE_HFI_STATS_ADAPTER = TypeAdapter(dict[int, FireZoneHFIStats])
+_FIRE_CENTRE_TPI_STATS_ADAPTER = TypeAdapter(FireCentreTPIResponse)
 
 
 def _run_key(prefix: str, run_type: str, run_datetime, for_date) -> str:
     return f"{prefix}_{run_type}_{run_datetime}_{for_date}"
 
 
-async def _get_cached(key: str, model_cls: Type[T]) -> Optional[T]:
+def _fire_centre_run_key(
+    prefix: str, fire_centre_name: str, run_type: str, run_datetime, for_date
+) -> str:
+    return f"{prefix}_{fire_centre_name}_{run_type}_{run_datetime}_{for_date}"
+
+
+async def _get_cached(key: str, adapter: TypeAdapter) -> Optional[T]:
     cache = create_redis()
     try:
         cached_json = cache.get(key)
@@ -48,15 +70,15 @@ async def _get_cached(key: str, model_cls: Type[T]) -> Optional[T]:
         logger.error(error, exc_info=error)
     if cached_json:
         logger.info("redis cache hit %s", key)
-        return model_cls(**json.loads(cached_json.decode()))
+        return adapter.validate_json(cached_json)
     logger.info("redis cache miss %s", key)
     return None
 
 
-async def _put_cached(key: str, response: BaseModel):
+async def _put_cached(key: str, value: T, adapter: TypeAdapter):
     cache = create_redis()
     try:
-        cache.set(key, response.model_dump_json().encode(), ex=cache_expiry_seconds)
+        cache.set(key, adapter.dump_json(value), ex=cache_expiry_seconds)
     except Exception as error:
         logger.error(error, exc_info=error)
 
@@ -65,29 +87,86 @@ async def get_cached_provincial_summary(
     run_type: str, run_datetime, for_date
 ) -> Optional[ProvincialSummaryResponse]:
     return await _get_cached(
-        _run_key("provincial_summary", run_type, run_datetime, for_date), ProvincialSummaryResponse
+        _run_key("provincial_summary", run_type, run_datetime, for_date),
+        _PROVINCIAL_SUMMARY_ADAPTER,
     )
 
 
 async def put_cached_provincial_summary(
     run_type: str, run_datetime, for_date, response: ProvincialSummaryResponse
 ):
-    await _put_cached(_run_key("provincial_summary", run_type, run_datetime, for_date), response)
+    await _put_cached(
+        _run_key("provincial_summary", run_type, run_datetime, for_date),
+        response,
+        _PROVINCIAL_SUMMARY_ADAPTER,
+    )
 
 
 async def get_cached_hfi_stats(run_type: str, run_datetime, for_date) -> Optional[HFIStatsResponse]:
     return await _get_cached(
-        _run_key("hfi_stats", run_type, run_datetime, for_date), HFIStatsResponse
+        _run_key("hfi_stats", run_type, run_datetime, for_date), _HFI_STATS_ADAPTER
     )
 
 
 async def put_cached_hfi_stats(run_type: str, run_datetime, for_date, response: HFIStatsResponse):
-    await _put_cached(_run_key("hfi_stats", run_type, run_datetime, for_date), response)
+    await _put_cached(
+        _run_key("hfi_stats", run_type, run_datetime, for_date), response, _HFI_STATS_ADAPTER
+    )
 
 
 async def get_cached_tpi_stats(run_type: str, run_datetime, for_date) -> Optional[TPIResponse]:
-    return await _get_cached(_run_key("tpi_stats", run_type, run_datetime, for_date), TPIResponse)
+    return await _get_cached(
+        _run_key("tpi_stats", run_type, run_datetime, for_date), _TPI_STATS_ADAPTER
+    )
 
 
 async def put_cached_tpi_stats(run_type: str, run_datetime, for_date, response: TPIResponse):
-    await _put_cached(_run_key("tpi_stats", run_type, run_datetime, for_date), response)
+    await _put_cached(
+        _run_key("tpi_stats", run_type, run_datetime, for_date), response, _TPI_STATS_ADAPTER
+    )
+
+
+async def get_cached_fire_centre_hfi_stats(
+    fire_centre_name: str, run_type: str, run_datetime, for_date
+) -> Optional[dict[int, FireZoneHFIStats]]:
+    return await _get_cached(
+        _fire_centre_run_key(
+            "fire_centre_hfi_stats", fire_centre_name, run_type, run_datetime, for_date
+        ),
+        _FIRE_CENTRE_HFI_STATS_ADAPTER,
+    )
+
+
+async def put_cached_fire_centre_hfi_stats(
+    fire_centre_name: str, run_type: str, run_datetime, for_date, value: dict[int, FireZoneHFIStats]
+):
+    await _put_cached(
+        _fire_centre_run_key(
+            "fire_centre_hfi_stats", fire_centre_name, run_type, run_datetime, for_date
+        ),
+        value,
+        _FIRE_CENTRE_HFI_STATS_ADAPTER,
+    )
+
+
+async def get_cached_fire_centre_tpi_stats(
+    fire_centre_name: str, run_type: str, run_datetime, for_date
+) -> Optional[FireCentreTPIResponse]:
+    return await _get_cached(
+        _fire_centre_run_key(
+            "fire_centre_tpi_stats", fire_centre_name, run_type, run_datetime, for_date
+        ),
+        _FIRE_CENTRE_TPI_STATS_ADAPTER,
+    )
+
+
+async def put_cached_fire_centre_tpi_stats(
+    fire_centre_name: str, run_type: str, run_datetime, for_date, response: FireCentreTPIResponse
+):
+    await _put_cached(
+        _fire_centre_run_key(
+            "fire_centre_tpi_stats", fire_centre_name, run_type, run_datetime, for_date
+        ),
+        response,
+        _FIRE_CENTRE_TPI_STATS_ADAPTER,
+    )

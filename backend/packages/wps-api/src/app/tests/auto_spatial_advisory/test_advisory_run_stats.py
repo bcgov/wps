@@ -1,5 +1,6 @@
 """Unit tests for app.auto_spatial_advisory.advisory_run_stats.stats: get_all_zone_data_for_source_ids,
-and the three cache-aware public functions (get_provincial_summary, get_hfi_stats, get_tpi_stats)."""
+and the cache-aware public functions (get_provincial_summary, get_hfi_stats, get_tpi_stats, and
+their fire-centre-scoped counterparts)."""
 import pytest
 from collections import namedtuple
 from datetime import date, datetime, timezone
@@ -8,6 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.advisory_run_stats import (
     get_all_zone_data_for_source_ids,
+    get_fire_centre_hfi_stats,
+    get_fire_centre_tpi_stats,
     get_hfi_stats,
     get_provincial_summary,
     get_tpi_stats,
@@ -16,10 +19,13 @@ from wps_shared.db.models.auto_spatial_advisory import AdvisoryHFIWindSpeed, SFM
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.schemas.fba import (
     HfiThreshold,
+    FireCentreTPIResponse,
     HFIStatsResponse,
     ProvincialSummaryResponse,
     TPIResponse,
 )
+
+FIRE_CENTRE_NAME = "Kamloops Fire Centre"
 
 FOR_DATE = date(2024, 7, 15)
 RUN_DATETIME = datetime(2024, 7, 15, 12, tzinfo=timezone.utc)
@@ -321,3 +327,39 @@ async def test_get_tpi_stats_cache_miss_builds_all_tpi_classes(mocker):
     assert zone_stats.mid_slope_tpi == 20
     assert zone_stats.upper_slope_tpi == 30
     mock_put.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_get_fire_centre_hfi_stats_cache_hit_skips_db(mocker):
+    cached_response = {}
+    mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_fire_centre_hfi_stats",
+        new_callable=AsyncMock,
+        return_value=cached_response,
+    )
+    mock_zone_data = mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.get_all_zone_data_for_source_ids", new_callable=AsyncMock
+    )
+
+    result = await get_fire_centre_hfi_stats(FIRE_CENTRE_NAME, RunType.FORECAST, RUN_DATETIME, FOR_DATE)
+
+    assert result is cached_response
+    mock_zone_data.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_get_fire_centre_tpi_stats_cache_hit_skips_db(mocker):
+    cached_response = FireCentreTPIResponse(fire_centre_name=FIRE_CENTRE_NAME, firezone_tpi_stats=[])
+    mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_fire_centre_tpi_stats",
+        new_callable=AsyncMock,
+        return_value=cached_response,
+    )
+    mock_centre_tpi_stats = mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.get_centre_tpi_stats", new_callable=AsyncMock
+    )
+
+    result = await get_fire_centre_tpi_stats(FIRE_CENTRE_NAME, RunType.FORECAST, RUN_DATETIME, FOR_DATE)
+
+    assert result is cached_response
+    mock_centre_tpi_stats.assert_not_called()

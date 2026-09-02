@@ -1,6 +1,8 @@
 import os
 from datetime import datetime, timezone
 
+import app.auto_spatial_advisory.advisory_run_stats.cache as advisory_run_stats_cache
+import pytest
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.tests.conftest import (
@@ -23,6 +25,28 @@ from wps_shared.tests.conftest import (
 )
 
 SFMS_DAILY_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def mock_advisory_run_stats_redis(monkeypatch):
+    """Same safe-by-default behaviour as wps_shared's mock_redis fixture, but for
+    advisory_run_stats.cache's own Redis client. That client is built directly with an
+    explicit connect/socket timeout rather than via wps_shared.utils.redis.create_redis (see
+    cache.py), so it isn't covered by mock_redis patching _create_redis there -- without this,
+    tests would hit a real Redis if one happens to be reachable, breaking isolation between
+    test runs (a cache write in one test could produce a cache hit in a later one)."""
+
+    class MockRedis:
+        def get(self, name):
+            return None
+
+        def set(self, name, value, ex=None, px=None, nx=False, xx=False, keepttl=False):
+            pass
+
+        def delete(self, name):
+            pass
+
+    monkeypatch.setattr(advisory_run_stats_cache, "create_redis", lambda: MockRedis())
 
 
 def create_mock_sfms_actuals():

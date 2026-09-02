@@ -8,6 +8,7 @@ import pytest
 from wps_shared.schemas.fba import HFIStatsResponse, ProvincialSummaryResponse, TPIResponse
 
 from app.auto_spatial_advisory.advisory_run_stats.cache import (
+    create_redis as real_create_redis,
     get_cached_hfi_stats,
     get_cached_provincial_summary,
     get_cached_tpi_stats,
@@ -128,12 +129,15 @@ async def test_get_cached_tpi_stats_miss_returns_none(mocker):
 
 def test_create_redis_sets_connect_and_socket_timeouts(mocker):
     """A hung, unreachable Redis host must not block the event loop indefinitely -- confirm the
-    client is actually built with bounded timeouts, not relying on redis-py's untimed default."""
-    from app.auto_spatial_advisory.advisory_run_stats.cache import create_redis
+    client is actually built with bounded timeouts, not relying on redis-py's untimed default.
 
+    Calls the real_create_redis reference captured at module import time (above), not the
+    module attribute -- the autouse mock_advisory_run_stats_redis fixture (tests/conftest.py)
+    replaces that attribute for every test so other tests don't hit a real Redis, which would
+    make this test exercise the mock instead of the function it's meant to verify."""
     mock_strict_redis = mocker.patch("app.auto_spatial_advisory.advisory_run_stats.cache.StrictRedis")
 
-    create_redis()
+    real_create_redis()
 
     _, kwargs = mock_strict_redis.call_args
     assert kwargs["socket_connect_timeout"] is not None

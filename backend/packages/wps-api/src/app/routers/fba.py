@@ -1,7 +1,6 @@
 """Routers for Auto Spatial Advisory"""
 
 import logging
-import math
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from typing import List
@@ -9,28 +8,20 @@ from typing import List
 from fastapi import APIRouter, Depends
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_centre_tpi_stats,
     get_fire_centre_info,
-    get_fire_centre_tpi_fuel_areas,
     get_most_recent_run_datetime_for_date,
     get_most_recent_run_datetime_for_date_range,
     get_run_datetimes,
     get_sfms_bounds,
-    get_zone_source_ids_in_centre,
 )
-from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_read_session_scope
-from wps_shared.db.models.auto_spatial_advisory import (
-    RunTypeEnum,
-    TPIClassEnum,
-)
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.schemas.fba import (
     FireCenterListResponse,
     FireCentreInfo,
     FireCentreInfoResponse,
     FireCentreTPIResponse,
     FireZoneHFIStats,
-    FireZoneTPIStats,
     FireZoneUnit,
     HFIStatsResponse,
     LatestSFMSRunParameter,
@@ -44,7 +35,8 @@ from wps_shared.schemas.fba import (
 from wps_shared.utils.time import ensure_timezone, vancouver_tz
 
 from app.auto_spatial_advisory.advisory_run_stats import (
-    get_all_zone_data_for_source_ids,
+    get_fire_centre_hfi_stats,
+    get_fire_centre_tpi_stats as fetch_fire_centre_tpi_stats,
     get_hfi_stats,
     get_provincial_summary as fetch_provincial_summary,
     get_tpi_stats,
@@ -147,14 +139,7 @@ async def get_hfi_fuels_data_for_fire_centre(
         run_datetime,
         fire_centre_name,
     )
-
-    async with get_async_read_session_scope() as session:
-        # get fire zone id's within a fire centre
-        zone_source_ids = await get_zone_source_ids_in_centre(session, fire_centre_name)
-        all_zone_data = await get_all_zone_data_for_source_ids(
-            session, zone_source_ids, run_type, for_date, run_datetime
-        )
-
+    all_zone_data = await get_fire_centre_hfi_stats(fire_centre_name, run_type, run_datetime, for_date)
     return {fire_centre_name: all_zone_data}
 
 
@@ -200,48 +185,7 @@ async def get_fire_centre_tpi_stats(
 ):
     """Return the elevation TPI statistics for each advisory threshold for a fire centre"""
     logger.info("/fba/fire-centre-tpi-stats/")
-    async with get_async_read_session_scope() as session:
-        tpi_stats_for_centre = await get_centre_tpi_stats(
-            session, fire_centre_name, run_type, run_datetime, for_date
-        )
-        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
-        tpi_fuel_stats = await get_fire_centre_tpi_fuel_areas(
-            session, fire_centre_name, fuel_type_raster.id
-        )
-        hfi_tpi_areas_by_zone = []
-        for row in tpi_stats_for_centre:
-            fire_zone_id = row.source_identifier
-            square_metres = math.pow(row.pixel_size_metres, 2)
-            tpi_fuel_stats_for_zone = [
-                stats for stats in tpi_fuel_stats if stats[2] == fire_zone_id
-            ]
-            valley_bottom_tpi = None
-            mid_slope_tpi = None
-            upper_slope_tpi = None
-
-            for tpi_fuel_stat in tpi_fuel_stats_for_zone:
-                if tpi_fuel_stat[0] == TPIClassEnum.valley_bottom:
-                    valley_bottom_tpi = tpi_fuel_stat[1]
-                elif tpi_fuel_stat[0] == TPIClassEnum.mid_slope:
-                    mid_slope_tpi = tpi_fuel_stat[1]
-                elif tpi_fuel_stat[0] == TPIClassEnum.upper_slope:
-                    upper_slope_tpi = tpi_fuel_stat[1]
-
-            hfi_tpi_areas_by_zone.append(
-                FireZoneTPIStats(
-                    fire_zone_id=fire_zone_id,
-                    valley_bottom_hfi=row.valley_bottom * square_metres,
-                    valley_bottom_tpi=valley_bottom_tpi,
-                    mid_slope_hfi=row.mid_slope * square_metres,
-                    mid_slope_tpi=mid_slope_tpi,
-                    upper_slope_hfi=row.upper_slope * square_metres,
-                    upper_slope_tpi=upper_slope_tpi,
-                )
-            )
-
-    return FireCentreTPIResponse(
-        fire_centre_name=fire_centre_name, firezone_tpi_stats=hfi_tpi_areas_by_zone
-    )
+    return await fetch_fire_centre_tpi_stats(fire_centre_name, run_type, run_datetime, for_date)
 
 
 @router.get("/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
