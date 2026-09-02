@@ -1,28 +1,29 @@
 import os
 from datetime import datetime, timezone
 
-import app.auto_spatial_advisory.advisory_run_stats.cache as advisory_run_stats_cache
 import pytest
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.tests.conftest import (
     anyio_backend,
-    mock_env,
     mock_aiobotocore_get_session,
-    mock_requests,
-    mock_redis,
+    mock_client_session,
+    mock_env,
     mock_get_now,
     mock_get_pst_today_start_and_end,
-    mock_session,
     mock_jwt_decode,
-    mock_test_idir_jwt_decode,
-    mock_sentry,
+    mock_redis,
+    mock_requests,
     mock_requests_session,
-    mock_client_session,
-    spy_access_logging,
     mock_s3_client,
+    mock_sentry,
+    mock_session,
+    mock_test_idir_jwt_decode,
     mock_wfwx_api,
+    spy_access_logging,
 )
+
+import app.auto_spatial_advisory.advisory_run_stats.cache as advisory_run_stats_cache
 
 SFMS_DAILY_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
 
@@ -30,11 +31,11 @@ SFMS_DAILY_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
 @pytest.fixture(autouse=True)
 def mock_advisory_run_stats_redis(monkeypatch):
     """Same safe-by-default behaviour as wps_shared's mock_redis fixture, but for
-    advisory_run_stats.cache's own Redis client. That client is built directly with an
-    explicit connect/socket timeout rather than via wps_shared.utils.redis.create_redis (see
-    cache.py), so it isn't covered by mock_redis patching _create_redis there -- without this,
-    tests would hit a real Redis if one happens to be reachable, breaking isolation between
-    test runs (a cache write in one test could produce a cache hit in a later one)."""
+    advisory_run_stats.cache's own ASARedisCache singleton.
+
+    Patches client() on the module-level `asa_stats_cache` instance only, not the ASARedisCache
+    class. A test that wants to exercise ASARedisCache's own connection/client-building logic can
+    just instantiate a fresh ASARedisCache(), unaffected by this."""
 
     class MockRedis:
         def get(self, name):
@@ -46,7 +47,7 @@ def mock_advisory_run_stats_redis(monkeypatch):
         def delete(self, name):
             pass
 
-    monkeypatch.setattr(advisory_run_stats_cache, "create_redis", lambda: MockRedis())
+    monkeypatch.setattr(advisory_run_stats_cache.asa_stats_cache, "client", lambda: MockRedis())
 
 
 def create_mock_sfms_actuals():

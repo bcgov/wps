@@ -213,7 +213,7 @@ TpiStatsRow = namedtuple(
 async def test_get_provincial_summary_cache_hit_skips_db(mocker):
     cached_response = ProvincialSummaryResponse(provincial_summary=[])
     mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_provincial_summary",
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_provincial_summary",
         new_callable=AsyncMock,
         return_value=cached_response,
     )
@@ -230,7 +230,7 @@ async def test_get_provincial_summary_cache_hit_skips_db(mocker):
 @pytest.mark.anyio
 async def test_get_provincial_summary_cache_miss_fetches_and_caches(mocker):
     mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_provincial_summary",
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_provincial_summary",
         new_callable=AsyncMock,
         return_value=None,
     )
@@ -241,7 +241,7 @@ async def test_get_provincial_summary_cache_miss_fetches_and_caches(mocker):
         return_value=[],
     )
     mock_put = mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.put_cached_provincial_summary", new_callable=AsyncMock
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.put_cached_provincial_summary", new_callable=AsyncMock
     )
 
     result = await get_provincial_summary(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
@@ -254,7 +254,7 @@ async def test_get_provincial_summary_cache_miss_fetches_and_caches(mocker):
 async def test_get_hfi_stats_cache_hit_skips_db(mocker):
     cached_response = HFIStatsResponse(zone_data={})
     mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_hfi_stats",
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_hfi_stats",
         new_callable=AsyncMock,
         return_value=cached_response,
     )
@@ -272,7 +272,7 @@ async def test_get_hfi_stats_cache_hit_skips_db(mocker):
 async def test_get_tpi_stats_cache_hit_skips_db(mocker):
     cached_response = TPIResponse(firezone_tpi_stats=[])
     mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_tpi_stats",
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_tpi_stats",
         new_callable=AsyncMock,
         return_value=cached_response,
     )
@@ -291,7 +291,7 @@ async def test_get_tpi_stats_cache_miss_builds_all_tpi_classes(mocker):
     """Covers all three TPIClassEnum branches (valley_bottom, mid_slope, upper_slope) in one
     zone's stats, and confirms the cache-miss result gets stored."""
     mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_tpi_stats",
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_tpi_stats",
         new_callable=AsyncMock,
         return_value=None,
     )
@@ -317,7 +317,7 @@ async def test_get_tpi_stats_cache_miss_builds_all_tpi_classes(mocker):
         ],
     )
     mock_put = mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.put_cached_tpi_stats", new_callable=AsyncMock
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.put_cached_tpi_stats", new_callable=AsyncMock
     )
 
     result = await get_tpi_stats(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
@@ -333,7 +333,7 @@ async def test_get_tpi_stats_cache_miss_builds_all_tpi_classes(mocker):
 async def test_get_fire_centre_hfi_stats_cache_hit_skips_db(mocker):
     cached_response = {}
     mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_fire_centre_hfi_stats",
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_fire_centre_hfi_stats",
         new_callable=AsyncMock,
         return_value=cached_response,
     )
@@ -351,7 +351,7 @@ async def test_get_fire_centre_hfi_stats_cache_hit_skips_db(mocker):
 async def test_get_fire_centre_tpi_stats_cache_hit_skips_db(mocker):
     cached_response = FireCentreTPIResponse(fire_centre_name=FIRE_CENTRE_NAME, firezone_tpi_stats=[])
     mocker.patch(
-        "app.auto_spatial_advisory.advisory_run_stats.stats.get_cached_fire_centre_tpi_stats",
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_fire_centre_tpi_stats",
         new_callable=AsyncMock,
         return_value=cached_response,
     )

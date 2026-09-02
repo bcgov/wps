@@ -33,18 +33,7 @@ from wps_shared.schemas.fba import (
     TPIResponse,
 )
 
-from app.auto_spatial_advisory.advisory_run_stats.cache import (
-    get_cached_fire_centre_hfi_stats,
-    get_cached_fire_centre_tpi_stats,
-    get_cached_hfi_stats,
-    get_cached_provincial_summary,
-    get_cached_tpi_stats,
-    put_cached_fire_centre_hfi_stats,
-    put_cached_fire_centre_tpi_stats,
-    put_cached_hfi_stats,
-    put_cached_provincial_summary,
-    put_cached_tpi_stats,
-)
+from app.auto_spatial_advisory.advisory_run_stats.cache import asa_stats_cache
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
@@ -137,7 +126,7 @@ async def get_provincial_summary(
     run_type: RunType, run_datetime: datetime, for_date: date
 ) -> ProvincialSummaryResponse:
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
-    cached = await get_cached_provincial_summary(run_type.value, run_datetime, for_date)
+    cached = await asa_stats_cache.get_cached_provincial_summary(run_type.value, run_datetime, for_date)
     if cached is not None:
         return cached
 
@@ -147,13 +136,13 @@ async def get_provincial_summary(
         )
 
     response = ProvincialSummaryResponse(provincial_summary=fire_shape_status_details)
-    await put_cached_provincial_summary(run_type.value, run_datetime, for_date, response)
+    await asa_stats_cache.put_cached_provincial_summary(run_type.value, run_datetime, for_date, response)
     return response
 
 
 async def get_hfi_stats(run_type: RunType, run_datetime: datetime, for_date: date) -> HFIStatsResponse:
     """Fetch fuel type and critical hours data for all fire zone units."""
-    cached = await get_cached_hfi_stats(run_type.value, run_datetime, for_date)
+    cached = await asa_stats_cache.get_cached_hfi_stats(run_type.value, run_datetime, for_date)
     if cached is not None:
         return cached
 
@@ -164,7 +153,7 @@ async def get_hfi_stats(run_type: RunType, run_datetime: datetime, for_date: dat
         )
 
     response = HFIStatsResponse(zone_data=all_zone_data)
-    await put_cached_hfi_stats(run_type.value, run_datetime, for_date, response)
+    await asa_stats_cache.put_cached_hfi_stats(run_type.value, run_datetime, for_date, response)
     return response
 
 
@@ -172,7 +161,7 @@ async def get_fire_centre_hfi_stats(
     fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date
 ) -> dict[int, FireZoneHFIStats]:
     """Fetch fuel type and critical hours data for all fire zones in one fire centre."""
-    cached = await get_cached_fire_centre_hfi_stats(fire_centre_name, run_type.value, run_datetime, for_date)
+    cached = await asa_stats_cache.get_cached_fire_centre_hfi_stats(fire_centre_name, run_type.value, run_datetime, for_date)
     if cached is not None:
         return cached
 
@@ -182,7 +171,7 @@ async def get_fire_centre_hfi_stats(
             session, zone_source_ids, run_type, for_date, run_datetime
         )
 
-    await put_cached_fire_centre_hfi_stats(fire_centre_name, run_type.value, run_datetime, for_date, all_zone_data)
+    await asa_stats_cache.put_cached_fire_centre_hfi_stats(fire_centre_name, run_type.value, run_datetime, for_date, all_zone_data)
     return all_zone_data
 
 
@@ -224,7 +213,7 @@ def build_firezone_tpi_stats(tpi_stats, tpi_fuel_stats) -> list[FireZoneTPIStats
 
 async def get_tpi_stats(run_type: RunType, run_datetime: datetime, for_date: date) -> TPIResponse:
     """Return the elevation TPI statistics for each advisory threshold for all fire shapes."""
-    cached = await get_cached_tpi_stats(run_type.value, run_datetime, for_date)
+    cached = await asa_stats_cache.get_cached_tpi_stats(run_type.value, run_datetime, for_date)
     if cached is not None:
         return cached
 
@@ -235,7 +224,7 @@ async def get_tpi_stats(run_type: RunType, run_datetime: datetime, for_date: dat
         hfi_tpi_areas_by_zone = build_firezone_tpi_stats(tpi_stats, tpi_fuel_stats)
 
     response = TPIResponse(firezone_tpi_stats=hfi_tpi_areas_by_zone)
-    await put_cached_tpi_stats(run_type.value, run_datetime, for_date, response)
+    await asa_stats_cache.put_cached_tpi_stats(run_type.value, run_datetime, for_date, response)
     return response
 
 
@@ -243,7 +232,7 @@ async def get_fire_centre_tpi_stats(
     fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date
 ) -> FireCentreTPIResponse:
     """Return the elevation TPI statistics for each advisory threshold for one fire centre."""
-    cached = await get_cached_fire_centre_tpi_stats(fire_centre_name, run_type.value, run_datetime, for_date)
+    cached = await asa_stats_cache.get_cached_fire_centre_tpi_stats(fire_centre_name, run_type.value, run_datetime, for_date)
     if cached is not None:
         return cached
 
@@ -256,5 +245,5 @@ async def get_fire_centre_tpi_stats(
         hfi_tpi_areas_by_zone = build_firezone_tpi_stats(tpi_stats_for_centre, tpi_fuel_stats)
 
     response = FireCentreTPIResponse(fire_centre_name=fire_centre_name, firezone_tpi_stats=hfi_tpi_areas_by_zone)
-    await put_cached_fire_centre_tpi_stats(fire_centre_name, run_type.value, run_datetime, for_date, response)
+    await asa_stats_cache.put_cached_fire_centre_tpi_stats(fire_centre_name, run_type.value, run_datetime, for_date, response)
     return response
