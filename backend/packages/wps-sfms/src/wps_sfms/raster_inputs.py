@@ -54,6 +54,27 @@ class RateOfSpreadInputs:
 
 
 @dataclass(frozen=True)
+class PrimaryFireBehaviourInputs:
+    """Raster locations and metadata needed for one primary FBP calculation."""
+
+    fuel_key: GDALPath
+    ffmc_key: GDALPath
+    bui_key: GDALPath
+    wind_speed_key: GDALPath
+    wind_direction_key: GDALPath
+    slope_key: GDALPath
+    aspect_key: GDALPath
+    latitude_key: GDALPath
+    longitude_key: GDALPath
+    elevation_key: GDALPath
+    percent_conifer_key: GDALPath
+    fmc_key: GDALPath
+    isi_key: GDALPath
+    output_key: S3Key
+    run_type: RunType
+
+
+@dataclass(frozen=True)
 class FoliarMoistureContentInputs:
     """Static dependencies and date-specific outputs for shared daily FMC calculations."""
 

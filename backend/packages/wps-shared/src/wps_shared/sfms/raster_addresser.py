@@ -33,6 +33,7 @@ class FWIParameter(enum.Enum):
 class FBPParameter(enum.Enum):
     SFC = "sfc"
     ROS = "ros"
+    HFI = "hfi"
 
 
 class BaseRasterAddresser:

@@ -26,6 +26,7 @@ from wps_sfms.processors.fwi import (
     ISICalculator,
 )
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
+from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
 from wps_sfms.processors.rate_of_spread import RateOfSpreadProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.surface_fuel_consumption import SurfaceFuelConsumptionProcessor
@@ -180,6 +181,42 @@ async def run_fbp_calculations(
         await ros_processor.process(s3_client, multi_wps_dataset_context, ros_inputs)
 
     await _run_tracked_job(SFMSRunLogJobName.ROS_CALCULATION, sfms_run_id, session, _run_ros)
+
+    hfi_inputs = raster_addresser.get_primary_fire_behaviour_inputs(
+        datetime_to_process,
+        run_type,
+        fuel_raster_path,
+        percent_conifer_path,
+        raster_addresser.gdal_path(
+            raster_addresser.get_weather_key(
+                datetime_to_process,
+                SFMSInterpolatedWeatherParameter.WIND_SPEED,
+                run_type,
+            )
+        ),
+        raster_addresser.gdal_path(
+            raster_addresser.get_weather_key(
+                datetime_to_process,
+                SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
+                run_type,
+            )
+        ),
+        raster_addresser.gdal_path(raster_addresser.get_fmc_key(datetime_to_process.date())),
+        raster_addresser.gdal_path(
+            raster_addresser.get_index_key(datetime_to_process, FWIParameter.ISI, run_type)
+        ),
+        raster_addresser.gdal_path(raster_addresser.get_slope_key()),
+        raster_addresser.gdal_path(raster_addresser.get_aspect_key()),
+        raster_addresser.gdal_path(raster_addresser.get_latitude_key()),
+        raster_addresser.gdal_path(raster_addresser.get_longitude_key()),
+        raster_addresser.gdal_path(raster_addresser.get_elevation_key()),
+    )
+    hfi_processor = PrimaryFireBehaviourProcessor(datetime_to_process)
+
+    async def _run_hfi() -> None:
+        await hfi_processor.process(s3_client, multi_wps_dataset_context, hfi_inputs)
+
+    await _run_tracked_job(SFMSRunLogJobName.HFI_CALCULATION, sfms_run_id, session, _run_hfi)
 
 
 async def run_weather_interpolation(

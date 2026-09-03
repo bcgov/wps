@@ -7,6 +7,7 @@ from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FBPParameter,
     FWIParameter,
+    S3Key,
     SFMSInterpolatedWeatherParameter,
 )
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
@@ -42,6 +43,21 @@ class TestGetFoliarMoistureContentInputs:
             date(2024, 4, 15): "sfms_ng/static/fmc/2024/04/15/fmc_20240415.tif",
             date(2024, 4, 16): "sfms_ng/static/fmc/2024/04/16/fmc_20240416.tif",
         }
+
+    @pytest.mark.parametrize(
+        "method_name,expected_key",
+        [
+            ("get_slope_key", "sfms_ng/static/bc_slope.tif"),
+            ("get_aspect_key", "sfms_ng/static/bc_aspect.tif"),
+            ("get_latitude_key", "sfms_ng/static/latitude.tif"),
+            ("get_longitude_key", "sfms_ng/static/longitude.tif"),
+            ("get_elevation_key", "sfms_ng/static/bc_elevation.tif"),
+        ],
+    )
+    def test_static_lookup_helpers(
+        self, addresser: SFMSNGRasterAddresser, method_name: str, expected_key: str
+    ):
+        assert getattr(addresser, method_name)() == expected_key
 
 
 class TestGetActualWeatherKey:
@@ -235,6 +251,68 @@ class TestSurfaceFuelConsumptionInputs:
         assert result.sfc_key == sfc_key
         assert result.percent_conifer_key == percent_conifer_key
         assert result.output_key == "sfms_ng/actual/2024/04/15/ros_20240415.tif"
+        assert result.run_type == RunType.ACTUAL
+
+    def test_get_primary_fire_behaviour_inputs_uses_hfi_output_key(
+        self, addresser: SFMSNGRasterAddresser
+    ):
+        fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
+        percent_conifer_key = addresser.gdal_path(addresser.get_percent_conifer_key(2024))
+        wind_speed_key = addresser.gdal_path(
+            addresser.get_weather_key(
+                TEST_DATETIME,
+                SFMSInterpolatedWeatherParameter.WIND_SPEED,
+                RunType.ACTUAL,
+            )
+        )
+        wind_direction_key = addresser.gdal_path(
+            addresser.get_weather_key(
+                TEST_DATETIME,
+                SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
+                RunType.ACTUAL,
+            )
+        )
+        fmc_key = addresser.gdal_path(addresser.get_fmc_key(TEST_DATETIME.date()))
+        isi_key = addresser.gdal_path(
+            addresser.get_index_key(TEST_DATETIME, FWIParameter.ISI, RunType.ACTUAL)
+        )
+
+        slope_key = addresser.gdal_path(addresser.get_slope_key())
+        aspect_key = addresser.gdal_path(addresser.get_aspect_key())
+        latitude_key = addresser.gdal_path(addresser.get_latitude_key())
+        longitude_key = addresser.gdal_path(addresser.get_longitude_key())
+        elevation_key = addresser.gdal_path(addresser.get_elevation_key())
+
+        result = addresser.get_primary_fire_behaviour_inputs(
+            TEST_DATETIME,
+            RunType.ACTUAL,
+            fuel_key,
+            percent_conifer_key,
+            wind_speed_key,
+            wind_direction_key,
+            fmc_key,
+            isi_key,
+            slope_key,
+            aspect_key,
+            latitude_key,
+            longitude_key,
+            elevation_key,
+        )
+
+        assert result.fuel_key == fuel_key
+        assert result.ffmc_key.endswith("sfms_ng/actual/2024/04/15/ffmc_20240415.tif")
+        assert result.bui_key.endswith("sfms_ng/actual/2024/04/15/bui_20240415.tif")
+        assert result.wind_speed_key == wind_speed_key
+        assert result.wind_direction_key == wind_direction_key
+        assert result.slope_key == slope_key
+        assert result.aspect_key == aspect_key
+        assert result.latitude_key == latitude_key
+        assert result.longitude_key == longitude_key
+        assert result.elevation_key == elevation_key
+        assert result.percent_conifer_key == percent_conifer_key
+        assert result.fmc_key == fmc_key
+        assert result.isi_key == isi_key
+        assert result.output_key == "sfms_ng/actual/2024/04/15/hfi_20240415.tif"
         assert result.run_type == RunType.ACTUAL
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
