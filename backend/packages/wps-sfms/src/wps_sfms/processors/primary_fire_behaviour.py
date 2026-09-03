@@ -94,7 +94,7 @@ def calculate_primary_fire_behaviour(
     if np.any(calculation_mask):
         start = perf_counter()
         pdf = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        cc = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
+        cc = np.full(fuel[calculation_mask].shape, 65.0, dtype=np.float32)
         gfl = np.full(fuel[calculation_mask].shape, 0.35, dtype=np.float32)
         cbh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         cfl = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
