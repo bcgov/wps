@@ -36,7 +36,7 @@
     "@wps/types": "workspace:*",
     "@wps/ui": "workspace:*",
     "@wps/utils": "workspace:*",
-    "axios": "1.19.0",
+    "axios": "1.20.0",
     "date-fns": "^4.0.0",
     "filefy": "^0.1.11",
     "jsdom": "^30.0.0",
