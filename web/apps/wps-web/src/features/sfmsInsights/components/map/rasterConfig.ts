@@ -8,6 +8,7 @@ export type RasterType =
   | 'isi'
   | 'sfc'
   | 'fmc'
+  | 'ros'
   | 'temperature'
   | 'relative_humidity'
   | 'wind_speed'
@@ -118,6 +119,15 @@ export const SFC_COLOR_BREAKS: ColorBreak[] = [
   { min: 7.6, max: null, color: RASTER_COLORS.red, label: '7.6+' }
 ]
 
+export const ROS_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 1, color: RASTER_COLORS.blue, label: '0-1 m/min' },
+  { min: 1, max: 3, color: RASTER_COLORS.lightBlue, label: '1-3 m/min' },
+  { min: 3, max: 8, color: RASTER_COLORS.green, label: '3-8 m/min' },
+  { min: 8, max: 15, color: RASTER_COLORS.yellow, label: '8-15 m/min' },
+  { min: 15, max: 30, color: RASTER_COLORS.orange, label: '15-30 m/min' },
+  { min: 30, max: null, color: RASTER_COLORS.red, label: '30+ m/min' }
+]
+
 export const FMC_COLOR_BREAKS: ColorBreak[] = [
   { min: Number.NEGATIVE_INFINITY, max: 85, color: RASTER_COLORS.orange, label: '<85' },
   { min: 85, max: 90, color: RASTER_COLORS.yellow, label: '85-90' },
@@ -217,6 +227,7 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS },
   sfc: { label: 'SFC', colorBreaks: SFC_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
   fmc: { label: 'FMC', colorBreaks: FMC_COLOR_BREAKS },
+  ros: { label: 'ROS', colorBreaks: ROS_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
   temperature: { label: 'Temperature', colorBreaks: TEMPERATURE_COLOR_BREAKS },
   relative_humidity: { label: 'Relative Humidity', colorBreaks: RH_COLOR_BREAKS },
   wind_speed: { label: 'Wind Speed', colorBreaks: WIND_SPEED_COLOR_BREAKS },
@@ -234,6 +245,7 @@ export const RASTER_COLOR_BREAKS: Record<RasterType, ColorBreak[]> = {
   isi: ISI_COLOR_BREAKS,
   sfc: SFC_COLOR_BREAKS,
   fmc: FMC_COLOR_BREAKS,
+  ros: ROS_COLOR_BREAKS,
   temperature: TEMPERATURE_COLOR_BREAKS,
   relative_humidity: RH_COLOR_BREAKS,
   wind_speed: WIND_SPEED_COLOR_BREAKS,
