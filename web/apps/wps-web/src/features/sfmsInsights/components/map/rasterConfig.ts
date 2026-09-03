@@ -122,10 +122,11 @@ export const SFC_COLOR_BREAKS: ColorBreak[] = [
 export const ROS_COLOR_BREAKS: ColorBreak[] = [
   { min: 0, max: 1, color: RASTER_COLORS.blue, label: '0-1 m/min' },
   { min: 1, max: 3, color: RASTER_COLORS.lightBlue, label: '1-3 m/min' },
-  { min: 3, max: 8, color: RASTER_COLORS.green, label: '3-8 m/min' },
-  { min: 8, max: 15, color: RASTER_COLORS.yellow, label: '8-15 m/min' },
-  { min: 15, max: 30, color: RASTER_COLORS.orange, label: '15-30 m/min' },
-  { min: 30, max: null, color: RASTER_COLORS.red, label: '30+ m/min' }
+  { min: 3, max: 10, color: RASTER_COLORS.darkGreen, label: '3-10 m/min' },
+  { min: 10, max: 18, color: RASTER_COLORS.green, label: '10-18 m/min' },
+  { min: 18, max: 25, color: RASTER_COLORS.lime, label: '18-25 m/min' },
+  { min: 25, max: 50, color: RASTER_COLORS.orange, label: '25-50 m/min' },
+  { min: 50, max: null, color: RASTER_COLORS.red, label: '50+ m/min' }
 ]
 
 export const FMC_COLOR_BREAKS: ColorBreak[] = [
