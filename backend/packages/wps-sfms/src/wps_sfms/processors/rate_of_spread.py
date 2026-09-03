@@ -71,7 +71,7 @@ def calculate_rate_of_spread(datasets: RateOfSpreadDatasets) -> RateOfSpreadResu
     if np.any(calculation_mask):
         start = perf_counter()
         pdf = np.zeros_like(isi[calculation_mask], dtype=np.float32)
-        cc = np.zeros_like(isi[calculation_mask], dtype=np.float32)
+        cc = np.full(isi[calculation_mask].shape, 65.0, dtype=np.float32)
         cbh = np.zeros_like(isi[calculation_mask], dtype=np.float32)
         calculated = vectorized_rate_of_spread(
             fuel_type_codes[calculation_mask],
