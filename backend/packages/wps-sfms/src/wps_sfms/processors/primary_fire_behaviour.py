@@ -104,8 +104,8 @@ def calculate_primary_fire_behaviour(
         sh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         hr = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         theta_rad = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        accel = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        buieff = np.ones_like(fuel[calculation_mask], dtype=np.float32)
+        accel = np.zeros_like(fuel[calculation_mask], dtype=np.int64)
+        buieff = np.ones_like(fuel[calculation_mask], dtype=np.int64)
 
         primary = vectorized_primary_fire_behaviour_prediction(
             fuel_type_codes[calculation_mask],
