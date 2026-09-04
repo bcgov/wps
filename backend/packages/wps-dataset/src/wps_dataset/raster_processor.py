@@ -10,7 +10,6 @@ covering each requested window get warped, on read.
 """
 
 import logging
-import uuid
 from dataclasses import dataclass
 from typing import Callable, Iterator, Sequence
 
@@ -47,6 +46,31 @@ def iter_tiles(
             w = min(config.tile_width, x_size - col_off)
             tiles = [band.ReadAsArray(col_off, row_off, w, h) for band in bands]
             yield col_off, row_off, w, h, tiles
+
+
+def map_tile_array(
+    band: gdal.Band,
+    x_size: int,
+    y_size: int,
+    fn: Callable[[np.ndarray], np.ndarray],
+    dtype,
+    config: TileConfig | None = None,
+) -> np.ndarray:
+    """
+    Read `band` and apply `fn` to each tile, assembling the results into one array the same
+    shape as the band - the source is never read in one bare ReadAsArray() call, only one tile
+    at a time.
+
+    Note this is for callers whose contract is "give me the whole processed array back" (e.g.
+    a boolean valid-pixel mask the same size as the raster) - the returned array is still
+    O(raster size) in memory, tiling the read doesn't change that. For genuinely
+    memory-bounded processing, use `iter_tiles` (or `process_raster_chain`) directly, with a
+    per-tile consumer that writes each result out instead of accumulating one.
+    """
+    result = np.empty((y_size, x_size), dtype=dtype)
+    for col_off, row_off, w, h, (tile,) in iter_tiles([band], x_size, y_size, config):
+        result[row_off : row_off + h, col_off : col_off + w] = fn(tile)
+    return result
 
 
 def create_output_dataset(
@@ -99,12 +123,11 @@ def warp_to_match_vrt(
     maxx = minx + geotransform[1] * match_ds.RasterXSize
     miny = maxy + geotransform[5] * match_ds.RasterYSize
 
-    # ponytail: the /vsimem/ VRT descriptor (a small XML blob, not pixel data) is never
-    # gdal.Unlink'd here - fine for short-lived batch processes; add cleanup if this ever runs
-    # in a long-lived process where /vsimem/ accumulation would matter.
-    vrt_path = f"/vsimem/warp_{uuid.uuid4().hex}.vrt"
+    # A warped VRT needs no real backing file at all - "" gives it no /vsimem/ (or any other)
+    # path, so there's nothing to unlink later and no risk of that path leaking into a warped
+    # VRT's GetFileList() (which also reports its source's path) and being mistaken for one.
     return gdal.Warp(
-        vrt_path,
+        "",
         src_ds,
         format="VRT",
         dstSRS=match_ds.GetProjection(),

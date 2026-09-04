@@ -140,88 +140,6 @@ def test_raster_mul_defaults_to_memory_backed():
         assert output_ds.as_gdal_ds().GetDriver().ShortName == "MEM"
 
 
-def test_raster_mul_disk_backed():
-    """Setting output_path on the left operand backs the `*` result with a real GTiff on disk instead of MEM."""
-    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    ds_1 = create_test_dataset(
-        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=2
-    )
-    ds_2 = create_test_dataset(
-        "test_dataset_2.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
-    )
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_path = os.path.join(temp_dir, "masked.tif")
-
-        with (
-            WPSDataset(ds_path=None, ds=ds_1, output_path=output_path) as wps1_ds,
-            WPSDataset(ds_path=None, ds=ds_2) as wps2_ds,
-        ):
-            output_ds = wps1_ds * wps2_ds
-            raw_ds = output_ds.as_gdal_ds()
-
-            assert raw_ds.GetDriver().ShortName == "GTiff"
-            assert np.all(raw_ds.GetRasterBand(1).ReadAsArray() == 2)
-            raw_ds.FlushCache()  # caller's responsibility, same as process_elevation_hfi.py
-
-        assert os.path.exists(output_path)
-
-        # confirm the file actually persisted to disk with the multiplied result, not just an in-process handle
-        with WPSDataset(output_path) as reopened:
-            assert np.all(reopened.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 2)
-
-
-def test_raster_mul_disk_backed_reopen_before_close_no_longer_corrupts():
-    """Historical regression test for https://github.com/bcgov/wps/pull/5754#discussion_r3855512495:
-    reopening a disk-backed `*` result's output_path while the writer dataset was still open
-    (only FlushCache()'d, not closed) used to trigger a GDAL warning that the GeoTIFF's
-    directory was malformed ("StripByteCounts"), because a strip-organized, uncompressed
-    GeoTIFF's directory isn't finalized until the writing dataset is closed.
-
-    `*` now creates its output via create_output_dataset (TILED=YES, COMPRESS=LZW, as part of
-    being reimplemented on process_raster_chain) - and a tiled/compressed GeoTIFF's directory
-    turns out to survive this same reopen-before-close cleanly, verified here with correct
-    pixel values and zero warnings (checked at this raster's 2x2 size and separately confirmed
-    manually at 600x600, spanning multiple internal write chunks). This doesn't make
-    skipping close() correct practice - GDAL still only documents the directory as finalized on
-    close, so process_elevation_hfi.py's process_tpi_by_firezone should keep closing the writer
-    before reopening its path elsewhere - this test just records that this particular
-    reproduction no longer applies.
-    """
-    extent = (-1, 1, -1, 1)  # xmin, xmax, ymin, ymax
-    ds_1 = create_test_dataset(
-        "test_dataset_1.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=9
-    )
-    ds_2 = create_test_dataset(
-        "test_dataset_2.tif", 2, 2, extent, 4326, data_type=gdal.GDT_Byte, fill_value=1
-    )
-
-    warnings = []
-    gdal.PushErrorHandler(lambda err_class, err_num, msg: warnings.append(msg))
-    try:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_path = os.path.join(temp_dir, "masked.tif")
-
-            with (
-                WPSDataset(ds_path=None, ds=ds_1, output_path=output_path) as wps1_ds,
-                WPSDataset(ds_path=None, ds=ds_2) as wps2_ds,
-            ):
-                # reopen while the writer is still open (FlushCache only, not closed)
-                with wps1_ds * wps2_ds as writer_result:
-                    writer_result.as_gdal_ds().FlushCache()
-
-                    with WPSDataset(output_path) as reopened:
-                        assert np.all(reopened.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 9)
-
-                # reopening after the writer's `with` block has closed it remains clean too
-                with WPSDataset(output_path):
-                    pass
-
-        assert warnings == []
-    finally:
-        gdal.PopErrorHandler()
-
-
 def test_read_array():
     """read_array() is the explicit, named way to get this dataset's band as a NumPy array -
     classify-style code should call it once and compare the plain array for multiple
@@ -238,23 +156,17 @@ def test_read_array():
         assert np.array_equal(data < 4000, np.array([[True, False], [False, True]]))
 
 
-def test_from_array_disk_backed_via_output_path():
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_path = os.path.join(temp_dir, "from_array.tif")
-        srs = osr.SpatialReference()
-        srs.ImportFromEPSG(4326)
+def test_from_array_is_in_memory():
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
 
-        result = WPSDataset.from_array(
-            np.array([[7, 7], [7, 7]], dtype=np.uint8),
-            Georeference((0, 1, 0, 0, 0, -1), srs.ExportToWkt()),
-            datatype=gdal.GDT_Byte,
-            output_path=output_path,
-        )
-        assert result.as_gdal_ds().GetDriver().ShortName == "GTiff"
-
-        assert os.path.exists(output_path)
-        with WPSDataset(output_path) as reopened:
-            assert np.all(reopened.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 7)
+    result = WPSDataset.from_array(
+        np.array([[7, 7], [7, 7]], dtype=np.uint8),
+        Georeference((0, 1, 0, 0, 0, -1), srs.ExportToWkt()),
+        datatype=gdal.GDT_Byte,
+    )
+    assert result.as_gdal_ds().GetDriver().ShortName == "MEM"
+    assert np.all(result.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 7)
 
 
 def test_raster_mul_wrong_dimensions():
@@ -319,37 +231,114 @@ def test_raster_warp():
         WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds,
         WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds,
     ):
-        output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds, "/vsimem/test.tif")
+        output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds)
         assert output_ds.as_gdal_ds().GetProjection() == wps2_ds.as_gdal_ds().GetProjection()
         assert output_ds.as_gdal_ds().GetGeoTransform() == wps2_ds.as_gdal_ds().GetGeoTransform()
         assert output_ds.as_gdal_ds().RasterXSize == wps2_ds.as_gdal_ds().RasterXSize
         assert output_ds.as_gdal_ds().RasterYSize == wps2_ds.as_gdal_ds().RasterYSize
 
 
-def test_close_is_a_noop_for_mem_driver_dataset_with_no_real_backing_file():
-    """A MEM-driver dataset can be named with a /vsimem/-looking path but MEM never
-    registers a real VSI file there, so GetFileList() is None and close() has nothing to do."""
-    mem_ds = gdal.GetDriverByName("MEM").Create("/vsimem/no_such_file.tif", 2, 2, 1)
-    assert mem_ds.GetFileList() is None
+def test_warp_to_match_defaults_to_a_lazy_vrt():
+    """Without max_value, the result is backed by a warped VRT, not a materialized MEM
+    dataset - composable without forcing any pixel work yet."""
+    extent1 = (-10, 10, -10, 10)
+    wgs_84_ds = create_test_dataset("test_dataset_1.tif", 10, 10, extent1, 4326, fill_value=42)
+    extent2 = (-10, 10, -10, 10)
+    match_ds = create_test_dataset("test_dataset_2.tif", 5, 5, extent2, 4326)
 
-    with WPSDataset(ds_path=None, ds=mem_ds) as wps_ds:
-        wps_ds.close()  # no-op, must not raise
+    with (
+        WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds,
+        WPSDataset(ds_path=None, ds=match_ds) as wps2_ds,
+    ):
+        warped = wps1_ds.warp_to_match(wps2_ds)
+        assert warped.as_gdal_ds().GetDriver().ShortName == "VRT"
+        assert np.all(warped.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 42)
 
 
-def test_close_unlinks_vsimem_file_even_when_referenced_via_mem_driver_dataset():
-    """If a /vsimem/ file genuinely exists at the path a MEM-driver dataset happens to be named
-    after, gdal's own GetFileList() reports it and close() unlinks it automatically, same as
-    for a real GTiff-on-vsimem result. WPSDataset doesn't special-case the driver."""
-    vsimem_path = "/vsimem/masked_fuel_type_1.tif"
-    real_ds = gdal.GetDriverByName("GTiff").Create(vsimem_path, 2, 2, 1)
-    del real_ds  # drop the only reference to close/flush the GTiff onto the vsimem filesystem
-    assert gdal.VSIStatL(vsimem_path) is not None
+def test_warp_to_match_close_does_not_unlink_the_source_dataset():
+    """Closing a *derived* (warped) WPSDataset must never affect the *source* WPSDataset's own
+    file - the source may still be needed elsewhere. close() no longer touches any file at all
+    (every WPSDataset method's result now stays in memory), but this guards against that
+    ever regressing."""
+    source_path = "/vsimem/warp_source_test.tif"
+    source_gdal_ds = gdal.GetDriverByName("GTiff").Create(source_path, 2, 2, 1, gdal.GDT_Byte)
+    source_gdal_ds.SetGeoTransform((-10, 1, 0, 10, 0, -1))
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    source_gdal_ds.SetProjection(srs.ExportToWkt())
+    source_gdal_ds.GetRasterBand(1).Fill(7)
+    source_gdal_ds.FlushCache()
 
-    mem_ds = gdal.GetDriverByName("MEM").Create(vsimem_path, 2, 2, 1)
-    with WPSDataset(ds_path=None, ds=mem_ds) as wps_ds:
-        wps_ds.close()
+    match_ds = create_test_dataset("match.tif", 2, 2, (-10, 10, -10, 10), 4326)
 
-    assert gdal.VSIStatL(vsimem_path) is None  # unlinked automatically
+    source_ds = WPSDataset(source_path)
+    with source_ds, WPSDataset(ds_path=None, ds=match_ds) as wps_match:
+        warped = source_ds.warp_to_match(wps_match)
+        warped.close()
+
+        # the source file must still exist - warped.close() must not have deleted it
+        assert gdal.VSIStatL(source_path) is not None
+        assert np.all(source_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 7)
+
+
+def test_warp_to_match_max_value_materializes_to_mem():
+    """max_value forces materialization (a VRT is read-only) into an in-memory MEM dataset -
+    never a real file. export_to_geotiff() is the only way to get a WPSDataset onto disk."""
+    extent = (-10, 10, -10, 10)
+    src_ds = create_test_dataset("src.tif", 10, 10, extent, 4326, fill_value=3)
+    match_ds = create_test_dataset("match.tif", 5, 5, extent, 4326)
+
+    with (
+        WPSDataset(ds_path=None, ds=src_ds) as wps_src,
+        WPSDataset(ds_path=None, ds=match_ds) as wps_match,
+    ):
+        warped = wps_src.warp_to_match(wps_match, max_value=100)
+        assert warped.as_gdal_ds().GetDriver().ShortName == "MEM"
+        assert np.all(warped.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 3)
+
+
+def test_clip_to_geometry_defaults_to_a_lazy_vrt():
+    extent = (-10, 10, -10, 10)
+    ds = create_test_dataset("test_dataset_1.tif", 10, 10, extent, 4326, fill_value=7)
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+    cutline.AssignSpatialReference(srs)
+
+    with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+        clipped = wps_ds.clip_to_geometry(cutline)
+        assert clipped.as_gdal_ds().GetDriver().ShortName == "VRT"
+        assert np.all(clipped.as_gdal_ds().GetRasterBand(1).ReadAsArray() == 7)
+
+
+def test_composes_warp_then_clip_then_multiply_without_intermediate_materialization():
+    """End-to-end: chaining warp_to_match -> clip_to_geometry -> `*` (all without an explicit
+    output_path) must produce correct results even though every intermediate step is a lazy
+    VRT - laziness must not silently drop or duplicate any step's effect."""
+    extent = (-10, 10, -10, 10)
+    src_ds = create_test_dataset("src.tif", 10, 10, extent, 4326, fill_value=5)
+    match_ds = create_test_dataset("match.tif", 10, 10, extent, 4326)
+    # matches the clip result's known 4x4 extent (-4,4)-(4,-4), see
+    # test_clip_to_geometry_with_ogr_geometry for how that geotransform is derived
+    mask_ds = create_test_dataset("mask.tif", 4, 4, (-4, 4, -4, 4), 4326, fill_value=1)
+
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+    cutline.AssignSpatialReference(srs)
+
+    with (
+        WPSDataset(ds_path=None, ds=src_ds) as wps_src,
+        WPSDataset(ds_path=None, ds=match_ds) as wps_match,
+        WPSDataset(ds_path=None, ds=mask_ds) as wps_mask,
+    ):
+        warped = wps_src.warp_to_match(wps_match)
+        clipped = warped.clip_to_geometry(cutline)
+        result = clipped * wps_mask
+
+        raw = result.as_gdal_ds()
+        assert (raw.RasterXSize, raw.RasterYSize) == (4, 4)
+        assert np.all(raw.GetRasterBand(1).ReadAsArray() == 5)
 
 
 def test_clip_to_geometry_with_ogr_geometry():
@@ -376,7 +365,9 @@ def test_clip_to_geometry_with_ogr_geometry():
         assert np.array_equal(raw.GetRasterBand(1).ReadAsArray(), np.full((4, 4), 7))
 
 
-def test_clip_to_geometry_unlinks_vsimem_output_on_close():
+def test_clip_to_geometry_default_vrt_has_no_backing_file_to_unlink():
+    """The default (no output_path) result is a VRT built with no real name at all - not a
+    generated /vsimem/ path - so there's nothing for close() to clean up in the first place."""
     extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
     ds = create_test_dataset(
         "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=7
@@ -388,38 +379,10 @@ def test_clip_to_geometry_unlinks_vsimem_output_on_close():
     cutline.AssignSpatialReference(srs)
 
     with WPSDataset(ds_path=None, ds=ds) as wps_ds:
-        clipped = wps_ds.clip_to_geometry(cutline)  # no output_path -> auto /vsimem/ path
-        vsimem_path = clipped.as_gdal_ds().GetFileList()[0]
+        clipped = wps_ds.clip_to_geometry(cutline)
+        assert clipped.as_gdal_ds().GetDescription() == ""
 
-        assert vsimem_path.startswith("/vsimem/")
-        assert gdal.VSIStatL(vsimem_path) is not None  # backing file exists while open
-
-        clipped.close()
-
-        assert gdal.VSIStatL(vsimem_path) is None  # gdal.Unlink'd automatically
-
-
-def test_clip_to_geometry_does_not_unlink_real_output_path():
-    extent = (-10, 10, -10, 10)  # xmin, xmax, ymin, ymax
-    ds = create_test_dataset(
-        "test_dataset_1.tif", 10, 10, extent, 4326, data_type=gdal.GDT_Byte, fill_value=7
-    )
-
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(4326)
-    cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
-    cutline.AssignSpatialReference(srs)
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        output_path = os.path.join(temp_dir, "clipped.tif")
-
-        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
-            clipped = wps_ds.clip_to_geometry(cutline, output_path=output_path)
-            assert clipped.as_gdal_ds().GetFileList() == [output_path]
-
-            clipped.close()
-
-        assert os.path.exists(output_path)  # real files are left alone by close()
+        clipped.close()  # no-op, nothing was ever written anywhere
 
 
 def test_clip_to_geometry_with_vector_file_path():
@@ -449,17 +412,13 @@ def test_clip_to_geometry_with_vector_file_path():
         with open(cutline_path, "w") as f:
             json.dump(geojson, f)
 
-        output_path = os.path.join(temp_dir, "clipped.tif")
-
         with WPSDataset(ds_path=None, ds=ds) as wps_ds:
-            clipped = wps_ds.clip_to_geometry(cutline_path, output_path=output_path)
+            clipped = wps_ds.clip_to_geometry(cutline_path)
             raw = clipped.as_gdal_ds()
 
             assert (raw.RasterXSize, raw.RasterYSize) == (4, 4)
             assert raw.GetGeoTransform() == (-4.0, 2.0, 0.0, 4.0, 0.0, -2.0)
             assert np.array_equal(raw.GetRasterBand(1).ReadAsArray(), np.full((4, 4), 3))
-
-        assert os.path.exists(output_path)
 
 
 def test_raster_warp_max_value():
@@ -481,9 +440,7 @@ def test_raster_warp_max_value():
         WPSDataset(ds_path=None, ds=wgs_84_ds) as wps1_ds,
         WPSDataset(ds_path=None, ds=mercator_ds) as wps2_ds,
     ):
-        output_ds: WPSDataset = wps1_ds.warp_to_match(
-            wps2_ds, "/vsimem/test.grib2", max_value=100
-        )  # test that we can update an output path with any extension
+        output_ds: WPSDataset = wps1_ds.warp_to_match(wps2_ds, max_value=100)
         out_array = output_ds.as_gdal_ds().GetRasterBand(1).ReadAsArray()
         assert out_array.max() == 100
 
@@ -538,7 +495,7 @@ def test_latitude_array():
         WPSDataset(ds_path=lats_3005_tif) as lats_3005_ds,
         WPSDataset(ds_path=lats_4326_tif) as lats_4326_ds,
     ):
-        output_ds: WPSDataset = lats_3005_ds.warp_to_match(lats_4326_ds, "/vsimem/test_lats.tif")
+        output_ds: WPSDataset = lats_3005_ds.warp_to_match(lats_4326_ds)
         original_ds = gdal.Open(lats_4326_tif)
         original_lats = original_ds.GetRasterBand(1).ReadAsArray()
         warped_lats = output_ds.generate_latitude_array()
@@ -888,3 +845,112 @@ class TestApplyMask:
             with WPSDataset(ds_path=None, ds=mask_gdal_ds) as mask_ds:
                 with pytest.raises(ValueError, match="Mask grid does not match reference grid"):
                     ref_ds.apply_mask(mask_ds)
+
+
+class TestWindowedTilingCorrectness:
+    """Every WPSDataset method that touches pixel data now reads/writes tile by tile (default
+    512x512) instead of via a bare ReadAsArray()/WriteArray() covering the whole raster. All
+    other tests in this file use rasters small enough to fit in a single tile, so they can't
+    catch a tile-boundary/assembly bug (wrong offset, transposed row/col, a dropped edge tile).
+    These use a raster bigger than one tile in both dimensions - and neither a multiple of the
+    tile size, to exercise a ragged final tile too - with a value unique per pixel, so a
+    misplaced or dropped tile shows up immediately as a mismatched value."""
+
+    _WIDTH = 600
+    _HEIGHT = 700
+
+    def _make_pattern_dataset(self, fill_nodata_border: bool = False):
+        extent = (-1, 1, -1, 1)
+        ds = create_test_dataset(
+            "pattern.tif", self._WIDTH, self._HEIGHT, extent, 4326, data_type=gdal.GDT_Int32
+        )
+        pattern = (
+            np.arange(self._HEIGHT)[:, None] * self._WIDTH + np.arange(self._WIDTH)[None, :]
+        ).astype(np.int32)
+        if fill_nodata_border:
+            pattern[0, :] = -1
+            pattern[:, 0] = -1
+            pattern[550:560, 300:310] = -1  # a patch straddling a 512px tile boundary
+            ds.GetRasterBand(1).SetNoDataValue(-1)
+        ds.GetRasterBand(1).WriteArray(pattern)
+        return ds, pattern
+
+    def test_read_array_matches_pattern_across_tile_boundaries(self):
+        ds, pattern = self._make_pattern_dataset()
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            np.testing.assert_array_equal(wps_ds.read_array(), pattern)
+
+    def test_replace_nodata_with_matches_across_tile_boundaries(self):
+        ds, pattern = self._make_pattern_dataset(fill_nodata_border=True)
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            array, new_nodata = wps_ds.replace_nodata_with(-9999)
+            expected = pattern.copy()
+            expected[expected == -1] = -9999
+            np.testing.assert_array_equal(array, expected)
+            assert new_nodata == -9999
+
+    def test_get_valid_mask_matches_across_tile_boundaries(self):
+        ds, pattern = self._make_pattern_dataset(fill_nodata_border=True)
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            mask = wps_ds.get_valid_mask()
+            np.testing.assert_array_equal(mask, pattern != -1)
+
+    def test_get_nodata_mask_matches_across_tile_boundaries(self):
+        ds, pattern = self._make_pattern_dataset(fill_nodata_border=True)
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            mask, nodata = wps_ds.get_nodata_mask()
+            np.testing.assert_array_equal(mask, pattern == -1)
+            assert nodata == -1
+
+    def test_apply_mask_matches_across_tile_boundaries(self):
+        extent = (-1, 1, -1, 1)
+        ref_ds = create_test_dataset("ref.tif", self._WIDTH, self._HEIGHT, extent, 4326)
+        mask_array = (
+            (np.arange(self._HEIGHT)[:, None] + np.arange(self._WIDTH)[None, :]) % 2
+        ).astype(np.uint8)
+        mask_ds = create_test_dataset(
+            "mask.tif", self._WIDTH, self._HEIGHT, extent, 4326, data_type=gdal.GDT_Byte
+        )
+        mask_ds.GetRasterBand(1).WriteArray(mask_array)
+
+        with (
+            WPSDataset(ds_path=None, ds=ref_ds) as wps_ref,
+            WPSDataset(ds_path=None, ds=mask_ds) as wps_mask,
+        ):
+            result = wps_ref.apply_mask(wps_mask)
+            np.testing.assert_array_equal(result, mask_array != 0)
+
+    def test_export_to_geotiff_matches_across_tile_boundaries(self):
+        ds, pattern = self._make_pattern_dataset()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_path = os.path.join(temp_dir, "export.tif")
+            with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+                wps_ds.export_to_geotiff(output_path)
+
+            with WPSDataset(output_path) as reopened:
+                np.testing.assert_array_equal(
+                    reopened.as_gdal_ds().GetRasterBand(1).ReadAsArray(), pattern
+                )
+
+    def test_warp_to_match_max_value_clamp_across_tile_boundaries(self):
+        extent = (-1, 1, -1, 1)
+        src_ds = create_test_dataset(
+            "src.tif", self._WIDTH, self._HEIGHT, extent, 4326, data_type=gdal.GDT_Float32
+        )
+        pattern = (
+            np.arange(self._HEIGHT)[:, None] * self._WIDTH + np.arange(self._WIDTH)[None, :]
+        ).astype(np.float32)
+        src_ds.GetRasterBand(1).WriteArray(pattern)
+
+        match_ds = create_test_dataset(
+            "match.tif", self._WIDTH, self._HEIGHT, extent, 4326, data_type=gdal.GDT_Float32
+        )
+
+        with (
+            WPSDataset(ds_path=None, ds=src_ds) as wps_src,
+            WPSDataset(ds_path=None, ds=match_ds) as wps_match,
+        ):
+            with wps_src.warp_to_match(wps_match, max_value=1000) as warped:
+                result = warped.as_gdal_ds().GetRasterBand(1).ReadAsArray()
+                assert result.max() <= 1000
+                np.testing.assert_array_equal(result, np.minimum(pattern, 1000))
