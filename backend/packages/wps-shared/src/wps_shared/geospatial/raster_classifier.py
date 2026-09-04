@@ -1,7 +1,7 @@
 """
 Windowed raster classification using GDAL, numpy and pandas.
 When dealing with large rasters too big to read into memory all at once,
-this class reads one tile at a time, classifies it, and writes to an output raster.
+`classify_raster` reads one tile at a time, classifies it, and writes to an output raster.
 It also accumulates per-class pixel counts and returns a summary DataFrame.
 """
 
@@ -52,166 +52,148 @@ class TileConfig:
     tile_height: int = 512
 
 
-class WindowedRasterClassifier:
+def classify_raster(
+    input_path: str,
+    output_path: str,
+    rules: list[ClassRule],
+    band_index: int = 1,
+    config: TileConfig | None = None,
+) -> pandas.DataFrame:
+    """Single-band windowed classification.
+
+    Reads one tile at a time from `band_index`, classifies it,
+    writes to output, and accumulates per-class pixel counts.
+    Returns a Pandas summary DataFrame.
     """
-    Performs windowed raster classification using GDAL.
-    When dealing with large rasters too big to read into memory all at once,
-    this class reads one tile at a time, classifies it, and writes to an output raster.
-    It also accumulates per-class pixel counts and returns a summary DataFrame.
-    """
+    config = config or TileConfig()
+    src_ds = gdal.Open(input_path, gdal.GA_ReadOnly)
+    if src_ds is None:
+        raise FileNotFoundError(f"Cannot open {input_path}")
 
-    def __init__(
-        self,
-        input_path: str,
-        output_path: str,
-        rules: list[ClassRule],
-        config: TileConfig | None = None,
-    ):
-        self.input_path = input_path
-        self.output_path = output_path
-        self.rules = rules
-        self.config = config or TileConfig()
+    raster_w = src_ds.RasterXSize
+    raster_h = src_ds.RasterYSize
+    src_band = src_ds.GetRasterBand(band_index)
+    nodata = src_band.GetNoDataValue()
 
-    def classify_raster(
-        self,
-        rules: list[ClassRule],
-        band_index: int = 1,
-        config: TileConfig | None = None,
-    ) -> pandas.DataFrame:
-        """Single-band windowed classification.
+    logger.info(f"Input: {raster_w}×{raster_h}, nodata={nodata}")
 
-        Reads one tile at a time from `band_index`, classifies it,
-        writes to output, and accumulates per-class pixel counts.
-        Returns a Pandas summary DataFrame.
-        """
-        config = config or TileConfig()
-        src_ds = gdal.Open(self.input_path, gdal.GA_ReadOnly)
-        if src_ds is None:
-            raise FileNotFoundError(f"Cannot open {self.input_path}")
+    dst_ds = _create_output_dataset(output_path, src_ds)
+    dst_band = dst_ds.GetRasterBand(1)
+    dst_band.SetNoDataValue(NODATA_LABEL)
 
-        raster_w = src_ds.RasterXSize
-        raster_h = src_ds.RasterYSize
-        src_band = src_ds.GetRasterBand(band_index)
-        nodata = src_band.GetNoDataValue()
+    # Per-class accumulators, keyed by output pixel value
+    counts: dict[int, int] = {}
 
-        logger.info(f"Input: {raster_w}×{raster_h}, nodata={nodata}")
+    t0 = time.perf_counter()
+    tiles_done = 0
+    total_tiles = ((raster_w + config.tile_width - 1) // config.tile_width) * (
+        (raster_h + config.tile_height - 1) // config.tile_height
+    )
 
-        dst_ds = self._create_output_dataset(self.output_path, src_ds)
-        dst_band = dst_ds.GetRasterBand(1)
-        dst_band.SetNoDataValue(NODATA_LABEL)
+    for row_off in range(0, raster_h, config.tile_height):
+        for col_off in range(0, raster_w, config.tile_width):
+            w = min(config.tile_width, raster_w - col_off)
+            h = min(config.tile_height, raster_h - row_off)
 
-        # Per-class accumulators, keyed by output pixel value
-        counts: dict[int, int] = {}
+            # ---- READ ----
+            tile = src_band.ReadAsArray(col_off, row_off, w, h).astype(np.float64)
 
-        t0 = time.perf_counter()
-        tiles_done = 0
-        total_tiles = ((raster_w + config.tile_width - 1) // config.tile_width) * (
-            (raster_h + config.tile_height - 1) // config.tile_height
-        )
+            # ---- CLASSIFY ----
+            classified = classify_array(tile, rules, nodata)
 
-        for row_off in range(0, raster_h, config.tile_height):
-            for col_off in range(0, raster_w, config.tile_width):
-                w = min(config.tile_width, raster_w - col_off)
-                h = min(config.tile_height, raster_h - row_off)
+            # ---- WRITE ----
+            dst_band.WriteArray(classified, col_off, row_off)
 
-                # ---- READ ----
-                tile = src_band.ReadAsArray(col_off, row_off, w, h).astype(np.float64)
+            # ---- ACCUMULATE ----
+            labels, cnts = np.unique(classified, return_counts=True)
+            for lbl, cnt in zip(labels, cnts):
+                counts[int(lbl)] = counts.get(int(lbl), 0) + int(cnt)
 
-                # ---- CLASSIFY ----
-                classified = self.classify_array(tile, rules, nodata)
+            tiles_done += 1
+            if tiles_done % 50 == 0 or tiles_done == total_tiles:
+                elapsed = time.perf_counter() - t0
+                logger.debug(f"  tiles: {tiles_done}/{total_tiles}  ({elapsed:.1f}s)")
 
-                # ---- WRITE ----
-                dst_band.WriteArray(classified, col_off, row_off)
+    # Flush and close
+    dst_band.FlushCache()
+    dst_ds.FlushCache()
+    dst_ds = None
+    src_ds = None
 
-                # ---- ACCUMULATE ----
-                labels, cnts = np.unique(classified, return_counts=True)
-                for lbl, cnt in zip(labels, cnts):
-                    counts[int(lbl)] = counts.get(int(lbl), 0) + int(cnt)
+    logger.info(f"Wrote {output_path}")
+    return _build_summary(rules, counts)
 
-                tiles_done += 1
-                if tiles_done % 50 == 0 or tiles_done == total_tiles:
-                    elapsed = time.perf_counter() - t0
-                    logger.debug(f"  tiles: {tiles_done}/{total_tiles}  ({elapsed:.1f}s)")
 
-        # Flush and close
-        dst_band.FlushCache()
-        dst_ds.FlushCache()
-        dst_ds = None
-        src_ds = None
+def classify_array(
+    data: np.ndarray,
+    rules: list[ClassRule],
+    nodata: float | None = None,
+) -> np.ndarray:
+    """Classify a 2-D array of pixel values into class labels (uint8)."""
+    assert all(rule.label != NODATA_LABEL for rule in rules), (
+        f"ClassRule.label must not use the nodata sentinel {NODATA_LABEL}"
+    )
+    out = np.zeros(data.shape, dtype=np.uint8)
 
-        logger.info(f"Wrote {self.output_path}")
-        return self._build_summary(rules, counts)
+    # Mask nodata first
+    if nodata is not None:
+        invalid = np.isnan(data) | (data == nodata)
+    else:
+        invalid = np.isnan(data)
+    valid = ~invalid
 
-    def classify_array(
-        self,
-        data: np.ndarray,
-        rules: list[ClassRule],
-        nodata: float | None = None,
-    ) -> np.ndarray:
-        """Classify a 2-D array of pixel values into class labels (uint8)."""
-        assert all(rule.label != NODATA_LABEL for rule in rules), (
-            f"ClassRule.label must not use the nodata sentinel {NODATA_LABEL}"
-        )
-        out = np.zeros(data.shape, dtype=np.uint8)
+    for rule in rules:
+        mask = valid & (data >= rule.min_val) & (data < rule.max_val)
+        out[mask] = rule.label
 
-        # Mask nodata first
-        if nodata is not None:
-            invalid = np.isnan(data) | (data == nodata)
-        else:
-            invalid = np.isnan(data)
-        valid = ~invalid
+    out[invalid] = NODATA_LABEL
+    return out
 
-        for rule in rules:
-            mask = valid & (data >= rule.min_val) & (data < rule.max_val)
-            out[mask] = rule.label
 
-        out[invalid] = NODATA_LABEL
-        return out
+def _create_output_dataset(
+    path: str,
+    src_ds: gdal.Dataset,
+    dtype=gdal.GDT_Byte,
+    band_count: int = 1,
+) -> gdal.Dataset:
+    """Create an output GeoTIFF matching the source's extent and projection."""
+    driver = gdal.GetDriverByName("GTiff")
+    dst_ds = driver.Create(
+        path,
+        src_ds.RasterXSize,
+        src_ds.RasterYSize,
+        band_count,
+        dtype,
+        options=["TILED=YES", "COMPRESS=LZW", "BIGTIFF=YES"],
+    )
+    dst_ds.SetGeoTransform(src_ds.GetGeoTransform())
+    dst_ds.SetProjection(src_ds.GetProjection())
+    return dst_ds
 
-    def _create_output_dataset(
-        self,
-        path: str,
-        src_ds: gdal.Dataset,
-        dtype=gdal.GDT_Byte,
-        band_count: int = 1,
-    ) -> gdal.Dataset:
-        """Create an output GeoTIFF matching the source's extent and projection."""
-        driver = gdal.GetDriverByName("GTiff")
-        dst_ds = driver.Create(
-            path,
-            src_ds.RasterXSize,
-            src_ds.RasterYSize,
-            band_count,
-            dtype,
-            options=["TILED=YES", "COMPRESS=LZW", "BIGTIFF=YES"],
-        )
-        dst_ds.SetGeoTransform(src_ds.GetGeoTransform())
-        dst_ds.SetProjection(src_ds.GetProjection())
-        return dst_ds
 
-    def _build_summary(self, rules: list[ClassRule], counts: dict[int, int]) -> pandas.DataFrame:
-        total = sum(counts.values())
+def _build_summary(rules: list[ClassRule], counts: dict[int, int]) -> pandas.DataFrame:
+    total = sum(counts.values())
 
-        def pct(count: int) -> float:
-            return round(count / total * 100, 2) if total else 0.0
+    def pct(count: int) -> float:
+        return round(count / total * 100, 2) if total else 0.0
 
-        nodata_count = counts.get(NODATA_LABEL, 0)
-        rows = [
+    nodata_count = counts.get(NODATA_LABEL, 0)
+    rows = [
+        {
+            "label": NODATA_LABEL,
+            "class_name": "nodata",
+            "pixel_count": nodata_count,
+            "pct": pct(nodata_count),
+        }
+    ]
+    for rule in rules:
+        rule_count = counts.get(rule.label, 0)
+        rows.append(
             {
-                "label": NODATA_LABEL,
-                "class_name": "nodata",
-                "pixel_count": nodata_count,
-                "pct": pct(nodata_count),
+                "label": rule.label,
+                "class_name": rule.name,
+                "pixel_count": rule_count,
+                "pct": pct(rule_count),
             }
-        ]
-        for rule in rules:
-            rule_count = counts.get(rule.label, 0)
-            rows.append(
-                {
-                    "label": rule.label,
-                    "class_name": rule.name,
-                    "pixel_count": rule_count,
-                    "pct": pct(rule_count),
-                }
-            )
-        return pandas.DataFrame(rows)
+        )
+    return pandas.DataFrame(rows)

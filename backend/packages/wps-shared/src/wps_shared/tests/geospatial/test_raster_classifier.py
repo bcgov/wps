@@ -8,7 +8,8 @@ from wps_shared.geospatial.raster_classifier import (
     NODATA_LABEL,
     ClassRule,
     TileConfig,
-    WindowedRasterClassifier,
+    classify_array,
+    classify_raster,
     hfi_classify_rules,
     snow_classify_rules,
 )
@@ -31,13 +32,6 @@ def write_geotiff(path: str, array: np.ndarray, nodata: float | None = None) -> 
     ds = None
 
 
-@pytest.fixture
-def classifier(tmp_path):
-    input_path = str(tmp_path / "input.tif")
-    output_path = str(tmp_path / "output.tif")
-    return WindowedRasterClassifier(input_path, output_path, hfi_classify_rules())
-
-
 class TestClassifyRuleFactories:
     def test_hfi_rules_cover_full_range_with_no_gaps_or_overlaps(self):
         rules = hfi_classify_rules()
@@ -55,70 +49,70 @@ class TestClassifyRuleFactories:
 
 
 class TestClassifyArray:
-    def test_basic_classification_into_bins(self, classifier):
+    def test_basic_classification_into_bins(self):
         data = np.array([[100.0, 5000.0], [15000.0, 3999.0]])
-        out = classifier.classify_array(data, hfi_classify_rules())
+        out = classify_array(data, hfi_classify_rules())
         assert out.dtype == np.uint8
         np.testing.assert_array_equal(out, np.array([[0, 1], [2, 0]]))
 
-    def test_min_val_is_inclusive(self, classifier):
+    def test_min_val_is_inclusive(self):
         data = np.array([[4000.0, 10000.0]])
-        out = classifier.classify_array(data, hfi_classify_rules())
+        out = classify_array(data, hfi_classify_rules())
         # 4000 belongs to "above_4000" (min inclusive), 10000 belongs to "above_10000"
         np.testing.assert_array_equal(out, np.array([[1, 2]]))
 
-    def test_max_val_is_exclusive(self, classifier):
+    def test_max_val_is_exclusive(self):
         data = np.array([[3999.999, 9999.999]])
-        out = classifier.classify_array(data, hfi_classify_rules())
+        out = classify_array(data, hfi_classify_rules())
         np.testing.assert_array_equal(out, np.array([[0, 1]]))
 
-    def test_explicit_nodata_value_masked_to_sentinel(self, classifier):
+    def test_explicit_nodata_value_masked_to_sentinel(self):
         data = np.array([[-9999.0, 5000.0]])
-        out = classifier.classify_array(data, hfi_classify_rules(), nodata=-9999.0)
+        out = classify_array(data, hfi_classify_rules(), nodata=-9999.0)
         np.testing.assert_array_equal(out, np.array([[NODATA_LABEL, 1]]))
 
-    def test_nan_masked_even_without_explicit_nodata(self, classifier):
+    def test_nan_masked_even_without_explicit_nodata(self):
         data = np.array([[np.nan, 5000.0]])
-        out = classifier.classify_array(data, hfi_classify_rules(), nodata=None)
+        out = classify_array(data, hfi_classify_rules(), nodata=None)
         np.testing.assert_array_equal(out, np.array([[NODATA_LABEL, 1]]))
 
-    def test_nan_masked_alongside_explicit_nodata(self, classifier):
+    def test_nan_masked_alongside_explicit_nodata(self):
         data = np.array([[np.nan, -9999.0, 5000.0]])
-        out = classifier.classify_array(data, hfi_classify_rules(), nodata=-9999.0)
+        out = classify_array(data, hfi_classify_rules(), nodata=-9999.0)
         np.testing.assert_array_equal(out, np.array([[NODATA_LABEL, NODATA_LABEL, 1]]))
 
-    def test_nodata_sentinel_distinct_from_label_zero_class(self, classifier):
+    def test_nodata_sentinel_distinct_from_label_zero_class(self):
         """A real label-0 class pixel (below_4000) and a nodata pixel must not collide."""
         data = np.array([[100.0, -9999.0]])  # 100 -> below_4000 (label 0), -9999 -> nodata
-        out = classifier.classify_array(data, hfi_classify_rules(), nodata=-9999.0)
+        out = classify_array(data, hfi_classify_rules(), nodata=-9999.0)
         np.testing.assert_array_equal(out, np.array([[0, NODATA_LABEL]]))
 
-    def test_rejects_rule_label_colliding_with_nodata_sentinel(self, classifier):
+    def test_rejects_rule_label_colliding_with_nodata_sentinel(self):
         rules = [ClassRule(NODATA_LABEL, "bad", 0, 10)]
         with pytest.raises(AssertionError):
-            classifier.classify_array(np.array([[5.0]]), rules)
+            classify_array(np.array([[5.0]]), rules)
 
-    def test_value_matching_no_rule_stays_default_zero(self, classifier):
+    def test_value_matching_no_rule_stays_default_zero(self):
         # rules only cover [0, 10); 20 falls outside every rule's range
         rules = [ClassRule(1, "low", 0, 10)]
         data = np.array([[5.0, 20.0]])
-        out = classifier.classify_array(data, rules)
+        out = classify_array(data, rules)
         np.testing.assert_array_equal(out, np.array([[1, 0]]))
 
-    def test_overlapping_rules_last_match_wins(self, classifier):
+    def test_overlapping_rules_last_match_wins(self):
         rules = [ClassRule(1, "first", 0, 100), ClassRule(2, "second", 50, 100)]
         data = np.array([[75.0]])
-        out = classifier.classify_array(data, rules)
+        out = classify_array(data, rules)
         assert out[0, 0] == 2
 
-    def test_empty_rules_yields_all_zero(self, classifier):
+    def test_empty_rules_yields_all_zero(self):
         data = np.array([[1.0, 2.0], [3.0, 4.0]])
-        out = classifier.classify_array(data, [])
+        out = classify_array(data, [])
         assert np.all(out == 0)
 
-    def test_output_shape_matches_input(self, classifier):
+    def test_output_shape_matches_input(self):
         data = np.zeros((3, 7))
-        out = classifier.classify_array(data, hfi_classify_rules())
+        out = classify_array(data, hfi_classify_rules())
         assert out.shape == (3, 7)
 
 
@@ -134,8 +128,7 @@ class TestClassifyRasterSingleTile:
         output_path = str(tmp_path / "output.tif")
         write_geotiff(input_path, data)
 
-        clf = WindowedRasterClassifier(input_path, output_path, hfi_classify_rules())
-        clf.classify_raster(hfi_classify_rules())
+        classify_raster(input_path, output_path, hfi_classify_rules())
 
         out_ds = gdal.Open(output_path)
         out_arr = out_ds.GetRasterBand(1).ReadAsArray()
@@ -150,8 +143,7 @@ class TestClassifyRasterSingleTile:
         output_path = str(tmp_path / "output.tif")
         write_geotiff(input_path, data)
 
-        clf = WindowedRasterClassifier(input_path, output_path, hfi_classify_rules())
-        summary = clf.classify_raster(hfi_classify_rules())
+        summary = classify_raster(input_path, output_path, hfi_classify_rules())
 
         by_name = summary.set_index("class_name")
         assert by_name.loc["nodata", "pixel_count"] == 0
@@ -168,8 +160,7 @@ class TestClassifyRasterSingleTile:
         output_path = str(tmp_path / "output.tif")
         write_geotiff(input_path, data, nodata=-9999.0)
 
-        clf = WindowedRasterClassifier(input_path, output_path, hfi_classify_rules())
-        summary = clf.classify_raster(hfi_classify_rules())
+        summary = classify_raster(input_path, output_path, hfi_classify_rules())
 
         by_name = summary.set_index("class_name")
         assert by_name.loc["nodata", "pixel_count"] == 1
@@ -181,8 +172,7 @@ class TestClassifyRasterSingleTile:
         output_path = str(tmp_path / "output.tif")
         write_geotiff(input_path, data, nodata=-9999.0)
 
-        clf = WindowedRasterClassifier(input_path, output_path, hfi_classify_rules())
-        summary = clf.classify_raster(hfi_classify_rules())
+        summary = classify_raster(input_path, output_path, hfi_classify_rules())
 
         by_name = summary.set_index("class_name")
         assert by_name.loc["nodata", "pixel_count"] == 2
@@ -199,22 +189,18 @@ class TestClassifyRasterSingleTile:
         # With gdal.UseExceptions() active, gdal.Open() raises RuntimeError itself
         # for a missing file - see test_open_returning_none_raises_file_not_found
         # for the `if src_ds is None: raise FileNotFoundError` branch below it.
-        clf = WindowedRasterClassifier(
-            str(tmp_path / "does_not_exist.tif"), str(tmp_path / "output.tif"), hfi_classify_rules()
-        )
         with pytest.raises(RuntimeError):
-            clf.classify_raster(hfi_classify_rules())
+            classify_raster(str(tmp_path / "does_not_exist.tif"), str(tmp_path / "output.tif"), hfi_classify_rules())
 
     def test_open_returning_none_raises_file_not_found(self, tmp_path, mocker):
         # gdal.Open() returning None (rather than raising) is possible in principle
         # even with UseExceptions() active - e.g. an unreadable/unsupported format
         # that GDAL declines without erroring. Force that path directly.
         input_path = str(tmp_path / "input.tif")
-        clf = WindowedRasterClassifier(input_path, str(tmp_path / "output.tif"), hfi_classify_rules())
         mocker.patch("wps_shared.geospatial.raster_classifier.gdal.Open", return_value=None)
 
         with pytest.raises(FileNotFoundError) as exc_info:
-            clf.classify_raster(hfi_classify_rules())
+            classify_raster(input_path, str(tmp_path / "output.tif"), hfi_classify_rules())
         assert input_path in str(exc_info.value)
 
     def test_output_georeference_matches_input(self, tmp_path):
@@ -223,8 +209,7 @@ class TestClassifyRasterSingleTile:
         output_path = str(tmp_path / "output.tif")
         write_geotiff(input_path, data)
 
-        clf = WindowedRasterClassifier(input_path, output_path, hfi_classify_rules())
-        clf.classify_raster(hfi_classify_rules())
+        classify_raster(input_path, output_path, hfi_classify_rules())
 
         src_ds = gdal.Open(input_path)
         out_ds = gdal.Open(output_path)
@@ -241,8 +226,7 @@ class TestClassifyRasterSingleTile:
         output_path = str(tmp_path / "output.tif")
         write_geotiff(input_path, data)
 
-        clf = WindowedRasterClassifier(input_path, output_path, hfi_classify_rules())
-        clf.classify_raster(hfi_classify_rules())
+        classify_raster(input_path, output_path, hfi_classify_rules())
 
         out_ds = gdal.Open(output_path)
         assert out_ds.GetDriver().ShortName == "GTiff"
@@ -262,20 +246,13 @@ class TestClassifyRasterMultipleTiles:
         write_geotiff(input_path, data)
 
         whole_output = str(tmp_path / "whole.tif")
-        clf_whole = WindowedRasterClassifier(
-            input_path,
-            whole_output,
-            hfi_classify_rules(),
-            config=TileConfig(tile_width=100, tile_height=100),
-        )
-        summary_whole = clf_whole.classify_raster(
-            hfi_classify_rules(), config=TileConfig(tile_width=100, tile_height=100)
+        summary_whole = classify_raster(
+            input_path, whole_output, hfi_classify_rules(), config=TileConfig(tile_width=100, tile_height=100)
         )
 
         tiled_output = str(tmp_path / "tiled.tif")
-        clf_tiled = WindowedRasterClassifier(input_path, tiled_output, hfi_classify_rules())
-        summary_tiled = clf_tiled.classify_raster(
-            hfi_classify_rules(), config=TileConfig(tile_width=3, tile_height=4)
+        summary_tiled = classify_raster(
+            input_path, tiled_output, hfi_classify_rules(), config=TileConfig(tile_width=3, tile_height=4)
         )
 
         whole_ds = gdal.Open(whole_output)
@@ -297,9 +274,8 @@ class TestClassifyRasterMultipleTiles:
         output_path = str(tmp_path / "output.tif")
         write_geotiff(input_path, data)
 
-        clf = WindowedRasterClassifier(input_path, output_path, hfi_classify_rules())
-        summary = clf.classify_raster(
-            hfi_classify_rules(), config=TileConfig(tile_width=3, tile_height=3)
+        summary = classify_raster(
+            input_path, output_path, hfi_classify_rules(), config=TileConfig(tile_width=3, tile_height=3)
         )
 
         assert summary["pixel_count"].sum() == 7 * 5
