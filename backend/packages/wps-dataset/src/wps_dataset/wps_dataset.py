@@ -498,7 +498,7 @@ class WPSDataset:
         return value
 
     def close(self):
-        # Nothing this class creates internally is ever backed by a real file anymore - every
+        # Nothing this class creates internally is ever backed by a real file. Every
         # derived result is a lazy VRT or an in-memory MEM dataset, and export_to_geotiff() (the
         # only method that writes to a real path) doesn't return a WPSDataset to close. So
         # there's nothing to gdal.Unlink() here; a dataset merely opened via WPSDataset(path)
