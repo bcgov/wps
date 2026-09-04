@@ -1,0 +1,547 @@
+import io
+import math
+import uuid
+from contextlib import ExitStack, contextmanager
+from typing import Iterator, List, NamedTuple, Optional, Tuple
+
+import numpy as np
+from osgeo import gdal, ogr, osr
+from wps_shared.geospatial.geospatial import GDALResamplingMethod, rasters_match
+
+from wps_dataset.raster_processor import RasterStep, TileConfig, process_raster_chain
+
+gdal.UseExceptions()
+
+
+class Georeference(NamedTuple):
+    """A dataset's geotransform and projection, e.g. to pass straight to `WPSDataset.from_array`."""
+
+    geotransform: Tuple[float, float, float, float, float, float]
+    projection: str
+
+
+class WPSDataset:
+    """
+    A wrapper around gdal datasets for common operations
+    """
+
+    def __init__(
+        self,
+        ds_path: Optional[str],
+        ds=None,
+        band: int = 1,
+        chunk_size: int = 256,
+        access=gdal.GA_ReadOnly,
+        output_path: Optional[str] = None,
+    ):
+        """
+        :param output_path: Where results derived from this dataset (e.g. via `*`) should be
+            written - a real file path or a /vsimem/ path. When omitted, such results are
+            backed by an in-memory MEM dataset instead, useful to avoid holding a large raster
+            resident in process memory. Any /vsimem/ file the dataset ends up backed by (per
+            gdal's own GetFileList(), which excludes MEM-driver datasets) is automatically
+            gdal.Unlink'd when this WPSDataset is closed.
+        """
+        self.ds = ds
+        self.ds_path = ds_path
+        self.band = band
+        self.chunk_size = chunk_size
+        self.access = access
+        self.output_path = output_path
+
+    def __enter__(self):
+        if self.ds is None:
+            self.ds: gdal.Dataset = gdal.Open(self.ds_path, self.access)
+
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+
+    def read_array(self) -> np.ndarray:
+        """Read this dataset's band into a NumPy array."""
+        return self.ds.GetRasterBand(self.band).ReadAsArray()
+
+    @classmethod
+    def from_array(
+        cls,
+        array: np.ndarray,
+        georeference: "WPSDataset | Georeference",
+        nodata_value: float | int | None = None,
+        datatype=gdal.GDT_Float32,
+        output_path: Optional[str] = None,
+    ) -> "WPSDataset":
+        """
+        Create a WPSDataset from a NumPy array, georeferenced to match either an existing
+        WPSDataset or an explicit Georeference.
+
+        :param array: NumPy array representing the raster data
+        :param georeference: A WPSDataset to take the geotransform/projection from, or an
+            explicit Georeference(geotransform, projection) - e.g. when the source dataset
+            has already been closed, or there never was a WPSDataset to begin with.
+        :param nodata_value: Optional nodata value to set for the dataset
+        :param datatype gdal datatype
+        :param output_path: Optional output path (a real file, or a /vsimem/ path). When
+            omitted, backed by an in-memory MEM dataset instead.
+        :return: An instance of WPSDataset containing the created dataset
+        """
+        geotransform, projection = (
+            georeference.georeference if isinstance(georeference, WPSDataset) else georeference
+        )
+        rows, cols = array.shape
+
+        if output_path is None:
+            driver: gdal.Driver = gdal.GetDriverByName("MEM")
+            dataset_name = "memory"
+        else:
+            driver: gdal.Driver = gdal.GetDriverByName("GTiff")
+            dataset_name = output_path
+        output_dataset: gdal.Dataset = driver.Create(dataset_name, cols, rows, 1, datatype)
+
+        # Set the geotransform and projection
+        output_dataset.SetGeoTransform(geotransform)
+        output_dataset.SetProjection(projection)
+
+        # Write the array to the dataset
+        output_band: gdal.Band = output_dataset.GetRasterBand(1)
+        output_band.WriteArray(array)
+
+        # Set the NoData value if provided
+        if nodata_value is not None:
+            output_band.SetNoDataValue(nodata_value)
+
+        # Flush cache to ensure all data is written
+        output_dataset.FlushCache()
+
+        return cls(ds_path=None, ds=output_dataset)
+
+    @classmethod
+    def from_bytes(cls, raster_bytes: bytes) -> "WPSDataset":
+        """
+        Create a WPSDataset from raw bytes.
+
+        :param bytes: bytes representing the raster data
+        :param datatype gdal datatype
+        :return: An instance of WPSDataset containing the created dataset
+        """
+        with io.BytesIO(raster_bytes) as buffer:
+            buffer.seek(0)  # rewind buffer to read from beginning
+            path = "/vsimem/bytes_temp.tif"
+            gdal.FileFromMemBuffer(path, buffer.read())
+            dataset = gdal.Open(path)
+            gdal.Unlink(path)
+            return cls(ds_path=None, ds=dataset)
+
+    def __mul__(self, other):
+        """
+        Multiplies this WPSDataset with the other WPSDataset. The result is backed by
+        self.output_path if set, otherwise an in-memory MEM dataset. Runs as a 2-step
+        process_raster_chain (non-aligning: both rasters must already share the same grid,
+        same as this method always required) so neither raster is ever held in memory as a
+        whole - only one `chunk_size`×`chunk_size` tile of each at a time.
+
+        :param other: WPSDataset
+        :raises ValueError: Raised if this and other WPSDataset have mismatched raster dimensions
+        :return: a new WPSDataset
+        """
+        self_band: gdal.Band = self.ds.GetRasterBand(self.band)
+        datatype = self_band.DataType
+
+        def start(tile: np.ndarray, _accumulated: np.ndarray | None) -> np.ndarray:
+            return tile
+
+        def multiply(tile: np.ndarray, accumulated: np.ndarray) -> np.ndarray:
+            wider_type = np.promote_types(accumulated.dtype, tile.dtype)
+            accumulated = accumulated.astype(wider_type)
+            other_tile = tile.astype(wider_type)
+            other_tile[other_tile >= 1] = 1
+            other_tile[other_tile < 1] = 0
+            return accumulated * other_tile
+
+        out_ds = process_raster_chain(
+            self.output_path,
+            [
+                RasterStep(self.ds, start, align=False, band_index=self.band),
+                RasterStep(other.ds, multiply, align=False, band_index=self.band),
+            ],
+            tile_config=TileConfig(tile_width=self.chunk_size, tile_height=self.chunk_size),
+            output_dtype=datatype,
+        )
+
+        return WPSDataset(ds_path=None, ds=out_ds)
+
+    def warp_to_match(
+        self,
+        other: "WPSDataset",
+        output_path: str | None = None,
+        resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR,
+        max_value: float | None = None,
+    ):
+        """
+        Warp the dataset to match the extent, pixel size, and projection of the other dataset.
+        A /vsimem/ output_path is automatically gdal.Unlink'd when the returned WPSDataset is
+        closed.
+
+        :param other: the reference WPSDataset raster to match the source against
+        :param output_path: output path of the resulting raster
+        :param resample_method: gdal resampling algorithm
+        :return: warped raster dataset
+        """
+        if output_path is None:
+            output_path = f"/vsimem/warp_{uuid.uuid4().hex}.tif"
+
+        dest_geotransform = other.ds.GetGeoTransform()
+        x_res = dest_geotransform[1]
+        y_res = -dest_geotransform[5]
+        minx = dest_geotransform[0]
+        maxy = dest_geotransform[3]
+        maxx = minx + dest_geotransform[1] * other.ds.RasterXSize
+        miny = maxy + dest_geotransform[5] * other.ds.RasterYSize
+        extent = [minx, miny, maxx, maxy]
+
+        # we need the output to be a geotiff, since we cannot update grib files
+        if not output_path.endswith(".tif"):
+            output_path += ".tif"
+
+        # Warp to match input option parameters
+        warped_ds = gdal.Warp(
+            output_path,
+            self.ds,
+            options=gdal.WarpOptions(
+                dstSRS=other.ds.GetProjection(),
+                outputBounds=extent,
+                xRes=x_res,
+                yRes=y_res,
+                resampleAlg=resample_method.value,
+            ),
+        )
+
+        if max_value is not None and warped_ds is not None:
+            band = warped_ds.GetRasterBand(1)
+            array = band.ReadAsArray()
+            if (array > max_value).any():
+                array = np.minimum(
+                    array, max_value
+                )  # clamp any value above the max_value to the max_value
+                band.WriteArray(array)
+                band.FlushCache()
+
+        return WPSDataset(ds_path=None, ds=warped_ds)
+
+    def clip_to_geometry(
+        self,
+        cutline: ogr.Geometry | str,
+        output_path: str | None = None,
+        format: str = "GTiff",
+    ) -> "WPSDataset":
+        """
+        Clip this dataset to a cutline using GDAL's cutline warp.
+
+        :param cutline: An ogr.Geometry (with its spatial reference set) to cut to, or a path
+            to a vector file (e.g. GeoJSON) to use as the cutline instead.
+        :param output_path: Optional output raster path (a real file, or a /vsimem/ path). When
+            omitted, defaults to an auto-generated /vsimem/ path. Either way, a /vsimem/ path is
+            automatically gdal.Unlink'd when the returned WPSDataset is closed.
+        :param format: GDAL output driver/format name.
+        :return: a new WPSDataset clipped to the cutline
+        """
+        if output_path is None:
+            output_path = f"/vsimem/clip_{uuid.uuid4().hex}.tif"
+
+        if isinstance(cutline, str):
+            warp_options = gdal.WarpOptions(
+                format=format, cutlineDSName=cutline, cropToCutline=True
+            )
+        else:
+            warp_options = gdal.WarpOptions(
+                format=format,
+                cutlineWKT=cutline,
+                cutlineSRS=cutline.GetSpatialReference(),
+                cropToCutline=True,
+            )
+
+        clipped_ds = gdal.Warp(output_path, self.ds, options=warp_options)
+        return WPSDataset(ds_path=None, ds=clipped_ds)
+
+    def replace_nodata_with(self, new_no_data_value: int = 0):
+        """
+        Reads the first band of a dataset, replaces NoData values with new_no_data_value, returns the array and the nodata value.
+        :param new_no_data_value: the new nodata value
+        """
+
+        band: gdal.Band = self.ds.GetRasterBand(1)
+        nodata_value = band.GetNoDataValue()
+        array = band.ReadAsArray()
+
+        if np.isnan(new_no_data_value):
+            if not np.issubdtype(array.dtype, np.floating):
+                array = array.astype(np.float64)
+        if nodata_value is not None:
+            array[array == nodata_value] = new_no_data_value
+
+        return array, new_no_data_value
+
+    def generate_latitude_array(self):
+        """
+        Transforms this dataset to 4326 to compute the latitude coordinates.
+
+        Note: This method is slow for large rasters. Consider using
+        get_lat_lon_coords() for vectorized coordinate transformation.
+
+        :return: array of latitude coordinates
+        """
+        geotransform = self.ds.GetGeoTransform()
+        projection = self.ds.GetProjection()
+
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromWkt(projection)
+
+        x_size = self.ds.RasterXSize
+        y_size = self.ds.RasterYSize
+
+        tgt_srs = osr.SpatialReference()
+        tgt_srs.ImportFromEPSG(4326)
+
+        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+
+        # empty array to store latitude values
+        latitudes = np.zeros((y_size, x_size))
+
+        for y in range(y_size):
+            for x in range(x_size):
+                x_coord = geotransform[0] + x * geotransform[1] + y * geotransform[2]
+                y_coord = geotransform[3] + x * geotransform[4] + y * geotransform[5]
+
+                _, lat, _ = transform.TransformPoint(x_coord, y_coord)
+
+                latitudes[y, x] = lat
+
+        return latitudes
+
+    def get_lat_lon_coords(
+        self, valid_mask: Optional[np.ndarray] = None
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Get WGS84 lat/lon coordinates for pixels, with optional masking.
+
+        Uses vectorized transformation for fast coordinate conversion.
+
+        :param valid_mask: Optional boolean mask (y_size, x_size) of valid pixels.
+                          If None, uses nodata mask from the raster band.
+        :return: Tuple of (lats, lons, yi_indices, xi_indices) for valid pixels.
+                 - lats: 1D array of latitudes
+                 - lons: 1D array of longitudes
+                 - yi_indices: 1D array of y (row) indices
+                 - xi_indices: 1D array of x (column) indices
+        """
+        geotransform = self.ds.GetGeoTransform()
+        projection = self.ds.GetProjection()
+        x_size = self.ds.RasterXSize
+        y_size = self.ds.RasterYSize
+
+        # Setup coordinate transformation
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromWkt(projection)
+        # Use traditional GIS order (lon, lat) for consistent axis ordering
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        tgt_srs = osr.SpatialReference()
+        tgt_srs.ImportFromEPSG(4326)
+        tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+
+        # Create coordinate grids for all pixels
+        xi_grid, yi_grid = np.meshgrid(np.arange(x_size), np.arange(y_size))
+
+        # Calculate pixel center coordinates in raster projection
+        x_coords = geotransform[0] + (xi_grid + 0.5) * geotransform[1]
+        y_coords = geotransform[3] + (yi_grid + 0.5) * geotransform[5]
+
+        # Build valid mask if not provided
+        if valid_mask is None:
+            band: gdal.Band = self.ds.GetRasterBand(self.band)
+            nodata = band.GetNoDataValue()
+            if nodata is not None:
+                data = band.ReadAsArray()
+                valid_mask = data != nodata
+            else:
+                valid_mask = np.ones((y_size, x_size), dtype=bool)
+
+        # Get indices and coordinates for valid pixels only
+        valid_yi, valid_xi = np.nonzero(valid_mask)
+        valid_x_coords = x_coords[valid_mask]
+        valid_y_coords = y_coords[valid_mask]
+
+        # Transform all coordinates at once
+        coords_to_transform = list(zip(valid_x_coords.astype(float), valid_y_coords.astype(float)))
+        transformed = transform.TransformPoints(coords_to_transform)
+
+        # Extract lat/lon (TransformPoints returns (x, y, z) in target SRS)
+        lats = np.array([t[1] for t in transformed])
+        lons = np.array([t[0] for t in transformed])
+
+        return lats, lons, valid_yi, valid_xi
+
+    def export_to_geotiff(self, output_path: str):
+        """
+        Exports the dataset to a geotiff with the given path
+
+        :param output_path: path to export the geotiff to
+        """
+        driver: gdal.Driver = gdal.GetDriverByName("GTiff")
+
+        geotransform = self.ds.GetGeoTransform()
+        projection = self.ds.GetProjection()
+
+        band: gdal.Band = self.ds.GetRasterBand(self.band)
+        datatype = band.DataType
+        nodata_value = band.GetNoDataValue()
+        array = band.ReadAsArray()
+
+        rows, cols = array.shape
+        output_dataset: gdal.Dataset = driver.Create(
+            output_path, cols, rows, 1, datatype, options=["COMPRESS=LZW"]
+        )
+        output_dataset.SetGeoTransform(geotransform)
+        output_dataset.SetProjection(projection)
+
+        output_band: gdal.Band = output_dataset.GetRasterBand(self.band)
+        output_band.WriteArray(array)
+        output_band.SetDescription(band.GetDescription())
+        output_band.SetUnitType(band.GetUnitType())
+
+        if nodata_value is not None:
+            output_band.SetNoDataValue(nodata_value)
+
+        output_band.FlushCache()
+        output_dataset = None
+        del output_dataset
+        output_band = None
+        del output_band
+
+    def apply_mask(self, mask_ds: "WPSDataset") -> np.ndarray:
+        """
+        Apply a mask from another dataset to get a valid mask array.
+
+        The mask dataset's grid must match this dataset (size, geotransform, projection).
+        The caller is responsible for reprojecting the mask to match (see warp_to_match)
+        before calling this method.
+        Pixels are valid where the mask value is non-zero and not nodata.
+
+        :param mask_ds: WPSDataset containing mask (0 = masked, non-zero = valid)
+        :return: Boolean array where True = valid, False = masked
+        :raises ValueError: If the mask grid does not match this dataset's grid
+        """
+        if not rasters_match(self.ds, mask_ds.ds):
+            raise ValueError("Mask grid does not match reference grid")
+
+        mask_band: gdal.Band = mask_ds.ds.GetRasterBand(1)
+        mask_data = mask_band.ReadAsArray()
+        mask_nodata = mask_band.GetNoDataValue()
+
+        # Mask is valid where value is non-zero and not nodata
+        valid_mask = mask_data != 0
+        if mask_nodata is not None:
+            valid_mask = valid_mask & (mask_data != mask_nodata)
+
+        return valid_mask
+
+    def get_valid_mask(self) -> np.ndarray:
+        """
+        Get a boolean mask indicating valid (non-nodata) pixels.
+
+        :return: Boolean array where True = valid, False = nodata
+        """
+        band: gdal.Band = self.ds.GetRasterBand(self.band)
+        nodata = band.GetNoDataValue()
+        y_size = self.ds.RasterYSize
+        x_size = self.ds.RasterXSize
+
+        if nodata is not None:
+            data = band.ReadAsArray()
+            return data != nodata
+        else:
+            return np.ones((y_size, x_size), dtype=bool)
+
+    def get_nodata_mask(self) -> Tuple[Optional[np.ndarray], float | int | None]:
+        band = self.ds.GetRasterBand(self.band)
+        nodata_value = band.GetNoDataValue()
+
+        if nodata_value is not None:
+            nodata_mask = band.ReadAsArray() == nodata_value
+            return nodata_mask, nodata_value
+
+        return None, None
+
+    def as_gdal_ds(self) -> gdal.Dataset:
+        return self.ds
+
+    @property
+    def georeference(self) -> Georeference:
+        """This dataset's geotransform and projection, e.g. to pass straight to `from_array`."""
+        return Georeference(self.ds.GetGeoTransform(), self.ds.GetProjection())
+
+    def extract_value_at_point(self, lat: float, lon: float) -> Optional[float]:
+        """Return the raster value at a WGS84 lat/lon coordinate, or None if out of bounds or nodata."""
+        geotransform = self.ds.GetGeoTransform()
+
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromWkt(self.ds.GetProjection())
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        wgs84 = osr.SpatialReference()
+        wgs84.ImportFromEPSG(4326)
+        wgs84.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        x, y, _ = osr.CoordinateTransformation(wgs84, src_srs).TransformPoint(lon, lat)
+
+        # Use GDAL's own inverse transform rather than manual division: it handles
+        # rotated/sheared geotransforms, and floor() (vs int() truncation) correctly
+        # sends points fractionally outside the raster (e.g. col == -0.0003) to a
+        # negative pixel coordinate instead of rounding them into bounds at 0.
+        inverse_geotransform = gdal.InvGeoTransform(geotransform)
+        pixel_x, pixel_y = gdal.ApplyGeoTransform(inverse_geotransform, x, y)
+        col = math.floor(pixel_x)
+        row = math.floor(pixel_y)
+
+        if row < 0 or row >= self.ds.RasterYSize or col < 0 or col >= self.ds.RasterXSize:
+            return None
+
+        band = self.ds.GetRasterBand(1)
+        nodata = band.GetNoDataValue()
+        value = float(band.ReadAsArray(col, row, 1, 1)[0][0])
+
+        if nodata is not None and math.isclose(value, nodata, rel_tol=1e-9):
+            return None
+
+        return value
+
+    def close(self):
+        # ds_path is None only for datasets this instance created itself (every writer method -
+        # multiply, warp_to_match, clip_to_geometry, from_array - constructs
+        # WPSDataset(ds_path=None, ds=...)). A dataset merely opened for reading via
+        # WPSDataset(path) has ds_path set, and must never be auto-unlinked here even if it
+        # happens to live on /vsimem/ - the caller doesn't own that file.
+        if self.ds is not None and self.ds_path is None:
+            for file_path in self.ds.GetFileList() or []:
+                if file_path.startswith("/vsimem/"):
+                    gdal.Unlink(file_path)
+        self.ds = None
+
+
+@contextmanager
+def multi_wps_dataset_context(dataset_paths: List[str]) -> Iterator[List[WPSDataset]]:
+    """
+    Context manager to handle multiple WPSDataset instances.
+
+    :param dataset_paths: List of dataset paths to open as WPSDataset instances
+    :yield: List of WPSDataset instances, one for each path
+    """
+    datasets = [WPSDataset(path) for path in dataset_paths]
+    try:
+        # Enter each dataset's context and yield the list of instances
+        with ExitStack() as stack:
+            yield [stack.enter_context(ds) for ds in datasets]
+    finally:
+        # Close all datasets to ensure cleanup
+        for ds in datasets:
+            ds.close()

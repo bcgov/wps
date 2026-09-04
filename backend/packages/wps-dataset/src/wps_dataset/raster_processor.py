@@ -50,21 +50,28 @@ def iter_tiles(
 
 
 def create_output_dataset(
-    path: str,
+    path: str | None,
     src_ds: gdal.Dataset,
     dtype=gdal.GDT_Byte,
     band_count: int = 1,
 ) -> gdal.Dataset:
-    """Create an output GeoTIFF matching the source's extent and projection."""
-    driver = gdal.GetDriverByName("GTiff")
-    dst_ds = driver.Create(
-        path,
-        src_ds.RasterXSize,
-        src_ds.RasterYSize,
-        band_count,
-        dtype,
-        options=["TILED=YES", "COMPRESS=LZW", "BIGTIFF=YES"],
-    )
+    """
+    Create an output raster matching the source's extent and projection: a tiled, compressed
+    GeoTIFF at `path`, or an in-memory MEM dataset when `path` is None.
+    """
+    if path is None:
+        driver = gdal.GetDriverByName("MEM")
+        dst_ds = driver.Create("", src_ds.RasterXSize, src_ds.RasterYSize, band_count, dtype)
+    else:
+        driver = gdal.GetDriverByName("GTiff")
+        dst_ds = driver.Create(
+            path,
+            src_ds.RasterXSize,
+            src_ds.RasterYSize,
+            band_count,
+            dtype,
+            options=["TILED=YES", "COMPRESS=LZW", "BIGTIFF=YES"],
+        )
     dst_ds.SetGeoTransform(src_ds.GetGeoTransform())
     dst_ds.SetProjection(src_ds.GetProjection())
     return dst_ds
@@ -118,29 +125,53 @@ class RasterStep:
     combine with yet, so it should just return that raster's own prepared tile). Whatever it
     returns becomes `accumulated` for the next step, and is the output tile if this is the
     last step.
+
+    `align` (default True) has this step's dataset warped onto the first step's grid lazily,
+    via `warp_to_match_vrt`, if it isn't already on it. Set it False to instead require this
+    step's dataset to already exactly match the first step's grid (dimensions, projection, and
+    origin) - `process_raster_chain` raises ValueError up front if it doesn't, rather than
+    silently reprojecting something that was expected to already line up.
     """
 
     ds: gdal.Dataset
     process: Callable[[np.ndarray, np.ndarray | None], np.ndarray]
     resample_alg: int = gdal.GRA_NearestNeighbour
+    align: bool = True
+    band_index: int = 1
+
+
+def _validate_matches_grid(ds: gdal.Dataset, reference_ds: gdal.Dataset) -> None:
+    """Raise ValueError if `ds` isn't already on the same grid as `reference_ds`."""
+    if ds.RasterXSize != reference_ds.RasterXSize or ds.RasterYSize != reference_ds.RasterYSize:
+        raise ValueError("The dimensions of the two rasters do not match.")
+    if ds.GetProjection() != reference_ds.GetProjection():
+        raise ValueError("The projections of the two rasters do not match.")
+    reference_gt = reference_ds.GetGeoTransform()
+    gt = ds.GetGeoTransform()
+    if gt[0] != reference_gt[0] or gt[3] != reference_gt[3]:
+        raise ValueError("The origins of the two rasters do not match.")
 
 
 def process_raster_chain(
-    output_path: str,
+    output_path: str | None,
     steps: Sequence[RasterStep],
     tile_config: TileConfig | None = None,
     output_dtype=gdal.GDT_Byte,
     output_nodata: float | None = None,
-) -> None:
+) -> gdal.Dataset:
     """
     Run a chain of two or more raster processing steps tile by tile and write the combined
-    result to `output_path`. The first step's dataset defines the output grid; every other
-    step's dataset is aligned to it lazily via `warp_to_match_vrt`, so no raster in the chain -
-    including any that need reprojecting - is ever read into memory as a whole.
+    result to `output_path` (or an in-memory MEM dataset when `output_path` is None). The
+    first step's dataset defines the output grid; every other `align`-ing step's dataset is
+    aligned to it lazily via `warp_to_match_vrt`, so no raster in the chain - including any
+    that need reprojecting - is ever read into memory as a whole.
 
     For each tile, `steps[0].process(tile, None)` runs first, then each subsequent step's
     `process(tile, accumulated)` folds its own tile into the running result - e.g. classify the
     first raster, then mask it against the second, then a third, and so on.
+
+    Returns the resulting dataset, still open - the caller owns it and is responsible for
+    closing it (e.g. `result = None`) once done, same as any other GDAL write handle.
     """
     if len(steps) < 2:
         raise ValueError("process_raster_chain requires at least 2 steps")
@@ -150,16 +181,25 @@ def process_raster_chain(
     x_size = reference_ds.RasterXSize
     y_size = reference_ds.RasterYSize
 
+    # Validate every non-aligning step's grid up front, before creating the output dataset or
+    # reading any pixels - so a mismatch is reported before any work happens, not partway in.
+    for step in steps[1:]:
+        if not step.align:
+            _validate_matches_grid(step.ds, reference_ds)
+
     # Keep every warped dataset alive for the life of this function - a gdal.Band doesn't hold
     # a reference back to its parent gdal.Dataset, so letting one get garbage collected (e.g.
     # by only keeping the last loop iteration's `aligned_ds` around) would invalidate any band
     # already pulled from it.
     aligned_datasets: list[gdal.Dataset] = []
-    bands = [reference_ds.GetRasterBand(1)]
+    bands = [reference_ds.GetRasterBand(steps[0].band_index)]
     for step in steps[1:]:
-        aligned_ds = warp_to_match_vrt(step.ds, reference_ds, step.resample_alg)
-        aligned_datasets.append(aligned_ds)
-        bands.append(aligned_ds.GetRasterBand(1))
+        if step.align:
+            aligned_ds = warp_to_match_vrt(step.ds, reference_ds, step.resample_alg)
+            aligned_datasets.append(aligned_ds)
+            bands.append(aligned_ds.GetRasterBand(step.band_index))
+        else:
+            bands.append(step.ds.GetRasterBand(step.band_index))
 
     out_ds = create_output_dataset(output_path, reference_ds, dtype=output_dtype)
     out_band = out_ds.GetRasterBand(1)
@@ -174,3 +214,4 @@ def process_raster_chain(
 
     out_band.FlushCache()
     out_ds.FlushCache()
+    return out_ds

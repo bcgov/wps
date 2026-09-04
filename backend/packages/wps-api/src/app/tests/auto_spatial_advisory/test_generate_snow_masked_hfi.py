@@ -8,7 +8,7 @@ from osgeo import gdal, osr
 
 from app.auto_spatial_advisory.generate_snow_masked_hfi import generate_snow_masked_hfi
 from app.auto_spatial_advisory.snow import MASKED_HFI_PATH_NAME
-from wps_shared.geospatial.raster_processor import TileConfig
+from wps_dataset.raster_processor import TileConfig
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 WGS84_WKT = osr.SpatialReference()

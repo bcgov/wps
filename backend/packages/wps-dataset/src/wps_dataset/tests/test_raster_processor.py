@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from osgeo import gdal, osr
 
-from wps_shared.geospatial.raster_processor import (
+from wps_dataset.raster_processor import (
     RasterStep,
     TileConfig,
     create_output_dataset,
@@ -222,6 +222,7 @@ class TestProcessRasterChain:
             return (accumulated * tile).astype(np.uint8)
 
         output_path = str(tmp_path / "out.tif")
+        # discarding the return value closes it immediately, before reopening below
         process_raster_chain(
             output_path,
             [RasterStep(a_ds, classify), RasterStep(b_ds, mask)],
@@ -341,3 +342,106 @@ class TestProcessRasterChain:
         np.testing.assert_array_equal(
             whole_ds.GetRasterBand(1).ReadAsArray(), tiled_ds.GetRasterBand(1).ReadAsArray()
         )
+
+    def test_output_path_none_writes_to_a_mem_dataset(self, tmp_path):
+        a_ds = write_geotiff(str(tmp_path / "a.tif"), np.array([[1.0, 2.0]], dtype=np.float32))
+        b_ds = write_geotiff(str(tmp_path / "b.tif"), np.array([[10.0, 10.0]], dtype=np.float32))
+
+        result = process_raster_chain(
+            None,
+            [
+                RasterStep(a_ds, lambda tile, _acc: tile),
+                RasterStep(b_ds, lambda tile, acc: acc + tile),
+            ],
+            output_dtype=gdal.GDT_Float32,
+        )
+
+        assert result.GetDriver().ShortName == "MEM"
+        assert result.GetRasterBand(1).ReadAsArray().tolist() == [[11.0, 12.0]]
+
+    def test_returns_the_output_dataset_still_open(self, tmp_path):
+        a_ds = write_geotiff(str(tmp_path / "a.tif"), np.array([[1.0]], dtype=np.float32))
+        b_ds = write_geotiff(str(tmp_path / "b.tif"), np.array([[1.0]], dtype=np.float32))
+
+        result = process_raster_chain(
+            str(tmp_path / "out.tif"),
+            [RasterStep(a_ds, lambda tile, _acc: tile), RasterStep(b_ds, lambda tile, acc: acc)],
+        )
+
+        # a live dataset handle, not None and not something that requires reopening to use
+        assert result.RasterXSize == 1
+        result = None
+
+
+class TestProcessRasterChainNonAligning:
+    """Covers RasterStep(align=False): a strict mode requiring a step's raster to already be on
+    the reference grid, matching WPSDataset.__mul__'s original fail-fast contract, rather than
+    process_raster_chain's default of silently warping mismatched rasters onto it."""
+
+    def test_combines_without_warping_when_already_aligned(self, tmp_path):
+        a_ds = write_geotiff(str(tmp_path / "a.tif"), np.array([[3.0, 4.0]], dtype=np.float32))
+        b_ds = write_geotiff(str(tmp_path / "b.tif"), np.array([[2.0, 2.0]], dtype=np.float32))
+
+        result = process_raster_chain(
+            None,
+            [
+                RasterStep(a_ds, lambda tile, _acc: tile, align=False),
+                RasterStep(b_ds, lambda tile, acc: acc * tile, align=False),
+            ],
+            output_dtype=gdal.GDT_Float32,
+        )
+
+        assert result.GetRasterBand(1).ReadAsArray().tolist() == [[6.0, 8.0]]
+
+    def test_mismatched_dimensions_raises_before_any_processing(self, tmp_path):
+        a_ds = write_geotiff(str(tmp_path / "a.tif"), np.zeros((1, 1), dtype=np.float32))
+        b_ds = write_geotiff(str(tmp_path / "b.tif"), np.zeros((2, 2), dtype=np.float32))
+
+        with pytest.raises(ValueError, match="dimensions"):
+            process_raster_chain(
+                None,
+                [
+                    RasterStep(a_ds, lambda tile, _acc: tile, align=False),
+                    RasterStep(b_ds, lambda tile, acc: acc, align=False),
+                ],
+            )
+
+    def test_mismatched_projection_raises(self, tmp_path):
+        wgs84 = osr.GetUserInputAsWKT("EPSG:4326")
+        mercator = osr.GetUserInputAsWKT("EPSG:3857")
+        a_ds = write_geotiff(
+            str(tmp_path / "a.tif"), np.zeros((1, 1), dtype=np.float32), projection=wgs84
+        )
+        b_ds = write_geotiff(
+            str(tmp_path / "b.tif"), np.zeros((1, 1), dtype=np.float32), projection=mercator
+        )
+
+        with pytest.raises(ValueError, match="projections"):
+            process_raster_chain(
+                None,
+                [
+                    RasterStep(a_ds, lambda tile, _acc: tile, align=False),
+                    RasterStep(b_ds, lambda tile, acc: acc, align=False),
+                ],
+            )
+
+    def test_mismatched_origin_raises(self, tmp_path):
+        a_ds = write_geotiff(
+            str(tmp_path / "a.tif"),
+            np.zeros((1, 1), dtype=np.float32),
+            geotransform=(-120.0, 1.0, 0, 55.0, 0, -1.0),
+        )
+        b_ds = write_geotiff(
+            str(tmp_path / "b.tif"),
+            np.zeros((1, 1), dtype=np.float32),
+            geotransform=(-119.0, 1.0, 0, 55.0, 0, -1.0),
+        )
+
+        with pytest.raises(ValueError, match="origins"):
+            process_raster_chain(
+                None,
+                [
+                    RasterStep(a_ds, lambda tile, _acc: tile, align=False),
+                    RasterStep(b_ds, lambda tile, acc: acc, align=False),
+                ],
+            )

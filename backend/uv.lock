@@ -11,6 +11,7 @@ resolution-markers = [
 members = [
     "cffdrs-vec",
     "wps-api",
+    "wps-dataset",
     "wps-jobs",
     "wps-sfms",
     "wps-shared",
@@ -5009,6 +5010,7 @@ dependencies = [
     { name = "shapely" },
     { name = "sqlalchemy" },
     { name = "uvicorn" },
+    { name = "wps-dataset" },
     { name = "wps-sfms" },
     { name = "wps-shared" },
     { name = "wps-wf1" },
@@ -5079,11 +5081,27 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2,<3" },
     { name = "testcontainers", extras = ["nats"], marker = "extra == 'dev'", specifier = ">=4.10.0,<5" },
     { name = "uvicorn", specifier = ">=0,<1" },
+    { name = "wps-dataset", editable = "packages/wps-dataset" },
     { name = "wps-sfms", editable = "packages/wps-sfms" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "wps-wf1", editable = "packages/wps-wf1" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "wps-dataset"
+version = "0.1.0"
+source = { editable = "packages/wps-dataset" }
+dependencies = [
+    { name = "numpy" },
+    { name = "wps-shared" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "numpy", specifier = ">=1,<3" },
+    { name = "wps-shared", editable = "packages/wps-shared" },
+]
 
 [[package]]
 name = "wps-jobs"

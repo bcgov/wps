@@ -13,9 +13,9 @@ import os
 
 import numpy as np
 from osgeo import gdal
+from wps_dataset.raster_processor import RasterStep, TileConfig, process_raster_chain
 from wps_shared import config
 from wps_shared.db.models.snow import ProcessedSnow
-from wps_shared.geospatial.raster_processor import RasterStep, TileConfig, process_raster_chain
 from wps_shared.utils.s3 import gdal_s3_context
 
 from app.auto_spatial_advisory.snow import MASKED_HFI_PATH_NAME
@@ -78,13 +78,15 @@ def generate_snow_masked_hfi(
         def mask_step(tile: np.ndarray, accumulated: np.ndarray | None) -> np.ndarray:
             return accumulated * _snow_mask_tile(tile)
 
+        # process_raster_chain returns the output still open; its return value is discarded
+        # here rather than captured, which closes it immediately (the writer's directory
+        # structure isn't finalized until closed, and callers reopen masked_hfi_path right away).
         process_raster_chain(
             masked_hfi_path,
             [RasterStep(hfi_ds, classify_step), RasterStep(snow_ds, mask_step)],
             tile_config=tile_config,
             output_nodata=0,
         )
-
         snow_ds = None
         hfi_ds = None
 

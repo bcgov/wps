@@ -6,6 +6,7 @@ authors = [{ name = "Sybrand Strauss", email = "sybrand.strauss@gov.bc.ca" }]
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "wps-shared",
+    "wps-dataset",
     "wps-sfms",
     "cffdrs-vec",
     "fastapi>=0,<1",
@@ -67,6 +68,7 @@ dev = [
 
 [tool.uv.sources]
 wps-shared = { workspace = true }
+wps-dataset = { workspace = true }
 wps-sfms = { workspace = true }
 wps-wf1 = { workspace = true }
 cffdrs-vec = { workspace = true }
