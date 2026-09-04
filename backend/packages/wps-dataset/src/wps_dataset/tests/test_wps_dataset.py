@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from osgeo import gdal, ogr, osr
 
-from wps_dataset.wps_dataset import Georeference, WPSDataset, multi_wps_dataset_context
 from wps_dataset.tests.dataset_common import create_mock_gdal_dataset, create_test_dataset
+from wps_dataset.wps_dataset import Georeference, WPSDataset, multi_wps_dataset_context
 
 hfi_tif = os.path.join(os.path.dirname(__file__), "snow_masked_hfi20240810.tif")  # Byte data
 zero_tif = os.path.join(os.path.dirname(__file__), "zero_layer.tif")
@@ -954,3 +954,117 @@ class TestWindowedTilingCorrectness:
                 result = warped.as_gdal_ds().GetRasterBand(1).ReadAsArray()
                 assert result.max() <= 1000
                 np.testing.assert_array_equal(result, np.minimum(pattern, 1000))
+
+
+def _spy_on_band_reads(mocker):
+    """Patch gdal.Band.ReadAsArray at the class level (works even though gdal.Band is a SWIG
+    type) to record every call's arguments while still delegating to the real implementation,
+    so tests can inspect exactly what GDAL was actually asked to read."""
+    real_read = gdal.Band.ReadAsArray
+    calls = []
+
+    def spy_read(self, *args, **kwargs):
+        calls.append(args)
+        return real_read(self, *args, **kwargs)
+
+    mocker.patch.object(gdal.Band, "ReadAsArray", new=spy_read)
+    return calls
+
+
+class TestNeverReadsTheWholeRasterAtOnce:
+    """Tests that verify WPSDataset never issues a bare, whole-raster ReadAsArray() call,
+    and that a lazily-derived WPSDataset (warp_to_match, clip_to_geometry) touches no pixels
+    at all until something actually reads from it."""
+
+    _WIDTH = 600
+    _HEIGHT = 700  # bigger than the 512x512 default tile in both dimensions, and not a
+    # multiple of it, so a single-call whole-raster read is trivially distinguishable
+    # from genuine tiling, and the last tile in each direction is a ragged/uneven one.
+
+    def test_read_array_reads_in_bounded_tiles_not_the_whole_raster_at_once(self, mocker):
+        ds = create_test_dataset(
+            "large.tif", self._WIDTH, self._HEIGHT, (-1, 1, -1, 1), 4326, fill_value=3
+        )
+        calls = _spy_on_band_reads(mocker)
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            result = wps_ds.read_array()
+
+        # more than one tile was needed to cover the raster
+        assert len(calls) > 1
+        for call in calls:
+            # every call is windowed (col_off, row_off, width, height) - never a bare, no-args
+            # call, which is what "read the whole raster in one shot" looks like
+            assert len(call) == 4
+            _col_off, _row_off, width, height = call
+            assert width <= 512
+            assert height <= 512
+            assert (width, height) != (self._WIDTH, self._HEIGHT)
+
+        assert np.all(result == 3)
+
+    def test_warp_to_match_touches_no_pixels_until_a_processing_function_runs(self, mocker):
+        extent = (-10, 10, -10, 10)
+        src_ds = create_test_dataset(
+            "src.tif", self._WIDTH, self._HEIGHT, extent, 4326, fill_value=5
+        )
+        match_ds = create_test_dataset("match.tif", self._WIDTH, self._HEIGHT, extent, 4326)
+        calls = _spy_on_band_reads(mocker)
+
+        with (
+            WPSDataset(ds_path=None, ds=src_ds) as wps_src,
+            WPSDataset(ds_path=None, ds=match_ds) as wps_match,
+        ):
+            warped = wps_src.warp_to_match(wps_match)
+            assert calls == []  # building the lazy VRT touched no pixels at all
+
+            data = warped.read_array()  # the "processing function" that finally forces reads
+            assert len(calls) > 1  # and even now, it's read in tiles, not one whole-raster call
+
+        assert np.all(data == 5)
+
+    def test_clip_to_geometry_touches_no_pixels_until_a_processing_function_runs(self, mocker):
+        extent = (-10, 10, -10, 10)
+        ds = create_test_dataset("src.tif", self._WIDTH, self._HEIGHT, extent, 4326, fill_value=6)
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(4326)
+        cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+        cutline.AssignSpatialReference(srs)
+        calls = _spy_on_band_reads(mocker)
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            clipped = wps_ds.clip_to_geometry(cutline)
+            assert calls == []  # building the lazy VRT touched no pixels at all
+
+            data = clipped.read_array()
+            assert len(calls) > 0
+
+        assert np.all(data == 6)
+
+    def test_chained_lazy_steps_touch_no_pixels_until_the_final_read(self, mocker):
+        """warp_to_match -> clip_to_geometry, chained without reading in between, must still
+        touch nothing until the caller finally reads - laziness has to survive composition,
+        not just a single method call."""
+        extent = (-10, 10, -10, 10)
+        src_ds = create_test_dataset(
+            "src.tif", self._WIDTH, self._HEIGHT, extent, 4326, fill_value=8
+        )
+        match_ds = create_test_dataset("match.tif", self._WIDTH, self._HEIGHT, extent, 4326)
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(4326)
+        cutline = ogr.CreateGeometryFromWkt("POLYGON((-5 -5, 5 -5, 5 5, -5 5, -5 -5))")
+        cutline.AssignSpatialReference(srs)
+        calls = _spy_on_band_reads(mocker)
+
+        with (
+            WPSDataset(ds_path=None, ds=src_ds) as wps_src,
+            WPSDataset(ds_path=None, ds=match_ds) as wps_match,
+        ):
+            warped = wps_src.warp_to_match(wps_match)
+            clipped = warped.clip_to_geometry(cutline)
+            assert calls == []  # two chained lazy steps, still nothing read
+
+            data = clipped.read_array()
+            assert len(calls) > 0
+
+        assert np.all(data == 8)
