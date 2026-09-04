@@ -2,6 +2,7 @@
 and the cache-aware public functions (get_provincial_summary, get_hfi_stats, get_tpi_stats, and
 their fire-centre-scoped counterparts)."""
 
+import asyncio
 from collections import namedtuple
 from datetime import date, datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -517,3 +518,49 @@ async def test_get_fire_centre_tpi_stats_cache_hit_skips_db(mocker):
 
     assert result is cached_response
     mock_centre_tpi_stats.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_get_provincial_summary_concurrent_callers_compute_once(mocker):
+    """A burst of concurrent callers for the same (run_type, run_datetime, for_date) must not
+    each recompute independently -- that's the cache-stampede this locking exists to prevent.
+    Only the first caller should reach get_provincial_rollup; everyone else should block on the
+    lock and then read back what the first caller cached."""
+    stored: dict = {}
+
+    async def fake_get_cached(*_args):
+        return stored.get("value")
+
+    async def fake_put_cached(*args):
+        stored["value"] = args[-1]
+
+    mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_provincial_summary",
+        side_effect=fake_get_cached,
+    )
+    mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.put_cached_provincial_summary",
+        side_effect=fake_put_cached,
+    )
+    mocker.patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_async_read_session_scope")
+
+    async def slow_rollup(*_args, **_kwargs):
+        # Holds the lock long enough for other concurrent callers to queue up behind it.
+        await asyncio.sleep(0.05)
+        return []
+
+    mock_rollup = mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.get_provincial_rollup",
+        side_effect=slow_rollup,
+    )
+
+    concurrent_for_date = date(2099, 1, 1)  # unique key: isolates this test's lock from others
+    results = await asyncio.gather(
+        *(
+            get_provincial_summary(RunType.FORECAST, RUN_DATETIME, concurrent_for_date)
+            for _ in range(10)
+        )
+    )
+
+    assert mock_rollup.call_count == 1
+    assert all(result == ProvincialSummaryResponse(provincial_summary=[]) for result in results)
