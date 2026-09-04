@@ -183,7 +183,7 @@ def process_raster_chain(
     output_nodata: float | None = None,
 ) -> gdal.Dataset:
     """
-    Run a chain of two or more raster processing steps tile by tile and write the combined
+    Run a chain of one or more raster processing steps tile by tile and write the combined
     result to `output_path` (or an in-memory MEM dataset when `output_path` is None). The
     first step's dataset defines the output grid; every other `align`-ing step's dataset is
     aligned to it lazily via `warp_to_match_vrt`, so no raster in the chain - including any
@@ -191,13 +191,14 @@ def process_raster_chain(
 
     For each tile, `steps[0].process(tile, None)` runs first, then each subsequent step's
     `process(tile, accumulated)` folds its own tile into the running result - e.g. classify the
-    first raster, then mask it against the second, then a third, and so on.
+    first raster, then mask it against the second, then a third, and so on. A single step is
+    a valid chain too, e.g a classify-only pass.
 
     Returns the resulting dataset, still open - the caller owns it and is responsible for
     closing it (e.g. `result = None`) once done, same as any other GDAL write handle.
     """
-    if len(steps) < 2:
-        raise ValueError("process_raster_chain requires at least 2 steps")
+    if len(steps) < 1:
+        raise ValueError("process_raster_chain requires at least 1 step")
 
     tile_config = tile_config or TileConfig()
     reference_ds = steps[0].ds

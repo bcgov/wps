@@ -153,9 +153,6 @@ class WPSDataset:
         self_band: gdal.Band = self.ds.GetRasterBand(self.band)
         datatype = self_band.DataType
 
-        def start(tile: np.ndarray, _accumulated: np.ndarray | None) -> np.ndarray:
-            return tile
-
         def multiply(tile: np.ndarray, accumulated: np.ndarray) -> np.ndarray:
             wider_type = np.promote_types(accumulated.dtype, tile.dtype)
             accumulated = accumulated.astype(wider_type)
@@ -167,7 +164,7 @@ class WPSDataset:
         out_ds = process_raster_chain(
             None,
             [
-                RasterStep(self.ds, start, align=False, band_index=self.band),
+                RasterStep(self.ds, lambda tile, _acc: tile, align=False, band_index=self.band),
                 RasterStep(other.ds, multiply, align=False, band_index=self.band),
             ],
             tile_config=TileConfig(tile_width=self.chunk_size, tile_height=self.chunk_size),

@@ -300,13 +300,23 @@ class TestProcessRasterChain:
         out_ds = gdal.Open(output_path)
         assert out_ds.GetRasterBand(1).GetNoDataValue() == 255
 
-    def test_requires_at_least_two_steps(self, tmp_path):
-        a_ds = write_geotiff(str(tmp_path / "a.tif"), np.array([[1.0]], dtype=np.float32))
-
+    def test_requires_at_least_one_step(self, tmp_path):
         with pytest.raises(ValueError):
-            process_raster_chain(
-                str(tmp_path / "out.tif"), [RasterStep(a_ds, lambda tile, _acc: tile)]
-            )
+            process_raster_chain(str(tmp_path / "out.tif"), [])
+
+    def test_single_step_chain_is_valid(self, tmp_path):
+        """A one-step chain is just windowed single-raster processing - e.g. a classify-only
+        pass with no second raster to combine against."""
+        a_ds = write_geotiff(str(tmp_path / "a.tif"), np.array([[3.0, 7.0]], dtype=np.float32))
+
+        def classify(tile, _accumulated):
+            return np.where(tile >= 5, 2, 1).astype(np.uint8)
+
+        output_path = str(tmp_path / "out.tif")
+        process_raster_chain(output_path, [RasterStep(a_ds, classify)])
+
+        out_ds = gdal.Open(output_path)
+        assert out_ds.GetRasterBand(1).ReadAsArray().tolist() == [[1, 2]]
 
     def test_tiling_matches_untiled_result(self, tmp_path):
         rng = np.random.default_rng(seed=5)
