@@ -46,7 +46,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.10",
+    "@biomejs/biome": "2.5.11",
     "@capacitor/android": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "@capacitor/docgen": "^0.3.0",
