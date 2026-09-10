@@ -8,10 +8,13 @@ gets a new key rather than needing invalidation.
 
 import asyncio
 import logging
+from collections import defaultdict
+from collections.abc import Awaitable, Callable
 from typing import Optional, TypeVar
 
 from pydantic import TypeAdapter
 from redis import StrictRedis
+from redis.lock import Lock
 from wps_shared import config
 from wps_shared.schemas.fba import (
     FireCentreTPIResponse,
@@ -23,6 +26,10 @@ from wps_shared.schemas.fba import (
 
 logger = logging.getLogger(__name__)
 cache_expiry_seconds = 86400  # 1 day -- generous since a completed run's data never changes
+# keep the lease just beyond gunicorn's 200-second worker timeout so killed workers recover
+compute_lock_timeout_seconds = 210
+# keep interactive requests responsive when a writer or Redis stalls
+compute_lock_wait_seconds = 5
 
 T = TypeVar("T")
 
@@ -36,11 +43,11 @@ _FIRE_CENTRE_HFI_STATS_ADAPTER = TypeAdapter(dict[int, FireZoneHFIStats])
 _FIRE_CENTRE_TPI_STATS_ADAPTER = TypeAdapter(FireCentreTPIResponse)
 
 
-def _run_key(prefix: str, run_type: str, run_datetime, for_date) -> str:
+def run_cache_key(prefix: str, run_type: str, run_datetime, for_date) -> str:
     return f"{prefix}_{run_type}_{run_datetime}_{for_date}"
 
 
-def _fire_centre_run_key(
+def fire_centre_cache_key(
     prefix: str, fire_centre_name: str, run_type: str, run_datetime, for_date
 ) -> str:
     return f"{prefix}_{fire_centre_name}_{run_type}_{run_datetime}_{for_date}"
@@ -58,6 +65,7 @@ class ASARedisCache:
         # via asyncio.to_thread so this blocking redis-py call doesn't sit on the event loop.
         self._timeout_seconds = timeout_seconds
         self._client: Optional[StrictRedis] = None
+        self._compute_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
     def connection_kwargs(self) -> dict:
         return {
@@ -76,6 +84,63 @@ class ASARedisCache:
         if self._client is None:
             self._client = StrictRedis(**self.connection_kwargs())
         return self._client
+
+    async def _acquire_compute_lock(self, cache_key: str) -> Lock | None:
+        try:
+            lock = self.client().lock(
+                f"{cache_key}:compute-lock",
+                timeout=compute_lock_timeout_seconds,
+                blocking_timeout=compute_lock_wait_seconds,
+                thread_local=False,
+            )
+            acquired = await asyncio.wait_for(
+                asyncio.to_thread(lock.acquire),
+                timeout=compute_lock_wait_seconds + self._timeout_seconds,
+            )
+            if acquired:
+                return lock
+            logger.warning("timed out waiting for redis compute lock %s", cache_key)
+        except Exception as error:
+            logger.error("unable to acquire redis compute lock %s", cache_key, exc_info=error)
+        return None
+
+    async def _release_compute_lock(self, cache_key: str, lock: Lock | None) -> None:
+        if lock is None:
+            return
+        try:
+            await asyncio.wait_for(asyncio.to_thread(lock.release), timeout=self._timeout_seconds)
+        except Exception as error:
+            # keep a successful response independent from best-effort cache coordination
+            logger.error("unable to release redis compute lock %s", cache_key, exc_info=error)
+
+    async def get_or_compute(
+        self,
+        cache_key: str,
+        get_cached: Callable[[], Awaitable[T | None]],
+        compute: Callable[[], Awaitable[T]],
+        put_cached: Callable[[T], Awaitable[None]],
+    ) -> T:
+        cached = await get_cached()
+        if cached is not None:
+            return cached
+
+        async with self._compute_locks[cache_key]:
+            # re-check before sending this worker's one contender to the distributed lock
+            cached = await get_cached()
+            if cached is not None:
+                return cached
+
+            lock = await self._acquire_compute_lock(cache_key)
+            try:
+                # another worker may have populated the cache while this worker waited
+                cached = await get_cached()
+                if cached is not None:
+                    return cached
+                result = await compute()
+                await put_cached(result)
+                return result
+            finally:
+                await self._release_compute_lock(cache_key, lock)
 
     async def _get(self, key: str, adapter: TypeAdapter) -> Optional[T]:
         try:
@@ -106,7 +171,7 @@ class ASARedisCache:
         self, run_type: str, run_datetime, for_date
     ) -> Optional[ProvincialSummaryResponse]:
         return await self._get(
-            _run_key("provincial_summary", run_type, run_datetime, for_date),
+            run_cache_key("provincial_summary", run_type, run_datetime, for_date),
             _PROVINCIAL_SUMMARY_ADAPTER,
         )
 
@@ -114,7 +179,7 @@ class ASARedisCache:
         self, run_type: str, run_datetime, for_date, response: ProvincialSummaryResponse
     ):
         await self._put(
-            _run_key("provincial_summary", run_type, run_datetime, for_date),
+            run_cache_key("provincial_summary", run_type, run_datetime, for_date),
             response,
             _PROVINCIAL_SUMMARY_ADAPTER,
         )
@@ -123,35 +188,39 @@ class ASARedisCache:
         self, run_type: str, run_datetime, for_date
     ) -> Optional[HFIStatsResponse]:
         return await self._get(
-            _run_key("hfi_stats", run_type, run_datetime, for_date), _HFI_STATS_ADAPTER
+            run_cache_key("hfi_stats", run_type, run_datetime, for_date), _HFI_STATS_ADAPTER
         )
 
     async def put_cached_hfi_stats(
         self, run_type: str, run_datetime, for_date, response: HFIStatsResponse
     ):
         await self._put(
-            _run_key("hfi_stats", run_type, run_datetime, for_date), response, _HFI_STATS_ADAPTER
+            run_cache_key("hfi_stats", run_type, run_datetime, for_date),
+            response,
+            _HFI_STATS_ADAPTER,
         )
 
     async def get_cached_tpi_stats(
         self, run_type: str, run_datetime, for_date
     ) -> Optional[TPIResponse]:
         return await self._get(
-            _run_key("tpi_stats", run_type, run_datetime, for_date), _TPI_STATS_ADAPTER
+            run_cache_key("tpi_stats", run_type, run_datetime, for_date), _TPI_STATS_ADAPTER
         )
 
     async def put_cached_tpi_stats(
         self, run_type: str, run_datetime, for_date, response: TPIResponse
     ):
         await self._put(
-            _run_key("tpi_stats", run_type, run_datetime, for_date), response, _TPI_STATS_ADAPTER
+            run_cache_key("tpi_stats", run_type, run_datetime, for_date),
+            response,
+            _TPI_STATS_ADAPTER,
         )
 
     async def get_cached_fire_centre_hfi_stats(
         self, fire_centre_name: str, run_type: str, run_datetime, for_date
     ) -> Optional[dict[int, FireZoneHFIStats]]:
         return await self._get(
-            _fire_centre_run_key(
+            fire_centre_cache_key(
                 "fire_centre_hfi_stats", fire_centre_name, run_type, run_datetime, for_date
             ),
             _FIRE_CENTRE_HFI_STATS_ADAPTER,
@@ -166,7 +235,7 @@ class ASARedisCache:
         value: dict[int, FireZoneHFIStats],
     ):
         await self._put(
-            _fire_centre_run_key(
+            fire_centre_cache_key(
                 "fire_centre_hfi_stats", fire_centre_name, run_type, run_datetime, for_date
             ),
             value,
@@ -177,7 +246,7 @@ class ASARedisCache:
         self, fire_centre_name: str, run_type: str, run_datetime, for_date
     ) -> Optional[FireCentreTPIResponse]:
         return await self._get(
-            _fire_centre_run_key(
+            fire_centre_cache_key(
                 "fire_centre_tpi_stats", fire_centre_name, run_type, run_datetime, for_date
             ),
             _FIRE_CENTRE_TPI_STATS_ADAPTER,
@@ -192,7 +261,7 @@ class ASARedisCache:
         response: FireCentreTPIResponse,
     ):
         await self._put(
-            _fire_centre_run_key(
+            fire_centre_cache_key(
                 "fire_centre_tpi_stats", fire_centre_name, run_type, run_datetime, for_date
             ),
             response,

@@ -2,12 +2,10 @@
 fire shape status rollup, per-zone HFI stats, per-zone elevation TPI stats) and shapes it into
 API responses, caching in Redis since this data never changes once a run completes."""
 
-import asyncio
 import logging
 import math
-from collections import defaultdict
 from datetime import date, datetime
-from typing import Awaitable, Callable, List, TypeVar
+from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.crud.auto_spatial_advisory import (
@@ -37,7 +35,11 @@ from wps_shared.schemas.fba import (
     TPIResponse,
 )
 
-from app.auto_spatial_advisory.advisory_run_stats.cache import asa_stats_cache
+from app.auto_spatial_advisory.advisory_run_stats.cache import (
+    asa_stats_cache,
+    fire_centre_cache_key,
+    run_cache_key,
+)
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
@@ -45,35 +47,6 @@ from app.auto_spatial_advisory.zone_stats import (
 )
 
 logger = logging.getLogger(__name__)
-
-T = TypeVar("T")
-
-# A completed run's data is the same for every caller (today/tomorrow), so a burst of
-# concurrent requests all miss the cache at once and would otherwise all recompute in
-# parallel instead of one caller computing it and the rest reading the cache. Keyed by the
-# same (kind, run_type, run_datetime, for_date[, fire_centre_name]) tuple each call site
-# already has this is unbounded but low-cardinality (one entry per run/day) and gunicorn recycles
-# workers every ~50 requests anyway, so it never grows indefinitely.
-_compute_locks: dict[tuple, asyncio.Lock] = defaultdict(asyncio.Lock)
-
-
-async def _get_or_compute(
-    key: tuple,
-    get_cached: Callable[[], Awaitable[T | None]],
-    compute: Callable[[], Awaitable[T]],
-    put_cached: Callable[[T], Awaitable[None]],
-) -> T:
-    cached = await get_cached()
-    if cached is not None:
-        return cached
-    async with _compute_locks[key]:
-        # Re-check: another caller may have computed and cached this while we waited on the lock.
-        cached = await get_cached()
-        if cached is not None:
-            return cached
-        result = await compute()
-        await put_cached(result)
-        return result
 
 
 async def get_all_zone_data_for_source_ids(
@@ -167,8 +140,8 @@ async def get_provincial_summary(
             )
         return ProvincialSummaryResponse(provincial_summary=fire_shape_status_details)
 
-    return await _get_or_compute(
-        ("provincial_summary", run_type.value, run_datetime, for_date),
+    return await asa_stats_cache.get_or_compute(
+        run_cache_key("provincial_summary", run_type.value, run_datetime, for_date),
         lambda: asa_stats_cache.get_cached_provincial_summary(
             run_type.value, run_datetime, for_date
         ),
@@ -192,8 +165,8 @@ async def get_hfi_stats(
             )
         return HFIStatsResponse(zone_data=all_zone_data)
 
-    return await _get_or_compute(
-        ("hfi_stats", run_type.value, run_datetime, for_date),
+    return await asa_stats_cache.get_or_compute(
+        run_cache_key("hfi_stats", run_type.value, run_datetime, for_date),
         lambda: asa_stats_cache.get_cached_hfi_stats(run_type.value, run_datetime, for_date),
         compute,
         lambda response: asa_stats_cache.put_cached_hfi_stats(
@@ -214,8 +187,14 @@ async def get_fire_centre_hfi_stats(
                 session, zone_source_ids, run_type, for_date, run_datetime
             )
 
-    return await _get_or_compute(
-        ("fire_centre_hfi_stats", fire_centre_name, run_type.value, run_datetime, for_date),
+    return await asa_stats_cache.get_or_compute(
+        fire_centre_cache_key(
+            "fire_centre_hfi_stats",
+            fire_centre_name,
+            run_type.value,
+            run_datetime,
+            for_date,
+        ),
         lambda: asa_stats_cache.get_cached_fire_centre_hfi_stats(
             fire_centre_name, run_type.value, run_datetime, for_date
         ),
@@ -273,8 +252,8 @@ async def get_tpi_stats(run_type: RunType, run_datetime: datetime, for_date: dat
             hfi_tpi_areas_by_zone = build_firezone_tpi_stats(tpi_stats, tpi_fuel_stats)
         return TPIResponse(firezone_tpi_stats=hfi_tpi_areas_by_zone)
 
-    return await _get_or_compute(
-        ("tpi_stats", run_type.value, run_datetime, for_date),
+    return await asa_stats_cache.get_or_compute(
+        run_cache_key("tpi_stats", run_type.value, run_datetime, for_date),
         lambda: asa_stats_cache.get_cached_tpi_stats(run_type.value, run_datetime, for_date),
         compute,
         lambda response: asa_stats_cache.put_cached_tpi_stats(
@@ -302,8 +281,14 @@ async def get_fire_centre_tpi_stats(
             fire_centre_name=fire_centre_name, firezone_tpi_stats=hfi_tpi_areas_by_zone
         )
 
-    return await _get_or_compute(
-        ("fire_centre_tpi_stats", fire_centre_name, run_type.value, run_datetime, for_date),
+    return await asa_stats_cache.get_or_compute(
+        fire_centre_cache_key(
+            "fire_centre_tpi_stats",
+            fire_centre_name,
+            run_type.value,
+            run_datetime,
+            for_date,
+        ),
         lambda: asa_stats_cache.get_cached_fire_centre_tpi_stats(
             fire_centre_name, run_type.value, run_datetime, for_date
         ),

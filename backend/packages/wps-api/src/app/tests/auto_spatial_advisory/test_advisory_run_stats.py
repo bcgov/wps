@@ -524,8 +524,7 @@ async def test_get_fire_centre_tpi_stats_cache_hit_skips_db(mocker):
 async def test_get_provincial_summary_concurrent_callers_compute_once(mocker):
     """A burst of concurrent callers for the same (run_type, run_datetime, for_date) must not
     each recompute independently -- that's the cache-stampede this locking exists to prevent.
-    Only the first caller should reach get_provincial_rollup; everyone else should block on the
-    lock and then read back what the first caller cached."""
+    The local lock must retain that protection when the distributed Redis lock is unavailable."""
     stored: dict = {}
 
     async def fake_get_cached(*_args):
@@ -542,10 +541,16 @@ async def test_get_provincial_summary_concurrent_callers_compute_once(mocker):
         "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.put_cached_provincial_summary",
         side_effect=fake_put_cached,
     )
+    mock_redis = MagicMock()
+    mock_redis.lock.return_value.acquire.side_effect = ConnectionError("redis unavailable")
+    mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.client",
+        return_value=mock_redis,
+    )
     mocker.patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_async_read_session_scope")
 
     async def slow_rollup(*_args, **_kwargs):
-        # Holds the lock long enough for other concurrent callers to queue up behind it.
+        # hold the lock long enough for other concurrent callers to queue up behind it
         await asyncio.sleep(0.05)
         return []
 
@@ -554,7 +559,7 @@ async def test_get_provincial_summary_concurrent_callers_compute_once(mocker):
         side_effect=slow_rollup,
     )
 
-    concurrent_for_date = date(2099, 1, 1)  # unique key: isolates this test's lock from others
+    concurrent_for_date = date(2099, 1, 1)  # unique key isolates this test's lock from others
     results = await asyncio.gather(
         *(
             get_provincial_summary(RunType.FORECAST, RUN_DATETIME, concurrent_for_date)
@@ -563,4 +568,5 @@ async def test_get_provincial_summary_concurrent_callers_compute_once(mocker):
     )
 
     assert mock_rollup.call_count == 1
+    mock_redis.lock.return_value.acquire.assert_called_once_with()
     assert all(result == ProvincialSummaryResponse(provincial_summary=[]) for result in results)
