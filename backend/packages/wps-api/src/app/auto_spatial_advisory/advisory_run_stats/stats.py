@@ -18,8 +18,10 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_precomputed_stats_for_shape,
     get_provincial_rollup,
     get_tpi_fuel_areas,
-    get_tpi_stats as fetch_tpi_stats_rows,
     get_zone_source_ids_in_centre,
+)
+from wps_shared.db.crud.auto_spatial_advisory import (
+    get_tpi_stats as fetch_tpi_stats_rows,
 )
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_read_session_scope
@@ -33,7 +35,11 @@ from wps_shared.schemas.fba import (
     TPIResponse,
 )
 
-from app.auto_spatial_advisory.advisory_run_stats.cache import asa_stats_cache
+from app.auto_spatial_advisory.advisory_run_stats.cache import (
+    asa_stats_cache,
+    fire_centre_cache_key,
+    run_cache_key,
+)
 from app.auto_spatial_advisory.process_hfi import RunType
 from app.auto_spatial_advisory.zone_stats import (
     get_fuel_type_area_stats,
@@ -126,53 +132,77 @@ async def get_provincial_summary(
     run_type: RunType, run_datetime: datetime, for_date: date
 ) -> ProvincialSummaryResponse:
     """Return all Fire Centres with their fire shapes and the HFI status of those shapes."""
-    cached = await asa_stats_cache.get_cached_provincial_summary(run_type.value, run_datetime, for_date)
-    if cached is not None:
-        return cached
 
-    async with get_async_read_session_scope() as session:
-        fire_shape_status_details = await get_provincial_rollup(
-            session, RunTypeEnum(run_type.value), run_datetime, for_date
-        )
+    async def compute() -> ProvincialSummaryResponse:
+        async with get_async_read_session_scope() as session:
+            fire_shape_status_details = await get_provincial_rollup(
+                session, RunTypeEnum(run_type.value), run_datetime, for_date
+            )
+        return ProvincialSummaryResponse(provincial_summary=fire_shape_status_details)
 
-    response = ProvincialSummaryResponse(provincial_summary=fire_shape_status_details)
-    await asa_stats_cache.put_cached_provincial_summary(run_type.value, run_datetime, for_date, response)
-    return response
+    return await asa_stats_cache.get_or_compute(
+        run_cache_key("provincial_summary", run_type.value, run_datetime, for_date),
+        lambda: asa_stats_cache.get_cached_provincial_summary(
+            run_type.value, run_datetime, for_date
+        ),
+        compute,
+        lambda response: asa_stats_cache.put_cached_provincial_summary(
+            run_type.value, run_datetime, for_date, response
+        ),
+    )
 
 
-async def get_hfi_stats(run_type: RunType, run_datetime: datetime, for_date: date) -> HFIStatsResponse:
+async def get_hfi_stats(
+    run_type: RunType, run_datetime: datetime, for_date: date
+) -> HFIStatsResponse:
     """Fetch fuel type and critical hours data for all fire zone units."""
-    cached = await asa_stats_cache.get_cached_hfi_stats(run_type.value, run_datetime, for_date)
-    if cached is not None:
-        return cached
 
-    async with get_async_read_session_scope() as session:
-        zone_source_ids = await get_all_zone_source_ids(session)
-        all_zone_data = await get_all_zone_data_for_source_ids(
-            session, zone_source_ids, run_type, for_date, run_datetime
-        )
+    async def compute() -> HFIStatsResponse:
+        async with get_async_read_session_scope() as session:
+            zone_source_ids = await get_all_zone_source_ids(session)
+            all_zone_data = await get_all_zone_data_for_source_ids(
+                session, zone_source_ids, run_type, for_date, run_datetime
+            )
+        return HFIStatsResponse(zone_data=all_zone_data)
 
-    response = HFIStatsResponse(zone_data=all_zone_data)
-    await asa_stats_cache.put_cached_hfi_stats(run_type.value, run_datetime, for_date, response)
-    return response
+    return await asa_stats_cache.get_or_compute(
+        run_cache_key("hfi_stats", run_type.value, run_datetime, for_date),
+        lambda: asa_stats_cache.get_cached_hfi_stats(run_type.value, run_datetime, for_date),
+        compute,
+        lambda response: asa_stats_cache.put_cached_hfi_stats(
+            run_type.value, run_datetime, for_date, response
+        ),
+    )
 
 
 async def get_fire_centre_hfi_stats(
     fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date
 ) -> dict[int, FireZoneHFIStats]:
     """Fetch fuel type and critical hours data for all fire zones in one fire centre."""
-    cached = await asa_stats_cache.get_cached_fire_centre_hfi_stats(fire_centre_name, run_type.value, run_datetime, for_date)
-    if cached is not None:
-        return cached
 
-    async with get_async_read_session_scope() as session:
-        zone_source_ids = await get_zone_source_ids_in_centre(session, fire_centre_name)
-        all_zone_data = await get_all_zone_data_for_source_ids(
-            session, zone_source_ids, run_type, for_date, run_datetime
-        )
+    async def compute() -> dict[int, FireZoneHFIStats]:
+        async with get_async_read_session_scope() as session:
+            zone_source_ids = await get_zone_source_ids_in_centre(session, fire_centre_name)
+            return await get_all_zone_data_for_source_ids(
+                session, zone_source_ids, run_type, for_date, run_datetime
+            )
 
-    await asa_stats_cache.put_cached_fire_centre_hfi_stats(fire_centre_name, run_type.value, run_datetime, for_date, all_zone_data)
-    return all_zone_data
+    return await asa_stats_cache.get_or_compute(
+        fire_centre_cache_key(
+            "fire_centre_hfi_stats",
+            fire_centre_name,
+            run_type.value,
+            run_datetime,
+            for_date,
+        ),
+        lambda: asa_stats_cache.get_cached_fire_centre_hfi_stats(
+            fire_centre_name, run_type.value, run_datetime, for_date
+        ),
+        compute,
+        lambda all_zone_data: asa_stats_cache.put_cached_fire_centre_hfi_stats(
+            fire_centre_name, run_type.value, run_datetime, for_date, all_zone_data
+        ),
+    )
 
 
 def build_firezone_tpi_stats(tpi_stats, tpi_fuel_stats) -> list[FireZoneTPIStats]:
@@ -213,37 +243,57 @@ def build_firezone_tpi_stats(tpi_stats, tpi_fuel_stats) -> list[FireZoneTPIStats
 
 async def get_tpi_stats(run_type: RunType, run_datetime: datetime, for_date: date) -> TPIResponse:
     """Return the elevation TPI statistics for each advisory threshold for all fire shapes."""
-    cached = await asa_stats_cache.get_cached_tpi_stats(run_type.value, run_datetime, for_date)
-    if cached is not None:
-        return cached
 
-    async with get_async_read_session_scope() as session:
-        tpi_stats = await fetch_tpi_stats_rows(session, run_type, run_datetime, for_date)
-        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
-        tpi_fuel_stats = await get_tpi_fuel_areas(session, fuel_type_raster.id)
-        hfi_tpi_areas_by_zone = build_firezone_tpi_stats(tpi_stats, tpi_fuel_stats)
+    async def compute() -> TPIResponse:
+        async with get_async_read_session_scope() as session:
+            tpi_stats = await fetch_tpi_stats_rows(session, run_type, run_datetime, for_date)
+            fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
+            tpi_fuel_stats = await get_tpi_fuel_areas(session, fuel_type_raster.id)
+            hfi_tpi_areas_by_zone = build_firezone_tpi_stats(tpi_stats, tpi_fuel_stats)
+        return TPIResponse(firezone_tpi_stats=hfi_tpi_areas_by_zone)
 
-    response = TPIResponse(firezone_tpi_stats=hfi_tpi_areas_by_zone)
-    await asa_stats_cache.put_cached_tpi_stats(run_type.value, run_datetime, for_date, response)
-    return response
+    return await asa_stats_cache.get_or_compute(
+        run_cache_key("tpi_stats", run_type.value, run_datetime, for_date),
+        lambda: asa_stats_cache.get_cached_tpi_stats(run_type.value, run_datetime, for_date),
+        compute,
+        lambda response: asa_stats_cache.put_cached_tpi_stats(
+            run_type.value, run_datetime, for_date, response
+        ),
+    )
 
 
 async def get_fire_centre_tpi_stats(
     fire_centre_name: str, run_type: RunType, run_datetime: datetime, for_date: date
 ) -> FireCentreTPIResponse:
     """Return the elevation TPI statistics for each advisory threshold for one fire centre."""
-    cached = await asa_stats_cache.get_cached_fire_centre_tpi_stats(fire_centre_name, run_type.value, run_datetime, for_date)
-    if cached is not None:
-        return cached
 
-    async with get_async_read_session_scope() as session:
-        tpi_stats_for_centre = await get_centre_tpi_stats(
-            session, fire_centre_name, run_type, run_datetime, for_date
+    async def compute() -> FireCentreTPIResponse:
+        async with get_async_read_session_scope() as session:
+            tpi_stats_for_centre = await get_centre_tpi_stats(
+                session, fire_centre_name, run_type, run_datetime, for_date
+            )
+            fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
+            tpi_fuel_stats = await get_fire_centre_tpi_fuel_areas(
+                session, fire_centre_name, fuel_type_raster.id
+            )
+            hfi_tpi_areas_by_zone = build_firezone_tpi_stats(tpi_stats_for_centre, tpi_fuel_stats)
+        return FireCentreTPIResponse(
+            fire_centre_name=fire_centre_name, firezone_tpi_stats=hfi_tpi_areas_by_zone
         )
-        fuel_type_raster = await get_fuel_type_raster_by_year(session, for_date.year)
-        tpi_fuel_stats = await get_fire_centre_tpi_fuel_areas(session, fire_centre_name, fuel_type_raster.id)
-        hfi_tpi_areas_by_zone = build_firezone_tpi_stats(tpi_stats_for_centre, tpi_fuel_stats)
 
-    response = FireCentreTPIResponse(fire_centre_name=fire_centre_name, firezone_tpi_stats=hfi_tpi_areas_by_zone)
-    await asa_stats_cache.put_cached_fire_centre_tpi_stats(fire_centre_name, run_type.value, run_datetime, for_date, response)
-    return response
+    return await asa_stats_cache.get_or_compute(
+        fire_centre_cache_key(
+            "fire_centre_tpi_stats",
+            fire_centre_name,
+            run_type.value,
+            run_datetime,
+            for_date,
+        ),
+        lambda: asa_stats_cache.get_cached_fire_centre_tpi_stats(
+            fire_centre_name, run_type.value, run_datetime, for_date
+        ),
+        compute,
+        lambda response: asa_stats_cache.put_cached_fire_centre_tpi_stats(
+            fire_centre_name, run_type.value, run_datetime, for_date, response
+        ),
+    )

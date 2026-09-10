@@ -37,6 +37,13 @@ def mock_advisory_run_stats_redis(monkeypatch):
     class. A test that wants to exercise ASARedisCache's own connection/client-building logic can
     just instantiate a fresh ASARedisCache(), unaffected by this."""
 
+    class MockLock:
+        def acquire(self):
+            return True
+
+        def release(self):
+            pass
+
     class MockRedis:
         def get(self, name):
             return None
@@ -46,6 +53,9 @@ def mock_advisory_run_stats_redis(monkeypatch):
 
         def delete(self, name):
             pass
+
+        def lock(self, *_args, **_kwargs):
+            return MockLock()
 
     monkeypatch.setattr(advisory_run_stats_cache.asa_stats_cache, "client", lambda: MockRedis())
 

@@ -9,6 +9,7 @@ that socket_connect_timeout doesn't cover DNS resolution, only a real unreachabl
 (see the timeout test below, and the asyncio.wait_for fix in cache.py).
 """
 
+import asyncio
 import time
 
 import pytest
@@ -21,9 +22,11 @@ from wps_shared.schemas.fba import (
     TPIResponse,
 )
 
-from app.auto_spatial_advisory.advisory_run_stats.cache import ASARedisCache
+from app.auto_spatial_advisory.advisory_run_stats.cache import ASARedisCache, run_cache_key
 
-TESTCONTAINERS_REDIS_IMAGE = "redis:6-alpine"  # matches openshift/templates/redis.yaml's redis:6-el9
+TESTCONTAINERS_REDIS_IMAGE = (
+    "redis:6-alpine"  # matches openshift/templates/redis.yaml's redis:6-el9
+)
 
 RUN_TYPE = "forecast"
 RUN_DATETIME = "2025-01-01T12:00:00+00:00"
@@ -53,8 +56,13 @@ def real_cache(redis_container, monkeypatch):
 async def test_put_then_get_round_trips_through_real_redis(real_cache):
     """Every put_cached_*/get_cached_* pair, called directly against a real Redis."""
     provincial_summary = ProvincialSummaryResponse(provincial_summary=[])
-    await real_cache.put_cached_provincial_summary(RUN_TYPE, RUN_DATETIME, FOR_DATE, provincial_summary)
-    assert await real_cache.get_cached_provincial_summary(RUN_TYPE, RUN_DATETIME, FOR_DATE) == provincial_summary
+    await real_cache.put_cached_provincial_summary(
+        RUN_TYPE, RUN_DATETIME, FOR_DATE, provincial_summary
+    )
+    assert (
+        await real_cache.get_cached_provincial_summary(RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        == provincial_summary
+    )
 
     hfi_stats = HFIStatsResponse(zone_data=SAMPLE_ZONE_DATA)
     await real_cache.put_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE, hfi_stats)
@@ -68,16 +76,22 @@ async def test_put_then_get_round_trips_through_real_redis(real_cache):
         FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE, SAMPLE_ZONE_DATA
     )
     assert (
-        await real_cache.get_cached_fire_centre_hfi_stats(FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        await real_cache.get_cached_fire_centre_hfi_stats(
+            FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE
+        )
         == SAMPLE_ZONE_DATA
     )
 
-    fire_centre_tpi_stats = FireCentreTPIResponse(fire_centre_name=FIRE_CENTRE_NAME, firezone_tpi_stats=[])
+    fire_centre_tpi_stats = FireCentreTPIResponse(
+        fire_centre_name=FIRE_CENTRE_NAME, firezone_tpi_stats=[]
+    )
     await real_cache.put_cached_fire_centre_tpi_stats(
         FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE, fire_centre_tpi_stats
     )
     assert (
-        await real_cache.get_cached_fire_centre_tpi_stats(FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        await real_cache.get_cached_fire_centre_tpi_stats(
+            FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE
+        )
         == fire_centre_tpi_stats
     )
 
@@ -89,11 +103,15 @@ async def test_get_miss_returns_none_against_real_redis(real_cache):
     assert await real_cache.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE) is None
     assert await real_cache.get_cached_tpi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE) is None
     assert (
-        await real_cache.get_cached_fire_centre_hfi_stats(FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        await real_cache.get_cached_fire_centre_hfi_stats(
+            FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE
+        )
         is None
     )
     assert (
-        await real_cache.get_cached_fire_centre_tpi_stats(FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        await real_cache.get_cached_fire_centre_tpi_stats(
+            FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE
+        )
         is None
     )
 
@@ -107,6 +125,37 @@ async def test_ttl_is_set_on_write(real_cache):
     key = f"provincial_summary_{RUN_TYPE}_{RUN_DATETIME}_{FOR_DATE}"
     ttl = real_cache.client().ttl(key)
     assert 0 < ttl <= 86400
+
+
+@pytest.mark.anyio
+async def test_get_or_compute_coordinates_independent_redis_clients(real_cache):
+    second_cache = ASARedisCache()
+    cache_key = run_cache_key("provincial_summary", RUN_TYPE, RUN_DATETIME, FOR_DATE)
+    compute_count = 0
+
+    async def compute() -> ProvincialSummaryResponse:
+        nonlocal compute_count
+        compute_count += 1
+        await asyncio.sleep(0.05)
+        return ProvincialSummaryResponse(provincial_summary=[])
+
+    async def get_or_compute(cache: ASARedisCache) -> ProvincialSummaryResponse:
+        return await cache.get_or_compute(
+            cache_key,
+            lambda: cache.get_cached_provincial_summary(RUN_TYPE, RUN_DATETIME, FOR_DATE),
+            compute,
+            lambda response: cache.put_cached_provincial_summary(
+                RUN_TYPE, RUN_DATETIME, FOR_DATE, response
+            ),
+        )
+
+    results = await asyncio.gather(get_or_compute(real_cache), get_or_compute(second_cache))
+
+    assert compute_count == 1
+    assert results == [
+        ProvincialSummaryResponse(provincial_summary=[]),
+        ProvincialSummaryResponse(provincial_summary=[]),
+    ]
 
 
 @pytest.mark.anyio

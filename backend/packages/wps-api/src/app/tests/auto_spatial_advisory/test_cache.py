@@ -3,12 +3,17 @@ ASARedisCache used by advisory_run_stats to avoid re-hitting Postgres for data t
 once an SFMS run completes."""
 
 import time
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from wps_shared.schemas.fba import HFIStatsResponse, ProvincialSummaryResponse, TPIResponse
 
-from app.auto_spatial_advisory.advisory_run_stats.cache import ASARedisCache, asa_stats_cache
+from app.auto_spatial_advisory.advisory_run_stats.cache import (
+    ASARedisCache,
+    asa_stats_cache,
+    compute_lock_timeout_seconds,
+    compute_lock_wait_seconds,
+)
 
 RUN_TYPE = "forecast"
 RUN_DATETIME = "2024-07-15T12:00:00+00:00"
@@ -66,6 +71,81 @@ async def test_put_cached_hfi_stats_redis_error_does_not_raise(mocker):
     await asa_stats_cache.put_cached_hfi_stats(
         RUN_TYPE, RUN_DATETIME, FOR_DATE, HFIStatsResponse(zone_data={})
     )  # does not raise
+
+
+@pytest.mark.anyio
+async def test_get_or_compute_uses_distributed_lease_and_releases(mocker):
+    redis_cache = ASARedisCache()
+    mock_client = MagicMock()
+    mock_lock = mock_client.lock.return_value
+    mock_lock.acquire.return_value = True
+    mocker.patch.object(redis_cache, "client", return_value=mock_client)
+    response = HFIStatsResponse(zone_data={})
+    get_cached = AsyncMock(side_effect=[None, None, None])
+    compute = AsyncMock(return_value=response)
+    put_cached = AsyncMock()
+
+    result = await redis_cache.get_or_compute("hfi_stats_run", get_cached, compute, put_cached)
+
+    assert result is response
+    mock_client.lock.assert_called_once_with(
+        "hfi_stats_run:compute-lock",
+        timeout=compute_lock_timeout_seconds,
+        blocking_timeout=compute_lock_wait_seconds,
+        thread_local=False,
+    )
+    mock_lock.acquire.assert_called_once_with()
+    mock_lock.release.assert_called_once_with()
+
+
+@pytest.mark.anyio
+async def test_get_or_compute_cache_hit_skips_locks_and_compute(mocker):
+    redis_cache = ASARedisCache()
+    mock_client = mocker.patch.object(redis_cache, "client")
+    response = HFIStatsResponse(zone_data={})
+    compute = AsyncMock()
+
+    result = await redis_cache.get_or_compute(
+        "hfi_stats_run", AsyncMock(return_value=response), compute, AsyncMock()
+    )
+
+    assert result is response
+    mock_client.assert_not_called()
+    compute.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_get_or_compute_redis_error_falls_back_without_raising(mocker):
+    redis_cache = ASARedisCache()
+    mock_client = MagicMock()
+    mock_lock = mock_client.lock.return_value
+    mock_lock.acquire.side_effect = ConnectionError("redis unavailable")
+    mocker.patch.object(redis_cache, "client", return_value=mock_client)
+    response = HFIStatsResponse(zone_data={})
+    get_cached = AsyncMock(side_effect=[None, None, None])
+    compute = AsyncMock(return_value=response)
+
+    result = await redis_cache.get_or_compute("hfi_stats_run", get_cached, compute, AsyncMock())
+
+    assert result is response
+    mock_lock.release.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_get_or_compute_releases_lock_when_compute_raises(mocker):
+    redis_cache = ASARedisCache()
+    mock_client = MagicMock()
+    mock_lock = mock_client.lock.return_value
+    mock_lock.acquire.return_value = True
+    mocker.patch.object(redis_cache, "client", return_value=mock_client)
+    get_cached = AsyncMock(side_effect=[None, None, None])
+    compute = AsyncMock(side_effect=RuntimeError("compute failed"))
+    put_cached = AsyncMock()
+
+    with pytest.raises(RuntimeError, match="compute failed"):
+        await redis_cache.get_or_compute("hfi_stats_run", get_cached, compute, put_cached)
+
+    mock_lock.release.assert_called_once_with()
 
 
 @pytest.mark.anyio
