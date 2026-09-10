@@ -140,9 +140,10 @@ async def test_get_or_compute_releases_lock_when_compute_raises(mocker):
     mocker.patch.object(redis_cache, "client", return_value=mock_client)
     get_cached = AsyncMock(side_effect=[None, None, None])
     compute = AsyncMock(side_effect=RuntimeError("compute failed"))
+    put_cached = AsyncMock()
 
     with pytest.raises(RuntimeError, match="compute failed"):
-        await redis_cache.get_or_compute("hfi_stats_run", get_cached, compute, AsyncMock())
+        await redis_cache.get_or_compute("hfi_stats_run", get_cached, compute, put_cached)
 
     mock_lock.release.assert_called_once_with()
 
