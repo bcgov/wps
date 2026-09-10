@@ -18,7 +18,8 @@ notes: |
 tags: [sfms, fwi, fire-weather-index, wildfire, fire-danger, cffdrs, openapi]
 organization: ministry-of-forests
 organizationUnit: bc-wildfire-service
-license_title: Open Government Licence - British Columbia
+# License options: https://bcgov.github.io/data-publication/pages/dps_licences.html
+license_title: Access Only
 view_audience: Government
 security_class: PUBLIC
 record_publish_date: "2026-06-30"
