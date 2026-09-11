@@ -253,10 +253,10 @@
   resolved "https://registry.yarnpkg.com/@capacitor-firebase/messaging/-/messaging-8.3.0.tgz#0817a1f6eacacccc6748e8191b914a8adceae870"
   integrity sha512-gjlpPH8nFN2D4PGpg+Bi7Pk1Apy+nRh6DHTI8hr4o3QfCmZPnNCT0mhhT8Rcdpwf2D+E5NxkaVy4/2GYiXoF8Q==
 
-"@capacitor/android@8.5.0":
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/@capacitor/android/-/android-8.5.0.tgz#1fa7c7eb00b6600df1f346b6548869670e6cd0d3"
-  integrity sha512-Rb3prJeQiTp0pQhSSOReJuG9VgibOGMG4ECs+UhMwr6TCCHZ3NCZO811bDA0HxD0xrT/gCrJAsY5yfEATu84JQ==
+"@capacitor/android@8.5.1":
+  version "8.5.1"
+  resolved "https://registry.yarnpkg.com/@capacitor/android/-/android-8.5.1.tgz#577a8cea742341a0494e93366d1059d96ec90025"
+  integrity sha512-o8fUIPDSEASeXHHrDz26WU7OlyiRb+QqtI9KFdnLS1jUL77o5iGrvegibaZX8rWpiCyDJ6jlUhhhHlfeq3ou9A==
 
 "@capacitor/app@8.1.1":
   version "8.1.1"
@@ -281,10 +281,10 @@
     tslib "2.6.2"
     yargs "17.7.2"
 
-"@capacitor/cli@8.5.0":
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/@capacitor/cli/-/cli-8.5.0.tgz#655bbdec95997ee723fecc1d326a08517b4eaf9f"
-  integrity sha512-rLdzMUM5QV4WITcqoWv04p32i14BXgUH2diqEH6MWQlWaJfiyNrvOyt/+d5vHAfOxOm1klBu637VDEobctlwBA==
+"@capacitor/cli@8.5.1":
+  version "8.5.1"
+  resolved "https://registry.yarnpkg.com/@capacitor/cli/-/cli-8.5.1.tgz#1f8af6db041944078d41fa7c9b6848312e5a67a7"
+  integrity sha512-LKQFSyLg1QbTN6CGDoFqeRtAlj8C3c9OymP8OuhwlmkbSQwh9i1HQjwUCaNyVem2XkY9rv0v2UOfVlgoxH5pAw==
   dependencies:
     "@ionic/cli-framework-output" "^2.2.8"
     "@ionic/utils-subprocess" "^3.0.1"
@@ -328,10 +328,10 @@
     tslib "^2.4.0"
     xml2js "^0.5.0"
 
-"@capacitor/core@8.5.0":
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-8.5.0.tgz#425893fddd7fff93dcf2d784677c45643602987b"
-  integrity sha512-Ca4krtqH1hothjtBIwf2J2TW7IhYq1ujp8QeItTiJohNsqij8ja2DYYH3DU0l8RmxCWaBAFTGA2TgOgOMCSNsQ==
+"@capacitor/core@8.5.1":
+  version "8.5.1"
+  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-8.5.1.tgz#e7adf1762ff98dbc2b37568ea9a1a10462b273af"
+  integrity sha512-IOQ7ynG1qgrJ/RLuCO3WgyRGmkmmG/cdStRR4ftU2dWEN1FdtLrnI/XpZmZuUsOEHEnzBRJY/PmRH8eTLiXfhA==
   dependencies:
     tslib "^2.1.0"
 
@@ -359,10 +359,10 @@
   resolved "https://registry.yarnpkg.com/@capacitor/haptics/-/haptics-8.0.2.tgz#821d2687b81ff8855327273314d0d146476f069f"
   integrity sha512-c2hZzRR5Fk1tbTvhG1jhh2XBAf3EhnIerMIb2sl7Mt41Gxx1fhBJFDa0/BI1IbY4loVepyyuqNC9820/GZuoWQ==
 
-"@capacitor/ios@8.5.0":
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/@capacitor/ios/-/ios-8.5.0.tgz#d21c99b50119e586ca08b25e7630396db6fcf91f"
-  integrity sha512-7k1TfohJu5BzRXc1F3g04Q8QQ0fyQgms6h1AvhnHb04VaNr9EdHOx03hL8O+OigEKMQnyJd1ZOjTPPNHCqL5Yw==
+"@capacitor/ios@8.5.1":
+  version "8.5.1"
+  resolved "https://registry.yarnpkg.com/@capacitor/ios/-/ios-8.5.1.tgz#f3c19d81c94d5b629a3e94ff6db9653ad9ea060a"
+  integrity sha512-0EVqwCYf3RUp2JAjUGZ04xmG6dSpIsPmPacI9zKxn6mu9RSiHhmFF230ghe00HrkyB6ig6SfNdoADvVODxYhlQ==
 
 "@capacitor/keyboard@8.0.5":
   version "8.0.5"
