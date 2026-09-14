@@ -12,11 +12,19 @@ required fields from its result.
 
 ## Input TODOs
 
+- [ ] Convert interpolated wind direction before calling the vectorized CFFDRS calculation.
+  - The raster stores meteorological direction in degrees, while `wd_rad` expects radians.
+  - Preserve nodata in the common valid-pixel mask and convert valid values with `np.radians`.
 - [ ] Bring the existing legacy SFMS ground-slope and aspect rasters into the new pipeline,
       following the same approach used for the legacy DEM.
-  - Ground slope (`gs`) must be expressed as percent slope, not degrees.
-  - Aspect is the direction the slope faces. Convert it to radians before calling CFFDRS.
-  - Define nodata handling and the aspect value used for flat pixels.
+  - Both rasters are 778 by 683 Float32 grids at 2 km resolution with nodata `-1000000`.
+  - The slope raster is already percent slope. Its non-nodata values span approximately
+    `-14%` to `309%`; do not convert it from degrees, and define handling for values outside the
+    CFFDRS range of `[0, 200]`.
+  - The aspect raster is in degrees and spans approximately `-56` to `408`. Normalize valid
+    directions modulo 360, then convert them with `np.radians` before calling CFFDRS.
+  - Define nodata handling and the aspect value used for flat pixels. Aspect is irrelevant where
+    the normalized slope is zero.
 - [ ] Confirm whether production fuel grids contain the M3/M4 classification before sourcing
       percent dead balsam fir (`pdf`).
   - The temporary classification mapping reserves value `13` for M3/M4, but the temporary 2025
@@ -35,7 +43,7 @@ required fields from its result.
   - Actual jobs ensure their target date exists; forecast jobs ensure their three processed
     dates exist. Existing GeoTIFF and COG pairs are reused.
   - FMC rasters are stored under `sfms_ng/static/fmc/YYYY/MM/DD/`
-- [ ] Integrate the daily FMC raster into the shared primary FBP calculation.
+- [x] Integrate the daily FMC raster into the shared primary FBP calculation.
   - Treat valid daily FMC values as authoritative rather than asking CFFDRS to derive them.
   - Require FMC to be finite and greater than `0` and at most `120` on pixels being calculated.
   - Exclude missing or invalid FMC pixels with the common valid-pixel mask. Passing them into
@@ -57,9 +65,9 @@ required fields from its result.
 | `ffmc`           | Same-day FFMC raster                                      | Existing FWI output.                                                                                                            |
 | `bui`            | Same-day BUI raster                                       | Existing FWI output.                                                                                                            |
 | `ws`             | Same-day interpolated wind-speed raster                   | km/h.                                                                                                                           |
-| `wd_rad`         | Same-day interpolated wind-direction raster               | Existing raster is meteorological degrees; convert to radians.                                                                  |
-| `gs`             | Existing legacy SFMS slope raster                         | Percent slope; migrate and address it in the new pipeline.                                                                      |
-| `aspect_rad`     | Existing legacy SFMS aspect raster                        | Downslope aspect converted to radians; migrate and address it in the new pipeline.                                              |
+| `wd_rad`         | Same-day interpolated wind-direction raster               | Meteorological degrees; preserve nodata and convert valid values with `np.radians`.                                              |
+| `gs`             | Existing legacy SFMS slope raster                         | Already percent slope; define handling for observed values outside `[0, 200]`.                                                  |
+| `aspect_rad`     | Existing legacy SFMS aspect raster                        | Downslope aspect in degrees; normalize modulo 360 and convert with `np.radians`.                                                 |
 | `pc`             | Percent-conifer raster paired with the fuel-grid year     | Required and validated on M1/M2 pixels. Use zero elsewhere.                                                                     |
 | `pdf`            | Conditional percent-dead-balsam-fir source                | First confirm M3/M4 occurs in the selected fuel grid. If it does, require and validate PDF on those pixels; use zero elsewhere. |
 | `cc`             | Grass-curing source to be determined                      | Required and validated on O1A/O1B pixels. Use zero elsewhere.                                                                   |
@@ -68,11 +76,11 @@ required fields from its result.
 | `cfl`            | Default policy to confirm                                 | Candidate value: `0`, which selects the CFFDRS fuel-type default; confirm before implementation.                                |
 | `fmc`            | Daily FMC raster                                          | Require a finite value in `(0, 120]`; missing or invalid pixels become output nodata.                                           |
 | `isi`            | Policy to be decided                                      | Pass a positive value to use the existing daily ISI, or `0` to have CFFDRS derive it from FFMC and effective wind.              |
-| `lat`            | Unused-input policy to confirm                            | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation.                           |
-| `lon`            | Unused-input policy to confirm                            | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation.                           |
-| `elv`            | Unused-input policy to confirm                            | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation.                           |
-| `dj`             | Unused-input policy to confirm                            | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation.                           |
-| `d0`             | Unused-input policy to confirm                            | Candidate placeholder: `0`; valid FMC prevents CFFDRS from reading it. Confirm before implementation.                           |
+| `lat`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
+| `lon`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
+| `elv`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
+| `dj`             | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
+| `d0`             | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
 | `sd`             | Default policy to confirm                                 | Candidate value: `0`, which makes C6 use its fuel-type CBH default; confirm before implementation.                              |
 | `sh`             | Default policy to confirm                                 | Candidate value: `0`, which makes C6 use its fuel-type CBH default; confirm before implementation.                              |
 | `hr`             | Primary-control policy to confirm                         | Candidate value: `0`; elapsed time is not used by the planned primary products. Confirm before implementation.                  |
