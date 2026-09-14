@@ -199,6 +199,21 @@ def test_aspect_is_irrelevant_when_negative_slope_is_clamped_to_zero():
     np.testing.assert_allclose(negative_result.hfi, flat_result.hfi)
 
 
+def test_aspect_nodata_is_preserved_when_slope_is_clamped_to_zero():
+    datasets = make_datasets(
+        np.array([[6.0, 6.0]]),
+        slope=np.array([[0.0, -14.0]]),
+        aspect=np.full((1, 2), TEST_INPUT_NODATA),
+    )
+
+    result = calculate_primary_fire_behaviour(datasets)
+
+    expected = np.full((1, 2), SFMS_NO_DATA, dtype=np.float32)
+    np.testing.assert_array_equal(result.sfc, expected)
+    np.testing.assert_array_equal(result.ros, expected)
+    np.testing.assert_array_equal(result.hfi, expected)
+
+
 def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
     datasets = make_datasets(np.array([[99, 102, TEST_INPUT_NODATA]]))
 

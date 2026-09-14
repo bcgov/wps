@@ -1,4 +1,8 @@
-"""Raster processor for the shared primary Fire Behaviour Prediction calculation."""
+"""Calculate and publish shared daily SFMS Fire Behaviour Prediction raster products.
+
+One primary CFFDRS call produces surface fuel consumption (SFC), equilibrium head rate of
+spread (ROS), and head fire intensity (HFI) from aligned SFMS input rasters.
+"""
 
 import logging
 from contextlib import contextmanager
@@ -57,6 +61,7 @@ def _result_values(
     calculation_mask: np.ndarray,
     non_combustible_mask: np.ndarray,
 ) -> np.ndarray:
+    """Map calculated pixels into the full grid using SFMS nodata and non-fuel policies."""
     output = np.full(calculation_mask.shape, SFMS_NO_DATA, dtype=np.float32)
     output[calculation_mask] = np.where(np.isfinite(calculated), calculated, SFMS_NO_DATA)
     output[non_combustible_mask] = 0
@@ -66,7 +71,17 @@ def _result_values(
 def calculate_primary_fire_behaviour(
     datasets: PrimaryFireBehaviourDatasets,
 ) -> PrimaryFireBehaviourResult:
-    """Calculate SFC, ROS, and HFI from one primary CFFDRS FBP call."""
+    """Calculate SFC, equilibrium head ROS, and HFI on the shared raster grid.
+
+    Wind direction and downslope aspect arrive in degrees and are normalized to radians here.
+    Ground slope arrives as percent and is clamped to the legacy SFMS supported range
+    of 0–70%. Only FMC values in ``(0, 120]`` are accepted, which prevents CFFDRS from deriving
+    FMC from the placeholder location and date inputs. Passing zero for ISI makes CFFDRS derive
+    it from FFMC and terrain-adjusted effective wind instead of using the FWI ISI raster.
+
+    Pixels missing a required input produce ``SFMS_NO_DATA`` in every output. Recognized
+    non-combustible fuel pixels produce zero regardless of other missing inputs.
+    """
     fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
     ffmc, _ = datasets.ffmc.replace_nodata_with(np.nan)
     bui, _ = datasets.bui.replace_nodata_with(np.nan)
@@ -78,10 +93,12 @@ def calculate_primary_fire_behaviour(
     percent_conifer, _ = datasets.percent_conifer.replace_nodata_with(np.nan)
 
     wind_direction_rad = np.radians(np.mod(wind_direction, 360.0))
-    slope_percent = np.clip(
-        slope, 0.0, MAX_GROUND_SLOPE_PERCENT
-    )  # this matches legacy SFMS handling of slope values
+    # match legacy SFMS by limiting slope to the range supported by CFFDRS
+    slope_percent = np.clip(slope, 0.0, MAX_GROUND_SLOPE_PERCENT)
+
+    aspect_is_valid = np.isfinite(aspect)
     aspect_rad = np.radians(np.mod(aspect, 360.0))
+    # keep valid flat pixels deterministic even though aspect cannot affect their result
     aspect_rad = np.where(slope_percent == 0, 0.0, aspect_rad)
 
     fuel_type_codes = fuel_type_codes_from_grid(fuel)
@@ -96,7 +113,7 @@ def calculate_primary_fire_behaviour(
         & np.isfinite(wind_speed)
         & np.isfinite(wind_direction_rad)
         & np.isfinite(slope_percent)
-        & np.isfinite(aspect_rad)
+        & aspect_is_valid
         & np.isfinite(fmc)
         & (fmc > 0)
         & (fmc <= 120)
@@ -109,7 +126,7 @@ def calculate_primary_fire_behaviour(
         gfl = np.full(fuel[calculation_mask].shape, 0.35, dtype=np.float32)
         cbh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         cfl = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        # valid FMC prevents CFFDRS from using its location and date fallback inputs, so lat/long/elevation are not needed
+        # valid FMC keeps CFFDRS from consulting these shared fallback placeholders
         fmc_fallback_placeholder = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sd = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
@@ -165,7 +182,11 @@ def calculate_primary_fire_behaviour(
 
 
 class PrimaryFireBehaviourProcessor:
-    """Load, validate, calculate, and publish the daily primary FBP rasters."""
+    """Validate aligned FBP inputs and publish daily SFC, ROS, and HFI rasters.
+
+    All input grids must match the fuel grid. Each output preserves calculation nodata, encodes
+    recognized non-combustible fuel as zero, and applies the BC boundary mask before publishing.
+    """
 
     def __init__(self, datetime_to_process: datetime):
         self.datetime_to_process = datetime_to_process
