@@ -6,6 +6,7 @@ from typing import Mapping
 
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
+    FBPParameter,
     FWIParameter,
     GDALPath,
     S3Key,
@@ -28,32 +29,6 @@ class FWIInputs:
 
 
 @dataclass(frozen=True)
-class SurfaceFuelConsumptionInputs:
-    """Raster locations and metadata needed for one SFC calculation."""
-
-    fuel_key: GDALPath
-    ffmc_key: GDALPath
-    bui_key: GDALPath
-    percent_conifer_key: GDALPath
-    output_key: S3Key
-    run_type: RunType
-
-
-@dataclass(frozen=True)
-class RateOfSpreadInputs:
-    """Raster locations and metadata needed for one ROS calculation."""
-
-    fuel_key: GDALPath
-    isi_key: GDALPath
-    bui_key: GDALPath
-    fmc_key: GDALPath
-    sfc_key: GDALPath
-    percent_conifer_key: GDALPath
-    output_key: S3Key
-    run_type: RunType
-
-
-@dataclass(frozen=True)
 class PrimaryFireBehaviourInputs:
     """Raster locations and metadata needed for one primary FBP calculation."""
 
@@ -66,8 +41,7 @@ class PrimaryFireBehaviourInputs:
     aspect_key: GDALPath
     percent_conifer_key: GDALPath
     fmc_key: GDALPath
-    isi_key: GDALPath
-    output_key: S3Key
+    output_keys: Mapping[FBPParameter, S3Key]
     run_type: RunType
 
 

@@ -10,7 +10,7 @@ from typing import Generator
 import numpy as np
 from cffdrs_vec.fbp import vectorized_primary_fire_behaviour_prediction
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.sfms.raster_addresser import GDALPath
+from wps_shared.sfms.raster_addresser import FBPParameter, GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
@@ -28,10 +28,14 @@ from wps_sfms.raster_output import create_masked_output_dataset, open_bc_mask_da
 
 logger = logging.getLogger(__name__)
 
+MAX_GROUND_SLOPE_PERCENT = 70.0
+
 
 @dataclass(frozen=True)
 class PrimaryFireBehaviourResult:
-    values: np.ndarray
+    sfc: np.ndarray
+    ros: np.ndarray
+    hfi: np.ndarray
     nodata_value: float = SFMS_NO_DATA
 
 
@@ -46,13 +50,23 @@ class PrimaryFireBehaviourDatasets:
     aspect: WPSDataset
     percent_conifer: WPSDataset
     fmc: WPSDataset
-    isi: WPSDataset
+
+
+def _result_values(
+    calculated: np.ndarray,
+    calculation_mask: np.ndarray,
+    non_combustible_mask: np.ndarray,
+) -> np.ndarray:
+    output = np.full(calculation_mask.shape, SFMS_NO_DATA, dtype=np.float32)
+    output[calculation_mask] = np.where(np.isfinite(calculated), calculated, SFMS_NO_DATA)
+    output[non_combustible_mask] = 0
+    return output
 
 
 def calculate_primary_fire_behaviour(
     datasets: PrimaryFireBehaviourDatasets,
 ) -> PrimaryFireBehaviourResult:
-    """Calculate head fire intensity from the primary CFFDRS FBP fields."""
+    """Calculate SFC, ROS, and HFI from one primary CFFDRS FBP call."""
     fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
     ffmc, _ = datasets.ffmc.replace_nodata_with(np.nan)
     bui, _ = datasets.bui.replace_nodata_with(np.nan)
@@ -61,8 +75,14 @@ def calculate_primary_fire_behaviour(
     slope, _ = datasets.slope.replace_nodata_with(np.nan)
     aspect, _ = datasets.aspect.replace_nodata_with(np.nan)
     fmc, _ = datasets.fmc.replace_nodata_with(np.nan)
-    isi, _ = datasets.isi.replace_nodata_with(np.nan)
     percent_conifer, _ = datasets.percent_conifer.replace_nodata_with(np.nan)
+
+    wind_direction_rad = np.radians(np.mod(wind_direction, 360.0))
+    slope_percent = np.clip(
+        slope, 0.0, MAX_GROUND_SLOPE_PERCENT
+    )  # this matches legacy SFMS handling of slope values
+    aspect_rad = np.radians(np.mod(aspect, 360.0))
+    aspect_rad = np.where(slope_percent == 0, 0.0, aspect_rad)
 
     fuel_type_codes = fuel_type_codes_from_grid(fuel)
     validate_percent_conifer(fuel, percent_conifer)
@@ -74,16 +94,14 @@ def calculate_primary_fire_behaviour(
         & np.isfinite(ffmc)
         & np.isfinite(bui)
         & np.isfinite(wind_speed)
-        & np.isfinite(wind_direction)
-        & np.isfinite(slope)
-        & np.isfinite(aspect)
+        & np.isfinite(wind_direction_rad)
+        & np.isfinite(slope_percent)
+        & np.isfinite(aspect_rad)
         & np.isfinite(fmc)
         & (fmc > 0)
         & (fmc <= 120)
-        & np.isfinite(isi)
     )
 
-    output = np.full(fuel.shape, SFMS_NO_DATA, dtype=np.float32)
     if np.any(calculation_mask):
         start = perf_counter()
         pdf = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
@@ -99,15 +117,16 @@ def calculate_primary_fire_behaviour(
         theta_rad = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         accel = np.zeros_like(fuel[calculation_mask], dtype=np.int64)
         buieff = np.ones_like(fuel[calculation_mask], dtype=np.int64)
+        isi = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
 
         primary = vectorized_primary_fire_behaviour_prediction(
             fuel_type_codes[calculation_mask],
             ffmc[calculation_mask],
             bui[calculation_mask],
             wind_speed[calculation_mask],
-            wind_direction[calculation_mask],
-            slope[calculation_mask],
-            aspect[calculation_mask],
+            wind_direction_rad[calculation_mask],
+            slope_percent[calculation_mask],
+            aspect_rad[calculation_mask],
             percent_conifer[calculation_mask],
             pdf,
             cc,
@@ -115,7 +134,7 @@ def calculate_primary_fire_behaviour(
             cbh,
             cfl,
             fmc[calculation_mask],
-            isi[calculation_mask],
+            isi,
             fmc_fallback_placeholder,  # latitude not needed, using fmc
             fmc_fallback_placeholder,  # longitude not needed, using fmc
             fmc_fallback_placeholder,  # elevation not needed, using fmc
@@ -129,14 +148,24 @@ def calculate_primary_fire_behaviour(
             buieff,
         )
         logger.info("%f seconds to calculate vectorized primary FBP", perf_counter() - start)
-        output[calculation_mask] = np.where(np.isfinite(primary.hfi), primary.hfi, SFMS_NO_DATA)
+        return PrimaryFireBehaviourResult(
+            sfc=_result_values(primary.sfc, calculation_mask, non_combustible_mask),
+            ros=_result_values(primary.ros, calculation_mask, non_combustible_mask),
+            hfi=_result_values(primary.hfi, calculation_mask, non_combustible_mask),
+        )
 
-    output[non_combustible_mask] = 0
-    return PrimaryFireBehaviourResult(output)
+    empty_output = _result_values(
+        np.empty(0, dtype=np.float32), calculation_mask, non_combustible_mask
+    )
+    return PrimaryFireBehaviourResult(
+        sfc=empty_output,
+        ros=empty_output,
+        hfi=empty_output,
+    )
 
 
 class PrimaryFireBehaviourProcessor:
-    """Load, validate, calculate, and publish one daily primary FBP raster."""
+    """Load, validate, calculate, and publish the daily primary FBP rasters."""
 
     def __init__(self, datetime_to_process: datetime):
         self.datetime_to_process = datetime_to_process
@@ -154,7 +183,6 @@ class PrimaryFireBehaviourProcessor:
             inputs.aspect_key,
             inputs.percent_conifer_key,
             inputs.fmc_key,
-            inputs.isi_key,
         )
 
     @contextmanager
@@ -176,7 +204,6 @@ class PrimaryFireBehaviourProcessor:
                 aspect=datasets_by_key[inputs.aspect_key],
                 percent_conifer=datasets_by_key[inputs.percent_conifer_key],
                 fmc=datasets_by_key[inputs.fmc_key],
-                isi=datasets_by_key[inputs.isi_key],
             )
 
     def _validate_grids(self, datasets: PrimaryFireBehaviourDatasets) -> None:
@@ -191,7 +218,6 @@ class PrimaryFireBehaviourProcessor:
                 "aspect": datasets.aspect,
                 "percent_conifer": datasets.percent_conifer,
                 "fmc": datasets.fmc,
-                "isi": datasets.isi,
             },
         )
 
@@ -201,7 +227,7 @@ class PrimaryFireBehaviourProcessor:
         input_dataset_context: MultiDatasetContext,
         inputs: PrimaryFireBehaviourInputs,
     ) -> None:
-        """Calculate and publish the shared primary FBP output raster."""
+        """Calculate and publish the shared primary FBP output rasters."""
         with gdal_s3_context():
             await self._raster_dependencies.assert_keys_exist(
                 s3_client,
@@ -217,27 +243,31 @@ class PrimaryFireBehaviourProcessor:
                 self._validate_grids(datasets)
                 result = calculate_primary_fire_behaviour(datasets)
 
-                with (
-                    open_bc_mask_dataset() as mask,
-                    create_masked_output_dataset(
-                        result.values,
-                        datasets.fuel,
-                        mask,
-                        result.nodata_value,
-                    ) as output_ds,
-                ):
-                    output_band = output_ds.as_gdal_ds().GetRasterBand(1)
-                    output_band.SetDescription("head_fire_intensity")
-                    output_band.SetUnitType("kW/m")
-                    published = await publish_dataset(
-                        s3_client=s3_client,
-                        dataset=output_ds,
-                        output_key=inputs.output_key,
-                    )
-
-            logger.info(
-                "Stored HFI %s: %s (COG: %s)",
-                inputs.run_type.value,
-                published.output_key,
-                published.cog_key,
-            )
+                outputs = (
+                    (FBPParameter.SFC, result.sfc, "surface_fuel_consumption", "kg/m2"),
+                    (FBPParameter.ROS, result.ros, "rate_of_spread", "m/min"),
+                    (FBPParameter.HFI, result.hfi, "head_fire_intensity", "kW/m"),
+                )
+                with open_bc_mask_dataset() as mask:
+                    for parameter, values, description, unit in outputs:
+                        with create_masked_output_dataset(
+                            values,
+                            datasets.fuel,
+                            mask,
+                            result.nodata_value,
+                        ) as output_ds:
+                            output_band = output_ds.as_gdal_ds().GetRasterBand(1)
+                            output_band.SetDescription(description)
+                            output_band.SetUnitType(unit)
+                            published = await publish_dataset(
+                                s3_client=s3_client,
+                                dataset=output_ds,
+                                output_key=inputs.output_keys[parameter],
+                            )
+                            logger.info(
+                                "Stored %s %s: %s (COG: %s)",
+                                parameter.value.upper(),
+                                inputs.run_type.value,
+                                published.output_key,
+                                published.cog_key,
+                            )
