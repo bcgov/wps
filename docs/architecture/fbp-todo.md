@@ -17,7 +17,6 @@ required fields from its result.
   - Preserve nodata in the common valid-pixel mask and convert valid values with `np.radians`.
 - [ ] Bring the existing legacy SFMS ground-slope and aspect rasters into the new pipeline,
       following the same approach used for the legacy DEM.
-  - Both rasters are 778 by 683 Float32 grids at 2 km resolution with nodata `-1000000`.
   - The slope raster is already percent slope. Its non-nodata values span approximately
     `-14%` to `309%`; do not convert it from degrees, and define handling for values outside the
     CFFDRS range of `[0, 200]`.
@@ -65,9 +64,9 @@ required fields from its result.
 | `ffmc`           | Same-day FFMC raster                                      | Existing FWI output.                                                                                                            |
 | `bui`            | Same-day BUI raster                                       | Existing FWI output.                                                                                                            |
 | `ws`             | Same-day interpolated wind-speed raster                   | km/h.                                                                                                                           |
-| `wd_rad`         | Same-day interpolated wind-direction raster               | Meteorological degrees; preserve nodata and convert valid values with `np.radians`.                                              |
+| `wd_rad`         | Same-day interpolated wind-direction raster               | Meteorological degrees; preserve nodata and convert valid values with `np.radians`.                                             |
 | `gs`             | Existing legacy SFMS slope raster                         | Already percent slope; define handling for observed values outside `[0, 200]`.                                                  |
-| `aspect_rad`     | Existing legacy SFMS aspect raster                        | Downslope aspect in degrees; normalize modulo 360 and convert with `np.radians`.                                                 |
+| `aspect_rad`     | Existing legacy SFMS aspect raster                        | Downslope aspect in degrees; normalize modulo 360 and convert with `np.radians`.                                                |
 | `pc`             | Percent-conifer raster paired with the fuel-grid year     | Required and validated on M1/M2 pixels. Use zero elsewhere.                                                                     |
 | `pdf`            | Conditional percent-dead-balsam-fir source                | First confirm M3/M4 occurs in the selected fuel grid. If it does, require and validate PDF on those pixels; use zero elsewhere. |
 | `cc`             | Grass-curing source to be determined                      | Required and validated on O1A/O1B pixels. Use zero elsewhere.                                                                   |
@@ -76,11 +75,11 @@ required fields from its result.
 | `cfl`            | Default policy to confirm                                 | Candidate value: `0`, which selects the CFFDRS fuel-type default; confirm before implementation.                                |
 | `fmc`            | Daily FMC raster                                          | Require a finite value in `(0, 120]`; missing or invalid pixels become output nodata.                                           |
 | `isi`            | Policy to be decided                                      | Pass a positive value to use the existing daily ISI, or `0` to have CFFDRS derive it from FFMC and effective wind.              |
-| `lat`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
-| `lon`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
-| `elv`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
-| `dj`             | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
-| `d0`             | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                             |
+| `lat`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                            |
+| `lon`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                            |
+| `elv`            | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                            |
+| `dj`             | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                            |
+| `d0`             | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                            |
 | `sd`             | Default policy to confirm                                 | Candidate value: `0`, which makes C6 use its fuel-type CBH default; confirm before implementation.                              |
 | `sh`             | Default policy to confirm                                 | Candidate value: `0`, which makes C6 use its fuel-type CBH default; confirm before implementation.                              |
 | `hr`             | Primary-control policy to confirm                         | Candidate value: `0`; elapsed time is not used by the planned primary products. Confirm before implementation.                  |
