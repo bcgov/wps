@@ -90,7 +90,10 @@ def make_dataset_context(datasets: PrimaryFireBehaviourDatasets, reverse: bool =
 
 def test_calculation_matches_cffdrs_reference_and_derives_isi():
     """Regression test for radians, derived ISI, and the required int64 control arrays."""
-    datasets = make_datasets(np.array([[6.0]]))
+    datasets = make_datasets(
+        np.array([[6.0]]),
+        wind_direction=np.array([[225.0]]),
+    )
 
     result = calculate_primary_fire_behaviour(datasets)
 
@@ -100,7 +103,7 @@ def test_calculation_matches_cffdrs_reference_and_derives_isi():
             ffmc=90.0,
             bui=60.0,
             ws=10.0,
-            wd=0.0,
+            wd=225.0,
             gs=5.0,
             aspect=50.0,
             pc=50.0,
@@ -165,25 +168,29 @@ def test_sfc_matches_standalone_reference(grid_value: int, fuel_type: str, perce
     assert result.sfc[0, 0] == pytest.approx(expected)
 
 
-def test_normalizes_direction_degrees_and_clamps_slope():
-    raw = make_datasets(
-        np.array([[6.0]]),
-        wind_direction=np.array([[450.0]]),
-        slope=np.array([[300.0]]),
-        aspect=np.array([[410.0]]),
-    )
-    normalized = make_datasets(
-        np.array([[6.0]]),
-        wind_direction=np.array([[90.0]]),
-        slope=np.array([[70.0]]),
-        aspect=np.array([[50.0]]),
+def test_normalizes_directions_and_clamps_slope_before_primary_fbp(mocker: MockerFixture):
+    primary_fbp = mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.vectorized_primary_fire_behaviour_prediction",
+        return_value=SimpleNamespace(
+            sfc=np.array([1.0]),
+            ros=np.array([2.0]),
+            hfi=np.array([3.0]),
+        ),
     )
 
-    raw_result = calculate_primary_fire_behaviour(raw)
-    normalized_result = calculate_primary_fire_behaviour(normalized)
+    calculate_primary_fire_behaviour(
+        make_datasets(
+            np.array([[6.0]]),
+            wind_direction=np.array([[450.0]]),
+            slope=np.array([[300.0]]),
+            aspect=np.array([[410.0]]),
+        )
+    )
 
-    np.testing.assert_allclose(raw_result.ros, normalized_result.ros)
-    np.testing.assert_allclose(raw_result.hfi, normalized_result.hfi)
+    call_args = primary_fbp.call_args.args
+    np.testing.assert_allclose(call_args[4], np.array([np.pi / 2]))
+    np.testing.assert_array_equal(call_args[5], np.array([70.0]))
+    np.testing.assert_allclose(call_args[6], np.array([np.radians(50.0)]))
 
 
 def test_aspect_is_irrelevant_when_negative_slope_is_clamped_to_zero():
@@ -239,6 +246,23 @@ def test_non_fuel_becomes_zero_when_other_inputs_are_nodata():
     np.testing.assert_array_equal(result.hfi, np.zeros((1, 2), dtype=np.float32))
 
 
+@pytest.mark.parametrize(
+    "input_name",
+    ["ffmc", "bui", "wind_speed", "wind_direction", "slope", "aspect"],
+)
+def test_required_input_nodata_becomes_sfms_nodata(input_name: str):
+    datasets = make_datasets(
+        np.array([[6.0]]),
+        **{input_name: np.array([[TEST_INPUT_NODATA]])},
+    )
+
+    result = calculate_primary_fire_behaviour(datasets)
+
+    assert result.sfc[0, 0] == SFMS_NO_DATA
+    assert result.ros[0, 0] == SFMS_NO_DATA
+    assert result.hfi[0, 0] == SFMS_NO_DATA
+
+
 @pytest.mark.parametrize("fmc", [TEST_INPUT_NODATA, np.nan, 0.0, -1.0, 120.1])
 def test_invalid_fmc_becomes_sfms_nodata(fmc: float):
     datasets = make_datasets(np.array([[6.0]]), fmc=np.array([[fmc]]))
@@ -272,14 +296,14 @@ def test_processor_binds_opened_datasets_by_input_key():
 
 
 @pytest.mark.anyio
-async def test_processor_publishes_three_masked_outputs_with_metadata(
+async def test_processor_publishes_three_outputs_with_values_and_metadata(
     mocker: MockerFixture,
     output_mask: WPSDataset,
 ):
     datasets = make_datasets(np.array([[1]]))
     inputs = make_inputs()
     captured = []
-    output_mask.as_gdal_ds().GetRasterBand(1).WriteArray(np.array([[0]], dtype=np.float32))
+    output_mask.as_gdal_ds().GetRasterBand(1).WriteArray(np.array([[1]], dtype=np.float32))
 
     async def capture_publish(*, dataset, output_key, **_kwargs):
         band = dataset.as_gdal_ds().GetRasterBand(1)
@@ -300,6 +324,15 @@ async def test_processor_publishes_three_masked_outputs_with_metadata(
         "wps_sfms.processors.primary_fire_behaviour.publish_dataset",
         side_effect=capture_publish,
     )
+    mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.calculate_primary_fire_behaviour",
+        return_value=SimpleNamespace(
+            sfc=np.array([[1.0]], dtype=np.float32),
+            ros=np.array([[2.0]], dtype=np.float32),
+            hfi=np.array([[3.0]], dtype=np.float32),
+            nodata_value=SFMS_NO_DATA,
+        ),
+    )
 
     await PrimaryFireBehaviourProcessor(TEST_DATETIME).process(
         s3_client, make_dataset_context(datasets), inputs
@@ -311,21 +344,21 @@ async def test_processor_publishes_three_masked_outputs_with_metadata(
             "description": "surface_fuel_consumption",
             "unit": "kg/m2",
             "nodata": pytest.approx(SFMS_NO_DATA),
-            "value": pytest.approx(SFMS_NO_DATA),
+            "value": pytest.approx(1.0),
         },
         {
             "output_key": inputs.output_keys[FBPParameter.ROS],
             "description": "rate_of_spread",
             "unit": "m/min",
             "nodata": pytest.approx(SFMS_NO_DATA),
-            "value": pytest.approx(SFMS_NO_DATA),
+            "value": pytest.approx(2.0),
         },
         {
             "output_key": inputs.output_keys[FBPParameter.HFI],
             "description": "head_fire_intensity",
             "unit": "kW/m",
             "nodata": pytest.approx(SFMS_NO_DATA),
-            "value": pytest.approx(SFMS_NO_DATA),
+            "value": pytest.approx(3.0),
         },
     ]
     clear_cache.assert_called_once_with()
