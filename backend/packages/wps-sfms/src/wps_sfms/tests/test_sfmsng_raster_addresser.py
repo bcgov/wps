@@ -279,9 +279,6 @@ class TestSurfaceFuelConsumptionInputs:
 
         slope_key = addresser.gdal_path(addresser.get_slope_key())
         aspect_key = addresser.gdal_path(addresser.get_aspect_key())
-        latitude_key = addresser.gdal_path(addresser.get_latitude_key())
-        longitude_key = addresser.gdal_path(addresser.get_longitude_key())
-        elevation_key = addresser.gdal_path(addresser.get_elevation_key())
 
         result = addresser.get_primary_fire_behaviour_inputs(
             TEST_DATETIME,
@@ -294,9 +291,6 @@ class TestSurfaceFuelConsumptionInputs:
             isi_key,
             slope_key,
             aspect_key,
-            latitude_key,
-            longitude_key,
-            elevation_key,
         )
 
         assert result.fuel_key == fuel_key
@@ -306,9 +300,6 @@ class TestSurfaceFuelConsumptionInputs:
         assert result.wind_direction_key == wind_direction_key
         assert result.slope_key == slope_key
         assert result.aspect_key == aspect_key
-        assert result.latitude_key == latitude_key
-        assert result.longitude_key == longitude_key
-        assert result.elevation_key == elevation_key
         assert result.percent_conifer_key == percent_conifer_key
         assert result.fmc_key == fmc_key
         assert result.isi_key == isi_key

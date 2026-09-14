@@ -213,9 +213,6 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         isi_key: GDALPath,
         slope_key: GDALPath,
         aspect_key: GDALPath,
-        latitude_key: GDALPath,
-        longitude_key: GDALPath,
-        elevation_key: GDALPath,
     ) -> PrimaryFireBehaviourInputs:
         """Build the raster dependencies for the same-day primary FBP calculation."""
         assert_all_utc(datetime_to_process)
@@ -231,9 +228,6 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             wind_direction_key=wind_direction_key,
             slope_key=slope_key,
             aspect_key=aspect_key,
-            latitude_key=latitude_key,
-            longitude_key=longitude_key,
-            elevation_key=elevation_key,
             percent_conifer_key=percent_conifer_key,
             fmc_key=fmc_key,
             isi_key=isi_key,

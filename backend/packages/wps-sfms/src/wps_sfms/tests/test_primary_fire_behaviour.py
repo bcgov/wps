@@ -24,9 +24,6 @@ def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehav
         "wind_direction": np.full(shape, 0.0),
         "slope": np.full(shape, 5.0),
         "aspect": np.full(shape, 50.0),
-        "latitude": np.full(shape, 50.0),
-        "longitude": np.full(shape, -120.0),
-        "elevation": np.full(shape, 500.0),
         "percent_conifer": np.full(shape, 50.0),
         "fmc": np.full(shape, 100.0),
         "isi": np.full(shape, 20.0),
@@ -59,9 +56,9 @@ def test_calculation_matches_cffdrs_reference():
             pc=50.0,
             fmc=100.0,
             isi=20.0,
-            lat=50.0,
-            lon=-120.0,
-            elv=500.0,
+            lat=0.0,
+            lon=0.0,
+            elv=0.0,
         ),
         "Primary",
     )
@@ -75,3 +72,22 @@ def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
     result = calculate_primary_fire_behaviour(datasets)
 
     np.testing.assert_array_equal(result.values, np.array([[0, 0, SFMS_NO_DATA]], dtype=np.float32))
+
+
+@pytest.mark.parametrize("fmc", [TEST_INPUT_NODATA, np.nan, 0.0, -1.0, 120.1])
+def test_invalid_fmc_becomes_sfms_nodata(fmc: float):
+    datasets = make_datasets(np.array([[6.0]]), fmc=np.array([[fmc]]))
+
+    result = calculate_primary_fire_behaviour(datasets)
+
+    assert result.values[0, 0] == SFMS_NO_DATA
+
+
+@pytest.mark.parametrize("fmc", [0.1, 120.0])
+def test_valid_fmc_boundaries_are_calculated(fmc: float):
+    datasets = make_datasets(np.array([[6.0]]), fmc=np.array([[fmc]]))
+
+    result = calculate_primary_fire_behaviour(datasets)
+
+    assert np.isfinite(result.values[0, 0])
+    assert result.values[0, 0] != SFMS_NO_DATA

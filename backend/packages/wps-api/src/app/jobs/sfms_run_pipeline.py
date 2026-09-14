@@ -207,9 +207,6 @@ async def run_fbp_calculations(
         ),
         raster_addresser.gdal_path(raster_addresser.get_slope_key()),
         raster_addresser.gdal_path(raster_addresser.get_aspect_key()),
-        raster_addresser.gdal_path(raster_addresser.get_latitude_key()),
-        raster_addresser.gdal_path(raster_addresser.get_longitude_key()),
-        raster_addresser.gdal_path(raster_addresser.get_elevation_key()),
     )
     hfi_processor = PrimaryFireBehaviourProcessor(datetime_to_process)
 

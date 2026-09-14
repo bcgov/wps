@@ -44,9 +44,6 @@ class PrimaryFireBehaviourDatasets:
     wind_direction: WPSDataset
     slope: WPSDataset
     aspect: WPSDataset
-    latitude: WPSDataset
-    longitude: WPSDataset
-    elevation: WPSDataset
     percent_conifer: WPSDataset
     fmc: WPSDataset
     isi: WPSDataset
@@ -63,9 +60,6 @@ def calculate_primary_fire_behaviour(
     wind_direction, _ = datasets.wind_direction.replace_nodata_with(np.nan)
     slope, _ = datasets.slope.replace_nodata_with(np.nan)
     aspect, _ = datasets.aspect.replace_nodata_with(np.nan)
-    latitude, _ = datasets.latitude.replace_nodata_with(np.nan)
-    longitude, _ = datasets.longitude.replace_nodata_with(np.nan)
-    elevation, _ = datasets.elevation.replace_nodata_with(np.nan)
     fmc, _ = datasets.fmc.replace_nodata_with(np.nan)
     isi, _ = datasets.isi.replace_nodata_with(np.nan)
     percent_conifer, _ = datasets.percent_conifer.replace_nodata_with(np.nan)
@@ -83,10 +77,9 @@ def calculate_primary_fire_behaviour(
         & np.isfinite(wind_direction)
         & np.isfinite(slope)
         & np.isfinite(aspect)
-        & np.isfinite(latitude)
-        & np.isfinite(longitude)
-        & np.isfinite(elevation)
         & np.isfinite(fmc)
+        & (fmc > 0)
+        & (fmc <= 120)
         & np.isfinite(isi)
     )
 
@@ -98,8 +91,8 @@ def calculate_primary_fire_behaviour(
         gfl = np.full(fuel[calculation_mask].shape, 0.35, dtype=np.float32)
         cbh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         cfl = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        dj = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        d0 = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
+        # valid FMC prevents CFFDRS from using its location and date fallback inputs, so lat/long/elevation are not needed
+        fmc_fallback_placeholder = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sd = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         hr = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
@@ -123,11 +116,11 @@ def calculate_primary_fire_behaviour(
             cfl,
             fmc[calculation_mask],
             isi[calculation_mask],
-            latitude[calculation_mask],
-            longitude[calculation_mask],
-            elevation[calculation_mask],
-            dj,
-            d0,
+            fmc_fallback_placeholder,  # latitude not needed, using fmc
+            fmc_fallback_placeholder,  # longitude not needed, using fmc
+            fmc_fallback_placeholder,  # elevation not needed, using fmc
+            fmc_fallback_placeholder,  # julian date not needed, using fmc
+            fmc_fallback_placeholder,  # julian date of minimum foliar moisture content not needed
             sd,
             sh,
             hr,
@@ -159,9 +152,6 @@ class PrimaryFireBehaviourProcessor:
             inputs.wind_direction_key,
             inputs.slope_key,
             inputs.aspect_key,
-            inputs.latitude_key,
-            inputs.longitude_key,
-            inputs.elevation_key,
             inputs.percent_conifer_key,
             inputs.fmc_key,
             inputs.isi_key,
@@ -184,9 +174,6 @@ class PrimaryFireBehaviourProcessor:
                 wind_direction=datasets_by_key[inputs.wind_direction_key],
                 slope=datasets_by_key[inputs.slope_key],
                 aspect=datasets_by_key[inputs.aspect_key],
-                latitude=datasets_by_key[inputs.latitude_key],
-                longitude=datasets_by_key[inputs.longitude_key],
-                elevation=datasets_by_key[inputs.elevation_key],
                 percent_conifer=datasets_by_key[inputs.percent_conifer_key],
                 fmc=datasets_by_key[inputs.fmc_key],
                 isi=datasets_by_key[inputs.isi_key],
@@ -202,9 +189,6 @@ class PrimaryFireBehaviourProcessor:
                 "wind_direction": datasets.wind_direction,
                 "slope": datasets.slope,
                 "aspect": datasets.aspect,
-                "latitude": datasets.latitude,
-                "longitude": datasets.longitude,
-                "elevation": datasets.elevation,
                 "percent_conifer": datasets.percent_conifer,
                 "fmc": datasets.fmc,
                 "isi": datasets.isi,
