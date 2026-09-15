@@ -17,6 +17,7 @@ from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.processors.primary_fire_behaviour import (
     PrimaryFireBehaviourDatasets,
     PrimaryFireBehaviourProcessor,
+    PrimaryFireBehaviourResult,
     calculate_primary_fire_behaviour,
 )
 from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
@@ -62,6 +63,8 @@ def make_inputs() -> PrimaryFireBehaviourInputs:
             FBPParameter.SFC: "sfms_ng/actual/2024/07/04/sfc_20240704.tif",
             FBPParameter.ROS: "sfms_ng/actual/2024/07/04/ros_20240704.tif",
             FBPParameter.HFI: "sfms_ng/actual/2024/07/04/hfi_20240704.tif",
+            FBPParameter.TFC: "sfms_ng/actual/2024/07/04/tfc_20240704.tif",
+            FBPParameter.CFB: "sfms_ng/actual/2024/07/04/cfb_20240704.tif",
         },
         run_type=RunType.ACTUAL,
     )
@@ -118,6 +121,8 @@ def test_calculation_matches_cffdrs_reference_and_derives_isi():
     assert result.sfc[0, 0] == pytest.approx(expected.sfc, rel=1e-3)
     assert result.ros[0, 0] == pytest.approx(expected.ros, rel=1e-3)
     assert result.hfi[0, 0] == pytest.approx(expected.hfi, rel=1e-3)
+    assert result.tfc[0, 0] == pytest.approx(expected.tfc, rel=1e-3)
+    assert result.cfb[0, 0] == pytest.approx(expected.cfb, rel=1e-3)
 
 
 def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
@@ -127,6 +132,8 @@ def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
             sfc=np.array([1.0]),
             ros=np.array([2.0]),
             hfi=np.array([3.0]),
+            tfc=np.array([4.0]),
+            cfb=np.array([0.5]),
         ),
     )
 
@@ -175,6 +182,8 @@ def test_normalizes_directions_and_clamps_slope_before_primary_fbp(mocker: Mocke
             sfc=np.array([1.0]),
             ros=np.array([2.0]),
             hfi=np.array([3.0]),
+            tfc=np.array([4.0]),
+            cfb=np.array([0.5]),
         ),
     )
 
@@ -219,6 +228,8 @@ def test_aspect_nodata_is_preserved_when_slope_is_clamped_to_zero():
     np.testing.assert_array_equal(result.sfc, expected)
     np.testing.assert_array_equal(result.ros, expected)
     np.testing.assert_array_equal(result.hfi, expected)
+    np.testing.assert_array_equal(result.tfc, expected)
+    np.testing.assert_array_equal(result.cfb, expected)
 
 
 def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
@@ -230,6 +241,8 @@ def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
     np.testing.assert_array_equal(result.sfc, expected)
     np.testing.assert_array_equal(result.ros, expected)
     np.testing.assert_array_equal(result.hfi, expected)
+    np.testing.assert_array_equal(result.tfc, expected)
+    np.testing.assert_array_equal(result.cfb, expected)
 
 
 def test_non_fuel_becomes_zero_when_other_inputs_are_nodata():
@@ -244,6 +257,8 @@ def test_non_fuel_becomes_zero_when_other_inputs_are_nodata():
     np.testing.assert_array_equal(result.sfc, np.zeros((1, 2), dtype=np.float32))
     np.testing.assert_array_equal(result.ros, np.zeros((1, 2), dtype=np.float32))
     np.testing.assert_array_equal(result.hfi, np.zeros((1, 2), dtype=np.float32))
+    np.testing.assert_array_equal(result.tfc, np.zeros((1, 2), dtype=np.float32))
+    np.testing.assert_array_equal(result.cfb, np.zeros((1, 2), dtype=np.float32))
 
 
 @pytest.mark.parametrize(
@@ -261,6 +276,8 @@ def test_required_input_nodata_becomes_sfms_nodata(input_name: str):
     assert result.sfc[0, 0] == SFMS_NO_DATA
     assert result.ros[0, 0] == SFMS_NO_DATA
     assert result.hfi[0, 0] == SFMS_NO_DATA
+    assert result.tfc[0, 0] == SFMS_NO_DATA
+    assert result.cfb[0, 0] == SFMS_NO_DATA
 
 
 @pytest.mark.parametrize("fmc", [TEST_INPUT_NODATA, np.nan, 0.0, -1.0, 120.1])
@@ -272,6 +289,8 @@ def test_invalid_fmc_becomes_sfms_nodata(fmc: float):
     assert result.sfc[0, 0] == SFMS_NO_DATA
     assert result.ros[0, 0] == SFMS_NO_DATA
     assert result.hfi[0, 0] == SFMS_NO_DATA
+    assert result.tfc[0, 0] == SFMS_NO_DATA
+    assert result.cfb[0, 0] == SFMS_NO_DATA
 
 
 @pytest.mark.parametrize("fmc", [0.1, 120.0])
@@ -296,7 +315,7 @@ def test_processor_binds_opened_datasets_by_input_key():
 
 
 @pytest.mark.anyio
-async def test_processor_publishes_three_outputs_with_values_and_metadata(
+async def test_processor_publishes_five_outputs_with_values_and_metadata(
     mocker: MockerFixture,
     output_mask: WPSDataset,
 ):
@@ -326,10 +345,12 @@ async def test_processor_publishes_three_outputs_with_values_and_metadata(
     )
     mocker.patch(
         "wps_sfms.processors.primary_fire_behaviour.calculate_primary_fire_behaviour",
-        return_value=SimpleNamespace(
+        return_value=PrimaryFireBehaviourResult(
             sfc=np.array([[1.0]], dtype=np.float32),
             ros=np.array([[2.0]], dtype=np.float32),
             hfi=np.array([[3.0]], dtype=np.float32),
+            tfc=np.array([[4.0]], dtype=np.float32),
+            cfb=np.array([[0.5]], dtype=np.float32),
             nodata_value=SFMS_NO_DATA,
         ),
     )
@@ -359,6 +380,20 @@ async def test_processor_publishes_three_outputs_with_values_and_metadata(
             "unit": "kW/m",
             "nodata": pytest.approx(SFMS_NO_DATA),
             "value": pytest.approx(3.0),
+        },
+        {
+            "output_key": inputs.output_keys[FBPParameter.TFC],
+            "description": "total_fuel_consumption",
+            "unit": "kg/m2",
+            "nodata": pytest.approx(SFMS_NO_DATA),
+            "value": pytest.approx(4.0),
+        },
+        {
+            "output_key": inputs.output_keys[FBPParameter.CFB],
+            "description": "crown_fraction_burned",
+            "unit": "fraction",
+            "nodata": pytest.approx(SFMS_NO_DATA),
+            "value": pytest.approx(0.5),
         },
     ]
     clear_cache.assert_called_once_with()

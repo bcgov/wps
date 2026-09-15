@@ -34,6 +34,8 @@ class FBPParameter(enum.Enum):
     SFC = "sfc"
     ROS = "ros"
     HFI = "hfi"
+    TFC = "tfc"
+    CFB = "cfb"
 
 
 class BaseRasterAddresser:
