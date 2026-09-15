@@ -25,7 +25,7 @@ def output_mask(mocker: MockerFixture) -> Generator[WPSDataset, None, None]:
         side_effect=mask_context,
     )
     mocker.patch(
-        "wps_sfms.processors.surface_fuel_consumption.open_bc_mask_dataset",
+        "wps_sfms.processors.primary_fire_behaviour.open_bc_mask_dataset",
         side_effect=mask_context,
     )
     yield mask

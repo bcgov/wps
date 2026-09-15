@@ -10,8 +10,8 @@ source "$(dirname ${0})/common/common"
 #% Usage:
 #%
 #%   [CPU_REQUEST=<>] [MEMORY_REQUEST=<>] [MEMORY_LIMIT=<>] [REPLICAS=<>] \
-#%   [ALLOWED_ORIGINS=<>] [POSTGRES_POOL_SIZE=<>] [POSTGRES_MAX_OVERFLOW=<>] \
-#%   ${THIS_FILE} [SUFFIX] [apply]
+#%   [HPA_MAX_REPLICAS=<>] [ALLOWED_ORIGINS=<>] [POSTGRES_POOL_SIZE=<>] \
+#%   [POSTGRES_MAX_OVERFLOW=<>] ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:
 #%
@@ -40,8 +40,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/asa_go_api.yaml \
  ${ENVIRONMENT:+ "-p ENVIRONMENT=${ENVIRONMENT}"} \
  ${ALLOWED_ORIGINS:+ "-p ALLOWED_ORIGINS=${ALLOWED_ORIGINS}"} \
  ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"} \
+ ${HPA_MAX_REPLICAS:+ "-p HPA_MAX_REPLICAS=${HPA_MAX_REPLICAS}"} \
  -p DEPLOY_VERSION=${DEPLOY_VERSION}"
-
 OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 [ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 

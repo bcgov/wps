@@ -80,31 +80,23 @@ async def test_resolve_percent_dead_conifer_path_raises_when_missing():
 
 
 @pytest.mark.anyio
-async def test_run_fbp_calculations_resolves_inputs_and_tracks_sfc(mocker: MockerFixture):
+async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
+    mocker: MockerFixture,
+):
     datetime_to_process = datetime(2025, 7, 4, 20, tzinfo=timezone.utc)
     addresser = MagicMock()
     s3_client = MagicMock()
     session = MagicMock()
-    sfc_inputs = MagicMock()
-    sfc_inputs.output_key = "sfms_ng/actual/2025/07/04/sfc_20250704.tif"
-    ros_inputs = MagicMock()
-    addresser.get_surface_fuel_consumption_inputs.return_value = sfc_inputs
-    addresser.get_rate_of_spread_inputs.return_value = ros_inputs
-    addresser.gdal_path.side_effect = lambda key: f"/vsis3/test/{key}"
-    s3_client.all_objects_exist = AsyncMock(return_value=True)
+    primary_inputs = MagicMock()
+    addresser.get_primary_fire_behaviour_inputs.return_value = primary_inputs
     resolve_percent_conifer = mocker.patch(
         f"{PIPELINE_PATH}._resolve_percent_conifer_path",
         new=AsyncMock(return_value="/vsis3/test/sfms/static/m12_2025.tif"),
     )
-    processor = MagicMock()
-    processor.process = AsyncMock()
-    processor_class = mocker.patch(
-        f"{PIPELINE_PATH}.SurfaceFuelConsumptionProcessor", return_value=processor
-    )
-    ros_processor = MagicMock()
-    ros_processor.process = AsyncMock()
-    ros_processor_class = mocker.patch(
-        f"{PIPELINE_PATH}.RateOfSpreadProcessor", return_value=ros_processor
+    primary_processor = MagicMock()
+    primary_processor.process = AsyncMock()
+    primary_processor_class = mocker.patch(
+        f"{PIPELINE_PATH}.PrimaryFireBehaviourProcessor", return_value=primary_processor
     )
     tracked_jobs = []
 
@@ -126,21 +118,19 @@ async def test_run_fbp_calculations_resolves_inputs_and_tracks_sfc(mocker: Mocke
     )
 
     resolve_percent_conifer.assert_awaited_once_with(2025, addresser, s3_client)
-    addresser.get_surface_fuel_consumption_inputs.assert_called_once_with(
+    addresser.get_primary_fire_behaviour_inputs.assert_called_once_with(
         datetime_to_process,
         RunType.ACTUAL,
         "/vsis3/test/fuel.tif",
         "/vsis3/test/sfms/static/m12_2025.tif",
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
     )
-    processor_class.assert_called_once_with(datetime_to_process)
-    processor.process.assert_awaited_once()
-    assert processor.process.await_args.args[0] is s3_client
-    assert processor.process.await_args.args[2] is sfc_inputs
-    ros_processor_class.assert_called_once_with(datetime_to_process)
-    ros_processor.process.assert_awaited_once()
-    assert ros_processor.process.await_args.args[0] is s3_client
-    assert ros_processor.process.await_args.args[2] is ros_inputs
-    assert tracked_jobs == [
-        SFMSRunLogJobName.SFC_CALCULATION,
-        SFMSRunLogJobName.ROS_CALCULATION,
-    ]
+    primary_processor_class.assert_called_once_with(datetime_to_process)
+    primary_processor.process.assert_awaited_once()
+    assert primary_processor.process.await_args.args[0] is s3_client
+    assert primary_processor.process.await_args.args[2] is primary_inputs
+    assert tracked_jobs == [SFMSRunLogJobName.PRIMARY_FBP_CALCULATION]

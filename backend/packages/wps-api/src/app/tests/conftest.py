@@ -1,28 +1,53 @@
 import os
 from datetime import datetime, timezone
 
+import pytest
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.tests.conftest import (
     anyio_backend,
-    mock_env,
     mock_aiobotocore_get_session,
-    mock_requests,
-    mock_redis,
+    mock_client_session,
+    mock_env,
     mock_get_now,
     mock_get_pst_today_start_and_end,
-    mock_session,
     mock_jwt_decode,
-    mock_test_idir_jwt_decode,
-    mock_sentry,
+    mock_redis,
+    mock_requests,
     mock_requests_session,
-    mock_client_session,
-    spy_access_logging,
     mock_s3_client,
+    mock_sentry,
+    mock_session,
+    mock_test_idir_jwt_decode,
     mock_wfwx_api,
+    spy_access_logging,
 )
 
+import app.auto_spatial_advisory.advisory_run_stats.cache as advisory_run_stats_cache
+
 SFMS_DAILY_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def mock_advisory_run_stats_redis(monkeypatch):
+    """Same safe-by-default behaviour as wps_shared's mock_redis fixture, but for
+    advisory_run_stats.cache's own ASARedisCache singleton.
+
+    Patches client() on the module-level `asa_stats_cache` instance only, not the ASARedisCache
+    class. A test that wants to exercise ASARedisCache's own connection/client-building logic can
+    just instantiate a fresh ASARedisCache(), unaffected by this."""
+
+    class MockRedis:
+        def get(self, name):
+            return None
+
+        def set(self, name, value, ex=None, px=None, nx=False, xx=False, keepttl=False):
+            pass
+
+        def delete(self, name):
+            pass
+
+    monkeypatch.setattr(advisory_run_stats_cache.asa_stats_cache, "client", lambda: MockRedis())
 
 
 def create_mock_sfms_actuals():

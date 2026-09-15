@@ -7,4 +7,4 @@ set -e
 GUNICORN_WORKERS="${GUNICORN_WORKERS:-4}"
 APP_MODULE="${APP_MODULE:-app.main:app}"
 # start the server
-GUNICORN_CMD_ARGS="--max-requests 50 --max-requests-jitter 50" gunicorn "$APP_MODULE" --timeout 200 --workers $GUNICORN_WORKERS --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8080
+GUNICORN_CMD_ARGS="--max-requests 50 --max-requests-jitter 50" gunicorn "$APP_MODULE" --timeout 200 --workers $GUNICORN_WORKERS --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8080 --no-control-socket
