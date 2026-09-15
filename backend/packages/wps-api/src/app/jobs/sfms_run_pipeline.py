@@ -27,9 +27,7 @@ from wps_sfms.processors.fwi import (
 )
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
-from wps_sfms.processors.rate_of_spread import RateOfSpreadProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
-from wps_sfms.processors.surface_fuel_consumption import SurfaceFuelConsumptionProcessor
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
@@ -151,38 +149,11 @@ async def run_fbp_calculations(
     session,
     run_type: RunType,
 ) -> None:
-    """Run the same-day FBP calculation chain."""
+    """Calculate and publish the same-day primary FBP products."""
     percent_conifer_path = await _resolve_percent_conifer_path(
         fuel_raster_year, raster_addresser, s3_client
     )
-    sfc_inputs = raster_addresser.get_surface_fuel_consumption_inputs(
-        datetime_to_process,
-        run_type,
-        fuel_raster_path,
-        percent_conifer_path,
-    )
-    sfc_processor = SurfaceFuelConsumptionProcessor(datetime_to_process)
-
-    async def _run_sfc() -> None:
-        await sfc_processor.process(s3_client, multi_wps_dataset_context, sfc_inputs)
-
-    await _run_tracked_job(SFMSRunLogJobName.SFC_CALCULATION, sfms_run_id, session, _run_sfc)
-
-    ros_inputs = raster_addresser.get_rate_of_spread_inputs(
-        datetime_to_process,
-        run_type,
-        fuel_raster_path,
-        percent_conifer_path,
-        raster_addresser.gdal_path(sfc_inputs.output_key),
-    )
-    ros_processor = RateOfSpreadProcessor(datetime_to_process)
-
-    async def _run_ros() -> None:
-        await ros_processor.process(s3_client, multi_wps_dataset_context, ros_inputs)
-
-    await _run_tracked_job(SFMSRunLogJobName.ROS_CALCULATION, sfms_run_id, session, _run_ros)
-
-    hfi_inputs = raster_addresser.get_primary_fire_behaviour_inputs(
+    inputs = raster_addresser.get_primary_fire_behaviour_inputs(
         datetime_to_process,
         run_type,
         fuel_raster_path,
@@ -202,21 +173,20 @@ async def run_fbp_calculations(
             )
         ),
         raster_addresser.gdal_path(raster_addresser.get_fmc_key(datetime_to_process.date())),
-        raster_addresser.gdal_path(
-            raster_addresser.get_index_key(datetime_to_process, FWIParameter.ISI, run_type)
-        ),
         raster_addresser.gdal_path(raster_addresser.get_slope_key()),
         raster_addresser.gdal_path(raster_addresser.get_aspect_key()),
-        raster_addresser.gdal_path(raster_addresser.get_latitude_key()),
-        raster_addresser.gdal_path(raster_addresser.get_longitude_key()),
-        raster_addresser.gdal_path(raster_addresser.get_elevation_key()),
     )
-    hfi_processor = PrimaryFireBehaviourProcessor(datetime_to_process)
+    processor = PrimaryFireBehaviourProcessor(datetime_to_process)
 
-    async def _run_hfi() -> None:
-        await hfi_processor.process(s3_client, multi_wps_dataset_context, hfi_inputs)
+    async def _run_primary_fbp() -> None:
+        await processor.process(s3_client, multi_wps_dataset_context, inputs)
 
-    await _run_tracked_job(SFMSRunLogJobName.HFI_CALCULATION, sfms_run_id, session, _run_hfi)
+    await _run_tracked_job(
+        SFMSRunLogJobName.PRIMARY_FBP_CALCULATION,
+        sfms_run_id,
+        session,
+        _run_primary_fbp,
+    )
 
 
 async def run_weather_interpolation(

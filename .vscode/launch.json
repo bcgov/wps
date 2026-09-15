@@ -352,7 +352,7 @@
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
-                "2026-06-17"
+                "2026-08-17"
             ],
             "console": "integratedTerminal"
         },

@@ -204,22 +204,7 @@ class TestGetActualFwiInputs:
             addresser.get_actual_fwi_inputs(NON_UTC, FWIParameter.DMC)
 
 
-class TestSurfaceFuelConsumptionInputs:
-    @pytest.mark.parametrize("run_type", [RunType.ACTUAL, RunType.FORECAST])
-    def test_builds_same_day_inputs(self, addresser: SFMSNGRasterAddresser, run_type: RunType):
-        fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
-        percent_conifer_key = addresser.gdal_path(addresser.get_percent_conifer_key(2024))
-
-        result = addresser.get_surface_fuel_consumption_inputs(
-            TEST_DATETIME, run_type, fuel_key, percent_conifer_key
-        )
-
-        assert result.fuel_key == fuel_key
-        assert result.percent_conifer_key == percent_conifer_key
-        assert result.ffmc_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/ffmc_20240415.tif")
-        assert result.bui_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/bui_20240415.tif")
-        assert result.output_key == (f"sfms_ng/{run_type.value}/2024/04/15/sfc_20240415.tif")
-
+class TestPrimaryFireBehaviourInputs:
     def test_fbp_key_uses_sfc_parameter(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_fbp_key(TEST_DATETIME, FBPParameter.SFC, RunType.ACTUAL) == (
             "sfms_ng/actual/2024/04/15/sfc_20240415.tif"
@@ -231,30 +216,9 @@ class TestSurfaceFuelConsumptionInputs:
     def test_percent_dead_conifer_key_uses_year(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_percent_dead_conifer_key(2024) == "sfms/static/m34_2024.tif"
 
-    def test_get_rate_of_spread_inputs_uses_ros_output_key(self, addresser: SFMSNGRasterAddresser):
-        fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
-        percent_conifer_key = addresser.gdal_path(addresser.get_percent_conifer_key(2024))
-        sfc_key = addresser.gdal_path("sfms_ng/actual/2024/04/15/sfc_20240415.tif")
-
-        result = addresser.get_rate_of_spread_inputs(
-            TEST_DATETIME,
-            RunType.ACTUAL,
-            fuel_key,
-            percent_conifer_key,
-            sfc_key,
-        )
-
-        assert result.fuel_key == fuel_key
-        assert result.isi_key.endswith("sfms_ng/actual/2024/04/15/isi_20240415.tif")
-        assert result.bui_key.endswith("sfms_ng/actual/2024/04/15/bui_20240415.tif")
-        assert result.fmc_key.endswith("sfms_ng/static/fmc/2024/04/15/fmc_20240415.tif")
-        assert result.sfc_key == sfc_key
-        assert result.percent_conifer_key == percent_conifer_key
-        assert result.output_key == "sfms_ng/actual/2024/04/15/ros_20240415.tif"
-        assert result.run_type == RunType.ACTUAL
-
-    def test_get_primary_fire_behaviour_inputs_uses_hfi_output_key(
-        self, addresser: SFMSNGRasterAddresser
+    @pytest.mark.parametrize("run_type", [RunType.ACTUAL, RunType.FORECAST])
+    def test_builds_same_day_inputs_and_three_output_keys(
+        self, addresser: SFMSNGRasterAddresser, run_type: RunType
     ):
         fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
         percent_conifer_key = addresser.gdal_path(addresser.get_percent_conifer_key(2024))
@@ -262,69 +226,63 @@ class TestSurfaceFuelConsumptionInputs:
             addresser.get_weather_key(
                 TEST_DATETIME,
                 SFMSInterpolatedWeatherParameter.WIND_SPEED,
-                RunType.ACTUAL,
+                run_type,
             )
         )
         wind_direction_key = addresser.gdal_path(
             addresser.get_weather_key(
                 TEST_DATETIME,
                 SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
-                RunType.ACTUAL,
+                run_type,
             )
         )
         fmc_key = addresser.gdal_path(addresser.get_fmc_key(TEST_DATETIME.date()))
-        isi_key = addresser.gdal_path(
-            addresser.get_index_key(TEST_DATETIME, FWIParameter.ISI, RunType.ACTUAL)
-        )
-
         slope_key = addresser.gdal_path(addresser.get_slope_key())
         aspect_key = addresser.gdal_path(addresser.get_aspect_key())
-        latitude_key = addresser.gdal_path(addresser.get_latitude_key())
-        longitude_key = addresser.gdal_path(addresser.get_longitude_key())
-        elevation_key = addresser.gdal_path(addresser.get_elevation_key())
 
         result = addresser.get_primary_fire_behaviour_inputs(
             TEST_DATETIME,
-            RunType.ACTUAL,
+            run_type,
             fuel_key,
             percent_conifer_key,
             wind_speed_key,
             wind_direction_key,
             fmc_key,
-            isi_key,
             slope_key,
             aspect_key,
-            latitude_key,
-            longitude_key,
-            elevation_key,
         )
 
         assert result.fuel_key == fuel_key
-        assert result.ffmc_key.endswith("sfms_ng/actual/2024/04/15/ffmc_20240415.tif")
-        assert result.bui_key.endswith("sfms_ng/actual/2024/04/15/bui_20240415.tif")
+        assert result.ffmc_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/ffmc_20240415.tif")
+        assert result.bui_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/bui_20240415.tif")
         assert result.wind_speed_key == wind_speed_key
         assert result.wind_direction_key == wind_direction_key
         assert result.slope_key == slope_key
         assert result.aspect_key == aspect_key
-        assert result.latitude_key == latitude_key
-        assert result.longitude_key == longitude_key
-        assert result.elevation_key == elevation_key
         assert result.percent_conifer_key == percent_conifer_key
         assert result.fmc_key == fmc_key
-        assert result.isi_key == isi_key
-        assert result.output_key == "sfms_ng/actual/2024/04/15/hfi_20240415.tif"
-        assert result.run_type == RunType.ACTUAL
+        assert result.output_keys == {
+            FBPParameter.SFC: f"sfms_ng/{run_type.value}/2024/04/15/sfc_20240415.tif",
+            FBPParameter.ROS: f"sfms_ng/{run_type.value}/2024/04/15/ros_20240415.tif",
+            FBPParameter.HFI: f"sfms_ng/{run_type.value}/2024/04/15/hfi_20240415.tif",
+        }
+        assert result.run_type == run_type
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
         fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
         percent_conifer_key = addresser.gdal_path(addresser.get_percent_conifer_key(2024))
 
         with pytest.raises(AssertionError, match="is not in UTC"):
-            addresser.get_surface_fuel_consumption_inputs(
+            addresser.get_primary_fire_behaviour_inputs(
                 NON_UTC,
                 RunType.ACTUAL,
                 fuel_key,
                 percent_conifer_key,
+                "wind-speed",
+                "wind-direction",
+                "fmc",
+                "slope",
+                "aspect",
             )
 
 

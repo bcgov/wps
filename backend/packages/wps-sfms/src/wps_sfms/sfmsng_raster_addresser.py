@@ -23,8 +23,6 @@ from wps_sfms.raster_inputs import (
     FWIInputs,
     FoliarMoistureContentInputs,
     PrimaryFireBehaviourInputs,
-    RateOfSpreadInputs,
-    SurfaceFuelConsumptionInputs,
 )
 
 
@@ -154,53 +152,6 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             },
         )
 
-    def get_surface_fuel_consumption_inputs(
-        self,
-        datetime_to_process: datetime,
-        run_type: RunType,
-        fuel_key: GDALPath,
-        percent_conifer_key: GDALPath,
-    ) -> SurfaceFuelConsumptionInputs:
-        """Build the raster dependencies for same-day SFC."""
-        assert_all_utc(datetime_to_process)
-        return SurfaceFuelConsumptionInputs(
-            fuel_key=fuel_key,
-            ffmc_key=self.gdal_path(
-                self.get_index_key(datetime_to_process, FWIParameter.FFMC, run_type)
-            ),
-            bui_key=self.gdal_path(
-                self.get_index_key(datetime_to_process, FWIParameter.BUI, run_type)
-            ),
-            percent_conifer_key=percent_conifer_key,
-            output_key=self.get_fbp_key(datetime_to_process, FBPParameter.SFC, run_type),
-            run_type=run_type,
-        )
-
-    def get_rate_of_spread_inputs(
-        self,
-        datetime_to_process: datetime,
-        run_type: RunType,
-        fuel_key: GDALPath,
-        percent_conifer_key: GDALPath,
-        sfc_key: GDALPath,
-    ) -> RateOfSpreadInputs:
-        """Build the raster dependencies for same-day ROS from completed FBP inputs."""
-        assert_all_utc(datetime_to_process)
-        return RateOfSpreadInputs(
-            fuel_key=fuel_key,
-            isi_key=self.gdal_path(
-                self.get_index_key(datetime_to_process, FWIParameter.ISI, run_type)
-            ),
-            bui_key=self.gdal_path(
-                self.get_index_key(datetime_to_process, FWIParameter.BUI, run_type)
-            ),
-            fmc_key=self.gdal_path(self.get_fmc_key(datetime_to_process.date())),
-            sfc_key=sfc_key,
-            percent_conifer_key=percent_conifer_key,
-            output_key=self.get_fbp_key(datetime_to_process, FBPParameter.ROS, run_type),
-            run_type=run_type,
-        )
-
     def get_primary_fire_behaviour_inputs(
         self,
         datetime_to_process: datetime,
@@ -210,12 +161,8 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         wind_speed_key: GDALPath,
         wind_direction_key: GDALPath,
         fmc_key: GDALPath,
-        isi_key: GDALPath,
         slope_key: GDALPath,
         aspect_key: GDALPath,
-        latitude_key: GDALPath,
-        longitude_key: GDALPath,
-        elevation_key: GDALPath,
     ) -> PrimaryFireBehaviourInputs:
         """Build the raster dependencies for the same-day primary FBP calculation."""
         assert_all_utc(datetime_to_process)
@@ -231,13 +178,12 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             wind_direction_key=wind_direction_key,
             slope_key=slope_key,
             aspect_key=aspect_key,
-            latitude_key=latitude_key,
-            longitude_key=longitude_key,
-            elevation_key=elevation_key,
             percent_conifer_key=percent_conifer_key,
             fmc_key=fmc_key,
-            isi_key=isi_key,
-            output_key=self.get_fbp_key(datetime_to_process, FBPParameter.HFI, run_type),
+            output_keys={
+                parameter: self.get_fbp_key(datetime_to_process, parameter, run_type)
+                for parameter in (FBPParameter.SFC, FBPParameter.ROS, FBPParameter.HFI)
+            },
             run_type=run_type,
         )
 
