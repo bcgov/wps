@@ -258,7 +258,7 @@ describe('Settings', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 
-  it('renders error state when error is present', async () => {
+  it('leaves data error presentation to the app-level snackbar', () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: 'unknown' }),
@@ -277,8 +277,7 @@ describe('Settings', () => {
       </Provider>
     )
 
-    expect(screen.getByTestId('settings-error-alert')).toBeInTheDocument()
-    expect(screen.getByText(/An error occurred when attempting to retrieve notification settings/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('settings-error-alert')).not.toBeInTheDocument()
   })
   it('sorts fire centres alphabetically', async () => {
     // Mock permission check to return granted immediately

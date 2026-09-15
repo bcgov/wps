@@ -14,7 +14,9 @@ import { AppHeader } from '@/components/AppHeader'
 import BottomNavigationBar from '@/components/BottomNavigationBar'
 import GuestDisclaimerBanner from '@/components/GuestDisclaimerBanner'
 import InfoBar from '@/components/InfoBar'
+import LoadingErrorNotifier from '@/components/LoadingErrorNotifier'
 import ASAGoMap from '@/components/map/ASAGoMap'
+import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/profile/Profile'
 import Advisory from '@/components/report/Advisory'
 import SideNavigation from '@/components/SideNavigation'
@@ -41,6 +43,7 @@ import { initSubscriptions } from '@/slices/settingsSlice'
 import {
   type AppDispatch,
   selectFireCentres,
+  selectMapLayersLoadState,
   selectNetworkStatus,
   selectOperationalDataLoading,
   selectPendingNotificationData,
@@ -67,7 +70,6 @@ const App = () => {
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP)
   const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
-  const [mapLayersLoading, setMapLayersLoading] = useState(false)
 
   // selected redux state
   const { fireCentres } = useSelector(selectFireCentres)
@@ -76,6 +78,7 @@ const App = () => {
   const { registeredFcmToken } = useSelector(selectPushNotification)
   const { loading: settingsLoading, subscriptionsInitialized } = useSelector(selectSettings)
   const operationalDataLoading = useSelector(selectOperationalDataLoading)
+  const { loading: mapLayersLoading } = useSelector(selectMapLayersLoadState)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
   const dateOfInterest = useSelector(selectDateOfInterest)
@@ -242,14 +245,20 @@ const App = () => {
       {/* Show AppHeader in portrait OR landscape with medium or larger screen */}
       {(isPortrait || !isSmallScreen) && <AppHeader />}
 
+      <LoadingErrorNotifier activeTab={tab} />
+
       <Box
+        data-testid="app-content"
         sx={{
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          minWidth: 0,
+          overflow: 'hidden',
+          position: 'relative'
         }}
       >
+        <NotificationCenter />
         <InfoBar
           status={networkStatus.connected ? StatusEnum.INFO : StatusEnum.WARNING}
           statusText={networkStatus.connected ? '' : 'Offline.'}
@@ -264,7 +273,6 @@ const App = () => {
             setSelectedFireShape={setSelectedFireShape}
             setSelectedFireCentre={setFireCentre}
             setTab={setTab}
-            onLayerLoadingChange={setMapLayersLoading}
             testId="asa-go-map"
           />
         </TabPanel>

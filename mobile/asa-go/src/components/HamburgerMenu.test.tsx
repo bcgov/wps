@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 import { HamburgerMenu } from '@/components/HamburgerMenu'
+import NotificationCenter from '@/components/NotificationCenter'
 import { type AuthState, initialState as authenticationInitialState } from '@/slices/authenticationSlice'
 import { createTestStore } from '@/testUtils'
 
@@ -34,7 +35,10 @@ describe('HamburgerMenu', () => {
           }
         })}
       >
-        <HamburgerMenu {...defaultProps} />
+        <div style={{ position: 'relative' }}>
+          <HamburgerMenu {...defaultProps} />
+          <NotificationCenter />
+        </div>
       </Provider>
     )
 

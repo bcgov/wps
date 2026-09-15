@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { RootState } from '@/store'
-import { selectNotificationSettingsDisabled, selectNotificationSetupState, selectOperationalDataLoading } from '@/store'
+import {
+  selectMapLayersLoadState,
+  selectNotificationSettingsDisabled,
+  selectNotificationSetupState,
+  selectOperationalDataLoading,
+  selectOperationalLoadState,
+  selectSettingsLoadState
+} from '@/store'
 
 const base: {
   pushNotificationPermission: 'granted' | 'denied'
@@ -87,6 +94,9 @@ describe('selectOperationalDataLoading', () => {
     fireCentresLoading = false,
     runParametersLoading = false,
     dataLoading = false,
+    dataError = null,
+    fireCentresError = null,
+    runParametersError = null,
     provincialSummaries = {},
     tpiStats = {},
     hfiStats = {}
@@ -94,15 +104,19 @@ describe('selectOperationalDataLoading', () => {
     fireCentresLoading?: boolean
     runParametersLoading?: boolean
     dataLoading?: boolean
+    dataError?: string | null
+    fireCentresError?: string | null
+    runParametersError?: string | null
     provincialSummaries?: object | null
     tpiStats?: object | null
     hfiStats?: object | null
   } = {}) =>
     ({
-      fireCentres: { loading: fireCentresLoading },
-      runParameters: { loading: runParametersLoading },
+      fireCentres: { loading: fireCentresLoading, error: fireCentresError },
+      runParameters: { loading: runParametersLoading, error: runParametersError },
       data: {
         loading: dataLoading,
+        error: dataError,
         provincialSummaries,
         tpiStats,
         hfiStats
@@ -142,5 +156,29 @@ describe('selectOperationalDataLoading', () => {
     })
 
     expect(selectOperationalDataLoading(state)).toBe(false)
+  })
+
+  it('combines operational errors into one stable error key', () => {
+    const state = makeOperationalState({ dataError: 'data', fireCentresError: 'centres' })
+
+    expect(selectOperationalLoadState(state).errorKey).toBe('data|centres')
+  })
+})
+
+describe('normalized load-state selectors', () => {
+  it('exposes settings loading and errors through the shared shape', () => {
+    const state = {
+      settings: { loading: true, error: 'settings failed' }
+    } as unknown as RootState
+
+    expect(selectSettingsLoadState(state)).toEqual({ loading: true, errorKey: 'settings failed' })
+  })
+
+  it('exposes pending map loads and the latest layer failure', () => {
+    const state = {
+      mapLayers: { pendingLoads: 2, latestErrorVersion: 3 }
+    } as unknown as RootState
+
+    expect(selectMapLayersLoadState(state)).toEqual({ loading: true, errorKey: '3' })
   })
 })

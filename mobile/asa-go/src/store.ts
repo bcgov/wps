@@ -1,5 +1,6 @@
 import { type Action, configureStore, createSelector, type ThunkAction } from '@reduxjs/toolkit'
 import { rootReducer } from '@/rootReducer'
+import { getNotificationPriority } from '@/slices/notificationSlice'
 
 export const store = configureStore({
   reducer: rootReducer
@@ -17,6 +18,15 @@ export const selectGeolocation = (state: RootState) => state.geolocation
 export const selectAuthentication = (state: RootState) => state.authentication
 export const selectFeedback = (state: RootState) => state.feedback
 export const selectNetworkStatus = (state: RootState) => state.networkStatus
+export const selectNotifications = (state: RootState) => state.notifications.notifications
+export const selectCurrentNotification = createSelector(selectNotifications, notifications => {
+  return notifications.reduce<(typeof notifications)[number] | null>((current, notification) => {
+    if (!current || getNotificationPriority(notification) > getNotificationPriority(current)) {
+      return notification
+    }
+    return current
+  }, null)
+})
 export const selectToken = (state: RootState) => state.authentication.token
 export const selectRunParameters = (state: RootState) => state.runParameters.runParameters
 export const selectProvincialSummaries = (state: RootState) => state.data.provincialSummaries
@@ -27,19 +37,43 @@ export const selectPushNotification = (state: RootState) => state.pushNotificati
 export const selectPendingNotificationData = (state: RootState) => state.pushNotification.pendingNotificationData
 export const selectLastUpdated = (state: RootState) => state.data.lastUpdated
 
-export const selectOperationalDataLoading = createSelector(
+export interface LoadSourceState {
+  loading: boolean
+  errorKey: string | null
+}
+
+export const selectOperationalLoadState = createSelector(
   [
-    (state: RootState) => state.fireCentres.loading,
-    (state: RootState) => state.runParameters.loading,
+    (state: RootState) => state.fireCentres,
+    (state: RootState) => state.runParameters,
     (state: RootState) => state.data
   ],
-  (fireCentresLoading, runParametersLoading, data) => {
+  (fireCentres, runParameters, data): LoadSourceState => {
     const operationalDataUnavailable =
       data.provincialSummaries === null || data.tpiStats === null || data.hfiStats === null
+    const errorKey = [data.error, fireCentres.error, runParameters.error].filter(Boolean).join('|') || null
 
     // only expose run-parameter loading while the operational datasets are still being initialized
-    return fireCentresLoading || data.loading || (runParametersLoading && operationalDataUnavailable)
+    return {
+      loading: fireCentres.loading || data.loading || (runParameters.loading && operationalDataUnavailable),
+      errorKey
+    }
   }
+)
+
+export const selectOperationalDataLoading = createSelector(selectOperationalLoadState, ({ loading }) => loading)
+
+export const selectSettingsLoadState = createSelector(
+  selectSettings,
+  ({ loading, error }): LoadSourceState => ({ loading, errorKey: error })
+)
+
+export const selectMapLayersLoadState = createSelector(
+  (state: RootState) => state.mapLayers,
+  ({ pendingLoads, latestErrorVersion }): LoadSourceState => ({
+    loading: pendingLoads > 0,
+    errorKey: latestErrorVersion > 0 ? String(latestErrorVersion) : null
+  })
 )
 
 export type NotificationSetupState = 'permissionDenied' | 'unregistered' | 'registrationFailed' | 'ready'

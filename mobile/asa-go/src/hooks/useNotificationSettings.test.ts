@@ -235,35 +235,38 @@ describe('useNotificationSettings', () => {
     consoleSpy.mockRestore()
   })
 
-  it('sets updateError to true when update fails', async () => {
+  it('queues an error notification when update fails', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     ;(updateNotificationSettings as Mock).mockRejectedValue(new Error('server error'))
 
-    const { result } = await act(async () => renderWithStore())
+    const { result, store } = await act(async () => renderWithStore())
 
     await act(async () => {
       await result.current.updateSubscriptions([1]).catch(() => {})
     })
 
-    expect(result.current.updateError).toBe(true)
+    expect(store.getState().notifications.notifications).toEqual([
+      expect.objectContaining({
+        dedupeKey: 'subscription-update-error',
+        message: 'Failed to update notification settings. Please try again later.'
+      })
+    ])
     consoleSpy.mockRestore()
   })
 
-  it('clears updateError after a successful update', async () => {
+  it('deduplicates repeated update errors', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    ;(updateNotificationSettings as Mock).mockRejectedValueOnce(new Error('server error')).mockResolvedValueOnce(['1'])
+    ;(updateNotificationSettings as Mock).mockRejectedValue(new Error('server error'))
 
-    const { result } = await act(async () => renderWithStore())
+    const { result, store } = await act(async () => renderWithStore())
 
     await act(async () => {
       await result.current.updateSubscriptions([1]).catch(() => {})
     })
-    expect(result.current.updateError).toBe(true)
-
     await act(async () => {
       await result.current.updateSubscriptions([1])
     })
-    expect(result.current.updateError).toBe(false)
+    expect(store.getState().notifications.notifications).toHaveLength(1)
     consoleSpy.mockRestore()
   })
 })
