@@ -99,8 +99,22 @@ vi.mock('@/components/report/Advisory', () => ({
 }))
 
 vi.mock('@/components/TabPanel', () => ({
-  default: ({ value, panel, children }: { value: NavPanel; panel: NavPanel; children: React.ReactNode }) =>
-    value === panel ? <div data-testid={`tab-panel-${panel}`}>{children}</div> : null
+  default: ({
+    value,
+    panel,
+    loading,
+    children
+  }: {
+    value: NavPanel
+    panel: NavPanel
+    loading?: boolean
+    children: React.ReactNode
+  }) =>
+    value === panel ? (
+      <div data-testid={`tab-panel-${panel}`} data-loading={loading}>
+        {children}
+      </div>
+    ) : null
 }))
 
 vi.mock('@/components/SideNavigation', () => ({
@@ -234,6 +248,29 @@ describe('App', () => {
     expect(screen.getByTestId('asa-go-map')).toBeInTheDocument()
   })
 
+  it('marks the Map tab loading while operational data is loading', () => {
+    const store = createTestStore({
+      data: {
+        loading: true,
+        error: null,
+        lastUpdated: null,
+        provincialSummaries: null,
+        tpiStats: null,
+        hfiStats: null
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    expect(screen.getByTestId('tab-panel-Map')).toHaveAttribute('data-loading', 'true')
+    expect(screen.getByTestId('app-header')).toBeInTheDocument()
+    expect(screen.getByTestId('bottom-nav')).toBeInTheDocument()
+  })
+
   it('renders App component with Redux store integration', () => {
     const store = createTestStore()
 
@@ -306,6 +343,7 @@ describe('App', () => {
         networkStatus: { connected: true, connectionType: 'wifi' }
       },
       runParameters: {
+        loading: false,
         error: null,
         runParameters: beforeMidnightRunParameters
       }

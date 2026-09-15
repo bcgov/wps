@@ -76,6 +76,7 @@ export interface ASAGoMapProps {
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
   setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
   setTab: React.Dispatch<React.SetStateAction<NavPanel>>
+  onLayerLoadingChange?: (loading: boolean) => void
 }
 
 const ASAGoMap = ({
@@ -83,7 +84,8 @@ const ASAGoMap = ({
   selectedFireShape,
   setSelectedFireShape,
   setSelectedFireCentre,
-  setTab
+  setTab,
+  onLayerLoadingChange
 }: ASAGoMapProps) => {
   const dispatch: AppDispatch = useDispatch()
 
@@ -130,6 +132,22 @@ const ASAGoMap = ({
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const clickSourceRef = useRef<boolean>(false)
+  const pendingLayerLoadsRef = useRef(0)
+
+  const beginLayerLoad = React.useCallback(() => {
+    pendingLayerLoadsRef.current += 1
+    onLayerLoadingChange?.(true)
+
+    let finished = false
+    return () => {
+      if (finished) return
+      finished = true
+      pendingLayerLoadsRef.current = Math.max(0, pendingLayerLoadsRef.current - 1)
+      if (pendingLayerLoadsRef.current === 0) {
+        onLayerLoadingChange?.(false)
+      }
+    }
+  }, [onLayerLoadingChange])
 
   const removeLayerByName = (map: OlMap, layerName: string) => {
     const layer = map
@@ -324,6 +342,7 @@ const ASAGoMap = ({
       })
     })
     mapObject.setTarget(mapRef.current)
+    const finishLayerLoad = beginLayerLoad()
 
     /******* Start scale line ******/
 
@@ -429,9 +448,10 @@ const ASAGoMap = ({
         mapObject.addLayer(fireZoneLabelFileLayer)
       }
     }
-    loadPMTiles().catch(Sentry.captureException)
+    loadPMTiles().catch(Sentry.captureException).finally(finishLayerLoad)
 
     return () => {
+      finishLayerLoad()
       mapObject.removeControl(scaleBar)
       mapObject.un('singleclick', mapClickHandler)
       mapObject.getView().un('change:resolution', setScalelineVisibility)
@@ -474,6 +494,8 @@ const ASAGoMap = ({
   useEffect(() => {
     if (!map) return
 
+    const finishLayerLoad = beginLayerLoad()
+
     ;(async () => {
       let hfiLayer: VectorTileLayer | null = null
       if (!isNil(runParameter?.run_type) && !isNil(runParameter?.run_datetime)) {
@@ -488,8 +510,12 @@ const ASAGoMap = ({
         )
       }
       replaceMapLayer(HFI_LAYER_NAME, hfiLayer)
-    })().catch(Sentry.captureException)
-  }, [map, runParameter, date, layerVisibility, replaceMapLayer])
+    })()
+      .catch(Sentry.captureException)
+      .finally(finishLayerLoad)
+
+    return finishLayerLoad
+  }, [map, runParameter, date, layerVisibility, replaceMapLayer, beginLayerLoad])
 
   const handleDrawerClose = () => {
     setIsFireShapeDrawerOpen(false)

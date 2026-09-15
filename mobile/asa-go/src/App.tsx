@@ -42,6 +42,7 @@ import {
   type AppDispatch,
   selectFireCentres,
   selectNetworkStatus,
+  selectOperationalDataLoading,
   selectPendingNotificationData,
   selectProvincialSummaries,
   selectPushNotification,
@@ -66,13 +67,15 @@ const App = () => {
   const [tab, setTab] = useState<NavPanel>(NavPanel.MAP)
   const [fireCentre, setFireCentre] = useState<FireCentre | undefined>(undefined)
   const [selectedFireShape, setSelectedFireShape] = useState<FireShape | undefined>(undefined)
+  const [mapLayersLoading, setMapLayersLoading] = useState(false)
 
   // selected redux state
   const { fireCentres } = useSelector(selectFireCentres)
   const { networkStatus } = useSelector(selectNetworkStatus)
   const runParameters = useSelector(selectRunParameters)
   const { registeredFcmToken } = useSelector(selectPushNotification)
-  const { subscriptionsInitialized } = useSelector(selectSettings)
+  const { loading: settingsLoading, subscriptionsInitialized } = useSelector(selectSettings)
+  const operationalDataLoading = useSelector(selectOperationalDataLoading)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
   const dateOfInterest = useSelector(selectDateOfInterest)
@@ -255,16 +258,17 @@ const App = () => {
           Icon={networkStatus.connected ? InfoIcon : NetworkIcon}
         />
         <GuestDisclaimerBanner />
-        <TabPanel value={tab} panel={NavPanel.MAP}>
+        <TabPanel value={tab} panel={NavPanel.MAP} loading={operationalDataLoading || mapLayersLoading}>
           <ASAGoMap
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
             setSelectedFireCentre={setFireCentre}
             setTab={setTab}
+            onLayerLoadingChange={setMapLayersLoading}
             testId="asa-go-map"
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.PROFILE}>
+        <TabPanel value={tab} panel={NavPanel.PROFILE} loading={operationalDataLoading}>
           <Profile
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
@@ -272,7 +276,7 @@ const App = () => {
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.ADVISORY}>
+        <TabPanel value={tab} panel={NavPanel.ADVISORY} loading={operationalDataLoading}>
           <Advisory
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
@@ -280,7 +284,7 @@ const App = () => {
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.SETTINGS}>
+        <TabPanel value={tab} panel={NavPanel.SETTINGS} loading={settingsLoading}>
           <Settings activeTab={tab} />
         </TabPanel>
       </Box>

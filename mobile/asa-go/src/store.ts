@@ -27,6 +27,21 @@ export const selectPushNotification = (state: RootState) => state.pushNotificati
 export const selectPendingNotificationData = (state: RootState) => state.pushNotification.pendingNotificationData
 export const selectLastUpdated = (state: RootState) => state.data.lastUpdated
 
+export const selectOperationalDataLoading = createSelector(
+  [
+    (state: RootState) => state.fireCentres.loading,
+    (state: RootState) => state.runParameters.loading,
+    (state: RootState) => state.data
+  ],
+  (fireCentresLoading, runParametersLoading, data) => {
+    const operationalDataUnavailable =
+      data.provincialSummaries === null || data.tpiStats === null || data.hfiStats === null
+
+    // only expose run-parameter loading while the operational datasets are still being initialized
+    return fireCentresLoading || data.loading || (runParametersLoading && operationalDataUnavailable)
+  }
+)
+
 export type NotificationSetupState = 'permissionDenied' | 'unregistered' | 'registrationFailed' | 'ready'
 
 export const selectNotificationSetupState = createSelector(

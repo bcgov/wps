@@ -236,7 +236,7 @@ describe('Settings', () => {
     expect(fireCentreElements[0]).toHaveTextContent(/PRINCE GEORGE/i)
   })
 
-  it('renders loading state when loading is true', async () => {
+  it('leaves loading presentation to the parent tab', () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: 'unknown' }),
@@ -254,10 +254,8 @@ describe('Settings', () => {
       </Provider>
     )
 
-    await waitFor(() => {
-      expect(screen.getByText(/Retrieving notification settings/i)).toBeInTheDocument()
-      expect(screen.getByRole('progressbar')).toBeInTheDocument()
-    })
+    expect(screen.queryByText(/Retrieving notification settings/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 
   it('renders error state when error is present', async () => {

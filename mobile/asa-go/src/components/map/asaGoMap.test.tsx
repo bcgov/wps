@@ -67,7 +67,11 @@ describe('ASAGoMap', () => {
       altitude: null,
       altitudeAccuracy: null,
       heading: null,
-      speed: null
+      speed: null,
+      magneticHeading: null,
+      trueHeading: null,
+      headingAccuracy: null,
+      course: null
     },
     timestamp: Date.now()
   }
@@ -86,6 +90,20 @@ describe('ASAGoMap', () => {
 
     const mobileMap = getByTestId(defaultProps.testId)
     expect(mobileMap).toBeVisible()
+  })
+
+  it('reports layer setup loading until initial layers settle', async () => {
+    const onLayerLoadingChange = vi.fn()
+    const store = createTestStore()
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} onLayerLoadingChange={onLayerLoadingChange} />
+      </Provider>
+    )
+
+    expect(onLayerLoadingChange).toHaveBeenCalledWith(true)
+    await waitFor(() => expect(onLayerLoadingChange).toHaveBeenLastCalledWith(false))
   })
 
   it('renders the location button and location indicator', () => {
@@ -229,11 +247,12 @@ describe('ASAGoMap', () => {
     const error = new Error('Network unavailable')
     vi.mocked(createBasemapLayer).mockRejectedValueOnce(error)
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onLayerLoadingChange = vi.fn()
 
     const store = createTestStore()
     render(
       <Provider store={store}>
-        <ASAGoMap {...defaultProps} />
+        <ASAGoMap {...defaultProps} onLayerLoadingChange={onLayerLoadingChange} />
       </Provider>
     )
 
@@ -241,6 +260,7 @@ describe('ASAGoMap', () => {
 
     await waitFor(() => {
       expect(warnSpy).toHaveBeenCalledWith(error)
+      expect(onLayerLoadingChange).toHaveBeenLastCalledWith(false)
     })
 
     warnSpy.mockRestore()
