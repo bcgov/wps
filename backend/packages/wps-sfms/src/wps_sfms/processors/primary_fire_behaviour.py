@@ -93,7 +93,8 @@ def calculate_primary_fire_behaviour(
     percent_conifer, _ = datasets.percent_conifer.replace_nodata_with(np.nan)
 
     wind_direction_rad = np.radians(np.mod(wind_direction, 360.0))
-    # match legacy SFMS by limiting slope to the range supported by CFFDRS
+    # clamp at 70% because CFFDRS uses the same maximum spread factor for every steeper slope, this also
+    # matches legacy SFMS behaviour.
     slope_percent = np.clip(slope, 0.0, MAX_GROUND_SLOPE_PERCENT)
 
     aspect_is_valid = np.isfinite(aspect)
