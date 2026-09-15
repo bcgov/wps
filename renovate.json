@@ -1,6 +1,6 @@
 {
   "extends": [
-    "github>bcgov/renovate-config#2026.8.18"
+    "github>bcgov/renovate-config#2026.9.9"
   ],
   "ignorePaths": [
     "openshift/s3-backup/docker/poetry.lock"
