@@ -182,7 +182,13 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             fmc_key=fmc_key,
             output_keys={
                 parameter: self.get_fbp_key(datetime_to_process, parameter, run_type)
-                for parameter in (FBPParameter.SFC, FBPParameter.ROS, FBPParameter.HFI)
+                for parameter in (
+                    FBPParameter.SFC,
+                    FBPParameter.ROS,
+                    FBPParameter.HFI,
+                    FBPParameter.TFC,
+                    FBPParameter.CFB,
+                )
             },
             run_type=run_type,
         )

@@ -36,11 +36,56 @@ MAX_GROUND_SLOPE_PERCENT = 70.0
 
 
 @dataclass(frozen=True)
+class _RasterOutput:
+    parameter: FBPParameter
+    values: np.ndarray
+    description: str
+    unit: str
+
+
+@dataclass(frozen=True)
 class PrimaryFireBehaviourResult:
     sfc: np.ndarray
     ros: np.ndarray
     hfi: np.ndarray
+    tfc: np.ndarray
+    cfb: np.ndarray
     nodata_value: float = SFMS_NO_DATA
+
+    def raster_outputs(self) -> tuple[_RasterOutput, ...]:
+        """Return the calculated arrays with their publication metadata."""
+        return (
+            _RasterOutput(
+                parameter=FBPParameter.SFC,
+                values=self.sfc,
+                description="surface_fuel_consumption",
+                unit="kg/m2",
+            ),
+            _RasterOutput(
+                parameter=FBPParameter.ROS,
+                values=self.ros,
+                description="rate_of_spread",
+                unit="m/min",
+            ),
+            _RasterOutput(
+                parameter=FBPParameter.HFI,
+                values=self.hfi,
+                description="head_fire_intensity",
+                unit="kW/m",
+            ),
+            _RasterOutput(
+                parameter=FBPParameter.TFC,
+                values=self.tfc,
+                description="total_fuel_consumption",
+                unit="kg/m2",
+            ),
+            _RasterOutput(
+                parameter=FBPParameter.CFB,
+                values=self.cfb,
+                description="crown_fraction_burned",
+                unit="fraction",
+            ),
+        )
 
 
 @dataclass(frozen=True)
@@ -71,7 +116,7 @@ def _result_values(
 def calculate_primary_fire_behaviour(
     datasets: PrimaryFireBehaviourDatasets,
 ) -> PrimaryFireBehaviourResult:
-    """Calculate SFC, equilibrium head ROS, and HFI on the shared raster grid.
+    """Calculate SFC, equilibrium head ROS, HFI, TFC, and CFB on the shared raster grid.
 
     Wind direction and downslope aspect arrive in degrees and are normalized to radians here.
     Ground slope arrives as percent and is clamped to the legacy SFMS supported range
@@ -170,6 +215,8 @@ def calculate_primary_fire_behaviour(
             sfc=_result_values(primary.sfc, calculation_mask, non_combustible_mask),
             ros=_result_values(primary.ros, calculation_mask, non_combustible_mask),
             hfi=_result_values(primary.hfi, calculation_mask, non_combustible_mask),
+            tfc=_result_values(primary.tfc, calculation_mask, non_combustible_mask),
+            cfb=_result_values(primary.cfb, calculation_mask, non_combustible_mask),
         )
 
     empty_output = _result_values(
@@ -179,11 +226,13 @@ def calculate_primary_fire_behaviour(
         sfc=empty_output,
         ros=empty_output,
         hfi=empty_output,
+        tfc=empty_output,
+        cfb=empty_output,
     )
 
 
 class PrimaryFireBehaviourProcessor:
-    """Validate aligned FBP inputs and publish daily SFC, ROS, and HFI rasters.
+    """Validate aligned FBP inputs and publish daily SFC, ROS, HFI, TFC, and CFB rasters.
 
     All input grids must match the fuel grid. Each output preserves calculation nodata, encodes
     recognized non-combustible fuel as zero, and applies the BC boundary mask before publishing.
@@ -265,30 +314,25 @@ class PrimaryFireBehaviourProcessor:
                 self._validate_grids(datasets)
                 result = calculate_primary_fire_behaviour(datasets)
 
-                outputs = (
-                    (FBPParameter.SFC, result.sfc, "surface_fuel_consumption", "kg/m2"),
-                    (FBPParameter.ROS, result.ros, "rate_of_spread", "m/min"),
-                    (FBPParameter.HFI, result.hfi, "head_fire_intensity", "kW/m"),
-                )
                 with open_bc_mask_dataset() as mask:
-                    for parameter, values, description, unit in outputs:
+                    for output in result.raster_outputs():
                         with create_masked_output_dataset(
-                            values,
+                            output.values,
                             datasets.fuel,
                             mask,
                             result.nodata_value,
                         ) as output_ds:
                             output_band = output_ds.as_gdal_ds().GetRasterBand(1)
-                            output_band.SetDescription(description)
-                            output_band.SetUnitType(unit)
+                            output_band.SetDescription(output.description)
+                            output_band.SetUnitType(output.unit)
                             published = await publish_dataset(
                                 s3_client=s3_client,
                                 dataset=output_ds,
-                                output_key=inputs.output_keys[parameter],
+                                output_key=inputs.output_keys[output.parameter],
                             )
                             logger.info(
                                 "Stored %s %s: %s (COG: %s)",
-                                parameter.value.upper(),
+                                output.parameter.value.upper(),
                                 inputs.run_type.value,
                                 published.output_key,
                                 published.cog_key,

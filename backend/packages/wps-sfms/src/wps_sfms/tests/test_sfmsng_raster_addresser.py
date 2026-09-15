@@ -217,7 +217,7 @@ class TestPrimaryFireBehaviourInputs:
         assert addresser.get_percent_dead_conifer_key(2024) == "sfms/static/m34_2024.tif"
 
     @pytest.mark.parametrize("run_type", [RunType.ACTUAL, RunType.FORECAST])
-    def test_builds_same_day_inputs_and_three_output_keys(
+    def test_builds_same_day_inputs_and_five_output_keys(
         self, addresser: SFMSNGRasterAddresser, run_type: RunType
     ):
         fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
@@ -265,6 +265,8 @@ class TestPrimaryFireBehaviourInputs:
             FBPParameter.SFC: f"sfms_ng/{run_type.value}/2024/04/15/sfc_20240415.tif",
             FBPParameter.ROS: f"sfms_ng/{run_type.value}/2024/04/15/ros_20240415.tif",
             FBPParameter.HFI: f"sfms_ng/{run_type.value}/2024/04/15/hfi_20240415.tif",
+            FBPParameter.TFC: f"sfms_ng/{run_type.value}/2024/04/15/tfc_20240415.tif",
+            FBPParameter.CFB: f"sfms_ng/{run_type.value}/2024/04/15/cfb_20240415.tif",
         }
         assert result.run_type == run_type
 

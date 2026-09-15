@@ -2,8 +2,8 @@
 
 This document tracks the inputs and policy decisions for the shared Fire Behaviour Prediction
 (FBP) calculation. One call to `vectorized_primary_fire_behaviour_prediction` currently publishes
-Surface Fuel Consumption (SFC), Rate of Spread (ROS), and Head Fire Intensity (HFI). Total Fuel
-Consumption and Crown Fraction Burned remain potential future outputs.
+Surface Fuel Consumption (SFC), Rate of Spread (ROS), Head Fire Intensity (HFI), Total Fuel
+Consumption (TFC), and Crown Fraction Burned (CFB).
 
 ## Input TODOs
 
@@ -90,7 +90,8 @@ Consumption and Crown Fraction Burned remain potential future outputs.
 
 ## Pipeline Requirements
 
-- [x] Define a shared primary-FBP raster contract for the current SFC, ROS, and HFI outputs.
+- [x] Define a shared primary-FBP raster contract for the current SFC, ROS, HFI, TFC, and CFB
+      outputs.
 - [x] Require all input rasters to match the selected fuel grid's extent, resolution, projection,
       and geotransform.
 - [ ] Validate fuel-specific inputs only where they are meaningful: PC on M1/M2, PDF on M3/M4,
