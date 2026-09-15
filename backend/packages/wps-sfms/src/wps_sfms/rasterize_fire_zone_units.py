@@ -102,7 +102,7 @@ def _create_output(output_path: Path, reference: gdal.Dataset) -> gdal.Dataset:
     output.SetProjection(reference.GetProjection())
     output_band = output.GetRasterBand(1)
     output_band.SetNoDataValue(OUTPUT_NODATA)
-    output_band.SetDescription("fire_zone_objectid")
+    output_band.SetDescription("source_identifier")
     output_band.Fill(OUTPUT_NODATA)
     return output
 
