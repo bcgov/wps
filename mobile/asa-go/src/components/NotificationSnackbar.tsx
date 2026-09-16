@@ -1,6 +1,5 @@
-import { Alert, type AlertColor, Snackbar } from '@mui/material'
-import type { SnackbarProps } from '@mui/material/Snackbar'
-import type { ReactNode } from 'react'
+import { Alert, type AlertColor, Box } from '@mui/material'
+import { type ReactNode, useEffect } from 'react'
 
 interface NotificationSnackbarProps {
   open: boolean
@@ -21,38 +20,39 @@ const NotificationSnackbar = ({
   icon,
   testId
 }: NotificationSnackbarProps) => {
-  const handleSnackbarClose: NonNullable<SnackbarProps['onClose']> = (_event, reason) => {
-    if (reason !== 'clickaway') onClose()
-  }
+  useEffect(() => {
+    if (!open || autoHideDuration === null) return
+
+    const timeout = window.setTimeout(onClose, autoHideDuration)
+    return () => window.clearTimeout(timeout)
+  }, [autoHideDuration, onClose, open])
+
+  if (!open) return null
 
   return (
-    <Snackbar
+    <Box
       data-testid={testId}
-      open={open}
-      autoHideDuration={autoHideDuration}
-      onClose={handleSnackbarClose}
-      anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
       sx={theme => ({
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        transform: 'none',
-        width: '100%',
-        maxWidth: 'none',
+        zIndex: theme.zIndex.snackbar,
         [`${theme.breakpoints.down('lg')} and (orientation: landscape)`]: {
           top: 'env(safe-area-inset-top)'
-        },
-        '& .MuiAlert-root': {
-          width: '100%',
-          borderRadius: 0
         }
       })}
     >
-      <Alert icon={icon} onClose={onClose} severity={severity} variant="filled">
+      <Alert
+        icon={icon}
+        onClose={onClose}
+        severity={severity}
+        variant="filled"
+        sx={{ borderRadius: 0, boxSizing: 'border-box', width: '100%' }}
+      >
         {message}
       </Alert>
-    </Snackbar>
+    </Box>
   )
 }
 

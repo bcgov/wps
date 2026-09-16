@@ -38,14 +38,30 @@ describe('NotificationSnackbar', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('renders edge-to-edge by default', () => {
+  it('does not auto-hide a persistent notification', () => {
+    vi.useFakeTimers()
+    const onClose = vi.fn()
+    render(<NotificationSnackbar autoHideDuration={null} open={true} onClose={onClose} message="Still here" />)
+
+    act(() => vi.runAllTimers())
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('renders edge-to-edge without overflowing narrow screens', () => {
     render(<NotificationSnackbar open={true} onClose={vi.fn()} message="Something went wrong" />)
 
-    expect(screen.getByRole('alert').parentElement).toHaveStyle({
+    const alert = screen.getByRole('alert')
+
+    expect(alert.parentElement).toHaveStyle({
+      position: 'absolute',
+      top: '0px',
       left: '0px',
-      right: '0px',
-      transform: 'none',
-      width: '100%'
+      right: '0px'
+    })
+    expect(alert).toHaveStyle({
+      width: '100%',
+      boxSizing: 'border-box',
+      borderRadius: 0
     })
   })
 })

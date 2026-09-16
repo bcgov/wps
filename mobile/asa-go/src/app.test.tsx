@@ -307,7 +307,11 @@ describe('App', () => {
     expect(
       screen.getByText('Unable to load one or more map layers. Some map information may be unavailable.')
     ).toBeInTheDocument()
-    expect(screen.getByTestId('notification-center').parentElement).toBe(screen.getByTestId('app-content'))
+    const appContent = screen.getByTestId('app-content')
+    const notification = screen.getByTestId('notification-center')
+    expect(notification.parentElement).toBe(appContent)
+    expect(screen.getByTestId('info-bar').parentElement).toBe(appContent)
+    expect(notification).toHaveStyle({ position: 'absolute', top: 0, left: 0, right: 0 })
   })
 
   it('renders App component with Redux store integration', () => {
