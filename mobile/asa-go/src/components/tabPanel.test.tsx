@@ -40,4 +40,15 @@ describe('TabPanel', () => {
     )
     expect(screen.getByTestId('panel-content').parentElement).toHaveAttribute('hidden')
   })
+
+  it('marks the panel busy while its loading overlay is pending', () => {
+    render(
+      <TabPanel value={NavPanel.MAP} panel={NavPanel.MAP} loading>
+        {panelContent}
+      </TabPanel>
+    )
+
+    expect(screen.getByTestId('panel-content').parentElement).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByTestId('panel-content')).toBeInTheDocument()
+  })
 })

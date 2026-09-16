@@ -1,9 +1,8 @@
-import { Alert, AlertTitle, Box, LinearProgress, Typography } from '@mui/material'
+import { Alert, AlertTitle, Box, Typography } from '@mui/material'
 import { isNil } from 'lodash'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { FireCentreInfo } from '@/api/fbaAPI'
-import NotificationSnackbar from '@/components/NotificationSnackbar'
 import SubscriptionAccordion from '@/components/settings/SubscriptionAccordion'
 import { useAppIsActive } from '@/hooks/useAppIsActive'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
@@ -15,7 +14,6 @@ import {
   selectNotificationSettingsDisabled,
   selectNotificationSetupState,
   selectPushNotification,
-  selectRegistrationFailed,
   selectSettings
 } from '@/store'
 import { theme } from '@/theme'
@@ -31,11 +29,9 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const isVisible = activeTab === NavPanel.SETTINGS
   const { retryRegistration } = usePushNotifications()
   const { networkStatus } = useSelector(selectNetworkStatus)
-  const { fireCentreInfos, loading, error, pinnedFireCentre } = useSelector(selectSettings)
+  const { fireCentreInfos, error, pinnedFireCentre } = useSelector(selectSettings)
   const { deviceIdError } = useSelector(selectPushNotification)
-  const [registrationErrorDismissed, setRegistrationErrorDismissed] = useState(false)
   const setupState = useSelector(selectNotificationSetupState)
-  const isRegistrationFailed = useSelector(selectRegistrationFailed)
   const notificationSettingsDisabled = useSelector(selectNotificationSettingsDisabled)
 
   // Load pinned fire centre from locally cached user preferences
@@ -135,31 +131,6 @@ const Settings = ({ activeTab }: SettingsProps) => {
   }
 
   const renderSettings = () => {
-    if (loading) {
-      return (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            padding: theme.spacing(2)
-          }}
-        >
-          <Typography variant="body2" color="primary">
-            Retrieving notification settings...
-          </Typography>
-          <LinearProgress color="primary" sx={{ pt: theme.spacing(1) }} />
-        </Box>
-      )
-    }
-    if (error) {
-      return (
-        <Alert severity="warning" sx={{ mx: 1, my: 1 }} data-testid="settings-error-alert">
-          <AlertTitle>Error</AlertTitle>
-          An error occurred when attempting to retrieve notification settings. Please check your network connection and
-          reload the app.
-        </Alert>
-      )
-    }
     return (
       <Box
         sx={{
@@ -223,13 +194,6 @@ const Settings = ({ activeTab }: SettingsProps) => {
           </Typography>
         </Box>
       </Box>
-      <NotificationSnackbar
-        open={isRegistrationFailed && networkStatus.connected && !registrationErrorDismissed}
-        onClose={() => setRegistrationErrorDismissed(true)}
-        message="Unable to register this device for notifications. Retrying automatically."
-        severity="warning"
-        autoHideDuration={null}
-      />
       {renderDeviceIdErrorBanner()}
       {renderPermissionBanner()}
       {renderOfflineMessage()}

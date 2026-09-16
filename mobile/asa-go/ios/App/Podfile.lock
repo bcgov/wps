@@ -5,11 +5,11 @@ PODS:
   - AppAuth/Core (2.1.0)
   - AppAuth/ExternalUserAgent (2.1.0):
     - AppAuth/Core
-  - Capacitor (8.5.0):
+  - Capacitor (8.5.1):
     - CapacitorCordova
   - CapacitorApp (8.1.1):
     - Capacitor
-  - CapacitorCordova (8.5.0)
+  - CapacitorCordova (8.5.1)
   - CapacitorDevice (8.0.2):
     - Capacitor
   - CapacitorFilesystem (8.1.2):
@@ -98,7 +98,7 @@ PODS:
   - Sentry (9.16.1):
     - Sentry/Core (= 9.16.1)
   - Sentry/Core (9.16.1)
-  - SentryCapacitor (4.1.0):
+  - SentryCapacitor (4.3.0):
     - Capacitor
     - Sentry (= 9.16.1)
 
@@ -175,9 +175,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AppAuth: ef4da5a3fc2e10b90c09a0a94a9baeaedc0341d5
-  Capacitor: 00b87168591cc006ea6f5c0de681ec5c39a2c8eb
+  Capacitor: 8ca6676b3b1147b00f7f3a547ccf68defd658d55
   CapacitorApp: 305bd13c44f6f9d164e2ee66a4faa956ed8c0e06
-  CapacitorCordova: 9d3acbb574048e7167d2af127a0af2123e619f2f
+  CapacitorCordova: eb79411a3a0ed517eeb4c6dcf5933ce4bcbb5c9e
   CapacitorDevice: 14cba6f88d1c3074cbf825fea977c8c526453ff8
   CapacitorFilesystem: 2db285a1ac6e475cc27cae2e1bea999000f9e2be
   CapacitorFirebaseMessaging: d48c9156ee96e166416f1d910cb8de53143cea5f
@@ -202,7 +202,7 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   Sentry: e5d82a3c1f2d951f75c04c57215a0abb1facbd51
-  SentryCapacitor: 3034f9cfcbdcda9a2a002a9d88a1a08df01d5fc3
+  SentryCapacitor: 0561def7ada7e47d0437324e7aa3db60d52bfe40
 
 PODFILE CHECKSUM: eb41f8e46385dd50a4a10cc728a95b7644b9cb8f
 
