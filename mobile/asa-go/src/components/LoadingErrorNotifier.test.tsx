@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import LoadingErrorNotifier from '@/components/LoadingErrorNotifier'
 import NotificationCenter from '@/components/NotificationCenter'
 import { initialState as dataInitialState, getDataFailed, getDataStart } from '@/slices/dataSlice'
+import { updateNetworkStatus } from '@/slices/networkStatusSlice'
 import { initialState as settingsInitialState } from '@/slices/settingsSlice'
 import { createTestStore } from '@/testUtils'
 import { theme } from '@/theme'
@@ -97,6 +98,33 @@ describe('LoadingErrorNotifier', () => {
     renderSnackbar({ activeTab: NavPanel.ADVISORY, layerErrorVersion: 1 })
 
     expect(screen.queryByText(MAP_LAYER_ERROR_MESSAGE)).not.toBeInTheDocument()
+  })
+
+  it('defers a layer failure until the Map tab is opened', () => {
+    const { rerender, store } = renderSnackbar({ activeTab: NavPanel.ADVISORY, layerErrorVersion: 1 })
+
+    rerender(
+      <ThemeProvider theme={theme}>
+        <Provider store={store}>
+          <div style={{ position: 'relative' }}>
+            <LoadingErrorNotifier activeTab={NavPanel.MAP} />
+            <NotificationCenter />
+          </div>
+        </Provider>
+      </ThemeProvider>
+    )
+
+    expect(screen.getByText(MAP_LAYER_ERROR_MESSAGE)).toBeInTheDocument()
+  })
+
+  it('does not show an API error encountered offline after reconnecting', () => {
+    const { store } = renderSnackbar({ connected: false, dataError: 'offline' })
+
+    act(() => {
+      store.dispatch(updateNetworkStatus({ connected: true, connectionType: 'wifi' }))
+    })
+
+    expect(screen.queryByText(OPERATIONAL_DATA_ERROR_MESSAGE)).not.toBeInTheDocument()
   })
 
   it('does not reopen a dismissed error until it clears and occurs again', async () => {

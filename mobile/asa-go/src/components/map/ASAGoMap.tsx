@@ -71,6 +71,28 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 const buffer = 1_500_000
 const BC_FULL_MAP_EXTENT_3857 = [bcExtent[0] - buffer, bcExtent[1] - buffer, bcExtent[2] + buffer, bcExtent[3] + buffer]
 
+const beginLayerLoad = (dispatch: AppDispatch) => {
+  dispatch(mapLayerLoadStarted())
+
+  let finished = false
+  return () => {
+    // keep async completion and effect cleanup from finishing the same load twice
+    if (finished) return
+    finished = true
+    dispatch(mapLayerLoadFinished())
+  }
+}
+
+const removeLayerByName = (map: OlMap, layerName: string) => {
+  const layer = map
+    .getLayers()
+    .getArray()
+    .find(candidate => candidate.getProperties()?.name === layerName)
+  if (layer) {
+    map.removeLayer(layer)
+  }
+}
+
 export interface ASAGoMapProps {
   testId: string
   selectedFireShape: FireShape | undefined
@@ -131,30 +153,6 @@ const ASAGoMap = ({
   const mapRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const scaleRef = useRef<HTMLDivElement | null>(null) as React.MutableRefObject<HTMLElement>
   const clickSourceRef = useRef<boolean>(false)
-  const beginLayerLoad = React.useCallback(() => {
-    dispatch(mapLayerLoadStarted())
-
-    let finished = false
-    return () => {
-      if (finished) return
-      finished = true
-      dispatch(mapLayerLoadFinished())
-    }
-  }, [dispatch])
-
-  const reportLayerError = React.useCallback(() => {
-    dispatch(mapLayerLoadFailed())
-  }, [dispatch])
-
-  const removeLayerByName = React.useCallback((map: OlMap, layerName: string) => {
-    const layer = map
-      .getLayers()
-      .getArray()
-      .find(l => l.getProperties()?.name === layerName)
-    if (layer) {
-      map.removeLayer(layer)
-    }
-  }, [])
 
   const replaceMapLayer = React.useCallback(
     (layerName: string, layer: VectorTileLayer | null) => {
@@ -311,7 +309,7 @@ const ASAGoMap = ({
     // Remove the placeholder VTL and then add the new localBasemapVectorLayer
     removeLayerByName(map, LOCAL_BASEMAP_LAYER_NAME)
     map.addLayer(localBasemapVectorLayer)
-  }, [localBasemapVectorLayer, basemapLayer, map, networkStatus.connected, removeLayerByName])
+  }, [localBasemapVectorLayer, basemapLayer, map, networkStatus.connected])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — map init runs once on mount
   useEffect(() => {
@@ -338,7 +336,7 @@ const ASAGoMap = ({
       })
     })
     mapObject.setTarget(mapRef.current)
-    const finishLayerLoad = beginLayerLoad()
+    const finishLayerLoad = beginLayerLoad(dispatch)
 
     /******* Start scale line ******/
 
@@ -409,87 +407,85 @@ const ASAGoMap = ({
       const fireZoneLabelVectorSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
         filename: 'fireZoneUnitLabels.pmtiles'
       })
-      layerUnavailable =
-        layerUnavailable ||
-        fireCentresSource.getState() === 'error' ||
-        fireCentreLabelVectorSource.getState() === 'error' ||
-        fireZoneLabelVectorSource.getState() === 'error'
 
-      if (mapObject) {
-        if (fireCentresSource.getState() !== 'error') {
-          mapObject.addLayer(
-            new VectorTileLayer({
-              source: fireCentresSource,
-              style: fireCentreLineStyler(undefined),
-              zIndex: 52
-            })
-          )
-        }
-
-        if (fireCentreLabelVectorSource.getState() !== 'error') {
-          mapObject.addLayer(
-            new VectorTileLayer({
-              source: fireCentreLabelVectorSource,
-              style: fireCentreLabelStyler,
-              zIndex: 100,
-              maxZoom: 6
-            })
-          )
-        }
-
-        if (fireZoneLabelVectorSource.getState() !== 'error') {
-          mapObject.addLayer(
-            new VectorTileLayer({
-              source: fireZoneLabelVectorSource,
-              declutter: true,
-              style: fireShapeLabelStyler(selectedFireShape),
-              zIndex: 99,
-              minZoom: 6
-            })
-          )
-        }
-
-        let localBasemapAvailable = false
-        try {
-          const loadedLocalBasemapLayer = await createLocalBasemapVectorLayer()
-          if (loadedLocalBasemapLayer.getSource()?.getState() === 'error') {
-            Sentry.captureMessage('Local basemap source failed to initialize')
-          } else {
-            localBasemapAvailable = true
-            setLocalBasemapVectorLayer(loadedLocalBasemapLayer)
-          }
-        } catch (error) {
-          Sentry.captureException(error)
-        }
-
-        let onlineBasemapAvailable = false
-        try {
-          const loadedBasemapLayer = await createBasemapLayer()
-          onlineBasemapAvailable = true
-          setBasemapLayer(loadedBasemapLayer)
-          mapObject.addLayer(loadedBasemapLayer)
-        } catch (e) {
-          // offline or endpoint unreachable — local basemap will be used
-          console.warn(e)
-        }
-
-        if (!localBasemapAvailable && !onlineBasemapAvailable) {
+      const addStaticLayerIfAvailable = (source: PMTilesFileVectorSource, layer: VectorTileLayer) => {
+        if (source.getState() === 'error') {
           layerUnavailable = true
+          return
         }
-        if (fireZoneSource.getState() !== 'error') {
-          mapObject.addLayer(fireZoneFileLayer)
-          mapObject.addLayer(fireZoneHighlightFileLayer)
+        mapObject.addLayer(layer)
+      }
+
+      addStaticLayerIfAvailable(
+        fireCentresSource,
+        new VectorTileLayer({
+          source: fireCentresSource,
+          style: fireCentreLineStyler(undefined),
+          zIndex: 52
+        })
+      )
+
+      addStaticLayerIfAvailable(
+        fireCentreLabelVectorSource,
+        new VectorTileLayer({
+          source: fireCentreLabelVectorSource,
+          style: fireCentreLabelStyler,
+          zIndex: 100,
+          maxZoom: 6
+        })
+      )
+
+      addStaticLayerIfAvailable(
+        fireZoneLabelVectorSource,
+        new VectorTileLayer({
+          source: fireZoneLabelVectorSource,
+          declutter: true,
+          style: fireShapeLabelStyler(selectedFireShape),
+          zIndex: 99,
+          minZoom: 6
+        })
+      )
+
+      let localBasemapAvailable = false
+      try {
+        const loadedLocalBasemapLayer = await createLocalBasemapVectorLayer()
+        if (loadedLocalBasemapLayer.getSource()?.getState() === 'error') {
+          Sentry.captureMessage('Local basemap source failed to initialize')
+        } else {
+          localBasemapAvailable = true
+          setLocalBasemapVectorLayer(loadedLocalBasemapLayer)
         }
+      } catch (error) {
+        Sentry.captureException(error)
+      }
+
+      let onlineBasemapAvailable = false
+      try {
+        const loadedBasemapLayer = await createBasemapLayer()
+        onlineBasemapAvailable = true
+        setBasemapLayer(loadedBasemapLayer)
+        mapObject.addLayer(loadedBasemapLayer)
+      } catch (e) {
+        // offline or endpoint unreachable — local basemap will be used
+        console.warn(e)
+      }
+
+      if (!localBasemapAvailable && !onlineBasemapAvailable) {
+        layerUnavailable = true
+      }
+      if (fireZoneSource.getState() !== 'error') {
+        mapObject.addLayer(fireZoneFileLayer)
+        mapObject.addLayer(fireZoneHighlightFileLayer)
       }
 
       if (layerUnavailable) {
-        reportLayerError()
+        dispatch(mapLayerLoadFailed())
       }
     }
     loadPMTiles()
       .catch(error => {
         Sentry.captureException(error)
-        reportLayerError()
+        dispatch(mapLayerLoadFailed())
       })
       .finally(finishLayerLoad)
 
@@ -537,7 +533,7 @@ const ASAGoMap = ({
   useEffect(() => {
     if (!map) return
 
-    const finishLayerLoad = beginLayerLoad()
+    const finishLayerLoad = beginLayerLoad(dispatch)
 
     ;(async () => {
       let hfiLayer: VectorTileLayer | null = null
@@ -554,7 +550,7 @@ const ASAGoMap = ({
       }
       if (hfiLayer?.getSource()?.getState() === 'error') {
         replaceMapLayer(HFI_LAYER_NAME, null)
-        reportLayerError()
+        dispatch(mapLayerLoadFailed())
       } else {
         replaceMapLayer(HFI_LAYER_NAME, hfiLayer)
       }
@@ -562,12 +558,12 @@ const ASAGoMap = ({
       .catch(error => {
         replaceMapLayer(HFI_LAYER_NAME, null)
         Sentry.captureException(error)
-        reportLayerError()
+        dispatch(mapLayerLoadFailed())
       })
       .finally(finishLayerLoad)
 
     return finishLayerLoad
-  }, [map, runParameter, date, layerVisibility, replaceMapLayer, beginLayerLoad, reportLayerError])
+  }, [map, runParameter, date, layerVisibility, replaceMapLayer, dispatch])
 
   const handleDrawerClose = () => {
     setIsFireShapeDrawerOpen(false)
