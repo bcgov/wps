@@ -1,24 +1,16 @@
 import logging
 import os
 import tempfile
-from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Sequence
 
 import aiofiles
-import numpy as np
-from geoalchemy2.elements import WKBElement, WKTElement
-from geoalchemy2.shape import to_shape
-from osgeo import ogr
-from shapely import wkb as shapely_wkb
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
     count_advisory_shape_fuel_duplicates,
     count_rows_by_fuel_type_raster_id,
-    get_fire_zone_unit_shape_type_id,
-    get_fire_zone_units,
+    get_advisory_shape_ids_by_source_identifier,
     get_fuel_types_id_dict,
 )
 from wps_shared.db.crud.fuel_layer import get_ready_fuel_type_raster_by_year_and_hash
@@ -26,21 +18,19 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryShapeFuels,
     CombustibleArea,
-    FuelType,
-    Shape,
     TPIFuelArea,
 )
 from wps_shared.db.models.fuel_type_raster import FuelRasterInstallStatus, FuelTypeRaster
 from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
+from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
 from fuel_grid.combustible_area import calculate_combustible_area_by_fire_zone
 from fuel_grid.fuel_masked_tpi import prepare_masked_tif
 from fuel_grid.fuel_type_area import calculate_fuel_type_areas_per_zone
-from fuel_grid.fuel_type_layer import fuel_type_iterator_by_key
 from fuel_grid.tpi_fuel_area import calculate_masked_tpi_areas
 
 logger = logging.getLogger(__name__)
@@ -69,7 +59,6 @@ class ProcessedFuelRaster:
 
 @dataclass(frozen=True)
 class FuelGridInstallCounts:
-    advisory_fuel_types: int
     advisory_shape_fuels: int
     combustible_area: int
     tpi_fuel_area: int
@@ -411,151 +400,98 @@ def installed_fuel_raster_from_record(fuel_type_raster: FuelTypeRaster) -> Insta
 # static derived table population
 
 
+def validate_fire_zone_nodata(zone_raster_path: str) -> None:
+    """Require nodata metadata before deriving static fire-zone statistics."""
+    with gdal_s3_context(), WPSDataset(zone_raster_path) as zones:
+        zones.require_nodata_value()
+
+
 async def populate_static_fuel_grid_data(
     session: AsyncSession,
     fuel_type_raster: FuelTypeRaster,
     fuel_masked_tpi_key: str,
 ) -> FuelGridInstallCounts:
     fuel_raster_key = BaseRasterAddresser().gdal_path(S3Key(fuel_type_raster.object_store_path))
-    tpi_filename = fuel_masked_tpi_key.removeprefix("dem/tpi/")
-    zones = await get_fire_zone_unit_shapes(session)
+    masked_tpi_path = BaseRasterAddresser().gdal_path(S3Key(fuel_masked_tpi_key))
+    zone_raster_path = BaseRasterAddresser().get_fire_zone_units_path()
+    validate_fire_zone_nodata(zone_raster_path)
+    fuel_areas = calculate_fuel_type_areas_per_zone(fuel_raster_key, zone_raster_path)
+    combustible_areas = calculate_combustible_area_by_fire_zone(fuel_raster_key, zone_raster_path)
+    tpi_areas = calculate_masked_tpi_areas(masked_tpi_path, zone_raster_path)
+    source_to_shape_id = await get_advisory_shape_ids_by_source_identifier(session)
+    observed_zone_ids = (
+        {source_identifier for source_identifier, _ in fuel_areas}
+        | set(combustible_areas)
+        | {source_identifier for source_identifier, _ in tpi_areas}
+    )
+    validate_zone_ids(observed_zone_ids, source_to_shape_id)
 
-    fuel_type_rows = populate_advisory_fuel_types(session, fuel_type_raster, fuel_raster_key)
-    await populate_advisory_shape_fuels(session, fuel_type_raster, fuel_raster_key, zones)
-    populate_combustible_area(session, fuel_type_raster, zones, fuel_type_rows)
-    populate_tpi_fuel_area(session, fuel_type_raster, tpi_filename, zones)
+    await populate_advisory_shape_fuels(session, fuel_type_raster, fuel_areas, source_to_shape_id)
+    populate_combustible_area(session, fuel_type_raster, combustible_areas, source_to_shape_id)
+    populate_tpi_fuel_area(session, fuel_type_raster, tpi_areas, source_to_shape_id)
     # flush derived rows so verification can query them before the transaction commits.
     await session.flush()
     return await verify_static_fuel_grid_data(session, fuel_type_raster.id)
 
 
-async def get_fire_zone_unit_shapes(session: AsyncSession) -> Sequence[Shape]:
-    shape_type_id = await get_fire_zone_unit_shape_type_id(session)
-    return await get_fire_zone_units(session, shape_type_id)
-
-
-def populate_advisory_fuel_types(
-    session: AsyncSession, fuel_type_raster: FuelTypeRaster, fuel_raster_key: str
-) -> list[FuelType]:
-    fuel_type_rows = []
-    for fuel_type_id, geom in fuel_type_iterator_by_key(fuel_raster_key):
-        fuel_type = FuelType(
-            fuel_type_id=fuel_type_id,
-            geom=geom,
-            fuel_type_raster_id=fuel_type_raster.id,
-        )
-        session.add(fuel_type)
-        fuel_type_rows.append(fuel_type)
-    return fuel_type_rows
+def validate_zone_ids(observed_zone_ids: set[int], source_to_shape_id: dict[int, int]) -> None:
+    """Validate the union of zone IDs from all derived fuel-grid calculations once."""
+    unknown = observed_zone_ids - source_to_shape_id.keys()
+    if unknown:
+        raise ValueError(f"Fire-zone raster contains unknown source identifiers: {sorted(unknown)}")
 
 
 async def populate_advisory_shape_fuels(
     session: AsyncSession,
     fuel_type_raster: FuelTypeRaster,
-    fuel_raster_key: str,
-    zones: Sequence[Shape],
+    fuel_areas: dict[tuple[int, int], float],
+    source_to_shape_id: dict[int, int],
 ) -> None:
     sfms_fuel_types = await get_fuel_types_id_dict(session)
-    all_zone_data = calculate_fuel_type_areas_per_zone(fuel_raster_key, zones)
-    for zone_data in all_zone_data:
-        for advisory_shape_id, fuel_type_id, fuel_area in zone_data:
-            session.add(
-                AdvisoryShapeFuels(
-                    advisory_shape_id=advisory_shape_id,
-                    fuel_type=sfms_fuel_types[int(fuel_type_id)],
-                    fuel_area=fuel_area,
-                    fuel_type_raster_id=fuel_type_raster.id,
-                )
-            )
-
-
-def populate_combustible_area(
-    session: AsyncSession,
-    fuel_type_raster: FuelTypeRaster,
-    zones: Sequence[Shape],
-    fuel_type_rows: list[FuelType],
-) -> None:
-    combustible_fuel_type_rows = [
-        fuel_type
-        for fuel_type in fuel_type_rows
-        if fuel_type.fuel_type_id < 99 and fuel_type.fuel_type_id > 0
-    ]
-
-    with fuel_types_layer_from_rows(combustible_fuel_type_rows) as fuel_types:
-        for _, area, advisory_shape_id in calculate_combustible_area_by_fire_zone(
-            fuel_types, zones
-        ):
-            if advisory_shape_id is None or area is None:
-                continue
-            session.add(
-                CombustibleArea(
-                    advisory_shape_id=advisory_shape_id,
-                    combustible_area=area,
-                    fuel_type_raster_id=fuel_type_raster.id,
-                )
-            )
-
-
-def populate_tpi_fuel_area(
-    session: AsyncSession,
-    fuel_type_raster: FuelTypeRaster,
-    tpi_filename: str,
-    zones: Sequence[Shape],
-) -> None:
-    for advisory_shape_id, tpi_class, fuel_area in calculate_masked_tpi_areas(zones, tpi_filename):
+    for (source_identifier, fuel_type_id), fuel_area in fuel_areas.items():
+        if fuel_type_id not in sfms_fuel_types:
+            continue
         session.add(
-            TPIFuelArea(
-                advisory_shape_id=advisory_shape_id,
-                tpi_class=tpi_class,
-                fuel_area=float(
-                    fuel_area.item() if isinstance(fuel_area, np.generic) else fuel_area
-                ),
+            AdvisoryShapeFuels(
+                advisory_shape_id=source_to_shape_id[source_identifier],
+                fuel_type=sfms_fuel_types[fuel_type_id],
+                fuel_area=fuel_area,
                 fuel_type_raster_id=fuel_type_raster.id,
             )
         )
 
 
-# in-memory geometry conversion for combustible-area calculation
+def populate_combustible_area(
+    session: AsyncSession,
+    fuel_type_raster: FuelTypeRaster,
+    combustible_areas: dict[int, float],
+    source_to_shape_id: dict[int, int],
+) -> None:
+    for source_identifier, area in combustible_areas.items():
+        session.add(
+            CombustibleArea(
+                advisory_shape_id=source_to_shape_id[source_identifier],
+                combustible_area=area,
+                fuel_type_raster_id=fuel_type_raster.id,
+            )
+        )
 
 
-@contextmanager
-def fuel_types_layer_from_db(session_rows):
-    with fuel_types_layer_from_rows(session_rows) as fuel_types:
-        yield fuel_types
-
-
-@contextmanager
-def fuel_types_layer_from_rows(fuel_type_rows):
-    mem_driver = ogr.GetDriverByName("MEM")
-    mem_ds = mem_driver.CreateDataSource("fuel_types")
-    fuel_types_layer = mem_ds.CreateLayer("fuel_types", geom_type=ogr.wkbPolygon)
-    fuel_types_layer.CreateField(ogr.FieldDefn("id", ogr.OFTInteger))
-    fuel_types_layer.CreateField(ogr.FieldDefn("fuel_type_id", ogr.OFTInteger))
-
-    for index, row in enumerate(fuel_type_rows, start=1):
-        shapely_obj = fuel_type_geom_to_shape(row.geom)
-        feature = ogr.Feature(fuel_types_layer.GetLayerDefn())
-        feature.SetGeometry(ogr.CreateGeometryFromWkt(shapely_obj.wkt))
-        feature.SetField("id", row.id if row.id is not None else index)
-        feature.SetField("fuel_type_id", row.fuel_type_id)
-        fuel_types_layer.CreateFeature(feature)
-        feature = None
-
-    try:
-        yield fuel_types_layer
-    finally:
-        mem_ds = None
-
-
-def fuel_type_geom_to_shape(geom):
-    # unflushed GeoAlchemy geometry values are still hex EWKB strings at this point.
-    if isinstance(geom, str):
-        return shapely_wkb.loads(geom, hex=True)
-    if isinstance(geom, bytes):
-        return shapely_wkb.loads(geom)
-    if isinstance(geom, WKBElement | WKTElement):
-        return to_shape(geom)
-    raise TypeError(f"Unsupported fuel type geometry: {type(geom).__name__}")
+def populate_tpi_fuel_area(
+    session: AsyncSession,
+    fuel_type_raster: FuelTypeRaster,
+    tpi_areas: dict,
+    source_to_shape_id: dict[int, int],
+) -> None:
+    for (source_identifier, tpi_class), fuel_area in tpi_areas.items():
+        session.add(
+            TPIFuelArea(
+                advisory_shape_id=source_to_shape_id[source_identifier],
+                tpi_class=tpi_class,
+                fuel_area=fuel_area,
+                fuel_type_raster_id=fuel_type_raster.id,
+            )
+        )
 
 
 # verification
@@ -565,9 +501,6 @@ async def verify_static_fuel_grid_data(
     session: AsyncSession, fuel_type_raster_id: int
 ) -> FuelGridInstallCounts:
     counts = FuelGridInstallCounts(
-        advisory_fuel_types=await count_rows_by_fuel_type_raster_id(
-            session, FuelType, fuel_type_raster_id
-        ),
         advisory_shape_fuels=await count_rows_by_fuel_type_raster_id(
             session, AdvisoryShapeFuels, fuel_type_raster_id
         ),
@@ -583,8 +516,7 @@ async def verify_static_fuel_grid_data(
     )
 
     if (
-        counts.advisory_fuel_types == 0
-        or counts.advisory_shape_fuels == 0
+        counts.advisory_shape_fuels == 0
         or counts.combustible_area == 0
         or counts.tpi_fuel_area == 0
     ):

@@ -14,6 +14,7 @@ RUN_DATETIME = datetime(2025, 1, 1, 12, 0, 0)
 FOR_DATE = datetime(2025, 1, 1).date()
 
 PROCESSING_STEPS = [
+    "validate_fire_zone_raster",
     "process_hfi",
     "process_hfi_elevation",
     "process_high_hfi_area",
@@ -27,6 +28,7 @@ PROCESSING_STEPS = [
 
 @dataclass
 class ProcessStatsMocks:
+    validate_fire_zone_raster: AsyncMock
     process_hfi: AsyncMock
     process_hfi_elevation: AsyncMock
     process_high_hfi_area: AsyncMock
@@ -51,6 +53,7 @@ def mocks() -> Iterator[ProcessStatsMocks]:
         mock_scope = stack.enter_context(patch(base + "get_async_write_session_scope"))
         mock_scope.return_value.__aenter__.return_value = AsyncMock()
         yield ProcessStatsMocks(
+            validate_fire_zone_raster=patch_async(base + "validate_fire_zone_raster"),
             process_hfi=patch_async(base + "process_hfi"),
             process_hfi_elevation=patch_async(base + "process_hfi_elevation"),
             process_high_hfi_area=patch_async(base + "process_high_hfi_area"),
@@ -67,6 +70,7 @@ def mocks() -> Iterator[ProcessStatsMocks]:
 @pytest.mark.anyio
 async def test_forecast_run_marks_complete(mocks: ProcessStatsMocks):
     await process_sfms_hfi_stats(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
+    mocks.validate_fire_zone_raster.assert_awaited_once()
     mocks.mark_run_parameter_complete.assert_awaited_once()
     mocks.trigger_notifications.assert_awaited_once()
 
@@ -103,3 +107,5 @@ async def test_processing_failure_prevents_completion(mocks: ProcessStatsMocks, 
         await process_sfms_hfi_stats(RunType.ACTUAL, RUN_DATETIME, FOR_DATE)
 
     mocks.mark_run_parameter_complete.assert_not_called()
+    if fail_step == "validate_fire_zone_raster":
+        mocks.process_hfi.assert_not_awaited()

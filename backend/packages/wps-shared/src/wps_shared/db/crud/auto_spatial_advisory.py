@@ -242,6 +242,14 @@ async def get_all_zone_source_ids(session: AsyncSession):
     return result.scalars().all()
 
 
+async def get_advisory_shape_ids_by_source_identifier(
+    session: AsyncSession,
+) -> dict[int, int]:
+    """Return advisory shape database IDs keyed by raster source identifier."""
+    result = await session.execute(select(Shape.source_identifier, Shape.id))
+    return {int(source_identifier): shape_id for source_identifier, shape_id in result}
+
+
 async def get_all_sfms_fuel_type_records(session: AsyncSession) -> List[SFMSFuelType]:
     """
     Retrieve all records from the sfms_fuel_types table.
@@ -615,15 +623,9 @@ async def save_advisory_fuel_stats(
 async def calculate_high_hfi_areas(
     session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
 ) -> List[Row]:
-    """
-    Given a 'run_parameters_id', which represents a unqiue combination of run_type, run_datetime
-    and for_date, individually sum the areas in each firezone with:
-        1. 4000 <= HFI < 10000 (aka 'advisory_area')
-        2. HFI >= 10000 (aka 'warn_area')
-    """
+    """Calculate legacy polygon-intersection HFI areas for historical callers."""
     logger.info("starting high HFI by zone intersection query")
     perf_start = perf_counter()
-
     stmt = (
         select(
             Shape.id.label("shape_id"),
@@ -637,15 +639,12 @@ async def calculate_high_hfi_areas(
         .group_by(Shape.id)
         .group_by(ClassifiedHfi.threshold)
     )
-
     result = await session.execute(stmt)
-    all_high_hfi = result.all()
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
     logger.info(
-        "%f delta count before and after calculate high HFI by zone intersection query", delta
+        "%f delta count before and after calculate high HFI by zone intersection query",
+        perf_counter() - perf_start,
     )
-    return all_high_hfi
+    return result.all()
 
 
 async def get_run_parameters_id(

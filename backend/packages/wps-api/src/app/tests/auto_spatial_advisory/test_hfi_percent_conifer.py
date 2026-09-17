@@ -2,7 +2,11 @@ from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 import numpy as np
 import pytest
-from app.auto_spatial_advisory.hfi_percent_conifer import get_minimum_percent_conifer_for_hfi, get_percent_conifer_s3_key
+from app.auto_spatial_advisory.hfi_percent_conifer import (
+    get_minimum_percent_conifer_for_hfi,
+    get_percent_conifer_s3_key,
+    update_minimum_percent_conifer_by_zone,
+)
 
 
 def test_valid_values():
@@ -39,6 +43,20 @@ def test_no_values_above_threshold():
     pct_conifer_array = np.array([10, 20, 30])
     hfi_array = np.array([3000, 3500, 2000])  # All values below 4000
     assert get_minimum_percent_conifer_for_hfi(pct_conifer_array, hfi_array) is None
+
+
+def test_update_minimum_percent_conifer_by_zone_groups_valid_pixels():
+    minimums = {}
+
+    update_minimum_percent_conifer_by_zone(
+        minimums,
+        zones=np.array([[1, 1, 2], [1, 2, -1]]),
+        raw_hfi=np.array([[5000, 11000, 9000], [3000, 12000, 12000]]),
+        percent_conifer=np.array([[30.0, 20.0, 15.0], [10.0, 0.0, 5.0]]),
+        zone_nodata=-1,
+    )
+
+    assert minimums == {1: 20, 2: 15}
 
 
 @pytest.fixture

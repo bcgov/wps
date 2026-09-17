@@ -1,7 +1,12 @@
 import numpy as np
 from wps_shared.db.crud.auto_spatial_advisory import HfiClassificationThresholdEnum
 
-from app.auto_spatial_advisory.hfi_minimum_wind_speed import get_minimum_wind_speed_for_hfi
+from app.auto_spatial_advisory.hfi_minimum_wind_speed import (
+    ADVISORY_NAME,
+    WARNING_NAME,
+    get_minimum_wind_speed_for_hfi,
+    update_minimum_wind_by_zone,
+)
 
 mock_advisory_id_lut = {
     HfiClassificationThresholdEnum.ADVISORY.value: 1,
@@ -85,3 +90,22 @@ def test_arrays_with_no_data_values():
 
     assert result[mock_advisory_id_lut[HfiClassificationThresholdEnum.ADVISORY.value]] == 15
     assert result[mock_advisory_id_lut[HfiClassificationThresholdEnum.WARNING.value]] == 14
+
+
+def test_update_minimum_wind_by_zone_groups_thresholds_and_ignores_nodata():
+    minimums = {}
+
+    update_minimum_wind_by_zone(
+        minimums,
+        zones=np.array([[1, 1, 2], [1, 2, -1]]),
+        raw_hfi=np.array([[5000, 11000, 9000], [3000, 12000, 12000]]),
+        wind_speed=np.array([[10.0, 12.0, 8.0], [4.0, -9999.0, 1.0]]),
+        zone_nodata=-1,
+        wind_nodata=-9999,
+    )
+
+    assert minimums == {
+        (1, ADVISORY_NAME): 10,
+        (2, ADVISORY_NAME): 8,
+        (1, WARNING_NAME): 12,
+    }

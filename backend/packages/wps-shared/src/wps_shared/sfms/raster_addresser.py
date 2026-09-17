@@ -66,6 +66,10 @@ class BaseRasterAddresser:
         """GDAL virtual file system path to the BC boundary mask raster."""
         return GDALPath(f"{self.s3_prefix}/sfms/static/bc_mask.tif")
 
+    def get_fire_zone_units_path(self) -> GDALPath:
+        """GDAL virtual file system path to the fire-zone-unit identifier raster."""
+        return self.gdal_path(S3Key("zone-units/fire_zone_units.tif"))
+
     def get_percent_conifer_key(self, year: int) -> S3Key:
         """S3 key for a yearly mixedwood percent-conifer raster."""
         return S3Key(f"sfms/static/m12_{year}.tif")

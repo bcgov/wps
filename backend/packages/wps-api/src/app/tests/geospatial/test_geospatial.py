@@ -49,6 +49,16 @@ def test_rasters_no_match_extent():
         assert not match
 
 
+def test_rasters_no_match_rotation():
+    with gdal.Open(raster1) as r1:
+        rotated = gdal.GetDriverByName("MEM").CreateCopy("", r1)
+        geotransform = list(rotated.GetGeoTransform())
+        geotransform[2] = 1
+        rotated.SetGeoTransform(geotransform)
+
+        assert not rasters_match(r1, rotated)
+
+
 def test_raster_mul_can_write_to_file(tmp_path):
     output_path = tmp_path / "masked.tif"
 

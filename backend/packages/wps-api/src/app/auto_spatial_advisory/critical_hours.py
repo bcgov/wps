@@ -12,12 +12,13 @@ from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from aiohttp import ClientSession
+from osgeo import osr
 from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_containing_zone,
+    get_advisory_shape_ids_by_source_identifier,
     get_fuel_type_stats_in_advisory_area,
     get_fuel_types_code_dict,
     get_run_parameters_by_id,
@@ -33,12 +34,14 @@ from wps_shared.db.models.auto_spatial_advisory import (
     SFMSFuelType,
 )
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
-from wps_shared.geospatial.geospatial import PointTransformer
+from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.zonal_stats import sample_band_at_coordinate
 from wps_shared.run_type import RunType
 from wps_shared.schemas.fba_calc import AdjustedFWIResult, CriticalHoursHFI
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.stations import WFWXWeatherStation
-from wps_shared.utils.s3 import get_client
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
+from wps_shared.utils.s3 import gdal_s3_context, get_client
 from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
@@ -52,6 +55,35 @@ from app.hourlies import get_hourly_readings_in_time_interval
 logger = logging.getLogger(__name__)
 
 DAYS_TO_RETAIN = 21
+
+
+async def group_stations_by_zone(
+    session: AsyncSession, stations: list[WFWXWeatherStation]
+) -> Dict[int, List[WFWXWeatherStation]]:
+    """Assign WGS84 weather stations to advisory-shape IDs by sampling the zone raster."""
+    source_to_shape_id = await get_advisory_shape_ids_by_source_identifier(session)
+    stations_by_zone: Dict[int, List[WFWXWeatherStation]] = defaultdict(list)
+
+    zone_path = BaseRasterAddresser().get_fire_zone_units_path()
+    with gdal_s3_context(), WPSDataset(zone_path) as zone_raster:
+        zone_nodata = zone_raster.ds.GetRasterBand(1).GetNoDataValue()
+        # keep traditional GIS axis order so station coordinates remain longitude, latitude
+        source_srs = osr.SpatialReference()
+        source_srs.ImportFromEPSG(4326)
+        source_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        target_srs = zone_raster.ds.GetSpatialRef()
+        target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        transform = osr.CoordinateTransformation(source_srs, target_srs)
+
+        for station in stations:
+            x_coordinate, y_coordinate, _ = transform.TransformPoint(station.long, station.lat)
+            source_identifier = sample_band_at_coordinate(
+                zone_raster.ds, x_coordinate, y_coordinate
+            )
+            if source_identifier in (None, zone_nodata):
+                continue
+            stations_by_zone[source_to_shape_id[int(source_identifier)]].append(station)
+    return stations_by_zone
 
 
 class CriticalHoursInputs(BaseModel):
@@ -570,13 +602,7 @@ async def calculate_critical_hours(run_type: RunType, run_datetime: datetime, fo
                 stations = await wfwx_api.get_wfwx_stations_from_station_codes(
                     station_codes, fire_centre_station_codes
                 )
-                stations_by_zone: Dict[int, List[WFWXWeatherStation]] = defaultdict(list)
-                transformer = PointTransformer(4326, 3005)
-                for station in stations:
-                    (x, y) = transformer.transform_coordinate(station.lat, station.long)
-                    zone_id = await get_containing_zone(db_session, f"POINT({x} {y})", 3005)
-                    if zone_id is not None:
-                        stations_by_zone[zone_id[0]].append(station)
+                stations_by_zone = await group_stations_by_zone(db_session, stations)
 
                 await calculate_critical_hours_by_zone(
                     db_session,

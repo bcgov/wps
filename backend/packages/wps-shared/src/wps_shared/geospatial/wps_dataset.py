@@ -61,6 +61,13 @@ class WPSDataset:
         """Read this dataset's band into a NumPy array."""
         return self.ds.GetRasterBand(self.band).ReadAsArray()
 
+    def require_nodata_value(self) -> float | int:
+        """Return this dataset's nodata value, raising when the band does not declare one."""
+        nodata_value = self.ds.GetRasterBand(self.band).GetNoDataValue()
+        if nodata_value is None:
+            raise ValueError(f"Raster does not define a nodata value: {self.ds_path}")
+        return nodata_value
+
     @classmethod
     def from_array(
         cls,
@@ -220,6 +227,10 @@ class WPSDataset:
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
         A /vsimem/ output_path is automatically gdal.Unlink'd when the returned WPSDataset is
         closed.
+
+        Nearest-neighbour is the default because it preserves categorical raster values. Callers
+        working with continuous measurements must explicitly choose an appropriate interpolating
+        resampling method.
 
         :param other: the reference WPSDataset raster to match the source against
         :param output_path: output path of the resulting raster

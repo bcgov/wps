@@ -213,13 +213,17 @@ def prepare_wkt_geom_for_gdal(
 
 def rasters_match(raster1: gdal.Dataset, raster2: gdal.Dataset) -> bool:
     """
-    Compares two rasters to check if they match in pixel size, extents, and projection.
+    Compare two rasters to check if their grids and coordinate reference systems match.
+
+    Comparing the complete geotransform covers origin, pixel size, rotation, and skew. CRS WKT
+    strings may differ while describing the same system, so spatial references are compared with
+    GDAL's semantic ``IsSame`` check.
 
     :param raster1: Opened gdal dataset for a raster.
     :param raster2: Opened gdal dataset for a raster.
-    :return: True if rasters match in pixel size, extents, and projection; False otherwise.
+    :return: True if rasters have identical dimensions and geotransforms and equivalent coordinate
+        reference systems; False otherwise.
     """
-    # Get raster properties
     geotransform1 = raster1.GetGeoTransform()
     geotransform2 = raster2.GetGeoTransform()
 
@@ -229,16 +233,8 @@ def rasters_match(raster1: gdal.Dataset, raster2: gdal.Dataset) -> bool:
     cols1, rows1 = raster1.RasterXSize, raster1.RasterYSize
     cols2, rows2 = raster2.RasterXSize, raster2.RasterYSize
 
-    # Check pixel size (resolution)
-    pixel_size_match = geotransform1[1] == geotransform2[1] and geotransform1[5] == geotransform2[5]
-
-    # Check extent (origin and size)
-    extent_match = (
-        geotransform1[0] == geotransform2[0]  # Top-left X
-        and geotransform1[3] == geotransform2[3]  # Top-left Y
-        and cols1 == cols2
-        and rows1 == rows2
-    )
+    geotransform_match = geotransform1 == geotransform2
+    dimensions_match = cols1 == cols2 and rows1 == rows2
 
     # Check projection using osr.SpatialReference
     srs1 = osr.SpatialReference()
@@ -250,7 +246,7 @@ def rasters_match(raster1: gdal.Dataset, raster2: gdal.Dataset) -> bool:
         srs1.IsSame(srs2) == 1
     )  # `IsSame()` returns 1 if the projections are equivalent
 
-    return pixel_size_match and extent_match and projection_match
+    return geotransform_match and dimensions_match and projection_match
 
 
 def calculate_geographic_coordinate(point: Tuple[int], transform: Affine, transformer: Transformer):

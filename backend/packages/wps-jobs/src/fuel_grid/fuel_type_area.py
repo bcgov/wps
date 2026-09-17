@@ -1,47 +1,39 @@
-import numpy as np
-from geoalchemy2.shape import to_shape
-from osgeo import osr
+from collections import Counter
 
-from wps_shared.geospatial.geospatial import prepare_wkt_geom_for_gdal
+import numpy as np
+
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.utils.s3 import set_s3_gdal_config
+from wps_shared.geospatial.zonal_stats import (
+    count_values_by_zone,
+    iter_raster_windows,
+    pixel_area,
+)
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
+from wps_shared.utils.s3 import gdal_s3_context
 
 
 def calculate_fuel_type_area_for_zone(advisory_shape_id: int, data: np.ndarray, pixel_size: int):
-    """
-    Calculate the area of each fuel type in a fire zone unit.
-
-    :param advisory_shape_id: The id of the fire zone unit.
-    :param data: A numpy ndarray containing fuel type values.
-    :param pixel_size: The size of the cells in the fuel layer.
-    """
+    """Yield combustible fuel areas from an already selected zone array."""
     unique_values, counts = np.unique(data, return_counts=True)
     for value, count in zip(unique_values, counts):
-        if value > 0 and value < 99:
-            fuel_area = count * pixel_size * pixel_size
-            yield (advisory_shape_id, value, fuel_area)
+        if 0 < value < 99:
+            yield (advisory_shape_id, value, count * pixel_size * pixel_size)
 
 
-def calculate_fuel_type_areas_per_zone(fuel_raster_key: str, zones):
-    set_s3_gdal_config()
-    with WPSDataset(fuel_raster_key) as fuel_raster_ds:
-        pixel_size = fuel_raster_ds.ds.GetGeoTransform()[1]
-        # We're using fire zone units from the advisory_shapes table to clip out shapes from the fuel raster.
-        # We need to manually specify the spatial reference of the advisory_shapes table below.
-        source_srs = osr.SpatialReference()
-        source_srs.ImportFromEPSG(3005)
-        for zone in zones:
-            zone_wkb = zone.geom
-            shapely_zone_geom = to_shape(zone_wkb)
-            zone_wkt = shapely_zone_geom.wkt
-            zone_geom = prepare_wkt_geom_for_gdal(zone_wkt, source_srs)
+def calculate_fuel_type_areas_per_zone(
+    fuel_raster_path: str, zone_raster_path: str | None = None
+) -> dict[tuple[int, int], float]:
+    """Return combustible area keyed by zone source ID and fuel code.
 
-            # Use clip_to_geometry to clip out our fire zone unit from the masked tpi raster
-            with fuel_raster_ds.clip_to_geometry(
-                zone_geom, output_path="/vsimem/intersected.tif"
-            ) as intersected_ds:
-                intersected_data: np.ndarray = intersected_ds.ds.GetRasterBand(1).ReadAsArray()
-            fuel_type_area_data = calculate_fuel_type_area_for_zone(
-                zone.id, intersected_data, pixel_size
-            )
-            yield fuel_type_area_data
+    Pixel counts are accumulated across aligned windows and converted using projected pixel area.
+    """
+    zone_path = zone_raster_path or BaseRasterAddresser().get_fire_zone_units_path()
+    counts: Counter[tuple[int, int]] = Counter()
+    with gdal_s3_context(), WPSDataset(zone_path) as zones, WPSDataset(fuel_raster_path) as fuel:
+        area_per_pixel = pixel_area(fuel.ds)
+        zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
+        for window in iter_raster_windows([zones.ds, fuel.ds]):
+            zone_data, fuel_data = window.arrays
+            mask = (zone_data != zone_nodata) & (fuel_data > 0) & (fuel_data < 99)
+            counts.update(count_values_by_zone(zone_data, fuel_data, mask))
+    return {key: count * area_per_pixel for key, count in counts.items()}
