@@ -39,14 +39,6 @@ async def get_percent_conifer_s3_key(for_date: date, s3_client: S3Client) -> str
     return None
 
 
-def get_minimum_percent_conifer_for_hfi(
-    percent_conifer_array: np.ndarray, hfi_array: np.ndarray
-) -> float | None:
-    """Return minimum positive percent conifer where HFI is strictly above 4000."""
-    mask = (hfi_array > 4000) & (percent_conifer_array > 0) & np.isfinite(percent_conifer_array)
-    return float(np.min(percent_conifer_array[mask])) if np.any(mask) else None
-
-
 def update_minimum_percent_conifer_by_zone(
     minimums: dict[int, float],
     zones: np.ndarray,

@@ -43,28 +43,6 @@ def get_wind_spd_s3_key(run_type: RunType, run_datetime: datetime, for_date: dat
     )
 
 
-def get_minimum_wind_speed_for_hfi(
-    wind_speed_array: np.ndarray,
-    hfi_array: np.ndarray,
-    advisory_id_lut: dict[str, int],
-    wind_nodata_value: float | None,
-) -> dict[int, float | None]:
-    """Return the finite minimum wind speed in each HFI threshold."""
-    masks = {
-        advisory_id_lut[ADVISORY_NAME]: (hfi_array >= 4000) & (hfi_array < 10000),
-        advisory_id_lut[WARNING_NAME]: hfi_array >= 10000,
-    }
-    valid_wind = np.isfinite(wind_speed_array)
-    if wind_nodata_value is not None:
-        valid_wind &= wind_speed_array != wind_nodata_value
-
-    minimums = {}
-    for threshold_id, mask in masks.items():
-        values = wind_speed_array[mask & valid_wind]
-        minimums[threshold_id] = float(np.min(values)) if values.size else None
-    return minimums
-
-
 def update_minimum_wind_by_zone(
     minimums: dict[tuple[int, str], float],
     zones: np.ndarray,
