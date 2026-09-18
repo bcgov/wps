@@ -46,7 +46,7 @@ def calculate_masked_tpi_areas(
             for window in iter_raster_windows([tpi_zones.ds, masked_tpi.ds]):
                 zone_ids, tpi_classes = window.arrays
                 mask = (zone_ids != zone_nodata) & np.isin(tpi_classes, (1, 2, 3))
-                pair_counts = count_values_by_zone(zone_ids, tpi_classes, mask)
-                for (source_identifier, tpi_class), frequency in pair_counts.items():
+                zone_value_counts = count_values_by_zone(zone_ids, tpi_classes, mask)
+                for (source_identifier, tpi_class), frequency in zone_value_counts.items():
                     counts[(source_identifier, TPIClassEnum(tpi_class))] += frequency
     return {key: count * area_per_pixel for key, count in counts.items()}

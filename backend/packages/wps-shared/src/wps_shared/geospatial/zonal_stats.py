@@ -9,6 +9,8 @@ from osgeo import gdal
 from wps_shared.geospatial.geospatial import rasters_match
 
 DEFAULT_WINDOW_SIZE = 256
+ZoneValueKey = tuple[int, int]
+ZoneValueCounts = dict[ZoneValueKey, int]
 
 
 @dataclass(frozen=True)
@@ -24,11 +26,14 @@ class RasterWindow:
 
 def count_values_by_zone(
     zone_ids: np.ndarray, values: np.ndarray, included_pixels: np.ndarray
-) -> dict[tuple[int, int], int]:
-    """Count caller-selected categorical values by fire-zone source identifier.
+) -> ZoneValueCounts:
+    """Count categorical values by fire zone source identifier.
 
-    The boolean ``included_pixels`` mask owns domain rules such as HFI thresholds and nodata.
-    Returned keys contain raster source identifiers, not advisory-shape database IDs.
+    The boolean `included_pixels` mask owns domain rules such as HFI thresholds and nodata.
+    Each returned key is ordered as `(source_identifier, categorical_value)`. Source identifiers
+    are raster values, not advisory-shape database IDs.
+
+    For example, a result may look like ``{(101, 3): 12, (101, 4): 5, (202, 3): 8}``.
     """
     if not np.any(included_pixels):
         return {}
@@ -38,12 +43,13 @@ def count_values_by_zone(
         axis=0,
         return_counts=True,
     )
-    return {
-        (source_identifier, value): frequency
+    counts: ZoneValueCounts = {
+        (int(source_identifier), int(value)): int(frequency)
         for (source_identifier, value), frequency in zip(
             unique_pairs.tolist(), frequencies.tolist()
         )
     }
+    return counts
 
 
 def iter_raster_windows(

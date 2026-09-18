@@ -79,8 +79,8 @@ def count_fuel_type_hfi_pixels(
     }
     for threshold_name, threshold_mask in thresholds.items():
         mask = valid_zone & combustible & threshold_mask
-        pair_counts = count_values_by_zone(zones, fuel_types, mask)
-        for (source_identifier, fuel_type), frequency in pair_counts.items():
+        zone_value_counts = count_values_by_zone(zones, fuel_types, mask)
+        for (source_identifier, fuel_type), frequency in zone_value_counts.items():
             counts[(source_identifier, threshold_name, fuel_type)] += frequency
 
 
