@@ -6,7 +6,6 @@ from datetime import date, datetime
 from time import perf_counter
 
 import numpy as np
-from osgeo import gdal
 from sqlalchemy import select
 from wps_shared.db.crud.auto_spatial_advisory import (
     get_advisory_shape_ids_by_source_identifier,
@@ -25,7 +24,6 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
     iter_raster_windows,
-    pixel_area,
 )
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
@@ -50,11 +48,11 @@ def classify_by_threshold(source_data: np.ndarray, threshold: int) -> np.ndarray
 
 
 def calculate_fuel_type_areas(
-    source: gdal.Dataset, fuel_types: list[SFMSFuelType]
+    source: WPSDataset, fuel_types: list[SFMSFuelType]
 ) -> dict[int, float]:
     """Calculate the combustible area for each SFMS fuel type in a raster."""
-    area_per_pixel = pixel_area(source)
-    histogram = source.GetRasterBand(1).GetHistogram(approx_ok=0)
+    area_per_pixel = source.pixel_area
+    histogram = source.ds.GetRasterBand(1).GetHistogram(approx_ok=0)
     areas = {}
     for fuel_type in fuel_types:
         fuel_type_id = fuel_type.fuel_type_id
@@ -100,7 +98,7 @@ def calculate_fuel_type_hfi_areas(
         WPSDataset(raw_hfi_path) as raw_hfi,
         WPSDataset(fuel_path) as fuel,
     ):
-        area_per_pixel = pixel_area(zones.ds)
+        area_per_pixel = zones.pixel_area
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         for window in iter_raster_windows([zones.ds, raw_hfi.ds, fuel.ds]):
             count_fuel_type_hfi_pixels(counts, *window.arrays, zone_nodata)

@@ -21,7 +21,6 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
     iter_raster_windows,
-    pixel_area,
 )
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
@@ -62,7 +61,7 @@ def calculate_high_hfi_raster_areas(
     """
     counts: Counter[tuple[int, int]] = Counter()
     with WPSDataset(zone_path) as zones, WPSDataset(classified_hfi_path) as hfi:
-        area_per_pixel = pixel_area(zones.ds)
+        area_per_pixel = zones.pixel_area
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         for window in iter_raster_windows([zones.ds, hfi.ds]):
             count_high_hfi_pixels(counts, *window.arrays, zone_nodata)

@@ -3,6 +3,7 @@ from collections import Counter
 import numpy as np
 from osgeo import gdal
 from wps_shared.db.models.auto_spatial_advisory import SFMSFuelType
+from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from app.auto_spatial_advisory.process_fuel_type_area import (
     ADVISORY_NAME,
@@ -42,7 +43,8 @@ def test_calculate_fuel_type_areas_excludes_noncombustible_values():
         SFMSFuelType(fuel_type_id=99, fuel_type_code="NF"),
     ]
 
-    assert calculate_fuel_type_areas(dataset, fuel_types) == {1: 200, 2: 200}
+    with WPSDataset(ds_path=None, ds=dataset) as source:
+        assert calculate_fuel_type_areas(source, fuel_types) == {1: 200, 2: 200}
 
 
 def test_count_fuel_type_hfi_pixels_groups_by_zone_and_threshold():

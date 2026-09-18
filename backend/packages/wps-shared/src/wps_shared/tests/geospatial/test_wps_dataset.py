@@ -62,6 +62,14 @@ def test_require_nodata_value_identifies_source_path():
     assert str(error.value) == f"Raster does not define a nodata value: {source_path}"
 
 
+def test_pixel_area_returns_squared_projection_units():
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+    dataset.SetGeoTransform((0, 10, 0, 0, 0, -10))
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_dataset:
+        assert wps_dataset.pixel_area == 100
+
+
 def test_replace_nodata_with_nan_casts_integer_array():
     """replace_nodata_with(np.nan) on an integer raster should cast to float64 and replace nodata with nan."""
     driver: gdal.Driver = gdal.GetDriverByName("MEM")

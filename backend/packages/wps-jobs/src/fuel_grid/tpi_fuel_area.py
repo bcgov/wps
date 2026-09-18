@@ -9,7 +9,6 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
     iter_raster_windows,
-    pixel_area,
 )
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
@@ -42,7 +41,7 @@ def calculate_masked_tpi_areas(
         warped_zone_path = os.path.join(temp_dir, "fire_zone_units_tpi_grid.tif")
         # preserve zone identifiers while aligning them to the separate TPI grid
         with zones.warp_to_match(masked_tpi, output_path=warped_zone_path) as tpi_zones:
-            area_per_pixel = pixel_area(masked_tpi.ds)
+            area_per_pixel = masked_tpi.pixel_area
             zone_nodata = tpi_zones.ds.GetRasterBand(1).GetNoDataValue()
             for window in iter_raster_windows([tpi_zones.ds, masked_tpi.ds]):
                 zone_data, tpi_data = window.arrays

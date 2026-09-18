@@ -6,7 +6,6 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
     iter_raster_windows,
-    pixel_area,
 )
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
@@ -30,7 +29,7 @@ def calculate_fuel_type_areas_per_zone(
     zone_path = zone_raster_path or BaseRasterAddresser().get_fire_zone_units_path()
     counts: Counter[tuple[int, int]] = Counter()
     with gdal_s3_context(), WPSDataset(zone_path) as zones, WPSDataset(fuel_raster_path) as fuel:
-        area_per_pixel = pixel_area(fuel.ds)
+        area_per_pixel = fuel.pixel_area
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         for window in iter_raster_windows([zones.ds, fuel.ds]):
             zone_data, fuel_data = window.arrays

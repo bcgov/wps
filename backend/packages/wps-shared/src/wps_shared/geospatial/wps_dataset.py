@@ -530,6 +530,12 @@ class WPSDataset:
         """This dataset's geotransform and projection, e.g. to pass straight to `from_array`."""
         return Georeference(self.ds.GetGeoTransform(), self.ds.GetProjection())
 
+    @property
+    def pixel_area(self) -> float:
+        """Return one north-up pixel's area in the squared units of the raster projection."""
+        geotransform = self.ds.GetGeoTransform()
+        return abs(geotransform[1] * geotransform[5])
+
     def extract_value_at_point(self, lat: float, lon: float) -> Optional[float]:
         """Return the raster value at a WGS84 lat/lon coordinate, or None if out of bounds or nodata."""
         geotransform = self.ds.GetGeoTransform()

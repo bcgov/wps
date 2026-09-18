@@ -73,9 +73,3 @@ def iter_raster_windows(
                 height=height,
                 arrays=tuple(band.ReadAsArray(x_offset, y_offset, width, height) for band in bands),
             )
-
-
-def pixel_area(dataset: gdal.Dataset) -> float:
-    """Return one north-up pixel's area in the squared units of the raster projection."""
-    geotransform = dataset.GetGeoTransform()
-    return abs(geotransform[1] * geotransform[5])

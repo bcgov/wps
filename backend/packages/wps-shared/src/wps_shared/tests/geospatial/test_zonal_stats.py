@@ -5,7 +5,6 @@ from osgeo import gdal, osr
 from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
     iter_raster_windows,
-    pixel_area,
 )
 
 
@@ -67,9 +66,3 @@ def test_iter_raster_windows_rejects_rotation_difference():
 
     with pytest.raises(ValueError, match="does not match"):
         list(iter_raster_windows([reference, rotated]))
-
-
-def test_pixel_area():
-    dataset = create_raster(np.array([[7, 8], [9, 10]]))
-
-    assert pixel_area(dataset) == 100
