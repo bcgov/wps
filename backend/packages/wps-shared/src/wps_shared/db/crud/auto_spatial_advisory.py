@@ -11,17 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from wps_shared.db.models.auto_spatial_advisory import (
-    AdvisoryElevationStats,
     AdvisoryFuelStats,
     AdvisoryHFIPercentConifer,
     AdvisoryHFIWindSpeed,
     AdvisoryShapeFuels,
     AdvisoryTPIStats,
     AdvisoryZoneStatus,
-    ClassifiedHfi,
     CombustibleArea,
     CriticalHours,
-    FuelType,
     HfiClassificationThreshold,
     HfiClassificationThresholdEnum,
     HighHfiArea,
@@ -54,18 +51,6 @@ advisory_status_case = case(
     ),
     else_=None,
 )
-
-
-async def get_hfi_classification_threshold(
-    session: AsyncSession, name: HfiClassificationThresholdEnum
-) -> HfiClassificationThreshold:
-    stmt = select(HfiClassificationThreshold).where(HfiClassificationThreshold.name == name.value)
-    result = await session.execute(stmt)
-    return result.scalars().first()
-
-
-async def save_hfi(session: AsyncSession, hfi: ClassifiedHfi):
-    session.add(hfi)
 
 
 async def count_rows_by_fuel_type_raster_id(
@@ -117,32 +102,6 @@ async def count_advisory_shape_fuel_duplicates(
     return result.scalar_one()
 
 
-async def save_fuel_type(session: AsyncSession, fuel_type: FuelType):
-    session.add(fuel_type)
-
-
-async def get_fire_zone_unit_shape_type_id(session: AsyncSession):
-    statement = select(ShapeType).where(ShapeType.name == "fire_zone_unit")
-    result = await session.execute(statement)
-    return result.scalars().first().id
-
-
-async def get_fire_zone_units(session: AsyncSession, fire_zone_type_id: int):
-    statement = select(Shape).where(Shape.shape_type == fire_zone_type_id)
-    result = await session.execute(statement)
-    return result.scalars().all()
-
-
-async def get_table_srid(session: AsyncSession, model, geom_column: str = "geom"):
-    schema = model.__table__.schema or "public"
-    table_name = model.__tablename__
-
-    stmt = select(func.Find_SRID(schema, table_name, geom_column))
-
-    result = await session.execute(stmt)
-    return result.scalar_one_or_none()
-
-
 async def get_all_hfi_thresholds(session: AsyncSession) -> List[HfiClassificationThreshold]:
     """
     Retrieve all records from advisory_hfi_classification_threshold table.
@@ -188,28 +147,6 @@ async def get_hfi_threshold_ids(session: AsyncSession) -> dict[str, int]:
     stmt = select(HfiClassificationThreshold.id, HfiClassificationThreshold.name)
     result = await session.execute(stmt)
     return {name: id_ for id_, name in result.all()}
-
-
-async def get_all_sfms_fuel_types(session: AsyncSession) -> List[SFMSFuelType]:
-    """
-    Retrieve all records from sfms_fuel_types table excluding record IDs.
-    """
-    logger.info("retrieving SFMS fuel types info...")
-    result = await get_all_sfms_fuel_type_records(session)
-
-    fuel_types = []
-
-    for row in result:
-        fuel_type_object = row
-        fuel_types.append(
-            SFMSFuelType(
-                fuel_type_id=fuel_type_object.fuel_type_id,
-                fuel_type_code=fuel_type_object.fuel_type_code,
-                description=fuel_type_object.description,
-            )
-        )
-
-    return fuel_types
 
 
 async def get_zone_source_ids_in_centre(session: AsyncSession, fire_centre_name: str):
@@ -556,97 +493,6 @@ async def get_run_parameters(
     return result.scalar_one_or_none()
 
 
-async def get_high_hfi_area(
-    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
-) -> List[Row]:
-    """For each fire zone, get the area of HFI polygons in that zone that fall within the
-    4000 - 10000 range and the area of HFI polygons that exceed the 10000 threshold.
-    """
-    stmt = (
-        select(
-            HighHfiArea.id, HighHfiArea.advisory_shape_id, HighHfiArea.area, HighHfiArea.threshold
-        )
-        .join(RunParameters)
-        .where(
-            cast(RunParameters.run_type, String) == run_type.value,
-            RunParameters.for_date == for_date,
-            RunParameters.run_datetime == run_datetime,
-        )
-    )
-    result = await session.execute(stmt)
-    return result.all()
-
-
-async def save_high_hfi_area(session: AsyncSession, high_hfi_area: HighHfiArea):
-    session.add(high_hfi_area)
-
-
-async def store_advisory_fuel_stats(
-    session: AsyncSession,
-    fuel_type_areas: dict,
-    threshold: int,
-    run_parameters_id: int,
-    advisory_shape_id: int,
-    fuel_type_raster_id: int,
-):
-    """
-    Creates AdvisoryFuelStats objects and save them in the wps database.
-
-    :param : A dictionary keyed by fuel type code with value representing an area in square meters.
-    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
-    :param run_parameters_id: The RunParameter object id associated with the run_type, for_date and run_datetime of interest.
-    :param advisory_shape_id: The id of advisory shape (eg. fire zone unit) the fuel type area has been calculated for.
-    """
-    sfms_fuel_types_dict = await get_fuel_types_id_dict(session)
-    advisory_fuel_stats = []
-    for key in fuel_type_areas:
-        sfms_fuel_type_id = sfms_fuel_types_dict[key]
-        advisory_fuel_stats.append(
-            AdvisoryFuelStats(
-                advisory_shape_id=advisory_shape_id,
-                threshold=threshold,
-                run_parameters=run_parameters_id,
-                fuel_type=sfms_fuel_type_id,
-                area=fuel_type_areas[key],
-                fuel_type_raster_id=fuel_type_raster_id,
-            )
-        )
-    await save_advisory_fuel_stats(session, advisory_fuel_stats)
-
-
-async def save_advisory_fuel_stats(
-    session: AsyncSession, advisory_fuel_stats: List[AdvisoryFuelStats]
-):
-    session.add_all(advisory_fuel_stats)
-
-
-async def calculate_high_hfi_areas(
-    session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
-) -> List[Row]:
-    """Calculate legacy polygon-intersection HFI areas for historical callers."""
-    logger.info("starting high HFI by zone intersection query")
-    perf_start = perf_counter()
-    stmt = (
-        select(
-            Shape.id.label("shape_id"),
-            ClassifiedHfi.threshold.label("threshold"),
-            func.sum(ClassifiedHfi.geom.ST_Intersection(Shape.geom).ST_Area()).label("area"),
-        )
-        .join_from(Shape, ClassifiedHfi, ClassifiedHfi.geom.ST_Intersects(Shape.geom))
-        .where(ClassifiedHfi.run_type == run_type.value)
-        .where(ClassifiedHfi.run_datetime == run_datetime)
-        .where(ClassifiedHfi.for_date == for_date)
-        .group_by(Shape.id)
-        .group_by(ClassifiedHfi.threshold)
-    )
-    result = await session.execute(stmt)
-    logger.info(
-        "%f delta count before and after calculate high HFI by zone intersection query",
-        perf_counter() - perf_start,
-    )
-    return result.all()
-
-
 async def get_run_parameters_id(
     session: AsyncSession,
     run_type: RunType,
@@ -698,43 +544,10 @@ async def mark_run_parameter_complete(
     await session.execute(stmt)
 
 
-async def save_advisory_elevation_stats(
-    session: AsyncSession, advisory_elevation_stats: AdvisoryElevationStats
-):
-    session.add(advisory_elevation_stats)
-
-
 async def save_advisory_elevation_tpi_stats(
     session: AsyncSession, advisory_elevation_stats: List[AdvisoryTPIStats]
 ):
     session.add_all(advisory_elevation_stats)
-
-
-async def get_zonal_tpi_stats(
-    session: AsyncSession,
-    fire_zone_id: int,
-    run_type: RunType,
-    run_datetime: datetime,
-    for_date: date,
-) -> Optional[AdvisoryTPIStats]:
-    run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
-    stmt = select(Shape.id).where(Shape.source_identifier == str(fire_zone_id))
-    result = await session.execute(stmt)
-    shape_id = result.scalar()
-
-    stmt = select(
-        AdvisoryTPIStats.advisory_shape_id,
-        AdvisoryTPIStats.valley_bottom,
-        AdvisoryTPIStats.mid_slope,
-        AdvisoryTPIStats.upper_slope,
-        AdvisoryTPIStats.pixel_size_metres,
-    ).where(
-        AdvisoryTPIStats.advisory_shape_id == shape_id,
-        AdvisoryTPIStats.run_parameters == run_parameters_id,
-    )
-
-    result = await session.execute(stmt)
-    return result.first()
 
 
 async def get_centre_tpi_stats(
@@ -912,23 +725,6 @@ async def get_zones_with_advisories(
 
 async def save_all_critical_hours(session: AsyncSession, critical_hours: List[CriticalHours]):
     session.add_all(critical_hours)
-
-
-async def get_critical_hours_for_run_parameters(
-    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
-):
-    stmt = (
-        select(CriticalHours)
-        .join_from(CriticalHours, RunParameters, CriticalHours.run_parameters == RunParameters.id)
-        .where(
-            RunParameters.run_type == run_type.value,
-            RunParameters.run_datetime == run_datetime,
-            RunParameters.for_date == for_date,
-        )
-        .group_by(CriticalHours.advisory_shape_id)
-    )
-    result = await session.execute(stmt)
-    return result
 
 
 async def get_fuel_types_code_dict(db_session: AsyncSession):
