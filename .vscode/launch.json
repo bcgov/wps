@@ -155,9 +155,9 @@
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
-                "2024-08-06",
-                "2024-08-08",
-                "forecast"
+                "2026-08-28",
+                "2026-08-28",
+                "actual"
             ]
         },
         {
@@ -170,8 +170,8 @@
             "module": "wps_tools.tif_pusher",
             "console": "integratedTerminal",
             "args": [
-                "2026-08-26",
-                "2026-08-26"
+                "2026-08-28",
+                "2026-08-28"
             ]
         },
         {
