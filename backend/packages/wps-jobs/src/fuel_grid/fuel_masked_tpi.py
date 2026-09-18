@@ -66,11 +66,11 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     masked_fuel_type_band: gdal.Band = masked_tpi_dataset.GetRasterBand(1)
     masked_fuel_type_band.SetNoDataValue(0)
     for window in iter_raster_windows([warped_fuel_ds, tpi_ds]):
-        warped_fuel_data, tpi_data = window.arrays
-        combustible = (warped_fuel_data > 0) & (warped_fuel_data < 99)
+        warped_fuel_codes, tpi_classes = window.arrays
+        combustible = (warped_fuel_codes > 0) & (warped_fuel_codes < 99)
         # use zero as background so only fuel-covered TPI classes contribute to later statistics
-        tpi_data[~combustible] = 0
-        masked_fuel_type_band.WriteArray(tpi_data, window.x_offset, window.y_offset)
+        tpi_classes[~combustible] = 0
+        masked_fuel_type_band.WriteArray(tpi_classes, window.x_offset, window.y_offset)
     masked_fuel_type_band.FlushCache()
     fuel_ds = None
     tpi_ds = None

@@ -32,7 +32,7 @@ def calculate_fuel_type_areas_per_zone(
         area_per_pixel = fuel.pixel_area
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         for window in iter_raster_windows([zones.ds, fuel.ds]):
-            zone_data, fuel_data = window.arrays
-            mask = (zone_data != zone_nodata) & (fuel_data > 0) & (fuel_data < 99)
-            counts.update(count_values_by_zone(zone_data, fuel_data, mask))
+            zone_ids, fuel_codes = window.arrays
+            mask = (zone_ids != zone_nodata) & (fuel_codes > 0) & (fuel_codes < 99)
+            counts.update(count_values_by_zone(zone_ids, fuel_codes, mask))
     return {key: count * area_per_pixel for key, count in counts.items()}

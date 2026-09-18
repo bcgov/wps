@@ -101,7 +101,8 @@ def calculate_fuel_type_hfi_areas(
         area_per_pixel = zones.pixel_area
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         for window in iter_raster_windows([zones.ds, raw_hfi.ds, fuel.ds]):
-            count_fuel_type_hfi_pixels(counts, *window.arrays, zone_nodata)
+            zone_ids, raw_hfi_values, fuel_codes = window.arrays
+            count_fuel_type_hfi_pixels(counts, zone_ids, raw_hfi_values, fuel_codes, zone_nodata)
     return {key: count * area_per_pixel for key, count in counts.items()}
 
 

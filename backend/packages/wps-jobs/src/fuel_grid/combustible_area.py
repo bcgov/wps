@@ -21,10 +21,10 @@ def calculate_combustible_area_by_fire_zone(
         area_per_pixel = fuel.pixel_area
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         for window in iter_raster_windows([zones.ds, fuel.ds]):
-            zone_data, fuel_data = window.arrays
-            mask = (zone_data != zone_nodata) & (fuel_data > 0) & (fuel_data < 99)
-            zone_ids, frequencies = np.unique(zone_data[mask], return_counts=True)
-            for source_identifier, frequency in zip(zone_ids, frequencies):
+            zone_ids, fuel_codes = window.arrays
+            mask = (zone_ids != zone_nodata) & (fuel_codes > 0) & (fuel_codes < 99)
+            unique_zone_ids, frequencies = np.unique(zone_ids[mask], return_counts=True)
+            for source_identifier, frequency in zip(unique_zone_ids, frequencies):
                 counts[int(source_identifier)] += int(frequency)
     return {
         source_identifier: count * area_per_pixel for source_identifier, count in counts.items()

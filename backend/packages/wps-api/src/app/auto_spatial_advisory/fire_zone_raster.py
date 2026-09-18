@@ -23,7 +23,7 @@ async def validate_fire_zone_raster(session: AsyncSession) -> None:
     with gdal_s3_context(), WPSDataset(zone_path) as zones:
         zone_nodata = zones.require_nodata_value()
         for window in iter_raster_windows([zones.ds]):
-            zone_ids = window.arrays[0]
+            (zone_ids,) = window.arrays
             raster_source_identifiers.update(
                 int(zone_id) for zone_id in np.unique(zone_ids[zone_ids != zone_nodata])
             )

@@ -40,26 +40,36 @@ async def get_percent_conifer_s3_key(for_date: date, s3_client: S3Client) -> str
 
 
 def update_minimum_percent_conifer_by_zone(
-    minimums: dict[int, float],
+    minimum_percent_conifer_by_zone: dict[int, float],
     zones: np.ndarray,
     raw_hfi: np.ndarray,
     percent_conifer: np.ndarray,
     zone_nodata: float | int,
 ) -> None:
-    """Merge one window's positive, finite percent-conifer minima where HFI exceeds 4000."""
-    valid_zone = zones != zone_nodata
-    mask = valid_zone & (raw_hfi > 4000) & (percent_conifer > 0) & np.isfinite(percent_conifer)
-    for source_identifier in np.unique(zones[mask]):
-        value = float(np.min(percent_conifer[mask & (zones == source_identifier)]))
+    """Merge one window into minimum positive percent-conifer values by raster zone.
+
+    The accumulator is shared across raster windows and is updated in place. Zones without a
+    finite positive value where HFI exceeds 4000 are omitted.
+    """
+    valid_zone_pixels = zones != zone_nodata
+    valid_percent_conifer_pixels = (percent_conifer > 0) & np.isfinite(percent_conifer)
+    included_pixels = valid_zone_pixels & (raw_hfi > 4000) & valid_percent_conifer_pixels
+    selected_zone_ids = zones[included_pixels]
+    selected_percent_conifer = percent_conifer[included_pixels]
+    for source_identifier in np.unique(selected_zone_ids):
+        zone_percent_conifer = selected_percent_conifer[selected_zone_ids == source_identifier]
+        value = float(np.min(zone_percent_conifer))
         source_identifier = int(source_identifier)
-        minimums[source_identifier] = min(minimums.get(source_identifier, value), value)
+        minimum_percent_conifer_by_zone[source_identifier] = min(
+            minimum_percent_conifer_by_zone.get(source_identifier, value), value
+        )
 
 
 def calculate_minimum_percent_conifer_by_zone(
     zone_path: str, raw_hfi_path: str, percent_conifer_path: str
 ) -> dict[int, float]:
-    """Return percent-conifer minima keyed by zone source ID across all raster windows."""
-    minimums: dict[int, float] = {}
+    """Return minimum percent-conifer values by raster zone source ID across all windows."""
+    minimum_percent_conifer_by_zone: dict[int, float] = {}
     with (
         WPSDataset(zone_path) as zones,
         WPSDataset(raw_hfi_path) as raw_hfi,
@@ -67,8 +77,15 @@ def calculate_minimum_percent_conifer_by_zone(
     ):
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         for window in iter_raster_windows([zones.ds, raw_hfi.ds, percent_conifer.ds]):
-            update_minimum_percent_conifer_by_zone(minimums, *window.arrays, zone_nodata)
-    return minimums
+            zone_ids, raw_hfi_values, percent_conifer_values = window.arrays
+            update_minimum_percent_conifer_by_zone(
+                minimum_percent_conifer_by_zone,
+                zone_ids,
+                raw_hfi_values,
+                percent_conifer_values,
+                zone_nodata,
+            )
+    return minimum_percent_conifer_by_zone
 
 
 async def process_hfi_percent_conifer(run_type: RunType, run_datetime: datetime, for_date: date):

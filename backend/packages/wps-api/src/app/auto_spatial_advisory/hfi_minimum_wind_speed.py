@@ -44,37 +44,46 @@ def get_wind_spd_s3_key(run_type: RunType, run_datetime: datetime, for_date: dat
 
 
 def update_minimum_wind_by_zone(
-    minimums: dict[tuple[int, str], float],
+    minimum_wind_speed_by_zone_and_threshold: dict[tuple[int, str], float],
     zones: np.ndarray,
     raw_hfi: np.ndarray,
     wind_speed: np.ndarray,
     zone_nodata: float | int,
     wind_nodata: float | None,
 ) -> None:
-    """Merge one window's per-zone minimums while ignoring nonfinite and nodata wind values."""
-    valid_zone = zones != zone_nodata
-    finite_wind = np.isfinite(wind_speed)
+    """Merge one window into minimum wind speeds keyed by zone and HFI threshold.
+
+    The accumulator is shared across raster windows and is updated in place. Keys use raster
+    source identifiers and threshold names; zones without qualifying pixels are omitted.
+    """
+    valid_zone_pixels = zones != zone_nodata
+    valid_wind_pixels = np.isfinite(wind_speed)
     if wind_nodata is not None:
         # update the existing mask in place to avoid allocating another result array
-        # equivalent to: finite_wind = finite_wind & (wind_speed != wind_nodata)
-        finite_wind &= wind_speed != wind_nodata
-    threshold_masks = {
+        # equivalent to: valid_wind_pixels = valid_wind_pixels & (wind_speed != wind_nodata)
+        valid_wind_pixels &= wind_speed != wind_nodata
+    hfi_threshold_masks = {
         ADVISORY_NAME: (raw_hfi >= 4000) & (raw_hfi < 10000),
         WARNING_NAME: raw_hfi >= 10000,
     }
-    for threshold_name, threshold_mask in threshold_masks.items():
-        mask = valid_zone & finite_wind & threshold_mask
-        for source_identifier in np.unique(zones[mask]):
-            value = float(np.min(wind_speed[mask & (zones == source_identifier)]))
+    for threshold_name, hfi_mask in hfi_threshold_masks.items():
+        included_pixels = valid_zone_pixels & valid_wind_pixels & hfi_mask
+        selected_zone_ids = zones[included_pixels]
+        selected_wind_speeds = wind_speed[included_pixels]
+        for source_identifier in np.unique(selected_zone_ids):
+            zone_wind_speeds = selected_wind_speeds[selected_zone_ids == source_identifier]
+            value = float(np.min(zone_wind_speeds))
             key = (int(source_identifier), threshold_name)
-            minimums[key] = min(minimums.get(key, value), value)
+            minimum_wind_speed_by_zone_and_threshold[key] = min(
+                minimum_wind_speed_by_zone_and_threshold.get(key, value), value
+            )
 
 
 def calculate_minimum_wind_by_zone(
     zone_path: str, raw_hfi_path: str, wind_path: str
 ) -> dict[tuple[int, str], float]:
-    """Return minima keyed by zone source ID and HFI threshold across all raster windows."""
-    minimums: dict[tuple[int, str], float] = {}
+    """Return minimum wind speeds by raster zone source ID and HFI threshold across all windows."""
+    minimum_wind_speed_by_zone_and_threshold: dict[tuple[int, str], float] = {}
     with (
         WPSDataset(zone_path) as zones,
         WPSDataset(raw_hfi_path) as raw_hfi,
@@ -83,8 +92,16 @@ def calculate_minimum_wind_by_zone(
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         wind_nodata = wind.ds.GetRasterBand(1).GetNoDataValue()
         for window in iter_raster_windows([zones.ds, raw_hfi.ds, wind.ds]):
-            update_minimum_wind_by_zone(minimums, *window.arrays, zone_nodata, wind_nodata)
-    return minimums
+            zone_ids, raw_hfi_values, wind_values = window.arrays
+            update_minimum_wind_by_zone(
+                minimum_wind_speed_by_zone_and_threshold,
+                zone_ids,
+                raw_hfi_values,
+                wind_values,
+                zone_nodata,
+                wind_nodata,
+            )
+    return minimum_wind_speed_by_zone_and_threshold
 
 
 async def process_hfi_min_wind_speed(run_type: RunType, run_datetime: datetime, for_date: date):
