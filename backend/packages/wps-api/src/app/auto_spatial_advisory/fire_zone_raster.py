@@ -15,8 +15,7 @@ async def validate_fire_zone_raster(session: AsyncSession) -> None:
     """Validate the static zone raster once before running the advisory processors.
 
     Cells other than the declared nodata value are source identifiers that must map to
-    advisory-shape rows. Keeping this check at the pipeline boundary avoids rescanning the zone IDs
-    in every processing step.
+    advisory shape rows.
     """
     raster_source_identifiers: set[int] = set()
     zone_path = BaseRasterAddresser().get_fire_zone_units_path()
