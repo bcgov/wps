@@ -910,13 +910,6 @@ async def get_zones_with_advisories(
     return [ZoneAdvisoryStatus.model_validate(row) for row in result.mappings().all()]
 
 
-async def get_containing_zone(session: AsyncSession, geometry: str, srid: int):
-    geom = func.ST_Transform(func.ST_GeomFromText(geometry, srid), 3005)
-    stmt = select(Shape.id).filter(func.ST_Contains(Shape.geom, geom))
-    result = await session.execute(stmt)
-    return result.first()
-
-
 async def save_all_critical_hours(session: AsyncSession, critical_hours: List[CriticalHours]):
     session.add_all(critical_hours)
 
