@@ -23,7 +23,6 @@ BEGIN
     -- Delete from all tables using the run_ids array
     DELETE FROM advisory_fuel_stats WHERE run_parameters = ANY(run_ids);
     DELETE FROM advisory_tpi_stats WHERE run_parameters = ANY(run_ids);
-    DELETE FROM advisory_elevation_stats WHERE run_parameters = ANY(run_ids);
     DELETE FROM high_hfi_area WHERE run_parameters = ANY(run_ids);
     DELETE FROM advisory_hfi_wind_speed WHERE run_parameters = ANY(run_ids);
     DELETE FROM advisory_hfi_percent_conifer WHERE run_parameters = ANY(run_ids);

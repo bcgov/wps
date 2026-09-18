@@ -11,14 +11,6 @@ from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
 
 
-def calculate_fuel_type_area_for_zone(advisory_shape_id: int, data: np.ndarray, pixel_size: int):
-    """Yield combustible fuel areas from an already selected zone array."""
-    unique_values, counts = np.unique(data, return_counts=True)
-    for value, count in zip(unique_values, counts):
-        if 0 < value < 99:
-            yield (advisory_shape_id, value, count * pixel_size * pixel_size)
-
-
 def calculate_fuel_type_areas_per_zone(
     fuel_raster_path: str, zone_raster_path: str | None = None
 ) -> dict[tuple[int, int], float]:

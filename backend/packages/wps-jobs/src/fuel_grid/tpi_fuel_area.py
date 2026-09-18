@@ -14,14 +14,6 @@ from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
 
 
-def calculate_tpi_area_data_for_zone(advisory_shape_id: int, data: np.ndarray, pixel_size: int):
-    """Yield classified TPI areas from an already selected zone array."""
-    unique_values, counts = np.unique(data, return_counts=True)
-    for value, count in zip(unique_values, counts):
-        if value in TPIClassEnum:
-            yield (advisory_shape_id, TPIClassEnum(value), count * pixel_size * pixel_size)
-
-
 def calculate_masked_tpi_areas(
     masked_tpi_path: str, zone_raster_path: str | None = None
 ) -> dict[tuple[int, TPIClassEnum], float]:

@@ -98,79 +98,6 @@ def warp_to_match_raster(
     )
 
 
-def raster_mul(
-    tpi_ds: gdal.Dataset,
-    hfi_ds: gdal.Dataset,
-    chunk_size=256,
-    output_path: str | None = None,
-) -> gdal.Dataset:
-    """
-    Multiply rasters together by reading in chunks of pixels at a time to avoid loading
-    the rasters into memory all at once.
-    If the output_path is a /vsimem/ path, the caller should call gdal.Unlink on the path when
-    finished with the resulting dataset to free up memory.
-
-    :param tpi_ds: Classified TPI dataset raster to multiply against the classified HFI dataset raster
-    :param hfi_ds: Classified HFI dataset raster to multiply against the classified TPI dataset raster
-    :param output_path: Optional output raster path. When omitted, the result uses GDAL's MEM driver.
-    :raises ValueError: Raised if the dimensions of the rasters don't match
-    :return: Multiplied raster result as a raster dataset
-    """
-    # Get raster dimensions
-    x_size = tpi_ds.RasterXSize
-    y_size = tpi_ds.RasterYSize
-
-    # Check if the dimensions of both rasters match
-    if x_size != hfi_ds.RasterXSize or y_size != hfi_ds.RasterYSize:
-        raise ValueError("The dimensions of the two rasters do not match.")
-
-    # Get the geotransform and projection from the first raster
-    geotransform = tpi_ds.GetGeoTransform()
-    projection = tpi_ds.GetProjection()
-
-    if output_path is None:
-        driver = gdal.GetDriverByName("MEM")
-        dataset_name = "memory"
-    else:
-        driver = gdal.GetDriverByName("GTiff")
-        dataset_name = output_path
-
-    out_ds: gdal.Dataset = driver.Create(dataset_name, x_size, y_size, 1, gdal.GDT_Byte)
-
-    # Set the geotransform and projection
-    out_ds.SetGeoTransform(geotransform)
-    out_ds.SetProjection(projection)
-
-    tpi_raster_band = tpi_ds.GetRasterBand(1)
-    hfi_raster_band = hfi_ds.GetRasterBand(1)
-    out_band = out_ds.GetRasterBand(1)
-
-    # Process in chunks
-    for y in range(0, y_size, chunk_size):
-        y_chunk_size = min(chunk_size, y_size - y)
-
-        for x in range(0, x_size, chunk_size):
-            x_chunk_size = min(chunk_size, x_size - x)
-
-            # Read chunks from both rasters
-            tpi_chunk = tpi_raster_band.ReadAsArray(x, y, x_chunk_size, y_chunk_size)
-            hfi_chunk = hfi_raster_band.ReadAsArray(x, y, x_chunk_size, y_chunk_size)
-
-            hfi_chunk[hfi_chunk >= 1] = 1
-            hfi_chunk[hfi_chunk < 1] = 0
-
-            # Multiply the chunks
-            tpi_chunk *= hfi_chunk
-
-            # Write the result to the output raster
-            out_band.WriteArray(tpi_chunk, x, y)
-            tpi_chunk = None
-            hfi_chunk = None
-
-    out_band.FlushCache()
-    return out_ds
-
-
 class PointTransformer:
     """
     Transforms the coordinates of a point from one spatial reference to another.
@@ -187,28 +114,6 @@ class PointTransformer:
         point = ogr.CreateGeometryFromWkt(f"POINT ({x} {y})")
         point.Transform(self.transform)
         return (point.GetX(), point.GetY())
-
-
-def prepare_wkt_geom_for_gdal(
-    wkt_geom: str, source_srs: osr.SpatialReference, target_srs_wkt: osr.SpatialReference = None
-):
-    """
-    Given a wkt geometry as a string, convert it to an ogr.Geometry that can be used by gdal. Reproject if desired
-    :param wkt_geom: The wky geometry string.
-    :param source_srs: The spatial reference to assign to the geometry.
-    :return: An osr.Geometry.
-    """
-
-    geometry: ogr.Geometry = ogr.CreateGeometryFromWkt(wkt_geom)
-    geometry.AssignSpatialReference(source_srs)
-
-    if target_srs_wkt:
-        target_srs = osr.SpatialReference()
-        target_srs.ImportFromWkt(target_srs_wkt)
-        transform = osr.CoordinateTransformation(source_srs, target_srs)
-        geometry.Transform(transform)
-
-    return geometry
 
 
 def rasters_match(raster1: gdal.Dataset, raster2: gdal.Dataset) -> bool:

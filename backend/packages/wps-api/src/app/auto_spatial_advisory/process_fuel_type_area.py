@@ -18,7 +18,6 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryFuelStats,
     HfiClassificationThresholdEnum,
-    SFMSFuelType,
 )
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import (
@@ -33,34 +32,8 @@ from app.auto_spatial_advisory.common import get_hfi_s3_key
 
 logger = logging.getLogger(__name__)
 
-FUEL_TYPE_RASTER_RESOLUTION_IN_METRES = 2000
 ADVISORY_NAME = HfiClassificationThresholdEnum.ADVISORY.value
 WARNING_NAME = HfiClassificationThresholdEnum.WARNING.value
-
-
-def classify_by_threshold(source_data: np.ndarray, threshold: int) -> np.ndarray:
-    """Classify raw HFI values into one advisory threshold mask."""
-    if threshold == 1:
-        classified = (source_data >= 4000) & (source_data < 10000)
-    else:
-        classified = source_data >= 10000
-    return np.where(np.isfinite(source_data), classified, False).astype(np.int8)
-
-
-def calculate_fuel_type_areas(
-    source: WPSDataset, fuel_types: list[SFMSFuelType]
-) -> dict[int, float]:
-    """Calculate the combustible area for each SFMS fuel type in a raster."""
-    area_per_pixel = source.pixel_area
-    histogram = source.ds.GetRasterBand(1).GetHistogram(approx_ok=0)
-    areas = {}
-    for fuel_type in fuel_types:
-        fuel_type_id = fuel_type.fuel_type_id
-        if 0 < fuel_type_id < 99:
-            area = histogram[fuel_type_id] * area_per_pixel
-            if area > 0:
-                areas[fuel_type_id] = area
-    return areas
 
 
 def count_fuel_type_hfi_pixels(
