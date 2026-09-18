@@ -1,6 +1,5 @@
 """Memory-bounded helpers for statistics over rasters on the same grid."""
 
-import math
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 
@@ -80,18 +79,3 @@ def pixel_area(dataset: gdal.Dataset) -> float:
     """Return one north-up pixel's area in the squared units of the raster projection."""
     geotransform = dataset.GetGeoTransform()
     return abs(geotransform[1] * geotransform[5])
-
-
-def sample_band_at_coordinate(
-    dataset: gdal.Dataset, x_coordinate: float, y_coordinate: float
-) -> int | float | None:
-    """Read one pixel at a coordinate in the dataset projection, or None when outside it."""
-    inverse = gdal.InvGeoTransform(dataset.GetGeoTransform())
-    pixel_x, pixel_y = gdal.ApplyGeoTransform(inverse, x_coordinate, y_coordinate)
-    column = math.floor(pixel_x)
-    row = math.floor(pixel_y)
-    if column < 0 or row < 0 or column >= dataset.RasterXSize or row >= dataset.RasterYSize:
-        return None
-
-    value = dataset.GetRasterBand(1).ReadAsArray(column, row, 1, 1)[0, 0]
-    return value.item() if isinstance(value, np.generic) else value

@@ -6,7 +6,6 @@ from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
     iter_raster_windows,
     pixel_area,
-    sample_band_at_coordinate,
 )
 
 
@@ -70,10 +69,7 @@ def test_iter_raster_windows_rejects_rotation_difference():
         list(iter_raster_windows([reference, rotated]))
 
 
-def test_pixel_area_and_coordinate_sampling():
+def test_pixel_area():
     dataset = create_raster(np.array([[7, 8], [9, 10]]))
 
     assert pixel_area(dataset) == 100
-    assert sample_band_at_coordinate(dataset, 5, 15) == 7
-    assert sample_band_at_coordinate(dataset, 15, 5) == 10
-    assert sample_band_at_coordinate(dataset, -1, 15) is None

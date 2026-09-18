@@ -12,7 +12,6 @@ from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from aiohttp import ClientSession
-from osgeo import osr
 from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 from sqlalchemy import select
@@ -35,7 +34,6 @@ from wps_shared.db.models.auto_spatial_advisory import (
 )
 from wps_shared.fuel_types import FUEL_TYPE_DEFAULTS, FuelTypeEnum
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.zonal_stats import sample_band_at_coordinate
 from wps_shared.run_type import RunType
 from wps_shared.schemas.fba_calc import AdjustedFWIResult, CriticalHoursHFI
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
@@ -66,21 +64,11 @@ async def group_stations_by_zone(
 
     zone_path = BaseRasterAddresser().get_fire_zone_units_path()
     with gdal_s3_context(), WPSDataset(zone_path) as zone_raster:
-        zone_nodata = zone_raster.ds.GetRasterBand(1).GetNoDataValue()
-        # keep traditional GIS axis order so station coordinates remain longitude, latitude
-        source_srs = osr.SpatialReference()
-        source_srs.ImportFromEPSG(4326)
-        source_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        target_srs = zone_raster.ds.GetSpatialRef()
-        target_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        transform = osr.CoordinateTransformation(source_srs, target_srs)
-
         for station in stations:
-            x_coordinate, y_coordinate, _ = transform.TransformPoint(station.long, station.lat)
-            source_identifier = sample_band_at_coordinate(
-                zone_raster.ds, x_coordinate, y_coordinate
+            source_identifier = zone_raster.extract_value_at_point(
+                lat=station.lat, lon=station.long
             )
-            if source_identifier in (None, zone_nodata):
+            if source_identifier is None:
                 continue
             stations_by_zone[source_to_shape_id[int(source_identifier)]].append(station)
     return stations_by_zone
