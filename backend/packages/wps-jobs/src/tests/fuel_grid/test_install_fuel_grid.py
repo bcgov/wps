@@ -4,8 +4,6 @@ from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from shapely import wkb
-from shapely.geometry import Polygon
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fuel_grid.install import (
@@ -13,13 +11,13 @@ from fuel_grid.install import (
     ProcessedFuelRaster,
     create_fuel_type_raster_record,
     ensure_fuel_masked_tpi_raster,
-    fuel_types_layer_from_db,
     get_or_create_processed_fuel_raster,
     install_fuel_grid,
     populate_static_fuel_grid_data,
     process_fuel_type_raster_for_install,
     verify_static_fuel_grid_data,
 )
+from wps_shared.db.models.auto_spatial_advisory import TPIClassEnum
 from wps_shared.db.models.fuel_type_raster import FuelRasterInstallStatus, FuelTypeRaster
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 
@@ -92,24 +90,6 @@ def patch_no_matching_fuel_raster(monkeypatch):
         "fuel_grid.install.ensure_fuel_masked_tpi_raster",
         AsyncMock(return_value=True),
     )
-
-
-def test_fuel_types_layer_from_db_accepts_unflushed_hex_wkb():
-    geom = wkb.dumps(
-        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),
-        hex=True,
-        srid=3005,
-    )
-    row = SimpleNamespace(id=None, fuel_type_id=1, geom=geom)
-
-    with fuel_types_layer_from_db([row]) as layer:
-        layer.ResetReading()
-        feature = layer.GetNextFeature()
-
-        assert layer.GetFeatureCount() == 1
-        assert feature.GetField("id") == 1
-        assert feature.GetField("fuel_type_id") == 1
-        assert feature.GetGeometryRef().GetArea() == 100
 
 
 @pytest.mark.anyio
@@ -319,26 +299,38 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
         content_hash="hash-2026",
     )
     expected_counts = FuelGridInstallCounts(
-        advisory_fuel_types=1,
         advisory_shape_fuels=1,
         combustible_area=1,
         tpi_fuel_area=1,
         advisory_shape_fuels_duplicates=0,
     )
-    populate_advisory_fuel_types = MagicMock(return_value=["fuel-type-row"])
+    fuel_areas = {(1, 2): 100}
+    combustible_areas = {1: 100}
+    tpi_areas = {(1, TPIClassEnum.valley_bottom): 100}
     populate_advisory_shape_fuels = AsyncMock()
     populate_combustible_area = MagicMock()
     populate_tpi_fuel_area = MagicMock()
+    validate_fire_zone_nodata = MagicMock()
     verify_static_fuel_grid_data = AsyncMock(return_value=expected_counts)
 
     monkeypatch.setattr(BaseRasterAddresser, "gdal_path", lambda *_: "fuel-key")
+    monkeypatch.setattr("fuel_grid.install.validate_fire_zone_nodata", validate_fire_zone_nodata)
     monkeypatch.setattr(
-        "fuel_grid.install.get_fire_zone_unit_shape_type_id", AsyncMock(return_value=1)
+        "fuel_grid.install.calculate_fuel_type_areas_per_zone",
+        MagicMock(return_value=fuel_areas),
     )
-    monkeypatch.setattr("fuel_grid.install.get_fire_zone_units", AsyncMock(return_value=["zone"]))
     monkeypatch.setattr(
-        "fuel_grid.install.populate_advisory_fuel_types", populate_advisory_fuel_types
+        "fuel_grid.install.calculate_combustible_area_by_fire_zone",
+        MagicMock(return_value=combustible_areas),
     )
+    monkeypatch.setattr(
+        "fuel_grid.install.calculate_masked_tpi_areas", MagicMock(return_value=tpi_areas)
+    )
+    monkeypatch.setattr(
+        "fuel_grid.install.get_advisory_shape_ids_by_source_identifier",
+        AsyncMock(return_value={1: 7}),
+    )
+    monkeypatch.setattr("fuel_grid.install.validate_zone_ids", MagicMock())
     monkeypatch.setattr(
         "fuel_grid.install.populate_advisory_shape_fuels", populate_advisory_shape_fuels
     )
@@ -354,7 +346,7 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
 
     assert counts == expected_counts
     assert flush_count == 1
-    populate_advisory_fuel_types.assert_called_once()
+    validate_fire_zone_nodata.assert_called_once_with("fuel-key")
     populate_advisory_shape_fuels.assert_awaited_once()
     populate_combustible_area.assert_called_once()
     populate_tpi_fuel_area.assert_called_once()
@@ -362,11 +354,49 @@ async def test_populate_static_fuel_grid_data_flushes_once_after_population(monk
 
 
 @pytest.mark.anyio
+async def test_populate_static_fuel_grid_data_stops_when_zone_nodata_is_missing(monkeypatch):
+    session, _ = make_mock_session()
+    fuel_type_raster = FuelTypeRaster(
+        id=42,
+        year=2026,
+        version=4,
+        object_store_path="sfms/static/fuel/2026/fbp2026_v4.tif",
+        content_hash="hash-2026",
+    )
+    calculate_fuel_areas = MagicMock()
+    calculate_combustible_areas = MagicMock()
+    calculate_tpi_areas = MagicMock()
+
+    monkeypatch.setattr(BaseRasterAddresser, "gdal_path", lambda *_: "fuel-key")
+    monkeypatch.setattr(
+        "fuel_grid.install.validate_fire_zone_nodata",
+        MagicMock(side_effect=ValueError("Raster does not define a nodata value")),
+    )
+    monkeypatch.setattr(
+        "fuel_grid.install.calculate_fuel_type_areas_per_zone", calculate_fuel_areas
+    )
+    monkeypatch.setattr(
+        "fuel_grid.install.calculate_combustible_area_by_fire_zone",
+        calculate_combustible_areas,
+    )
+    monkeypatch.setattr("fuel_grid.install.calculate_masked_tpi_areas", calculate_tpi_areas)
+
+    with pytest.raises(ValueError, match="does not define a nodata value"):
+        await populate_static_fuel_grid_data(
+            session, fuel_type_raster, "dem/tpi/tpi_fuel_masked.tif"
+        )
+
+    calculate_fuel_areas.assert_not_called()
+    calculate_combustible_areas.assert_not_called()
+    calculate_tpi_areas.assert_not_called()
+
+
+@pytest.mark.anyio
 async def test_verify_static_fuel_grid_data_fails_when_required_counts_are_missing(monkeypatch):
     session, _ = make_mock_session()
     monkeypatch.setattr(
         "fuel_grid.install.count_rows_by_fuel_type_raster_id",
-        AsyncMock(side_effect=[1, 0, 1, 1]),
+        AsyncMock(side_effect=[0, 1, 1]),
     )
     monkeypatch.setattr(
         "fuel_grid.install.count_advisory_shape_fuel_duplicates",
@@ -460,7 +490,6 @@ async def test_install_fuel_grid_marks_raster_ready_after_verification(monkeypat
         install_status=FuelRasterInstallStatus.INSTALLING,
     )
     expected_counts = FuelGridInstallCounts(
-        advisory_fuel_types=1,
         advisory_shape_fuels=1,
         combustible_area=1,
         tpi_fuel_area=1,
@@ -513,7 +542,6 @@ async def test_install_fuel_grid_reuses_existing_versioned_s3_raster(monkeypatch
         install_status=FuelRasterInstallStatus.INSTALLING,
     )
     expected_counts = FuelGridInstallCounts(
-        advisory_fuel_types=1,
         advisory_shape_fuels=1,
         combustible_area=1,
         tpi_fuel_area=1,

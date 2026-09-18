@@ -43,6 +43,33 @@ def test_raster_set_no_data_value():
         assert updated_array[0, 0] == updated_nodata_value
 
 
+def test_require_nodata_value_returns_band_metadata():
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+    dataset.GetRasterBand(1).SetNoDataValue(-1)
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_ds:
+        assert wps_ds.require_nodata_value() == -1
+
+
+def test_require_nodata_value_identifies_source_path():
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+    source_path = "/vsis3/test-bucket/zone-units/fire_zone_units.tif"
+
+    with WPSDataset(ds_path=source_path, ds=dataset) as wps_ds:
+        with pytest.raises(ValueError) as error:
+            wps_ds.require_nodata_value()
+
+    assert str(error.value) == f"Raster does not define a nodata value: {source_path}"
+
+
+def test_pixel_area_returns_squared_projection_units():
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+    dataset.SetGeoTransform((0, 10, 0, 0, 0, -10))
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_dataset:
+        assert wps_dataset.pixel_area == 100
+
+
 def test_replace_nodata_with_nan_casts_integer_array():
     """replace_nodata_with(np.nan) on an integer raster should cast to float64 and replace nodata with nan."""
     driver: gdal.Driver = gdal.GetDriverByName("MEM")

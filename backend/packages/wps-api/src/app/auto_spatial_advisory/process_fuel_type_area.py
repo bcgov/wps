@@ -1,25 +1,29 @@
-"""Code relating to processing high HFI area per fire zone"""
+"""Calculate fuel-type area by HFI threshold and fire-zone raster value."""
 
 import logging
+from collections import Counter
 from datetime import date, datetime
 from time import perf_counter
 
 import numpy as np
-from osgeo import gdal, ogr, osr
-from sqlalchemy import func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy.sql import text
+from sqlalchemy import select
 from wps_shared.db.crud.auto_spatial_advisory import (
-    get_all_hfi_thresholds,
-    get_all_sfms_fuel_types,
+    get_advisory_shape_ids_by_source_identifier,
+    get_fuel_types_id_dict,
+    get_hfi_threshold_ids,
     get_run_parameters_id,
-    store_advisory_fuel_stats,
 )
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_write_session_scope
-from wps_shared.db.models.auto_spatial_advisory import AdvisoryFuelStats, SFMSFuelType, Shape
+from wps_shared.db.models.auto_spatial_advisory import (
+    AdvisoryFuelStats,
+    HfiClassificationThresholdEnum,
+)
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.zonal_stats import (
+    count_values_by_zone,
+    iter_raster_windows,
+)
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 from wps_shared.utils.s3 import gdal_s3_context
@@ -28,243 +32,101 @@ from app.auto_spatial_advisory.common import get_hfi_s3_key
 
 logger = logging.getLogger(__name__)
 
-FUEL_TYPE_RASTER_RESOLUTION_IN_METRES = 2000
+ADVISORY_NAME = HfiClassificationThresholdEnum.ADVISORY.value
+WARNING_NAME = HfiClassificationThresholdEnum.WARNING.value
 
 
-def get_intersected_raster_path(source_identifier: str, threshold: int) -> str:
-    return f"/vsimem/intersect_{source_identifier}_{threshold}.tif"
+def count_fuel_type_hfi_pixels(
+    counts: Counter[tuple[int, str, int]],
+    zones: np.ndarray,
+    raw_hfi: np.ndarray,
+    fuel_types: np.ndarray,
+    zone_nodata: float | int,
+) -> None:
+    """Merge one window's combustible-fuel counts by zone and raw-HFI threshold."""
+    valid_zone = zones != zone_nodata
+    combustible = (fuel_types > 0) & (fuel_types < 99)
+    thresholds = {
+        ADVISORY_NAME: (raw_hfi >= 4000) & (raw_hfi < 10000),
+        WARNING_NAME: raw_hfi >= 10000,
+    }
+    for threshold_name, threshold_mask in thresholds.items():
+        mask = valid_zone & combustible & threshold_mask
+        zone_value_counts = count_values_by_zone(zones, fuel_types, mask)
+        for (source_identifier, fuel_type), frequency in zone_value_counts.items():
+            counts[(source_identifier, threshold_name, fuel_type)] += frequency
 
 
-def classify_by_threshold(source_data: np.array, threshold: int):
+def calculate_fuel_type_hfi_areas(
+    zone_path: str, raw_hfi_path: str, fuel_path: str
+) -> dict[tuple[int, str, int], float]:
+    """Return fuel areas keyed by zone source ID, HFI threshold name, and fuel code.
+
+    Counts are accumulated across aligned raster windows and converted to square metres using the
+    projected area of one zone-raster pixel.
     """
-    Classifies the provided 2-d array based on the provided threshold. When the threshold is 1, all cells with an hfi value
-    in the range of 4k - 10k are assigned a value of 1 and other cells are assigned a value of 0. When the threshold is 2,
-    all cells with an hfi greater than 10k are assigned a value of 1 and other cells are assigned a value of 0.
-
-    :param source_data: A 2-d array with values representing fuel types.
-    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
-    """
-    if threshold == 1:
-        # advisory
-        classified = np.where(source_data < 4000, 0, source_data)
-        classified = np.where((classified >= 4000) & (classified < 10000), 1, classified)
-        classified = np.where(classified >= 10000, 0, classified)
-    else:
-        # warning
-        classified = np.where(source_data < 10000, 0, source_data)
-        classified = np.where(classified >= 10000, 1, classified)
-    # NaN survives every comparison above unchanged (NaN compares False against everything), so
-    # without this it would only become a concrete value via an undefined float-to-int cast when
-    # written to disk later.
-    return np.nan_to_num(classified, nan=0)
-
-
-async def calculate_fuel_type_area_by_shape(
-    session: AsyncSession,
-    masked_fuel_type_ds: WPSDataset,
-    threshold,
-    run_parameters_id: int,
-    fuel_types: list[SFMSFuelType],
-    fuel_type_raster_id: int,
-):
-    """
-    Process masked fuel type layer with each advisory shape (eg fire zone unit).
-
-    :param temp_dir: A temporary location for storing intermediate files.
-    :param source_path: Path to the masked fuel type layer.
-    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
-    :param run_parameters_id: The RunParameter object id associated with the run_type, for_date and run_datetime of interest.
-    :param fuel_types: A list of fuel types used in the sfms system.
-    """
-    stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
-    result = await session.execute(stmt)
-    rows = result.all()
-    for row in rows:
-        # each row clips to its own /vsimem/intersect_{source_identifier}_{threshold}.tif;
-        # the `with` unlinks it on exit so these don't accumulate for the life of the worker
-        with await intersect_raster_by_advisory_shape(
-            session, threshold, row[0], row[1], masked_fuel_type_ds
-        ) as intersected_ds:
-            fuel_type_areas = calculate_fuel_type_areas(intersected_ds.ds, fuel_types)
-            await store_advisory_fuel_stats(
-                session, fuel_type_areas, threshold, run_parameters_id, row[0], fuel_type_raster_id
-            )
-
-
-def calculate_fuel_type_areas(source: gdal.Dataset, fuel_types: list[SFMSFuelType]):
-    """
-    Calculates the ground area of the raster layer at the source_path covered by each fuel type.
-
-    :param source_path: The path to a fuel type layer that has been masked based on hfi value and clipped to an advisory shape.
-    :param fuel_types: A list of fuel types from the sfms system that may be present in the source_path fuel type layer.
-    """
-    geotransform = source.GetGeoTransform()
-    # Get pixel size (aka resolution). Vertical resolution is negative, so we need the absolute value.
-    x_res = geotransform[1]
-    y_res = abs(geotransform[5])
-    source_band = source.GetRasterBand(1)
-    # approx_ok=0: the default (approx_ok=1) samples a small, roughly fixed-size subset of
-    # pixels regardless of raster size, potentially undercounting area.
-    histogram = source_band.GetHistogram(approx_ok=0)
-    combustible_fuel_type_ids = [
-        fuel_type.fuel_type_id
-        for fuel_type in fuel_types
-        if fuel_type.fuel_type_id < 99 and fuel_type.fuel_type_id > 0
-    ]
-    fuel_type_areas = {}
-    for fuel_type_id in combustible_fuel_type_ids:
-        count = histogram[fuel_type_id]
-        area = count * x_res * y_res
-        if area > 0:
-            fuel_type_areas[fuel_type_id] = area
-    return fuel_type_areas
-
-
-async def intersect_raster_by_advisory_shape(
-    session: AsyncSession,
-    threshold: int,
-    advisory_shape_id: int,
-    source_identifier: str,
-    masked_fuel_type_ds: WPSDataset,
-) -> WPSDataset:
-    """
-    Given a raster and a fire shape id, use gdal.Warp to clip out a fire zone from which we can retrieve info.
-
-    :param threshold: The current threshold being processed, 1 = 4k-10k, 2 = > 10k.
-    :param advisory_shape_id: The id of the fire zone (aka advisory_shape object) to clip with.
-    :param source_identifier: The source identifier of the advisory shape.
-    :param raster_path: The path to the raster to be clipped.
-    :param temp_dir: A temporary location for storing intermediate files.
-    """
-    input_srs = osr.SpatialReference()
-    input_srs.ImportFromWkt(masked_fuel_type_ds.ds.GetProjectionRef())
-
-    advisory_shape_geom = await get_advisory_shape(session, advisory_shape_id, input_srs)
-    return masked_fuel_type_ds.clip_to_geometry(
-        advisory_shape_geom,
-        output_path=get_intersected_raster_path(source_identifier, threshold),
-    )
-
-
-async def get_advisory_shape(
-    session: AsyncSession, advisory_shape_id: int, projection: osr.SpatialReference
-) -> ogr.Geometry:
-    """
-    Get advisory_shape from database and store it (typically temporarily) in the specified projection for raster
-    intersection. The advisory_shape layer returned by ExecuteSQL must be stored somewhere and can't simply be returned
-    because of the way GDAL connection references are handled (https://gdal.org/api/python_gotchas.html)
-
-    :param advisory_shape_id: advisory_shape_id
-    :type advisory_shape_id: int
-    :param out_dir: Output directory of reprojected polygon(s)
-    :type out_dir: str
-    :param projection: Spatial reference
-    :type projection: osr.SpatialReference
-    :return: path to stored advisory shape
-    :rtype: str
-    """
-
-    stmt = select(func.ST_AsText(Shape.geom)).where(Shape.id == advisory_shape_id)
-    result = await session.execute(stmt)
-    wkt_geom = result.scalar()
-    geometry: ogr.Geometry = ogr.CreateGeometryFromWkt(wkt_geom)
-    source_srs = osr.SpatialReference()
-    source_srs.ImportFromEPSG(3005)
-
-    # Set the spatial reference for the geometry
-    geometry.AssignSpatialReference(source_srs)
-
-    # Perform the transformation
-    transform = osr.CoordinateTransformation(geometry.GetSpatialReference(), projection)
-    geometry.Transform(transform)
-
-    return geometry
+    counts: Counter[tuple[int, str, int]] = Counter()
+    with (
+        WPSDataset(zone_path) as zones,
+        WPSDataset(raw_hfi_path) as raw_hfi,
+        WPSDataset(fuel_path) as fuel,
+    ):
+        area_per_pixel = zones.pixel_area
+        zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
+        for window in iter_raster_windows([zones.ds, raw_hfi.ds, fuel.ds]):
+            zone_ids, raw_hfi_values, fuel_codes = window.arrays
+            count_fuel_type_hfi_pixels(counts, zone_ids, raw_hfi_values, fuel_codes, zone_nodata)
+    return {key: count * area_per_pixel for key, count in counts.items()}
 
 
 async def process_fuel_type_hfi_by_shape(run_type: RunType, run_datetime: datetime, for_date: date):
-    """
-    Entry point for deriving fuel type areas for each hfi threshold per advisory shape (eg. fire zone unit).
-
-    General description of the process:
-     - get a hfi raster from S3 based on the run type, run datetime and for date
-     - get the fuel type raster from S3
-     - reproject the hfi raster to match extent, spatial reference and resolution of the fuel type raster
-     - for each threshold, create a mask from the reprojected hfi raster that will contains values of 0 and 1 for use in raster multiplication
-     - multiply the fuel type layer by the mask in order to filter out fuel types where hfi does not match the threshold
-     - for each advisory shape (aka fire zone unit), clip the masked fuel type layer by the shape's geometry
-     - count the pixels for each fuel type in the clipped fuel type layer to determine the area of each fuel type
-     - store the results in the AdvisoryFuelStats table
-
-    :param run_type: The type of run to process. (is it a forecast or actual run?)
-    :param run_datetime: The date and time of the run to process. (when was the hfi file created?)
-    :param for_date: The date of the hfi to process. (when is the hfi for?)
-    """
-
+    """Store fuel area by fire zone and HFI threshold using raster cells."""
+    run_type = RunType(run_type)
     logger.info(
-        "Processing fuel type area %s for run date: %s, for date: %s",
+        "Processing fuel type area for run type: %s, run datetime: %s, for date: %s",
         run_type,
         run_datetime,
         for_date,
     )
     perf_start = perf_counter()
-
     async with get_async_write_session_scope() as session:
         run_parameters_id = await get_run_parameters_id(session, run_type, run_datetime, for_date)
-        fuel_type_raster_record = await get_fuel_type_raster_by_year(session, for_date.year)
-        if fuel_type_raster_record is None:
-            raise RuntimeError(f"No fuel type raster found for {for_date.year}")
-
-        stmt = select(AdvisoryFuelStats).where(
-            AdvisoryFuelStats.run_parameters == run_parameters_id
+        exists = await session.scalar(
+            select(AdvisoryFuelStats.id)
+            .where(AdvisoryFuelStats.run_parameters == run_parameters_id)
+            .limit(1)
         )
-        exists = (await session.execute(stmt)).scalars().first() is not None
-
-        if exists:
+        if exists is not None:
             logger.info("Advisory fuel stats already processed")
             return
 
+        fuel_raster = await get_fuel_type_raster_by_year(session, for_date.year)
+        if fuel_raster is None:
+            raise RuntimeError(f"No fuel type raster found for {for_date.year}")
+        raster_addresser = BaseRasterAddresser()
+        logger.info("Calculating fuel type area by fire zone and HFI threshold")
         with gdal_s3_context():
-            # Retrieve the appropriate hfi raster from s3 storage
-            hfi_key = get_hfi_s3_key(run_type, run_datetime, for_date)
-            with WPSDataset(hfi_key) as hfi_raster:
-                hfi_data = hfi_raster.ds.GetRasterBand(1).ReadAsArray()
-
-            # Retrieve the fuel type raster from s3 storage.
-            fuel_type_key = BaseRasterAddresser().gdal_path(
-                S3Key(fuel_type_raster_record.object_store_path)
+            areas = calculate_fuel_type_hfi_areas(
+                raster_addresser.get_fire_zone_units_path(),
+                get_hfi_s3_key(run_type, run_datetime, for_date),
+                raster_addresser.gdal_path(S3Key(fuel_raster.object_store_path)),
             )
-            with WPSDataset(fuel_type_key) as fuel_type_raster:
-                fuel_type_data = fuel_type_raster.ds.GetRasterBand(1).ReadAsArray()
-                # Georeference used for creating the per-threshold masked fuel type raster
-                georeference = fuel_type_raster.georeference
 
-        thresholds = await get_all_hfi_thresholds(session)
-        fuel_types = await get_all_sfms_fuel_types(session)
+        shape_ids = await get_advisory_shape_ids_by_source_identifier(session)
+        thresholds = await get_hfi_threshold_ids(session)
+        fuel_type_ids = await get_fuel_types_id_dict(session)
+        logger.info("Writing %d calculated fuel type area values", len(areas))
+        session.add_all(
+            AdvisoryFuelStats(
+                advisory_shape_id=shape_ids[source_identifier],
+                threshold=thresholds[threshold_name],
+                run_parameters=run_parameters_id,
+                fuel_type=fuel_type_ids[fuel_type],
+                area=area,
+                fuel_type_raster_id=fuel_raster.id,
+            )
+            for (source_identifier, threshold_name, fuel_type), area in areas.items()
+            if fuel_type in fuel_type_ids
+        )
 
-        for threshold in thresholds:
-            classified_hfi_data = classify_by_threshold(hfi_data, threshold.id)
-            masked_fuel_type_data = np.multiply(fuel_type_data, classified_hfi_data)
-            try:
-                with WPSDataset.from_array(
-                    masked_fuel_type_data,
-                    georeference,
-                    nodata_value=0,
-                    datatype=gdal.GDT_Int16,
-                ) as masked_fuel_type_ds:
-                    await calculate_fuel_type_area_by_shape(
-                        session,
-                        masked_fuel_type_ds,
-                        threshold.id,
-                        run_parameters_id,
-                        fuel_types,
-                        fuel_type_raster_record.id,
-                    )
-            finally:
-                del classified_hfi_data
-                del masked_fuel_type_data
-
-    perf_end = perf_counter()
-    delta = perf_end - perf_start
-    logger.info(
-        "%f delta count before and after processing fuel type area by hfi per fire shape", delta
-    )
+    logger.info("Processed fuel type area in %.2f seconds", perf_counter() - perf_start)

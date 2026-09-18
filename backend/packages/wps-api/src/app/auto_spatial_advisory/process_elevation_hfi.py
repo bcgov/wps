@@ -3,6 +3,7 @@
 import logging
 import os
 import tempfile
+from collections import Counter
 from dataclasses import dataclass
 from datetime import date, datetime
 from time import perf_counter
@@ -11,23 +12,27 @@ from typing import Dict
 import numpy as np
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.sql import text
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
+    get_advisory_shape_ids_by_source_identifier,
     get_run_parameters_id,
     save_advisory_elevation_tpi_stats,
 )
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.geospatial.zonal_stats import (
+    count_values_by_zone,
+    iter_raster_windows,
+)
 from wps_shared.run_type import RunType
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
 
 from app.auto_spatial_advisory.hfi_filepath import (
     get_raster_tif_filename,
     get_snow_masked_hfi_filepath,
 )
-from app.auto_spatial_advisory.process_fuel_type_area import get_advisory_shape
 
 logger = logging.getLogger(__name__)
 
@@ -66,23 +71,32 @@ async def process_hfi_elevation(run_type: RunType, run_datetime: datetime, for_d
 
 @dataclass(frozen=True)
 class FireZoneTPIStats:
-    """
-    Captures fire zone stats of TPI pixels hitting >4K HFI threshold via
-    a dictionary, fire_zone_stats, of {source_identifier: {1: X, 2: Y, 3: Z}}, where 1 = valley bottom, 2 = mid slope, 3 = upper slope
-    and X, Y, Z are pixel counts at each of those elevation classes respectively.
+    """TPI pixel counts for each advisory-shape database ID.
 
-    Also includes the TPI raster's pixel size in metres.
+    Inner keys are classified TPI values: 1 for valley bottom, 2 for mid slope, and 3 for upper
+    slope. The pixel size is retained so callers can convert counts to area.
     """
 
     fire_zone_stats: Dict[int, Dict[int, int]]
     pixel_size_metres: int
 
 
+def build_fire_zone_tpi_counts(
+    counts: Counter[tuple[int, int]], source_to_shape_id: dict[int, int]
+) -> Dict[int, Dict[int, int]]:
+    """Map raster counts to shape IDs while retaining shapes with no qualifying pixels."""
+    fire_zone_stats = {shape_id: {} for shape_id in source_to_shape_id.values()}
+    for (source_identifier, tpi_class), frequency in counts.items():
+        fire_zone_stats[source_to_shape_id[source_identifier]][tpi_class] = frequency
+    return fire_zone_stats
+
+
 async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for_date: date):
-    """
-    Given run parameters, lookup associated snow-masked HFI and static classified TPI geospatial data.
-    Cut out each fire zone shape from the above and intersect the TPI and HFI pixels, counting each pixel contributing to the TPI class.
-    Capture all fire zone stats keyed by its source_identifier.
+    """Count elevated-HFI TPI classes by fire zone using aligned rasters.
+
+    The classified HFI and fire-zone rasters are aligned to the static TPI grid, then processed in
+    bounded windows. A pixel contributes when it belongs to a fire zone, its classified HFI value is
+    nonzero (HFI at least 4000), and its TPI class is 1, 2, or 3.
 
     :param run_type: forecast or actual
     :param run_datetime: datetime the sfms file was created
@@ -96,50 +110,41 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
     hfi_raster_filename = get_raster_tif_filename(for_date)
     hfi_raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, hfi_raster_filename)
     hfi_key = f"/vsis3/{bucket}/{hfi_raster_key}"
-    fire_zone_stats: Dict[int, Dict[int, int]] = {}
+    zone_path = BaseRasterAddresser().get_fire_zone_units_path()
     with gdal_s3_context(), tempfile.TemporaryDirectory() as temp_dir:
-        # keep these large intermediate rasters on disk so the worker is not left
-        # holding a province-sized GDAL MEM dataset after processing completes.
         warped_hfi_path = os.path.join(temp_dir, f"warp_{hfi_raster_filename}")
-        masked_tpi_path = os.path.join(temp_dir, "masked_hfi_tpi.tif")
-        pixel_size_metres = 0
+        warped_zones_path = os.path.join(temp_dir, "warp_fire_zone_units.tif")
 
         with (
-            WPSDataset(key, output_path=masked_tpi_path) as tpi_source,
+            WPSDataset(key) as tpi_source,
             WPSDataset(hfi_key) as hfi_source,
+            WPSDataset(zone_path) as zone_source,
         ):
             pixel_size_metres = int(tpi_source.ds.GetGeoTransform()[1])
-            with hfi_source.warp_to_match(
-                tpi_source, output_path=warped_hfi_path
-            ) as resized_hfi_source:
-                # Close masked_tpi_source before masked_tpi_path is reopened below because GDAL doesn't
-                # finalize a GTiff's directory structure until the writing dataset is closed
-                with tpi_source * resized_hfi_source as masked_tpi_source:
-                    masked_tpi_source.ds.FlushCache()
+            # keep nearest-neighbour resampling so HFI classes and zone identifiers stay discrete
+            with (
+                hfi_source.warp_to_match(
+                    tpi_source, output_path=warped_hfi_path
+                ) as resized_hfi_source,
+                zone_source.warp_to_match(
+                    tpi_source, output_path=warped_zones_path
+                ) as resized_zone_source,
+            ):
+                counts: Counter[tuple[int, int]] = Counter()
+                zone_nodata = resized_zone_source.ds.GetRasterBand(1).GetNoDataValue()
+                for window in iter_raster_windows(
+                    [tpi_source.ds, resized_hfi_source.ds, resized_zone_source.ds]
+                ):
+                    tpi_classes, hfi_classes, zone_ids = window.arrays
+                    valid_zones = zone_ids != zone_nodata
+                    positive_hfi = hfi_classes > 0
+                    valid_tpi_classes = np.isin(tpi_classes, (1, 2, 3))
+                    included_pixels = valid_zones & positive_hfi & valid_tpi_classes
+                    counts.update(count_values_by_zone(zone_ids, tpi_classes, included_pixels))
 
         async with get_async_write_session_scope() as session:
-            stmt = text("SELECT id, source_identifier FROM public.advisory_shapes;")
-            result = await session.execute(stmt)
-
-            with WPSDataset(masked_tpi_path) as hfi_masked_tpi:
-                hfi_masked_tpi_srs = hfi_masked_tpi.ds.GetSpatialRef()
-
-                for row in result:
-                    output_path = os.path.join(temp_dir, f"firezone_{row[1]}.tif")
-                    advisory_shape_geom = await get_advisory_shape(
-                        session, row[0], hfi_masked_tpi_srs
-                    )
-                    with hfi_masked_tpi.clip_to_geometry(
-                        advisory_shape_geom, output_path=output_path
-                    ) as cut_hfi_masked_tpi:
-                        zone_tpi_classes = cut_hfi_masked_tpi.ds.GetRasterBand(1).ReadAsArray()
-
-                    tpi_classes, counts = np.unique(zone_tpi_classes, return_counts=True)
-                    tpi_class_freq_dist = dict(zip(tpi_classes, counts))
-
-                    # Drop TPI class 4, this is the no data value from the TPI raster
-                    tpi_class_freq_dist.pop(4, None)
-                    fire_zone_stats[row[0]] = tpi_class_freq_dist
+            source_to_shape_id = await get_advisory_shape_ids_by_source_identifier(session)
+            fire_zone_stats = build_fire_zone_tpi_counts(counts, source_to_shape_id)
 
     return FireZoneTPIStats(fire_zone_stats=fire_zone_stats, pixel_size_metres=pixel_size_metres)
 
