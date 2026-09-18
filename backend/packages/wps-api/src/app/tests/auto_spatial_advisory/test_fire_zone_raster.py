@@ -66,8 +66,9 @@ async def test_validate_fire_zone_raster_rejects_missing_nodata(monkeypatch):
     )
     monkeypatch.setattr("app.auto_spatial_advisory.fire_zone_raster.gdal_s3_context", nullcontext)
 
+    session = AsyncMock()
     try:
         with pytest.raises(ValueError, match="does not define a nodata value"):
-            await validate_fire_zone_raster(AsyncMock())
+            await validate_fire_zone_raster(session)
     finally:
         gdal.Unlink(path)
