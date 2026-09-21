@@ -2,7 +2,7 @@ import logging
 from datetime import date, datetime
 
 from wps_shared.db.crud.auto_spatial_advisory import mark_run_parameter_complete
-from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.geospatial.geospatial import clear_gdal_runtime_cache
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_date: date):
-    async with get_async_write_session_scope() as session:
+    async with get_async_read_session_scope() as session:
         await validate_fire_zone_raster(session)
 
     await process_hfi(run_type, run_datetime, for_date)

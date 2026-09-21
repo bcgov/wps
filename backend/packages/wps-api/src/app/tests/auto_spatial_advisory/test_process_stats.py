@@ -50,8 +50,9 @@ def mocks() -> Iterator[ProcessStatsMocks]:
             return cast(AsyncMock, stack.enter_context(patch(target, new_callable=AsyncMock)))
 
         base = "app.auto_spatial_advisory.process_stats."
-        mock_scope = stack.enter_context(patch(base + "get_async_write_session_scope"))
-        mock_scope.return_value.__aenter__.return_value = AsyncMock()
+        for scope_name in ("get_async_read_session_scope", "get_async_write_session_scope"):
+            mock_scope = stack.enter_context(patch(base + scope_name))
+            mock_scope.return_value.__aenter__.return_value = AsyncMock()
         yield ProcessStatsMocks(
             validate_fire_zone_raster=patch_async(base + "validate_fire_zone_raster"),
             process_hfi=patch_async(base + "process_hfi"),
