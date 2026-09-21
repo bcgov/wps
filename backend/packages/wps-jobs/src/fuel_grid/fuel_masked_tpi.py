@@ -20,6 +20,14 @@ from wps_shared.wps_logging import configure_logging
 
 logger = logging.getLogger(__name__)
 
+GEOTIFF_CREATION_OPTIONS = [
+    "TILED=YES",
+    "BLOCKXSIZE=256",
+    "BLOCKYSIZE=256",
+    "COMPRESS=DEFLATE",
+    "BIGTIFF=IF_SAFER",
+]
+
 
 class MissingFuelTypeRasterError(Exception):
     """Exception thrown when a ready fuel type raster record can't be found."""
@@ -61,7 +69,7 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
             ysize=tpi_band.YSize,
             bands=1,
             eType=gdal.GDT_Byte,
-            options=["TILED=YES", "COMPRESS=DEFLATE"],
+            options=GEOTIFF_CREATION_OPTIONS,
         )
         masked_tpi_dataset.SetGeoTransform(geo_transform)
         masked_tpi_dataset.SetProjection(tpi_ds_srs)
