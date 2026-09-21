@@ -3,66 +3,73 @@ Classifies relative topographic position raster into valley bottom, mid slope, u
 """
 
 import asyncio
-from osgeo import gdal
-import numpy as np
 import os
-from wps_shared.utils.s3 import get_client
+
+import numpy as np
+from osgeo import gdal
 from wps_shared import config
+from wps_shared.utils.s3 import get_client
+
+CLASSIFIED_TPI_FILENAME = "bc_dem_50m_tpi_win100_classified.tif"
+CLASSIFICATION_BINS = [-1, -1 / 3, 1 / 3, 1]
+CLASSIFIED_TPI_NODATA = 4
+GEOTIFF_CREATION_OPTIONS = [
+    "TILED=YES",
+    "BLOCKXSIZE=256",
+    "BLOCKYSIZE=256",
+    "COMPRESS=DEFLATE",
+    "BIGTIFF=IF_SAFER",
+]
 
 
-async def generate():
-    """
-    Retrieves the 50m resolution extended BC raster that has WhiteboxTools' Relative Topographic Position Index applied to it with a window size of 100,.
-    It then classifies the indices into these bins, smallest being valley bottom, middle being mid slope, highest being upper slope: (-1, -1/3], (-1/3, 1/3], and (1/3, 1].
-    """
+def write_classified_tpi(source: gdal.Dataset, target_path: str) -> str:
+    """Classify a TPI dataset and write a tiled GeoTIFF for windowed S3 reads."""
+    source_band = source.GetRasterBand(1)
+    classified = np.digitize(source_band.ReadAsArray(), CLASSIFICATION_BINS)
+
+    if os.path.exists(target_path):
+        os.remove(target_path)
+    target = gdal.GetDriverByName("GTiff").Create(
+        target_path,
+        xsize=source_band.XSize,
+        ysize=source_band.YSize,
+        bands=1,
+        eType=gdal.GDT_Byte,
+        options=GEOTIFF_CREATION_OPTIONS,
+    )
+    if target is None:
+        raise RuntimeError(f"Failed to create classified TPI raster: {target_path}")
+
+    target.SetGeoTransform(source.GetGeoTransform())
+    target.SetProjection(source.GetProjection())
+    target_band = target.GetRasterBand(1)
+    target_band.SetNoDataValue(CLASSIFIED_TPI_NODATA)
+    target_band.WriteArray(classified)
+    target_band.FlushCache()
+    target = None
+
+    return target_path
+
+
+async def generate() -> None:
+    """Download the 50 m TPI raster and classify it into a local tiled GeoTIFF."""
     async with get_client() as (client, bucket):
-        dem = await client.get_object(Bucket=bucket, Key=f'dem/tpi/{config.get("TPI_DEM_NAME")}')
+        tpi_key = f"dem/tpi/{config.get('TPI_DEM_NAME')}"
+        response = await client.get_object(Bucket=bucket, Key=tpi_key)
+        source_contents = await response["Body"].read()
 
-        mem_path = "/vsimem/dem.tif"
-        data = await dem["Body"].read()
-        gdal.FileFromMemBuffer(mem_path, data)
-        dem_source = gdal.Open(mem_path, gdal.GA_ReadOnly)
-        gdal.Unlink(mem_path)
-
-        source_band = dem_source.GetRasterBand(1)
-        source_data = source_band.ReadAsArray()
-
-        target_path = os.path.join(os.getcwd(), "bc_dem_50m_tpi_win100_classified.tif")
-
-        # Classify the raster
-        # Define the boundaries for binning elevation into bins: (-1, -1/3], (-1/3, 1/3], and (1/3, 1]
-        bins = [-1, -1 / 3, 1 / 3, 1]
-
-        # Classify the data into bins
-        classified = np.digitize(source_data, bins)
-
-        # Remove any existing target file.
-        if os.path.exists(target_path):
-            os.remove(target_path)
-
-        output_driver = gdal.GetDriverByName("GTiff")
-        # Create an object with the same dimensions as the input, but with 8 bit unsigned values.
-        target_tiff = output_driver.Create(target_path, xsize=source_band.XSize, ysize=source_band.YSize, bands=1, eType=gdal.GDT_Byte)
-        # Set the geotransform and projection to the same as the input.
-        target_tiff.SetGeoTransform(dem_source.GetGeoTransform())
-        target_tiff.SetProjection(dem_source.GetProjection())
-
-        # Write the classified data to the band.
-        target_band = target_tiff.GetRasterBand(1)
-
-        # The value of 4 was showing up east of BC
-        target_band.SetNoDataValue(4)
-        target_band.WriteArray(classified)
-
-        # Important to make sure data is flushed to disk!
-        target_tiff.FlushCache()
-
-        # Explicit delete to make sure underlying resources are cleared up!
-        del source_band
-        del dem_source
-        del target_band
-        del target_tiff
-        del output_driver
+    source_path = "/vsimem/tpi.tif"
+    source = None
+    gdal.FileFromMemBuffer(source_path, source_contents)
+    try:
+        source = gdal.Open(source_path, gdal.GA_ReadOnly)
+        if source is None:
+            raise RuntimeError(f"Failed to open source TPI raster: {tpi_key}")
+        target_path = os.path.join(os.getcwd(), CLASSIFIED_TPI_FILENAME)
+        write_classified_tpi(source, target_path)
+    finally:
+        source = None
+        gdal.Unlink(source_path)
 
 
 if __name__ == "__main__":
