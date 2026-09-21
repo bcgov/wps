@@ -33,9 +33,10 @@ def count_values_by_zone(
     `(zone_id, categorical_value)`.
 
     Zone/category pairs are encoded as one dimensional integer keys so `np.bincount` can count
-    them without constructing and sorting a two column array. Included zone IDs and values must
-    be non-negative integers, and memory use grows with the largest encoded pair.
-
+    them without constructing and sorting a two column array. This significantly reduces counting
+    time across the many windows in higher resolution rasters such as the 50 m TPI. Included zone
+    IDs and values must be non negative integers, and memory use grows with the largest encoded
+    pair.
     """
     if not np.any(included_pixels):
         return {}

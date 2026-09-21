@@ -155,8 +155,8 @@
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "args": [
-                "2026-08-28",
-                "2026-08-28",
+                "2026-07-22",
+                "2026-07-22",
                 "actual"
             ]
         },
@@ -170,8 +170,8 @@
             "module": "wps_tools.tif_pusher",
             "console": "integratedTerminal",
             "args": [
-                "2026-08-28",
-                "2026-08-28"
+                "2026-07-22",
+                "2026-07-22"
             ]
         },
         {
@@ -179,6 +179,15 @@
             "type": "debugpy",
             "request": "launch",
             "module": "app.auto_spatial_advisory.local.import_fire_zones",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
+        },
+        {
+            "name": "asa - generate classified TPI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "app.auto_spatial_advisory.local.generate_classified_tpi",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/backend",
             "python": "${workspaceFolder}/backend/.venv/bin/python"
