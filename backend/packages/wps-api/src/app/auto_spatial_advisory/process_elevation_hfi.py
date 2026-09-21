@@ -71,10 +71,11 @@ async def process_hfi_elevation(run_type: RunType, run_datetime: datetime, for_d
 
 @dataclass(frozen=True)
 class FireZoneTPIStats:
-    """TPI pixel counts for each advisory-shape database ID.
+    """Capture TPI pixel counts where HFI is at least 4,000, grouped by fire zone.
 
-    Inner keys are classified TPI values: 1 for valley bottom, 2 for mid slope, and 3 for upper
-    slope. The pixel size is retained so callers can convert counts to area.
+    `fire_zone_stats` has the form `{advisory_shape_id: {1: X, 2: Y, 3: Z}}`, where 1 is valley
+    bottom, 2 is mid slope, 3 is upper slope, and X, Y, and Z are the corresponding pixel counts.
+    The pixel size is retained so callers can convert the counts to area.
     """
 
     fire_zone_stats: Dict[int, Dict[int, int]]
