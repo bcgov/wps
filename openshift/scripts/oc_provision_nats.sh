@@ -9,6 +9,7 @@ source "$(dirname ${0})/common/common"
 #%
 #% Usage:
 #%
+#%   [CPU_REQUEST=<>] [MEMORY_REQUEST=<>] [MEMORY_LIMIT=<>] [REPLICAS=<>] \
 #%     ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:
@@ -32,6 +33,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
  ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
  ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \
+ ${REPLICAS:+ "-p REPLICAS=${REPLICAS}"} \
  -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
  -p APP_NAME=${APP_NAME}"
 
