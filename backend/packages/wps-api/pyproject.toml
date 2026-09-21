@@ -70,7 +70,7 @@ wps-shared = { workspace = true }
 wps-sfms = { workspace = true }
 wps-wf1 = { workspace = true }
 cffdrs-vec = { workspace = true }
-cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "e3f27c2f5d6ac5618e48b5d5b725dbd9ab3af19c" }
+cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "0f57fcca2a6a84b69fe8d50f29d947f0be34d5f6" }
 
 [tool.hatch.metadata]
 allow-direct-references = true
