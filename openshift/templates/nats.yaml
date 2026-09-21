@@ -436,11 +436,6 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: wfwx-secret
-                - name: DEM_NAME
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.dem_name
                 - name: CLASSIFIED_TPI_DEM_NAME
                   valueFrom:
                     configMapKeyRef:
