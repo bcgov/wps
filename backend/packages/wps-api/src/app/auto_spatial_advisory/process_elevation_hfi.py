@@ -114,6 +114,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
     with gdal_s3_context(), tempfile.TemporaryDirectory() as temp_dir:
         warped_hfi_path = os.path.join(temp_dir, f"warp_{hfi_raster_filename}")
         warped_zones_path = os.path.join(temp_dir, "warp_fire_zone_units.tif")
+        tiled_creation_options = ["TILED=YES", "BLOCKXSIZE=256", "BLOCKYSIZE=256"]
 
         with (
             WPSDataset(key) as tpi_source,
@@ -122,25 +123,48 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
         ):
             pixel_size_metres = int(tpi_source.ds.GetGeoTransform()[1])
             # keep nearest-neighbour resampling so HFI classes and zone identifiers stay discrete
+            warp_start = perf_counter()
             with (
                 hfi_source.warp_to_match(
-                    tpi_source, output_path=warped_hfi_path
+                    tpi_source,
+                    output_path=warped_hfi_path,
+                    creation_options=tiled_creation_options,
                 ) as resized_hfi_source,
-                zone_source.warp_to_match(
-                    tpi_source, output_path=warped_zones_path
-                ) as resized_zone_source,
             ):
-                counts: Counter[tuple[int, int]] = Counter()
-                zone_nodata = resized_zone_source.ds.GetRasterBand(1).GetNoDataValue()
-                for window in iter_raster_windows(
-                    [tpi_source.ds, resized_hfi_source.ds, resized_zone_source.ds]
+                logger.info("Warped HFI to TPI grid in %.2f seconds", perf_counter() - warp_start)
+
+                zone_warp_start = perf_counter()
+                with (
+                    zone_source.warp_to_match(
+                        tpi_source,
+                        output_path=warped_zones_path,
+                        creation_options=tiled_creation_options,
+                    ) as resized_zone_source,
                 ):
-                    tpi_classes, hfi_classes, zone_ids = window.arrays
-                    valid_zones = zone_ids != zone_nodata
-                    positive_hfi = hfi_classes > 0
-                    valid_tpi_classes = np.isin(tpi_classes, (1, 2, 3))
-                    included_pixels = valid_zones & positive_hfi & valid_tpi_classes
-                    counts.update(count_values_by_zone(zone_ids, tpi_classes, included_pixels))
+                    logger.info(
+                        "Warped fire zones to TPI grid in %.2f seconds",
+                        perf_counter() - zone_warp_start,
+                    )
+                    counts: Counter[tuple[int, int]] = Counter()
+                    zone_nodata = resized_zone_source.ds.GetRasterBand(1).GetNoDataValue()
+                    tpi_band = tpi_source.ds.GetRasterBand(1)
+                    zone_band = resized_zone_source.ds.GetRasterBand(1)
+                    for window in iter_raster_windows([resized_hfi_source.ds]):
+                        hfi_classes = window.arrays[0]
+                        positive_hfi = hfi_classes > 0
+                        if not np.any(positive_hfi):
+                            continue
+
+                        tpi_classes = tpi_band.ReadAsArray(
+                            window.x_offset, window.y_offset, window.width, window.height
+                        )
+                        zone_ids = zone_band.ReadAsArray(
+                            window.x_offset, window.y_offset, window.width, window.height
+                        )
+                        valid_zones = zone_ids != zone_nodata
+                        valid_tpi_classes = np.isin(tpi_classes, (1, 2, 3))
+                        included_pixels = valid_zones & positive_hfi & valid_tpi_classes
+                        counts.update(count_values_by_zone(zone_ids, tpi_classes, included_pixels))
 
         async with get_async_write_session_scope() as session:
             source_to_shape_id = await get_advisory_shape_ids_by_source_identifier(session)

@@ -222,6 +222,7 @@ class WPSDataset:
         output_path: str | None = None,
         resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR,
         max_value: float | None = None,
+        creation_options: list[str] | None = None,
     ):
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
@@ -235,6 +236,7 @@ class WPSDataset:
         :param other: the reference WPSDataset raster to match the source against
         :param output_path: output path of the resulting raster
         :param resample_method: gdal resampling algorithm
+        :param creation_options: optional GeoTIFF creation options for the warped output
         :return: warped raster dataset
         """
         if output_path is None:
@@ -263,6 +265,7 @@ class WPSDataset:
                 xRes=x_res,
                 yRes=y_res,
                 resampleAlg=resample_method.value,
+                creationOptions=creation_options,
             ),
         )
 

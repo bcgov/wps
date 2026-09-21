@@ -348,6 +348,23 @@ def test_raster_warp():
         assert output_ds.as_gdal_ds().RasterYSize == wps2_ds.as_gdal_ds().RasterYSize
 
 
+def test_raster_warp_accepts_creation_options():
+    extent = (-10, 10, -10, 10)
+    source = create_test_dataset("test_creation_options_source.tif", 20, 20, extent, 4326)
+    reference = create_test_dataset("test_creation_options_reference.tif", 20, 20, extent, 4326)
+
+    with (
+        WPSDataset(ds_path=None, ds=source) as source_dataset,
+        WPSDataset(ds_path=None, ds=reference) as reference_dataset,
+        source_dataset.warp_to_match(
+            reference_dataset,
+            "/vsimem/test_creation_options.tif",
+            creation_options=["TILED=YES", "BLOCKXSIZE=16", "BLOCKYSIZE=16"],
+        ) as warped,
+    ):
+        assert warped.ds.GetRasterBand(1).GetBlockSize() == [16, 16]
+
+
 def test_close_is_a_noop_for_mem_driver_dataset_with_no_real_backing_file():
     """A MEM-driver dataset can be named with a /vsimem/-looking path but MEM never
     registers a real VSI file there, so GetFileList() is None and close() has nothing to do."""
