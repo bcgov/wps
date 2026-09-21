@@ -52,7 +52,13 @@ def write_classified_tpi(source: gdal.Dataset, target_path: str) -> str:
 
 
 async def generate() -> None:
-    """Download the 50 m TPI raster and classify it into a local tiled GeoTIFF."""
+    """Download and classify the 50 m extended BC TPI raster.
+
+    The source raster was generated with WhiteboxTools' Relative Topographic Position Index using
+    a window size of 100. Its indices are classified as valley bottom, mid slope, and upper slope
+    using the intervals `[-1, -1/3)`, `[-1/3, 1/3)`, and `[1/3, 1)`, respectively. The result is
+    written as a local tiled GeoTIFF.
+    """
     async with get_client() as (client, bucket):
         tpi_key = f"dem/tpi/{config.get('TPI_DEM_NAME')}"
         response = await client.get_object(Bucket=bucket, Key=tpi_key)
