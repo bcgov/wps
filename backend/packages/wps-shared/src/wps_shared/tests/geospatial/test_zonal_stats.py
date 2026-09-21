@@ -1,3 +1,5 @@
+from collections import Counter
+
 import numpy as np
 import pytest
 from osgeo import gdal, osr
@@ -35,6 +37,52 @@ def test_count_values_by_zone_returns_empty_counter_without_included_pixels():
     values = np.array([[3]])
 
     assert count_values_by_zone(zones, values, np.array([[False]])) == {}
+
+
+@pytest.mark.parametrize(
+    "categories",
+    [[1, 2], [1, 2, 3], [1, 2, 7, 14, 98]],
+    ids=["hfi", "tpi", "fuel"],
+)
+def test_count_values_by_zone_matches_pair_counting(categories):
+    rng = np.random.default_rng(42)
+    zones = rng.choice(np.array([7, 101, 300], dtype=np.int32), size=(32, 32))
+    values = rng.choice(categories, size=zones.shape)
+    included_pixels = rng.random(zones.shape) > 0.3
+    zones[~included_pixels] = -1
+    values[~included_pixels] = -9999
+
+    pairs, frequencies = np.unique(
+        np.column_stack((zones[included_pixels], values[included_pixels])),
+        axis=0,
+        return_counts=True,
+    )
+    expected = {tuple(pair): int(count) for pair, count in zip(pairs.tolist(), frequencies)}
+
+    assert count_values_by_zone(zones, values, included_pixels) == expected
+
+
+@pytest.mark.parametrize("categories", [[0, 0, 0], [0, 98, 98]])
+def test_count_values_by_zone_handles_zero_categories_and_sparse_zone_ids(categories):
+    zones = np.array([[0, 300, 300]], dtype=np.int32)
+    values = np.array([categories], dtype=np.uint8)
+    included_pixels = np.ones(zones.shape, dtype=bool)
+
+    counts = count_values_by_zone(zones, values, included_pixels)
+
+    assert counts == {(0, 0): 1, (300, categories[1]): 2}
+
+
+def test_count_values_by_zone_accumulates_windows_with_different_category_maxima():
+    zones = np.array([[10, 10, 20], [10, 20, 20]], dtype=np.int32)
+    values = np.array([[1, 2, 2], [1, 2, 3]], dtype=np.uint8)
+    counts = Counter()
+
+    for row in range(2):
+        included_pixels = np.ones(zones[row].shape, dtype=bool)
+        counts.update(count_values_by_zone(zones[row], values[row], included_pixels))
+
+    assert counts == {(10, 1): 2, (10, 2): 1, (20, 2): 2, (20, 3): 1}
 
 
 def test_iter_raster_windows_reads_matching_chunks():
