@@ -5,6 +5,14 @@ from affine import Affine
 from osgeo import gdal, ogr, osr
 from pyproj import CRS, Transformer
 
+COMPRESSED_TILED_GEOTIFF_OPTIONS: Final[list[str]] = [
+    "TILED=YES",
+    "BLOCKXSIZE=256",
+    "BLOCKYSIZE=256",
+    "COMPRESS=DEFLATE",
+    "BIGTIFF=IF_SAFER",
+]
+
 # Some constants that are frequently used when transforming coordinates.
 
 

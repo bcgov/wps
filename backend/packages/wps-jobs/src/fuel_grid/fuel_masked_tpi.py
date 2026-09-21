@@ -11,7 +11,11 @@ from osgeo import gdal
 from wps_shared import config
 from wps_shared.db.crud.fuel_layer import get_processed_fuel_raster_details
 from wps_shared.db.database import get_async_read_session_scope
-from wps_shared.geospatial.geospatial import GDALResamplingMethod, warp_to_match_raster
+from wps_shared.geospatial.geospatial import (
+    COMPRESSED_TILED_GEOTIFF_OPTIONS,
+    GDALResamplingMethod,
+    warp_to_match_raster,
+)
 from wps_shared.geospatial.zonal_stats import iter_raster_windows
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -19,14 +23,6 @@ from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
 
 logger = logging.getLogger(__name__)
-
-GEOTIFF_CREATION_OPTIONS = [
-    "TILED=YES",
-    "BLOCKXSIZE=256",
-    "BLOCKYSIZE=256",
-    "COMPRESS=DEFLATE",
-    "BIGTIFF=IF_SAFER",
-]
 
 
 class MissingFuelTypeRasterError(Exception):
@@ -69,7 +65,7 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
             ysize=tpi_band.YSize,
             bands=1,
             eType=gdal.GDT_Byte,
-            options=GEOTIFF_CREATION_OPTIONS,
+            options=COMPRESSED_TILED_GEOTIFF_OPTIONS,
         )
         masked_tpi_dataset.SetGeoTransform(geo_transform)
         masked_tpi_dataset.SetProjection(tpi_ds_srs)

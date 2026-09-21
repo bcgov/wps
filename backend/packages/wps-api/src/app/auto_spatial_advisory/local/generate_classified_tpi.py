@@ -8,18 +8,12 @@ import os
 import numpy as np
 from osgeo import gdal
 from wps_shared import config
+from wps_shared.geospatial.geospatial import COMPRESSED_TILED_GEOTIFF_OPTIONS
 from wps_shared.utils.s3 import get_client
 
 CLASSIFIED_TPI_FILENAME = "bc_dem_50m_tpi_win100_classified.tif"
 CLASSIFICATION_BINS = [-1, -1 / 3, 1 / 3, 1]
 CLASSIFIED_TPI_NODATA = 4
-GEOTIFF_CREATION_OPTIONS = [
-    "TILED=YES",
-    "BLOCKXSIZE=256",
-    "BLOCKYSIZE=256",
-    "COMPRESS=DEFLATE",
-    "BIGTIFF=IF_SAFER",
-]
 
 
 def write_classified_tpi(source: gdal.Dataset, target_path: str) -> str:
@@ -35,7 +29,7 @@ def write_classified_tpi(source: gdal.Dataset, target_path: str) -> str:
         ysize=source_band.YSize,
         bands=1,
         eType=gdal.GDT_Byte,
-        options=GEOTIFF_CREATION_OPTIONS,
+        options=COMPRESSED_TILED_GEOTIFF_OPTIONS,
     )
     if target is None:
         raise RuntimeError(f"Failed to create classified TPI raster: {target_path}")
