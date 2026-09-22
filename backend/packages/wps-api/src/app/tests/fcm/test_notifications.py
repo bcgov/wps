@@ -2,6 +2,7 @@
 
 from datetime import date, datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
+from zoneinfo import ZoneInfo
 
 import pytest
 from app.fcm.notifications import (
@@ -22,9 +23,12 @@ GET_TOKENS = "app.fcm.notifications.get_device_tokens_for_zone"
 UPDATE_TOKENS = "app.fcm.notifications.update_device_tokens_are_active"
 SEND_MULTICAST = "app.fcm.notifications.messaging.send_each_for_multicast_async"
 GET_VANCOUVER_NOW = "app.fcm.notifications.get_vancouver_now"
+ENVIRONMENT = "app.fcm.notifications.config"
 
 FOR_DATE = date(2026, 4, 1)
-RUN_GET_VANCOUVER_NOW = datetime(2026, 4, 1)
+VANCOUVER_TZ = ZoneInfo("America/Vancouver")
+RUN_GET_VANCOUVER_NOW = datetime(2026, 4, 1, 8, tzinfo=VANCOUVER_TZ)
+VANCOUVER_NOW = datetime(2026, 4, 1, 9, tzinfo=VANCOUVER_TZ)
 
 
 @pytest.mark.parametrize(
@@ -71,32 +75,49 @@ def test_build_notification_title(placename_label, expected):
     assert build_notification_title(zone) == expected
 
 
-ENVIRONMENT = "app.fcm.notifications.config"
-
-
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "environment, vancouver_hour, expect_skipped",
+    "environment, run_datetime, vancouver_now, expect_skipped",
     [
-        ("production", 15, True),  # afternoon >= 12 in prod → skip
-        ("production", 12, True),  # noon == 12 in prod → skip (boundary)
-        ("production", 8, False),  # morning < 12 in prod → proceed
-        ("development", 15, False),  # afternoon outside prod → proceed
-        ("development", 8, False),  # morning outside prod → proceed
+        ("production", RUN_GET_VANCOUVER_NOW, VANCOUVER_NOW, False),
+        (
+            "production",
+            datetime(2026, 3, 31, 8, tzinfo=VANCOUVER_TZ),
+            VANCOUVER_NOW,
+            True,
+        ),
+        (
+            "production",
+            datetime(2026, 4, 1, 12, tzinfo=VANCOUVER_TZ),
+            VANCOUVER_NOW,
+            True,
+        ),
+        (
+            "production",
+            RUN_GET_VANCOUVER_NOW,
+            datetime(2026, 4, 1, 12, tzinfo=VANCOUVER_TZ),
+            True,
+        ),
+        (
+            "development",
+            datetime(2026, 3, 31, 12, tzinfo=VANCOUVER_TZ),
+            datetime(2026, 4, 1, 12, tzinfo=VANCOUVER_TZ),
+            False,
+        ),
     ],
 )
-async def test_trigger_notifications_afternoon_filter(environment, vancouver_hour, expect_skipped):
-    """Afternoon Vancouver time (hour >= 12) is skipped only in production."""
+async def test_trigger_notifications_morning_filter(
+    environment, run_datetime, vancouver_now, expect_skipped
+):
     session = AsyncMock()
     with (
         patch(GET_ZONES, return_value=[]) as mock_get_zones,
         patch(GET_VANCOUVER_NOW) as mock_now,
         patch(ENVIRONMENT) as mock_config,
     ):
-        mock_now.return_value.date.return_value = FOR_DATE
-        mock_now.return_value.hour = vancouver_hour
+        mock_now.return_value = vancouver_now
         mock_config.get.return_value = environment
-        await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
+        await trigger_notifications(session, RunTypeEnum.forecast, run_datetime, FOR_DATE)
         if expect_skipped:
             mock_get_zones.assert_not_called()
         else:
@@ -108,7 +129,7 @@ async def test_trigger_notifications_skips_actual():
     """Actual run type should return immediately without querying anything."""
     session = AsyncMock()
     with patch(GET_ZONES) as mock_get_zones, patch(GET_VANCOUVER_NOW) as mock_now:
-        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value = VANCOUVER_NOW
         await trigger_notifications(session, RunTypeEnum.actual, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_get_zones.assert_not_called()
 
@@ -118,8 +139,14 @@ async def test_trigger_notifications_skips_past_date():
     """for_date in the past should return without querying anything."""
     session = AsyncMock()
     with patch(GET_ZONES) as mock_get_zones, patch(GET_VANCOUVER_NOW) as mock_now:
-        mock_now.return_value.date.return_value = date(2026, 4, 2)
-        await trigger_notifications(session, RunTypeEnum.actual, RUN_GET_VANCOUVER_NOW, FOR_DATE)
+        next_day_morning = datetime(2026, 4, 2, 9, tzinfo=VANCOUVER_TZ)
+        mock_now.return_value = next_day_morning
+        await trigger_notifications(
+            session,
+            RunTypeEnum.forecast,
+            next_day_morning - timedelta(hours=1),
+            FOR_DATE,
+        )
         mock_get_zones.assert_not_called()
 
 
@@ -132,7 +159,7 @@ async def test_trigger_notifications_no_zones():
         patch(SEND_MULTICAST) as mock_send,
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value = VANCOUVER_NOW
         await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_send.assert_not_called()
 
@@ -154,7 +181,7 @@ async def test_trigger_notifications_no_subscribers():
         patch(SEND_MULTICAST) as mock_send,
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value = VANCOUVER_NOW
         await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_send.assert_not_called()
 
@@ -181,7 +208,7 @@ async def test_trigger_notifications_sends_multicast():
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock),
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value = VANCOUVER_NOW
         await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_send.assert_called_once()
         call_arg = mock_send.call_args[0][0]
@@ -212,7 +239,7 @@ async def test_trigger_notifications_batches_tokens_over_limit():
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock),
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value = VANCOUVER_NOW
         await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         assert mock_send.call_count == 2
         first_batch = mock_send.call_args_list[0][0][0].tokens
@@ -244,7 +271,7 @@ async def test_trigger_notifications_calls_handle_response():
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock) as mock_handle,
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value = VANCOUVER_NOW
         await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_handle.assert_called_once_with(session, FOR_DATE, "Kamloops", tokens, mock_response)
 
@@ -281,7 +308,7 @@ async def test_trigger_notifications_continues_on_send_failure():
         patch("app.fcm.notifications.handle_fcm_response", new_callable=AsyncMock) as mock_handle,
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value = VANCOUVER_NOW
         await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         assert mock_send.call_count == 2
         mock_handle.assert_called_once()  # Only zone_b succeeded
@@ -304,7 +331,7 @@ async def test_trigger_notifications_skips_zone_with_missing_placename():
         patch(SEND_MULTICAST) as mock_send,
         patch(GET_VANCOUVER_NOW) as mock_now,
     ):
-        mock_now.return_value.date.return_value = FOR_DATE
+        mock_now.return_value = VANCOUVER_NOW
         await trigger_notifications(session, RunTypeEnum.forecast, RUN_GET_VANCOUVER_NOW, FOR_DATE)
         mock_get_tokens.assert_not_called()
         mock_send.assert_not_called()

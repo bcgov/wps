@@ -53,7 +53,7 @@ def mocks() -> Iterator[ProcessStatsMocks]:
         for scope_name in ("get_async_read_session_scope", "get_async_write_session_scope"):
             mock_scope = stack.enter_context(patch(base + scope_name))
             mock_scope.return_value.__aenter__.return_value = AsyncMock()
-        yield ProcessStatsMocks(
+        process_mocks = ProcessStatsMocks(
             validate_fire_zone_raster=patch_async(base + "validate_fire_zone_raster"),
             process_hfi=patch_async(base + "process_hfi"),
             process_hfi_elevation=patch_async(base + "process_hfi_elevation"),
@@ -69,6 +69,8 @@ def mocks() -> Iterator[ProcessStatsMocks]:
                 patch(base + "send_chatops_notification")
             ),
         )
+        process_mocks.mark_run_parameter_complete.return_value = True
+        yield process_mocks
 
 
 @pytest.mark.anyio
@@ -89,6 +91,17 @@ async def test_marks_run_complete_on_success(mocks: ProcessStatsMocks):
 async def test_calls_trigger_notifications_after_completion(mocks: ProcessStatsMocks):
     await process_sfms_hfi_stats(RunType.ACTUAL, RUN_DATETIME, FOR_DATE)
     mocks.trigger_notifications.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_does_not_trigger_notifications_when_run_was_already_complete(
+    mocks: ProcessStatsMocks,
+):
+    mocks.mark_run_parameter_complete.return_value = False
+
+    await process_sfms_hfi_stats(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
+
+    mocks.trigger_notifications.assert_not_awaited()
 
 
 @pytest.mark.anyio

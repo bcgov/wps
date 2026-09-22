@@ -8,7 +8,7 @@ from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import ZoneAdvisoryStatus, get_zones_with_advisories
 from wps_shared.db.crud.fcm import get_device_tokens_for_zone, update_device_tokens_are_active
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
-from wps_shared.utils.time import get_vancouver_now
+from wps_shared.utils.time import convert_to_sfms_timezone, get_vancouver_now
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,17 @@ async def trigger_notifications(
         return
 
     if config.get("ENVIRONMENT") == "production":
+        run_datetime_vancouver = convert_to_sfms_timezone(run_datetime)
+        if (
+            run_datetime_vancouver.date() != vancouver_now.date()
+            or run_datetime_vancouver.hour >= 12
+        ):
+            logger.info(
+                "Skipping FCM notifications: run_datetime=%s was not created this Vancouver morning",
+                run_datetime,
+            )
+            return
+
         if vancouver_now.hour >= 12:
             logger.info(
                 "Skipping FCM notifications: current Vancouver time hour=%d is at or after noon",
