@@ -3,7 +3,7 @@ from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import datetime
 from typing import cast
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -13,14 +13,13 @@ from app.auto_spatial_advisory.process_stats import process_sfms_hfi_stats
 RUN_DATETIME = datetime(2025, 1, 1, 12, 0, 0)
 FOR_DATE = datetime(2025, 1, 1).date()
 
-PROCESSING_STEPS = [
+REQUIRED_PROCESSING_STEPS = [
     "validate_fire_zone_raster",
     "process_hfi",
     "process_hfi_elevation",
     "process_high_hfi_area",
     "process_fuel_type_hfi_by_shape",
     "process_hfi_min_wind_speed",
-    "process_hfi_percent_conifer",
     "calculate_critical_hours",
     "process_zone_statuses",
 ]
@@ -39,6 +38,7 @@ class ProcessStatsMocks:
     process_zone_statuses: AsyncMock
     mark_run_parameter_complete: AsyncMock
     trigger_notifications: AsyncMock
+    send_chatops_notification: Mock
 
 
 @pytest.fixture
@@ -65,6 +65,9 @@ def mocks() -> Iterator[ProcessStatsMocks]:
             process_zone_statuses=patch_async(base + "process_zone_statuses"),
             mark_run_parameter_complete=patch_async(base + "mark_run_parameter_complete"),
             trigger_notifications=patch_async(base + "trigger_notifications"),
+            send_chatops_notification=stack.enter_context(
+                patch(base + "send_chatops_notification")
+            ),
         )
 
 
@@ -96,10 +99,34 @@ async def test_notification_failure_does_not_prevent_completion(mocks: ProcessSt
     await process_sfms_hfi_stats(RunType.ACTUAL, RUN_DATETIME, FOR_DATE)
 
     mocks.mark_run_parameter_complete.assert_awaited_once()
+    mocks.send_chatops_notification.assert_called_once()
+    message, exception = mocks.send_chatops_notification.call_args.args
+    assert "ASA FCM notifications failed" in message
+    assert str(exception) == "Firebase down"
+    assert mocks.send_chatops_notification.call_args.kwargs == {"severity": "critical"}
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("fail_step", PROCESSING_STEPS)
+async def test_percent_conifer_failure_alerts_and_allows_processing_to_complete(
+    mocks: ProcessStatsMocks,
+):
+    mocks.process_hfi_percent_conifer.side_effect = RuntimeError("percent-conifer failed")
+
+    await process_sfms_hfi_stats(RunType.ACTUAL, RUN_DATETIME, FOR_DATE)
+
+    mocks.calculate_critical_hours.assert_awaited_once()
+    mocks.process_zone_statuses.assert_awaited_once()
+    mocks.mark_run_parameter_complete.assert_awaited_once()
+    mocks.trigger_notifications.assert_awaited_once()
+    mocks.send_chatops_notification.assert_called_once()
+    message, exception = mocks.send_chatops_notification.call_args.args
+    assert "ASA percent-conifer statistics failed" in message
+    assert str(exception) == "percent-conifer failed"
+    assert mocks.send_chatops_notification.call_args.kwargs == {"severity": "critical"}
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("fail_step", REQUIRED_PROCESSING_STEPS)
 async def test_processing_failure_prevents_completion(mocks: ProcessStatsMocks, fail_step: str):
     """A failure in any processing step propagates and prevents marking the run complete."""
     getattr(mocks, fail_step).side_effect = Exception("fail")

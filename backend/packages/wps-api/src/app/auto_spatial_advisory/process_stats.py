@@ -1,6 +1,7 @@
 import logging
 from datetime import date, datetime
 
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.auto_spatial_advisory import mark_run_parameter_complete
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
@@ -29,7 +30,22 @@ async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_
     await process_high_hfi_area(run_type, run_datetime, for_date)
     await process_fuel_type_hfi_by_shape(run_type, run_datetime, for_date)
     await process_hfi_min_wind_speed(run_type, run_datetime, for_date)
-    await process_hfi_percent_conifer(run_type, run_datetime, for_date)
+    try:
+        await process_hfi_percent_conifer(run_type, run_datetime, for_date)
+    except Exception as exc:
+        logger.exception(
+            "Failed to process HFI percent conifer for run_type=%s run_datetime=%s "
+            "for_date=%s; continuing without percent-conifer statistics.",
+            run_type,
+            run_datetime,
+            for_date,
+        )
+        send_chatops_notification(
+            "ASA percent-conifer statistics failed; continuing without percent-conifer data "
+            f"for run_type={run_type} run_datetime={run_datetime} for_date={for_date}",
+            exc,
+            severity="critical",
+        )
     await calculate_critical_hours(run_type, run_datetime, for_date)
     await process_zone_statuses(run_type, run_datetime, for_date)
 
@@ -43,10 +59,16 @@ async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_
             await trigger_notifications(
                 session, RunTypeEnum(run_type.value), run_datetime, for_date
             )
-    except Exception:
+    except Exception as exc:
         logger.exception(
             "Failed to send FCM notifications for run_type=%s run_datetime=%s for_date=%s.",
             run_type,
             run_datetime,
             for_date,
+        )
+        send_chatops_notification(
+            "ASA FCM notifications failed "
+            f"for run_type={run_type} run_datetime={run_datetime} for_date={for_date}",
+            exc,
+            severity="critical",
         )
