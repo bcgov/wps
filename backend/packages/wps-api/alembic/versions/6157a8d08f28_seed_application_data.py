@@ -20,6 +20,18 @@ down_revision = "9bb0dc8ed7fb"
 branch_labels = None
 depends_on = None
 
+SEED_DATA_FILES = (
+    "application_seed_data.sql.gz",
+    "advisory_shape_fuels_seed.sql.gz",
+)
+EXPECTED_ADVISORY_SHAPE_FUELS_COUNTS = {
+    2021: 413,
+    2022: 0,
+    2023: 0,
+    2024: 409,
+    2025: 410,
+}
+
 
 def transform_geometry_values(statement: str) -> str:
     """Transform PostGIS geometry hex strings to use ST_GeomFromEWKB() with decode()
@@ -44,19 +56,11 @@ def transform_geometry_values(statement: str) -> str:
     return re.sub(pattern, replace_hex, statement)
 
 
-def upgrade():
-    """Load application data from SQL file"""
-    # Path to the data file (relative to this migration file)
-    migration_dir = Path(__file__).parent.parent
-    data_file = migration_dir / "data" / "application_seed_data.sql.gz"
-
+def load_seed_data_file(connection, data_file: Path) -> None:
+    """Load INSERT statements from one compressed seed data file."""
     if not data_file.exists():
         raise FileNotFoundError(f"Data file not found: {data_file}")
 
-    # Get the connection without prepared statements to avoid asyncpg geometry parsing
-    connection = op.get_bind().execution_options(prepared=False)
-
-    # Execute each INSERT statement individually
     with gzip.open(data_file, "rt") as f:
         statement_buffer = []
 
@@ -75,6 +79,38 @@ def upgrade():
                     transformed = transform_geometry_values(statement)
                     connection.execute(sa.text(transformed))
                 statement_buffer = []
+
+
+def validate_advisory_shape_fuels_seed(connection) -> None:
+    """Require the historical production counts expected by fresh databases."""
+    rows = connection.execute(
+        sa.text(
+            """
+            SELECT fuel_type_raster.year, COUNT(advisory_shape_fuels.id)
+            FROM fuel_type_raster
+            LEFT JOIN advisory_shape_fuels
+                ON advisory_shape_fuels.fuel_type_raster_id = fuel_type_raster.id
+            WHERE fuel_type_raster.year BETWEEN 2021 AND 2025
+            GROUP BY fuel_type_raster.year
+            ORDER BY fuel_type_raster.year
+            """
+        )
+    ).all()
+    actual_counts = dict(rows)
+    if actual_counts != EXPECTED_ADVISORY_SHAPE_FUELS_COUNTS:
+        raise RuntimeError(
+            "Unexpected advisory_shape_fuels seed counts: "
+            f"expected {EXPECTED_ADVISORY_SHAPE_FUELS_COUNTS}, got {actual_counts}"
+        )
+
+
+def upgrade():
+    """Load application data from compressed SQL files."""
+    migration_dir = Path(__file__).parent.parent
+    connection = op.get_bind().execution_options(prepared=False)
+    for filename in SEED_DATA_FILES:
+        load_seed_data_file(connection, migration_dir / "data" / filename)
+    validate_advisory_shape_fuels_seed(connection)
 
 
 def downgrade():
