@@ -207,7 +207,7 @@ objects:
                   scheme: HTTP
                 initialDelaySeconds: 5
                 periodSeconds: 5
-                failureThreshold: 20
+                failureThreshold: 40
                 timeoutSeconds: 2
               readinessProbe:
                 httpGet:
