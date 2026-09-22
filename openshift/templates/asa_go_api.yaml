@@ -167,6 +167,26 @@ objects:
                   value: ${POSTGRES_POOL_SIZE}
                 - name: POSTGRES_MAX_OVERFLOW
                   value: ${POSTGRES_MAX_OVERFLOW}
+                - name: REDIS_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-host
+                - name: REDIS_PORT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-port
+                - name: ASA_STATS_CACHE_ENABLED
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.asa-stats-cache-enabled
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-redis
+                      key: database-password
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
