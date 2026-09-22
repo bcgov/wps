@@ -43,6 +43,73 @@ def test_raster_set_no_data_value():
         assert updated_array[0, 0] == updated_nodata_value
 
 
+def test_require_nodata_value_returns_band_metadata():
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+    dataset.GetRasterBand(1).SetNoDataValue(-1)
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_ds:
+        assert wps_ds.require_nodata_value() == -1
+
+
+def test_require_nodata_value_identifies_source_path():
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+    source_path = "/vsis3/test-bucket/zone-units/fire_zone_units.tif"
+
+    with WPSDataset(ds_path=source_path, ds=dataset) as wps_ds:
+        with pytest.raises(ValueError) as error:
+            wps_ds.require_nodata_value()
+
+    assert str(error.value) == f"Raster does not define a nodata value: {source_path}"
+
+
+def test_iter_windows_uses_configured_chunk_size_and_reads_partial_edges():
+    values = np.arange(12).reshape(3, 4)
+    dataset = gdal.GetDriverByName("MEM").Create("", 4, 3, 1, gdal.GDT_Int32)
+    dataset.GetRasterBand(1).WriteArray(values)
+
+    with WPSDataset(ds_path=None, ds=dataset, chunk_size=2) as wps_dataset:
+        windows = list(wps_dataset.iter_windows())
+
+    assert [
+        (window.x_offset, window.y_offset, window.width, window.height) for window in windows
+    ] == [
+        (0, 0, 2, 2),
+        (2, 0, 2, 2),
+        (0, 2, 2, 1),
+        (2, 2, 2, 1),
+    ]
+    np.testing.assert_array_equal(windows[-1].array, [[10, 11]])
+
+
+def test_iter_windows_accepts_window_size_override():
+    values = np.arange(6).reshape(2, 3)
+    dataset = gdal.GetDriverByName("MEM").Create("", 3, 2, 2, gdal.GDT_Int32)
+    dataset.GetRasterBand(2).WriteArray(values)
+
+    with WPSDataset(ds_path=None, ds=dataset, band=2, chunk_size=1) as wps_dataset:
+        windows = list(wps_dataset.iter_windows(window_size=3))
+
+    assert len(windows) == 1
+    np.testing.assert_array_equal(windows[0].array, values)
+
+
+@pytest.mark.parametrize("window_size", [0, -1])
+def test_iter_windows_rejects_nonpositive_window_size(window_size):
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_dataset:
+        with pytest.raises(ValueError, match="greater than zero"):
+            list(wps_dataset.iter_windows(window_size))
+
+
+def test_pixel_area_returns_squared_projection_units():
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+    dataset.SetGeoTransform((0, 10, 0, 0, 0, -10))
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_dataset:
+        assert wps_dataset.pixel_area == 100
+
+
 def test_replace_nodata_with_nan_casts_integer_array():
     """replace_nodata_with(np.nan) on an integer raster should cast to float64 and replace nodata with nan."""
     driver: gdal.Driver = gdal.GetDriverByName("MEM")
@@ -319,6 +386,23 @@ def test_raster_warp():
         assert output_ds.as_gdal_ds().GetGeoTransform() == wps2_ds.as_gdal_ds().GetGeoTransform()
         assert output_ds.as_gdal_ds().RasterXSize == wps2_ds.as_gdal_ds().RasterXSize
         assert output_ds.as_gdal_ds().RasterYSize == wps2_ds.as_gdal_ds().RasterYSize
+
+
+def test_raster_warp_accepts_creation_options():
+    extent = (-10, 10, -10, 10)
+    source = create_test_dataset("test_creation_options_source.tif", 20, 20, extent, 4326)
+    reference = create_test_dataset("test_creation_options_reference.tif", 20, 20, extent, 4326)
+
+    with (
+        WPSDataset(ds_path=None, ds=source) as source_dataset,
+        WPSDataset(ds_path=None, ds=reference) as reference_dataset,
+        source_dataset.warp_to_match(
+            reference_dataset,
+            "/vsimem/test_creation_options.tif",
+            creation_options=["TILED=YES", "BLOCKXSIZE=16", "BLOCKYSIZE=16"],
+        ) as warped,
+    ):
+        assert warped.ds.GetRasterBand(1).GetBlockSize() == [16, 16]
 
 
 def test_close_is_a_noop_for_mem_driver_dataset_with_no_real_backing_file():

@@ -45,6 +45,9 @@ parameters:
   - name: CPU_REQUEST
     required: true
     value: "1.5"
+  - name: REPLICAS
+    description: Number of NATS consumer replicas
+    value: "3"
 
 objects:
   - apiVersion: v1
@@ -282,7 +285,7 @@ objects:
             }
           ]
     spec:
-      replicas: 3
+      replicas: ${{REPLICAS}}
       selector:
         matchLabels:
           app: ${APP_NAME}-${SUFFIX}
@@ -436,11 +439,6 @@ objects:
                     secretKeyRef:
                       name: ${GLOBAL_NAME}
                       key: wfwx-secret
-                - name: DEM_NAME
-                  valueFrom:
-                    configMapKeyRef:
-                      name: ${GLOBAL_NAME}
-                      key: env.dem_name
                 - name: CLASSIFIED_TPI_DEM_NAME
                   valueFrom:
                     configMapKeyRef:

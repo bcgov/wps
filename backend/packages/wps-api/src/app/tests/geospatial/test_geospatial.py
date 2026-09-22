@@ -1,5 +1,5 @@
 import os
-from wps_shared.geospatial.geospatial import raster_mul, rasters_match
+from wps_shared.geospatial.geospatial import rasters_match
 from osgeo import gdal
 
 raster1 = os.path.join(os.path.dirname(__file__), "3005_lats.tif")
@@ -49,14 +49,11 @@ def test_rasters_no_match_extent():
         assert not match
 
 
-def test_raster_mul_can_write_to_file(tmp_path):
-    output_path = tmp_path / "masked.tif"
+def test_rasters_no_match_rotation():
+    with gdal.Open(raster1) as r1:
+        rotated = gdal.GetDriverByName("MEM").CreateCopy("", r1)
+        geotransform = list(rotated.GetGeoTransform())
+        geotransform[2] = 1
+        rotated.SetGeoTransform(geotransform)
 
-    with gdal.Open(raster1) as r1, gdal.Open(raster1) as r2:
-        raster_mul(r1, r2, output_path=str(output_path))
-
-    with gdal.Open(str(output_path), gdal.GA_ReadOnly) as reopened:
-        assert reopened is not None
-        assert reopened.GetDriver().ShortName == "GTiff"
-        assert reopened.RasterXSize > 0
-        assert reopened.RasterYSize > 0
+        assert not rasters_match(r1, rotated)

@@ -23,7 +23,6 @@ BEGIN
     -- Delete from all tables using the run_ids array
     DELETE FROM advisory_fuel_stats WHERE run_parameters = ANY(run_ids);
     DELETE FROM advisory_tpi_stats WHERE run_parameters = ANY(run_ids);
-    DELETE FROM advisory_elevation_stats WHERE run_parameters = ANY(run_ids);
     DELETE FROM high_hfi_area WHERE run_parameters = ANY(run_ids);
     DELETE FROM advisory_hfi_wind_speed WHERE run_parameters = ANY(run_ids);
     DELETE FROM advisory_hfi_percent_conifer WHERE run_parameters = ANY(run_ids);
@@ -39,17 +38,18 @@ from wps_shared.db.crud.auto_spatial_advisory import get_most_recent_run_paramet
 from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.wps_logging import configure_logging
 from wps_shared.run_type import RunType
-from .. import process_stats
+from app.auto_spatial_advisory.process_stats import process_sfms_hfi_stats
 
 
 async def main(for_dates: list[date], run_type: RunType):
+    """Re-run the full advisory pipeline, including fire-zone raster validation."""
     async with get_async_read_session_scope() as session:
         for for_date in for_dates:
             # try to reprocess the run that ASA will look for
             run_param = await get_most_recent_run_parameters(session, run_type, for_date)
             if run_param:
                 run_datetime = run_param[0].run_datetime
-                await process_stats.process_sfms_hfi_stats(run_type, run_datetime, for_date)
+                await process_sfms_hfi_stats(run_type, run_datetime, for_date)
             else:
                 print(f"No run params found for {for_date} - {run_type.value}")
 

@@ -29,23 +29,6 @@ export interface FireZoneFuelStats {
   fuel_area: number
 }
 
-export interface ElevationInfo {
-  minimum: number
-  quartile_25: number
-  median: number
-  quartile_75: number
-  maximum: number
-}
-
-export interface ElevationInfoByThreshold {
-  threshold: number
-  elevation_info: ElevationInfo
-}
-
-export interface FireZoneElevationInfoResponse {
-  hfi_elevation_info: ElevationInfoByThreshold[]
-}
-
 export interface FireZoneTPIStats {
   fire_zone_id: number
   valley_bottom_hfi?: number
@@ -146,24 +129,13 @@ export async function getFireCentreHFIStats(
   return data
 }
 
-export async function getFireZoneElevationInfo(
-  fire_zone_id: number,
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string
-): Promise<FireZoneElevationInfoResponse> {
-  const url = `fba/fire-zone-elevation-info/${run_type}/${run_datetime}/${for_date}/${fire_zone_id}`
-  const { data } = await axios.get(url)
-  return data
-}
-
 export async function getFireCentreTPIStats(
   fire_centre_name: string,
   run_type: RunType,
-  run_datetime: string,
-  for_date: string
+  for_date: string,
+  run_datetime: string
 ): Promise<FireCentreTPIResponse> {
-  const url = `fba/fire-centre-tpi-stats/${run_type}/${run_datetime}/${for_date}/${fire_centre_name}`
+  const url = `fba/fire-centre-tpi-stats/${run_type}/${for_date}/${run_datetime}/${fire_centre_name}`
   const { data } = await axios.get(url)
   return data
 }
