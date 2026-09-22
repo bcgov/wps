@@ -23,8 +23,6 @@ from wps_shared.schemas.fba import (
     TPIResponse,
 )
 
-from app.utils import strtobool
-
 logger = logging.getLogger(__name__)
 cache_expiry_seconds = 86400  # 1 day -- generous since a completed run's data never changes
 
@@ -61,11 +59,9 @@ class ASARedisCache:
         # _get()/_put() wrap the whole call in asyncio.wait_for(timeout_seconds) as the real ceiling,
         # via asyncio.to_thread so this blocking redis-py call doesn't sit on the event loop.
         self._timeout_seconds = timeout_seconds
-        self._enabled = (
-            bool(strtobool(config.get("ASA_STATS_CACHE_ENABLED", "False")))
-            if enabled is None
-            else enabled
-        )
+        if enabled is None:
+            enabled = config.get("ASA_STATS_CACHE_ENABLED", "False") == "True"
+        self._enabled = enabled
         self._client: Optional[StrictRedis] = None
 
     def connection_kwargs(self) -> dict:
