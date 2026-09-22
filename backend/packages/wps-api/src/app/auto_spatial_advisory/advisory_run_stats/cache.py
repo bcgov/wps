@@ -4,6 +4,8 @@ fire-centre-scoped counterparts).
 Safe to cache: this data is immutable once an SFMS run completes because it's keyed on the run itself
 (run_type/run_datetime/for_date, plus fire_centre_name for the scoped variants), so a new run
 gets a new key rather than needing invalidation.
+
+Keep ``ASA_STATS_CACHE_ENABLED`` disabled in development and enable it only in production.
 """
 
 import asyncio
@@ -20,6 +22,8 @@ from wps_shared.schemas.fba import (
     ProvincialSummaryResponse,
     TPIResponse,
 )
+
+from app.utils import strtobool
 
 logger = logging.getLogger(__name__)
 cache_expiry_seconds = 86400  # 1 day -- generous since a completed run's data never changes
@@ -52,11 +56,16 @@ class ASARedisCache:
     below is the one thing tests mock (see tests/conftest.py's autouse
     mock_advisory_run_stats_redis)."""
 
-    def __init__(self, timeout_seconds: float = 1):
+    def __init__(self, timeout_seconds: float = 1, enabled: Optional[bool] = None):
         # socket_connect_timeout/socket_timeout below don't cover DNS resolution (getaddrinfo)
         # _get()/_put() wrap the whole call in asyncio.wait_for(timeout_seconds) as the real ceiling,
         # via asyncio.to_thread so this blocking redis-py call doesn't sit on the event loop.
         self._timeout_seconds = timeout_seconds
+        self._enabled = (
+            bool(strtobool(config.get("ASA_STATS_CACHE_ENABLED", "False")))
+            if enabled is None
+            else enabled
+        )
         self._client: Optional[StrictRedis] = None
 
     def connection_kwargs(self) -> dict:
@@ -78,6 +87,9 @@ class ASARedisCache:
         return self._client
 
     async def _get(self, key: str, adapter: TypeAdapter) -> Optional[T]:
+        if not self._enabled:
+            return None
+
         try:
             cached_json = await asyncio.wait_for(
                 asyncio.to_thread(self.client().get, key), timeout=self._timeout_seconds
@@ -92,6 +104,9 @@ class ASARedisCache:
         return None
 
     async def _put(self, key: str, value: T, adapter: TypeAdapter):
+        if not self._enabled:
+            return
+
         try:
             await asyncio.wait_for(
                 asyncio.to_thread(

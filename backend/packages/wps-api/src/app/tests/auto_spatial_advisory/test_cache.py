@@ -27,6 +27,61 @@ async def test_get_cached_hfi_stats_miss_returns_none(mocker):
 
 
 @pytest.mark.anyio
+async def test_disabled_cache_read_does_not_connect_to_redis(mocker):
+    redis_cache = ASARedisCache(enabled=False)
+    client = mocker.patch.object(redis_cache, "client")
+
+    result = await redis_cache.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE)
+
+    assert result is None
+    client.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_disabled_cache_write_does_not_connect_to_redis(mocker):
+    redis_cache = ASARedisCache(enabled=False)
+    client = mocker.patch.object(redis_cache, "client")
+
+    await redis_cache.put_cached_hfi_stats(
+        RUN_TYPE, RUN_DATETIME, FOR_DATE, HFIStatsResponse(zone_data={})
+    )
+
+    client.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_cache_is_disabled_by_default(mocker):
+    get_config = mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.cache.config.get",
+        side_effect=lambda key, default=None: default,
+    )
+    redis_cache = ASARedisCache()
+    client = mocker.patch.object(redis_cache, "client")
+
+    result = await redis_cache.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE)
+
+    assert result is None
+    client.assert_not_called()
+    get_config.assert_called_once_with("ASA_STATS_CACHE_ENABLED", "False")
+
+
+@pytest.mark.anyio
+async def test_cache_can_be_enabled_by_setting(mocker):
+    mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.cache.config.get", return_value="True"
+    )
+    redis_cache = ASARedisCache()
+    mock_redis = MagicMock()
+    mock_redis.get.return_value = None
+    client = mocker.patch.object(redis_cache, "client", return_value=mock_redis)
+
+    result = await redis_cache.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE)
+
+    assert result is None
+    client.assert_called_once()
+
+
+@pytest.mark.anyio
 async def test_put_then_get_cached_hfi_stats_round_trips(mocker):
     response = HFIStatsResponse(zone_data={})
     stored = {}
@@ -172,7 +227,7 @@ async def test_get_bounded_by_timeout_even_if_redis_call_hangs(mocker):
     resolution isn't covered by that timeout and can add several extra seconds on top of it.
     A hanging client.get() should still return within roughly the configured timeout, not the
     full duration of the underlying (mocked, slow) call."""
-    redis_cache = ASARedisCache(timeout_seconds=0.05)
+    redis_cache = ASARedisCache(timeout_seconds=0.05, enabled=True)
     slow_client = MagicMock()
     slow_client.get.side_effect = lambda key: time.sleep(1)  # much longer than the timeout
     mocker.patch.object(redis_cache, "client", return_value=slow_client)
