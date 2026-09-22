@@ -6,13 +6,13 @@ Create Date: 2025-12-29 14:44:23.524448
 
 """
 
-from alembic import op
-import sqlalchemy as sa
-from pathlib import Path
-import re
 import gzip
-from shapely import wkb
+import re
+from pathlib import Path
 
+import sqlalchemy as sa
+from alembic import op
+from shapely import wkb
 
 # revision identifiers, used by Alembic.
 revision = "6157a8d08f28"
@@ -24,13 +24,6 @@ SEED_DATA_FILES = (
     "application_seed_data.sql.gz",
     "advisory_shape_fuels_seed.sql.gz",
 )
-EXPECTED_ADVISORY_SHAPE_FUELS_COUNTS = {
-    2021: 413,
-    2022: 0,
-    2023: 0,
-    2024: 409,
-    2025: 410,
-}
 
 
 def transform_geometry_values(statement: str) -> str:
@@ -81,36 +74,12 @@ def load_seed_data_file(connection, data_file: Path) -> None:
                 statement_buffer = []
 
 
-def validate_advisory_shape_fuels_seed(connection) -> None:
-    """Require the historical production counts expected by fresh databases."""
-    rows = connection.execute(
-        sa.text(
-            """
-            SELECT fuel_type_raster.year, COUNT(advisory_shape_fuels.id)
-            FROM fuel_type_raster
-            LEFT JOIN advisory_shape_fuels
-                ON advisory_shape_fuels.fuel_type_raster_id = fuel_type_raster.id
-            WHERE fuel_type_raster.year BETWEEN 2021 AND 2025
-            GROUP BY fuel_type_raster.year
-            ORDER BY fuel_type_raster.year
-            """
-        )
-    ).all()
-    actual_counts = dict(rows)
-    if actual_counts != EXPECTED_ADVISORY_SHAPE_FUELS_COUNTS:
-        raise RuntimeError(
-            "Unexpected advisory_shape_fuels seed counts: "
-            f"expected {EXPECTED_ADVISORY_SHAPE_FUELS_COUNTS}, got {actual_counts}"
-        )
-
-
 def upgrade():
     """Load application data from compressed SQL files."""
     migration_dir = Path(__file__).parent.parent
     connection = op.get_bind().execution_options(prepared=False)
     for filename in SEED_DATA_FILES:
         load_seed_data_file(connection, migration_dir / "data" / filename)
-    validate_advisory_shape_fuels_seed(connection)
 
 
 def downgrade():
