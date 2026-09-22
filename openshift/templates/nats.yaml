@@ -12,6 +12,9 @@ parameters:
   - name: SUFFIX
     description: Deployment suffix, e.g. pr-###
     required: true
+  - name: ENVIRONMENT
+    description: Deployment environment used to control environment-specific behaviour
+    value: ""
   - name: APP_NAME
     description: Application name (wps - wildfire predictive services)
     value: wps
@@ -325,6 +328,8 @@ objects:
               env:
                 - name: UV_NO_CACHE
                   value: "1"
+                - name: ENVIRONMENT
+                  value: ${ENVIRONMENT}
                 - name: NATS_STREAM_PREFIX
                   value: ${APP_NAME}-${SUFFIX}
                 - name: NATS_SERVER

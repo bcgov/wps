@@ -9,7 +9,7 @@ source "$(dirname ${0})/common/common"
 #%
 #% Usage:
 #%
-#%   [CPU_REQUEST=<>] [MEMORY_REQUEST=<>] [MEMORY_LIMIT=<>] [REPLICAS=<>] \
+#%   [CPU_REQUEST=<>] [MEMORY_REQUEST=<>] [MEMORY_LIMIT=<>] [REPLICAS=<>] [ENVIRONMENT=<>] \
 #%     ${THIS_FILE} [SUFFIX] [apply]
 #%
 #% Examples:
@@ -30,6 +30,7 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
  -p IMAGE_NAME=${APP_NAME}-api-${SUFFIX} \
  -p IMAGE_TAG=${SUFFIX} \
  -p POSTGRES_DATABASE=wps \
+ ${ENVIRONMENT:+ "-p ENVIRONMENT=${ENVIRONMENT}"} \
  ${MEMORY_REQUEST:+ "-p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
  ${CPU_REQUEST:+ "-p CPU_REQUEST=${CPU_REQUEST}"} \

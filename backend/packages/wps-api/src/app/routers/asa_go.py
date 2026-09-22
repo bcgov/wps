@@ -32,8 +32,8 @@ router = APIRouter(prefix="/asa-go")
 
 
 def _validate_not_before_today(*dates: date) -> None:
-    # local config to disable date validation
-    if config.get("DISABLE_ASA_GO_DATE_VALIDATION") == "True":
+    # allow historical dates outside production for testing and reprocessing
+    if config.get("ENVIRONMENT", "development") != "production":
         return
 
     minimum_allowed_date = get_vancouver_now().date()
