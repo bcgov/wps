@@ -1,27 +1,14 @@
 """Memory-bounded helpers for statistics over rasters on the same grid."""
 
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
 
 import numpy as np
-from osgeo import gdal
 
 from wps_shared.geospatial.geospatial import rasters_match
+from wps_shared.geospatial.wps_dataset import RasterWindow, WPSDataset
 
-DEFAULT_WINDOW_SIZE = 256
 ZoneValueKey = tuple[int, int]
 ZoneValueCounts = dict[ZoneValueKey, int]
-
-
-@dataclass(frozen=True)
-class RasterWindow:
-    """Arrays and their shared pixel offsets for one bounded raster window."""
-
-    x_offset: int
-    y_offset: int
-    width: int
-    height: int
-    arrays: tuple[np.ndarray, ...]
 
 
 def count_values_by_zone(
@@ -60,7 +47,7 @@ def count_values_by_zone(
 
 
 def iter_raster_windows(
-    datasets: Sequence[gdal.Dataset], window_size: int = DEFAULT_WINDOW_SIZE
+    datasets: Sequence[WPSDataset], window_size: int | None = None
 ) -> Iterator[RasterWindow]:
     """Yield aligned single-band arrays without loading complete rasters into memory.
 
@@ -72,17 +59,17 @@ def iter_raster_windows(
 
     reference = datasets[0]
     for dataset in datasets[1:]:
-        if not rasters_match(reference, dataset):
-            raise ValueError(f"Raster grid does not match reference: {dataset.GetDescription()}")
-    bands = [dataset.GetRasterBand(1) for dataset in datasets]
-    for y_offset in range(0, reference.RasterYSize, window_size):
-        height = min(window_size, reference.RasterYSize - y_offset)
-        for x_offset in range(0, reference.RasterXSize, window_size):
-            width = min(window_size, reference.RasterXSize - x_offset)
-            yield RasterWindow(
-                x_offset=x_offset,
-                y_offset=y_offset,
-                width=width,
-                height=height,
-                arrays=tuple(band.ReadAsArray(x_offset, y_offset, width, height) for band in bands),
-            )
+        if not rasters_match(reference.ds, dataset.ds):
+            raise ValueError(f"Raster grid does not match reference: {dataset.ds.GetDescription()}")
+
+    for window in reference.iter_windows(window_size):
+        if len(datasets) == 1:
+            yield window
+            continue
+        yield RasterWindow(
+            x_offset=window.x_offset,
+            y_offset=window.y_offset,
+            width=window.width,
+            height=window.height,
+            arrays=window.arrays + tuple(dataset.read_window(window) for dataset in datasets[1:]),
+        )

@@ -150,7 +150,7 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
                     zone_nodata = resized_zone_source.ds.GetRasterBand(1).GetNoDataValue()
                     tpi_band = tpi_source.ds.GetRasterBand(1)
                     zone_band = resized_zone_source.ds.GetRasterBand(1)
-                    for window in iter_raster_windows([resized_hfi_source.ds]):
+                    for window in iter_raster_windows([resized_hfi_source]):
                         hfi_classes = window.arrays[0]
                         positive_hfi = hfi_classes > 0
                         if not np.any(positive_hfi):

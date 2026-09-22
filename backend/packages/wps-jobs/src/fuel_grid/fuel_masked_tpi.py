@@ -14,8 +14,8 @@ from wps_shared.db.database import get_async_read_session_scope
 from wps_shared.geospatial.geospatial import (
     COMPRESSED_TILED_GEOTIFF_OPTIONS,
     GDALResamplingMethod,
-    warp_to_match_raster,
 )
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import iter_raster_windows
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -41,49 +41,42 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
     tpi_raster_name = config.get("CLASSIFIED_TPI_DEM_NAME")
     fuel_raster_key = raster_addresser.gdal_path(S3Key(fuel_type_raster_path))
     tpi_raster_key = raster_addresser.gdal_path(S3Key(f"dem/tpi/{tpi_raster_name}"))
-    fuel_ds: gdal.Dataset = gdal.Open(fuel_raster_key, gdal.GA_ReadOnly)  # LCC projection
-    tpi_ds: gdal.Dataset = gdal.Open(tpi_raster_key, gdal.GA_ReadOnly)  # BC Albers 3005 projection
-
-    # preserve categorical fuel codes while matching the TPI extent, projection, and pixel size
     warped_fuel_path = os.path.join(temp_dir, "warped_fuel.tif")
-    warped_fuel_ds: gdal.Dataset = warp_to_match_raster(
-        fuel_ds, tpi_ds, warped_fuel_path, GDALResamplingMethod.NEAREST_NEIGHBOUR
-    )
+    with WPSDataset(fuel_raster_key) as fuel, WPSDataset(tpi_raster_key) as tpi:
+        # preserve categorical fuel codes while matching the TPI extent, projection, and pixel size
+        with fuel.warp_to_match(
+            tpi,
+            output_path=warped_fuel_path,
+            resample_method=GDALResamplingMethod.NEAREST_NEIGHBOUR,
+        ) as warped_fuel:
+            tpi_band: gdal.Band = tpi.ds.GetRasterBand(1)
 
-    masked_tpi_dataset: gdal.Dataset | None = None
-    try:
-        geo_transform = tpi_ds.GetGeoTransform()
-        tpi_ds_srs = tpi_ds.GetProjection()
-        tpi_band: gdal.Band = tpi_ds.GetRasterBand(1)
-
-        # write a local GeoTIFF because the caller uploads the finished object to S3.
-        output_driver: gdal.Driver = gdal.GetDriverByName("GTiff")
-        output_path = os.path.join(temp_dir, "fuel_masked_tpi.tif")
-        masked_tpi_dataset = output_driver.Create(
-            output_path,
-            xsize=tpi_band.XSize,
-            ysize=tpi_band.YSize,
-            bands=1,
-            eType=gdal.GDT_Byte,
-            options=COMPRESSED_TILED_GEOTIFF_OPTIONS,
-        )
-        masked_tpi_dataset.SetGeoTransform(geo_transform)
-        masked_tpi_dataset.SetProjection(tpi_ds_srs)
-        masked_fuel_type_band: gdal.Band = masked_tpi_dataset.GetRasterBand(1)
-        masked_fuel_type_band.SetNoDataValue(0)
-        for window in iter_raster_windows([warped_fuel_ds, tpi_ds]):
-            warped_fuel_codes, tpi_classes = window.arrays
-            combustible = (warped_fuel_codes > 0) & (warped_fuel_codes < 99)
-            # use zero as background so only fuel-covered TPI classes contribute to later statistics
-            tpi_classes[~combustible] = 0
-            masked_fuel_type_band.WriteArray(tpi_classes, window.x_offset, window.y_offset)
-        masked_fuel_type_band.FlushCache()
-        return output_path
-    finally:
-        warped_fuel_ds = None
-        fuel_ds = None
-        tpi_ds = None
-        masked_tpi_dataset = None
+            # write a local GeoTIFF because the caller uploads the finished object to S3.
+            output_driver: gdal.Driver = gdal.GetDriverByName("GTiff")
+            output_path = os.path.join(temp_dir, "fuel_masked_tpi.tif")
+            masked_tpi_dataset = output_driver.Create(
+                output_path,
+                xsize=tpi_band.XSize,
+                ysize=tpi_band.YSize,
+                bands=1,
+                eType=gdal.GDT_Byte,
+                options=COMPRESSED_TILED_GEOTIFF_OPTIONS,
+            )
+            try:
+                masked_tpi_dataset.SetGeoTransform(tpi.ds.GetGeoTransform())
+                masked_tpi_dataset.SetProjection(tpi.ds.GetProjection())
+                masked_fuel_type_band: gdal.Band = masked_tpi_dataset.GetRasterBand(1)
+                masked_fuel_type_band.SetNoDataValue(0)
+                for window in iter_raster_windows([warped_fuel, tpi]):
+                    warped_fuel_codes, tpi_classes = window.arrays
+                    combustible = (warped_fuel_codes > 0) & (warped_fuel_codes < 99)
+                    # use zero as background so only fuel-covered TPI classes contribute to later statistics
+                    tpi_classes[~combustible] = 0
+                    masked_fuel_type_band.WriteArray(tpi_classes, window.x_offset, window.y_offset)
+                masked_fuel_type_band.FlushCache()
+                return output_path
+            finally:
+                masked_tpi_dataset = None
 
 
 def get_fuel_masked_tpi_key(year: int, version: int) -> str:

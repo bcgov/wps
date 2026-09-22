@@ -35,7 +35,7 @@ def calculate_masked_tpi_areas(
         with zones.warp_to_match(masked_tpi, output_path=warped_zone_path) as tpi_zones:
             area_per_pixel = masked_tpi.pixel_area
             zone_nodata = tpi_zones.ds.GetRasterBand(1).GetNoDataValue()
-            for window in iter_raster_windows([tpi_zones.ds, masked_tpi.ds]):
+            for window in iter_raster_windows([tpi_zones, masked_tpi]):
                 zone_ids, tpi_classes = window.arrays
                 mask = (zone_ids != zone_nodata) & np.isin(tpi_classes, (1, 2, 3))
                 zone_value_counts = count_values_by_zone(zone_ids, tpi_classes, mask)

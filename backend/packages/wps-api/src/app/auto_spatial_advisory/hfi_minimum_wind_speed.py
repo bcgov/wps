@@ -91,7 +91,7 @@ def calculate_minimum_wind_by_zone(
     ):
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         wind_nodata = wind.ds.GetRasterBand(1).GetNoDataValue()
-        for window in iter_raster_windows([zones.ds, raw_hfi.ds, wind.ds]):
+        for window in iter_raster_windows([zones, raw_hfi, wind]):
             zone_ids, raw_hfi_values, wind_values = window.arrays
             update_minimum_wind_by_zone(
                 minimum_wind_speed_by_zone_and_threshold,

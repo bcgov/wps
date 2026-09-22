@@ -23,7 +23,7 @@ def calculate_fuel_type_areas_per_zone(
     with gdal_s3_context(), WPSDataset(zone_path) as zones, WPSDataset(fuel_raster_path) as fuel:
         area_per_pixel = fuel.pixel_area
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
-        for window in iter_raster_windows([zones.ds, fuel.ds]):
+        for window in iter_raster_windows([zones, fuel]):
             zone_ids, fuel_codes = window.arrays
             mask = (zone_ids != zone_nodata) & (fuel_codes > 0) & (fuel_codes < 99)
             counts.update(count_values_by_zone(zone_ids, fuel_codes, mask))

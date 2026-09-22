@@ -76,7 +76,7 @@ def calculate_minimum_percent_conifer_by_zone(
         WPSDataset(percent_conifer_path) as percent_conifer,
     ):
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
-        for window in iter_raster_windows([zones.ds, raw_hfi.ds, percent_conifer.ds]):
+        for window in iter_raster_windows([zones, raw_hfi, percent_conifer]):
             zone_ids, raw_hfi_values, percent_conifer_values = window.arrays
             update_minimum_percent_conifer_by_zone(
                 minimum_percent_conifer_by_zone,

@@ -62,6 +62,46 @@ def test_require_nodata_value_identifies_source_path():
     assert str(error.value) == f"Raster does not define a nodata value: {source_path}"
 
 
+def test_iter_windows_uses_configured_chunk_size_and_reads_partial_edges():
+    values = np.arange(12).reshape(3, 4)
+    dataset = gdal.GetDriverByName("MEM").Create("", 4, 3, 1, gdal.GDT_Int32)
+    dataset.GetRasterBand(1).WriteArray(values)
+
+    with WPSDataset(ds_path=None, ds=dataset, chunk_size=2) as wps_dataset:
+        windows = list(wps_dataset.iter_windows())
+
+    assert [
+        (window.x_offset, window.y_offset, window.width, window.height) for window in windows
+    ] == [
+        (0, 0, 2, 2),
+        (2, 0, 2, 2),
+        (0, 2, 2, 1),
+        (2, 2, 2, 1),
+    ]
+    np.testing.assert_array_equal(windows[-1].arrays[0], [[10, 11]])
+
+
+def test_iter_windows_accepts_window_size_override():
+    values = np.arange(6).reshape(2, 3)
+    dataset = gdal.GetDriverByName("MEM").Create("", 3, 2, 2, gdal.GDT_Int32)
+    dataset.GetRasterBand(2).WriteArray(values)
+
+    with WPSDataset(ds_path=None, ds=dataset, band=2, chunk_size=1) as wps_dataset:
+        windows = list(wps_dataset.iter_windows(window_size=3))
+
+    assert len(windows) == 1
+    np.testing.assert_array_equal(windows[0].arrays[0], values)
+
+
+@pytest.mark.parametrize("window_size", [0, -1])
+def test_iter_windows_rejects_nonpositive_window_size(window_size):
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_dataset:
+        with pytest.raises(ValueError, match="greater than zero"):
+            list(wps_dataset.iter_windows(window_size))
+
+
 def test_pixel_area_returns_squared_projection_units():
     dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Int32)
     dataset.SetGeoTransform((0, 10, 0, 0, 0, -10))

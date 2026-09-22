@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from osgeo import gdal, osr
 
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
     iter_raster_windows,
@@ -19,7 +20,7 @@ def create_raster(values: np.ndarray, geotransform=(0, 10, 0, 20, 0, -10)):
     spatial_reference.ImportFromEPSG(3005)
     dataset.SetProjection(spatial_reference.ExportToWkt())
     dataset.GetRasterBand(1).WriteArray(values)
-    return dataset
+    return WPSDataset(ds_path=None, ds=dataset)
 
 
 def test_count_values_by_zone_counts_only_included_pixels():

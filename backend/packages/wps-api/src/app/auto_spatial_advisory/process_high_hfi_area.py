@@ -63,7 +63,7 @@ def calculate_high_hfi_raster_areas(
     with WPSDataset(zone_path) as zones, WPSDataset(classified_hfi_path) as hfi:
         area_per_pixel = zones.pixel_area
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
-        for window in iter_raster_windows([zones.ds, hfi.ds]):
+        for window in iter_raster_windows([zones, hfi]):
             zone_ids, classified_hfi = window.arrays
             count_high_hfi_pixels(counts, zone_ids, classified_hfi, zone_nodata)
     return {key: count * area_per_pixel for key, count in counts.items()}
