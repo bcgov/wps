@@ -6,6 +6,7 @@ metadata:
     description: "Install a fuel grid and derived ASA static data."
     tags: "job,sfms,fuel"
 labels:
+  app: "${NAME}-${SUFFIX}"
   app.kubernetes.io/part-of: "${NAME}-${SUFFIX}"
 parameters:
   - name: NAME
