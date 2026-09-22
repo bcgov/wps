@@ -524,24 +524,38 @@ async def save_run_parameters(
 
 async def mark_run_parameter_complete(
     session: AsyncSession, run_type: RunType, run_datetime: datetime, for_date: date
-):
+) -> bool:
+    """Mark a run complete and return whether this call performed the transition."""
     run_parameters = await get_run_parameters(session, run_type, run_datetime, for_date)
     if not run_parameters:
-        logger.info(
-            f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
-        )
+        raise RuntimeError(f"No run parameters found for {run_type} {run_datetime} {for_date}")
 
     if run_parameters.complete:
         logger.info(
             f"Run parameters already marked as complete for {run_type} {run_datetime} {for_date}"
         )
-        return
+        return False
 
-    stmt = update(RunParameters).where(RunParameters.id == run_parameters.id).values(complete=True)
+    stmt = (
+        update(RunParameters)
+        .where(RunParameters.id == run_parameters.id, RunParameters.complete.is_not(True))
+        .values(complete=True)
+        .returning(RunParameters.id)
+    )
+    result = await session.execute(stmt)
+    if result.scalar_one_or_none() is None:
+        logger.info(
+            "Run parameters were marked complete by another processor for %s %s %s",
+            run_type,
+            run_datetime,
+            for_date,
+        )
+        return False
+
     logger.info(
         f"Marking run parameter {run_parameters.id} as complete for {run_type} {run_datetime} {for_date}"
     )
-    await session.execute(stmt)
+    return True
 
 
 async def save_advisory_elevation_tpi_stats(

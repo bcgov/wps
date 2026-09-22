@@ -18,7 +18,7 @@ from wps_shared.db.models.auto_spatial_advisory import AdvisoryHFIPercentConifer
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import iter_aligned_raster_windows
 from wps_shared.run_type import RunType
-from wps_shared.sfms.raster_addresser import BaseRasterAddresser
+from wps_shared.sfms.raster_addresser import BaseRasterAddresser, GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
@@ -28,15 +28,20 @@ from app.auto_spatial_advisory.common import get_hfi_s3_key
 logger = logging.getLogger(__name__)
 
 
-async def get_percent_conifer_s3_key(for_date: date, s3_client: S3Client) -> str | None:
-    """Return the current or previous year's percent-conifer raster path."""
-    for year in (for_date.year, for_date.year - 1):
-        key = f"sfms/static/m12_{year}.tif"
-        if await s3_client.all_objects_exist(key):
-            logger.info("Found percent conifer grid - %s", key)
-            return f"/vsis3/{s3_client.bucket}/{key}"
-    logger.error("No percent conifer key found for %s or %s", for_date.year, for_date.year - 1)
-    return None
+async def _resolve_percent_conifer_path(
+    fuel_raster_year: int,
+    raster_addresser: BaseRasterAddresser,
+    s3_client: S3Client,
+) -> GDALPath:
+    """Resolve the percent-conifer raster matching the selected fuel-grid year."""
+    key = raster_addresser.get_percent_conifer_key(fuel_raster_year)
+    if await s3_client.object_exists(key):
+        logger.info("Using percent conifer raster: %s", key)
+        return raster_addresser.gdal_path(key)
+
+    raise RuntimeError(
+        f"No percent-conifer raster found for fuel-grid year {fuel_raster_year}: {key}"
+    )
 
 
 def update_minimum_percent_conifer_by_zone(
@@ -112,15 +117,16 @@ async def process_hfi_percent_conifer(run_type: RunType, run_datetime: datetime,
         fuel_raster = await get_fuel_type_raster_by_year(session, for_date.year)
         if fuel_raster is None:
             raise RuntimeError(f"No fuel type raster found for {for_date.year}")
+        raster_addresser = BaseRasterAddresser()
         async with S3Client() as s3_client:
-            percent_conifer_path = await get_percent_conifer_s3_key(for_date, s3_client)
-        if percent_conifer_path is None:
-            return
+            percent_conifer_path = await _resolve_percent_conifer_path(
+                fuel_raster.year, raster_addresser, s3_client
+            )
 
         logger.info("Calculating minimum percent conifer by fire zone")
         with gdal_s3_context():
             minimums = calculate_minimum_percent_conifer_by_zone(
-                BaseRasterAddresser().get_fire_zone_units_path(),
+                raster_addresser.get_fire_zone_units_path(),
                 get_hfi_s3_key(run_type, run_datetime, for_date),
                 percent_conifer_path,
             )
