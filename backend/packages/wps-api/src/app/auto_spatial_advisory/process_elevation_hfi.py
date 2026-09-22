@@ -21,10 +21,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryTPIStats
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.zonal_stats import (
-    count_values_by_zone,
-    iter_raster_windows,
-)
+from wps_shared.geospatial.zonal_stats import count_values_by_zone
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
@@ -150,8 +147,8 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
                     zone_nodata = resized_zone_source.ds.GetRasterBand(1).GetNoDataValue()
                     tpi_band = tpi_source.ds.GetRasterBand(1)
                     zone_band = resized_zone_source.ds.GetRasterBand(1)
-                    for window in iter_raster_windows([resized_hfi_source]):
-                        hfi_classes = window.arrays[0]
+                    for window in resized_hfi_source.iter_windows():
+                        hfi_classes = window.array
                         positive_hfi = hfi_classes > 0
                         if not np.any(positive_hfi):
                             continue

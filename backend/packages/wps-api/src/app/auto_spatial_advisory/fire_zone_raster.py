@@ -6,7 +6,6 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_advisory_shape_ids_by_source_identifier,
 )
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.zonal_stats import iter_raster_windows
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
 
@@ -21,8 +20,8 @@ async def validate_fire_zone_raster(session: AsyncSession) -> None:
     zone_path = BaseRasterAddresser().get_fire_zone_units_path()
     with gdal_s3_context(), WPSDataset(zone_path) as zones:
         zone_nodata = zones.require_nodata_value()
-        for window in iter_raster_windows([zones]):
-            (zone_ids,) = window.arrays
+        for window in zones.iter_windows():
+            zone_ids = window.array
             raster_source_identifiers.update(
                 int(zone_id) for zone_id in np.unique(zone_ids[zone_ids != zone_nodata])
             )

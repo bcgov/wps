@@ -7,7 +7,7 @@ from osgeo import gdal, osr
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
-    iter_raster_windows,
+    iter_aligned_raster_windows,
 )
 
 
@@ -86,11 +86,12 @@ def test_count_values_by_zone_accumulates_windows_with_different_category_maxima
     assert counts == {(10, 1): 2, (10, 2): 1, (20, 2): 2, (20, 3): 1}
 
 
-def test_iter_raster_windows_reads_matching_chunks():
+def test_iter_aligned_raster_windows_reads_matching_chunks():
     first = create_raster(np.arange(12).reshape(3, 4))
     second = create_raster(np.arange(12, 24).reshape(3, 4))
+    third = create_raster(np.arange(24, 36).reshape(3, 4))
 
-    windows = list(iter_raster_windows([first, second], window_size=2))
+    windows = list(iter_aligned_raster_windows(first, second, third, window_size=2))
 
     assert [(window.width, window.height) for window in windows] == [
         (2, 2),
@@ -99,19 +100,20 @@ def test_iter_raster_windows_reads_matching_chunks():
         (2, 1),
     ]
     np.testing.assert_array_equal(windows[-1].arrays[1], [[22, 23]])
+    np.testing.assert_array_equal(windows[-1].arrays[2], [[34, 35]])
 
 
-def test_iter_raster_windows_rejects_grid_difference():
+def test_iter_aligned_raster_windows_rejects_grid_difference():
     reference = create_raster(np.ones((2, 2)))
     shifted = create_raster(np.ones((2, 2)), geotransform=(1, 10, 0, 20, 0, -10))
 
     with pytest.raises(ValueError, match="does not match"):
-        list(iter_raster_windows([reference, shifted]))
+        list(iter_aligned_raster_windows(reference, shifted))
 
 
-def test_iter_raster_windows_rejects_rotation_difference():
+def test_iter_aligned_raster_windows_rejects_rotation_difference():
     reference = create_raster(np.ones((2, 2)))
     rotated = create_raster(np.ones((2, 2)), geotransform=(0, 10, 1, 20, 0, -10))
 
     with pytest.raises(ValueError, match="does not match"):
-        list(iter_raster_windows([reference, rotated]))
+        list(iter_aligned_raster_windows(reference, rotated))

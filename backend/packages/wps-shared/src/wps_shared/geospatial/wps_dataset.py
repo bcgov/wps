@@ -17,13 +17,13 @@ DEFAULT_CHUNK_SIZE = 256
 
 @dataclass(frozen=True)
 class RasterWindow:
-    """Arrays and their shared pixel offsets for one bounded raster window."""
+    """One raster array and its pixel offsets for a bounded window."""
 
     x_offset: int
     y_offset: int
     width: int
     height: int
-    arrays: tuple[np.ndarray, ...]
+    array: np.ndarray
 
 
 class Georeference(NamedTuple):
@@ -100,7 +100,7 @@ class WPSDataset:
                     y_offset=y_offset,
                     width=width,
                     height=height,
-                    arrays=(band.ReadAsArray(x_offset, y_offset, width, height),),
+                    array=band.ReadAsArray(x_offset, y_offset, width, height),
                 )
 
     def require_nodata_value(self) -> float | int:
@@ -228,7 +228,7 @@ class WPSDataset:
         out_ds.SetProjection(projection)
 
         for window in self.iter_windows():
-            (self_chunk,) = window.arrays
+            self_chunk = window.array
             other_chunk = other.read_window(window)
             wider_type = np.promote_types(self_chunk.dtype, other_chunk.dtype)
 

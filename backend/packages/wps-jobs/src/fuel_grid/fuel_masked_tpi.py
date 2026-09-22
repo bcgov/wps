@@ -16,7 +16,7 @@ from wps_shared.geospatial.geospatial import (
     GDALResamplingMethod,
 )
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.zonal_stats import iter_raster_windows
+from wps_shared.geospatial.zonal_stats import iter_aligned_raster_windows
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
@@ -67,7 +67,7 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
                 masked_tpi_dataset.SetProjection(tpi.ds.GetProjection())
                 masked_fuel_type_band: gdal.Band = masked_tpi_dataset.GetRasterBand(1)
                 masked_fuel_type_band.SetNoDataValue(0)
-                for window in iter_raster_windows([warped_fuel, tpi]):
+                for window in iter_aligned_raster_windows(warped_fuel, tpi):
                     warped_fuel_codes, tpi_classes = window.arrays
                     combustible = (warped_fuel_codes > 0) & (warped_fuel_codes < 99)
                     # use zero as background so only fuel-covered TPI classes contribute to later statistics

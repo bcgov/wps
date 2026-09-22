@@ -1,14 +1,26 @@
 """Memory-bounded helpers for statistics over rasters on the same grid."""
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
+from dataclasses import dataclass
 
 import numpy as np
 
 from wps_shared.geospatial.geospatial import rasters_match
-from wps_shared.geospatial.wps_dataset import RasterWindow, WPSDataset
+from wps_shared.geospatial.wps_dataset import WPSDataset
 
 ZoneValueKey = tuple[int, int]
 ZoneValueCounts = dict[ZoneValueKey, int]
+
+
+@dataclass(frozen=True)
+class AlignedRasterWindow:
+    """Ordered raster arrays and their shared pixel offsets for one window."""
+
+    x_offset: int
+    y_offset: int
+    width: int
+    height: int
+    arrays: tuple[np.ndarray, ...]
 
 
 def count_values_by_zone(
@@ -46,30 +58,28 @@ def count_values_by_zone(
     return counts
 
 
-def iter_raster_windows(
-    datasets: Sequence[WPSDataset], window_size: int | None = None
-) -> Iterator[RasterWindow]:
-    """Yield aligned single-band arrays without loading complete rasters into memory.
+def iter_aligned_raster_windows(
+    reference: WPSDataset,
+    aligned_dataset: WPSDataset,
+    *additional_datasets: WPSDataset,
+    window_size: int | None = None,
+) -> Iterator[AlignedRasterWindow]:
+    """Yield arrays from two or more aligned rasters without loading them entirely.
 
-    The first dataset defines the window grid. Every remaining dataset must match that grid
-    exactly so arrays at the same offsets describe the same geographic pixels.
+    The reference dataset defines the window grid. Every other dataset must match that grid
+    exactly. Arrays are returned in the same order as the dataset arguments.
     """
-    if not datasets:
-        return
-
-    reference = datasets[0]
-    for dataset in datasets[1:]:
+    aligned_datasets = (aligned_dataset, *additional_datasets)
+    for dataset in aligned_datasets:
         if not rasters_match(reference.ds, dataset.ds):
             raise ValueError(f"Raster grid does not match reference: {dataset.ds.GetDescription()}")
 
     for window in reference.iter_windows(window_size):
-        if len(datasets) == 1:
-            yield window
-            continue
-        yield RasterWindow(
+        yield AlignedRasterWindow(
             x_offset=window.x_offset,
             y_offset=window.y_offset,
             width=window.width,
             height=window.height,
-            arrays=window.arrays + tuple(dataset.read_window(window) for dataset in datasets[1:]),
+            arrays=(window.array,)
+            + tuple(dataset.read_window(window) for dataset in aligned_datasets),
         )

@@ -19,7 +19,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
     HfiClassificationThresholdEnum,
 )
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.zonal_stats import iter_raster_windows
+from wps_shared.geospatial.zonal_stats import iter_aligned_raster_windows
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
@@ -91,7 +91,7 @@ def calculate_minimum_wind_by_zone(
     ):
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
         wind_nodata = wind.ds.GetRasterBand(1).GetNoDataValue()
-        for window in iter_raster_windows([zones, raw_hfi, wind]):
+        for window in iter_aligned_raster_windows(zones, raw_hfi, wind):
             zone_ids, raw_hfi_values, wind_values = window.arrays
             update_minimum_wind_by_zone(
                 minimum_wind_speed_by_zone_and_threshold,

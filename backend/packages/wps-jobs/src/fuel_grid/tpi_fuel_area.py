@@ -8,7 +8,7 @@ from wps_shared.db.models.auto_spatial_advisory import TPIClassEnum
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import (
     count_values_by_zone,
-    iter_raster_windows,
+    iter_aligned_raster_windows,
 )
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
@@ -35,7 +35,7 @@ def calculate_masked_tpi_areas(
         with zones.warp_to_match(masked_tpi, output_path=warped_zone_path) as tpi_zones:
             area_per_pixel = masked_tpi.pixel_area
             zone_nodata = tpi_zones.ds.GetRasterBand(1).GetNoDataValue()
-            for window in iter_raster_windows([tpi_zones, masked_tpi]):
+            for window in iter_aligned_raster_windows(tpi_zones, masked_tpi):
                 zone_ids, tpi_classes = window.arrays
                 mask = (zone_ids != zone_nodata) & np.isin(tpi_classes, (1, 2, 3))
                 zone_value_counts = count_values_by_zone(zone_ids, tpi_classes, mask)

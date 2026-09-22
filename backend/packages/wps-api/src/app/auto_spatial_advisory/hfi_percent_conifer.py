@@ -16,7 +16,7 @@ from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import AdvisoryHFIPercentConifer
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.geospatial.zonal_stats import iter_raster_windows
+from wps_shared.geospatial.zonal_stats import iter_aligned_raster_windows
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
 from wps_shared.utils.s3 import gdal_s3_context
@@ -76,7 +76,7 @@ def calculate_minimum_percent_conifer_by_zone(
         WPSDataset(percent_conifer_path) as percent_conifer,
     ):
         zone_nodata = zones.ds.GetRasterBand(1).GetNoDataValue()
-        for window in iter_raster_windows([zones, raw_hfi, percent_conifer]):
+        for window in iter_aligned_raster_windows(zones, raw_hfi, percent_conifer):
             zone_ids, raw_hfi_values, percent_conifer_values = window.arrays
             update_minimum_percent_conifer_by_zone(
                 minimum_percent_conifer_by_zone,

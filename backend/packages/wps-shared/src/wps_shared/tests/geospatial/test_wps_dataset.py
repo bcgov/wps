@@ -78,7 +78,7 @@ def test_iter_windows_uses_configured_chunk_size_and_reads_partial_edges():
         (0, 2, 2, 1),
         (2, 2, 2, 1),
     ]
-    np.testing.assert_array_equal(windows[-1].arrays[0], [[10, 11]])
+    np.testing.assert_array_equal(windows[-1].array, [[10, 11]])
 
 
 def test_iter_windows_accepts_window_size_override():
@@ -90,7 +90,7 @@ def test_iter_windows_accepts_window_size_override():
         windows = list(wps_dataset.iter_windows(window_size=3))
 
     assert len(windows) == 1
-    np.testing.assert_array_equal(windows[0].arrays[0], values)
+    np.testing.assert_array_equal(windows[0].array, values)
 
 
 @pytest.mark.parametrize("window_size", [0, -1])
