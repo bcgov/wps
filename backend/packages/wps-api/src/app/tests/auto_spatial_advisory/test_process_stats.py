@@ -91,17 +91,19 @@ async def test_marks_run_complete_on_success(mocks: ProcessStatsMocks):
 async def test_calls_trigger_notifications_after_completion(mocks: ProcessStatsMocks):
     await process_sfms_hfi_stats(RunType.ACTUAL, RUN_DATETIME, FOR_DATE)
     mocks.trigger_notifications.assert_awaited_once()
+    assert mocks.trigger_notifications.call_args.kwargs == {"completed_now": True}
 
 
 @pytest.mark.anyio
-async def test_does_not_trigger_notifications_when_run_was_already_complete(
+async def test_passes_existing_completion_state_to_notifications(
     mocks: ProcessStatsMocks,
 ):
     mocks.mark_run_parameter_complete.return_value = False
 
     await process_sfms_hfi_stats(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
 
-    mocks.trigger_notifications.assert_not_awaited()
+    mocks.trigger_notifications.assert_awaited_once()
+    assert mocks.trigger_notifications.call_args.kwargs == {"completed_now": False}
 
 
 @pytest.mark.anyio

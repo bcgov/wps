@@ -54,20 +54,14 @@ async def process_sfms_hfi_stats(run_type: RunType, run_datetime: datetime, for_
     async with get_async_write_session_scope() as session:
         completed_now = await mark_run_parameter_complete(session, run_type, run_datetime, for_date)
 
-    if not completed_now:
-        logger.info(
-            "Skipping FCM notifications because the run was already complete for "
-            "run_type=%s run_datetime=%s for_date=%s.",
-            run_type,
-            run_datetime,
-            for_date,
-        )
-        return
-
     try:
         async with get_async_write_session_scope() as session:
             await trigger_notifications(
-                session, RunTypeEnum(run_type.value), run_datetime, for_date
+                session,
+                RunTypeEnum(run_type.value),
+                run_datetime,
+                for_date,
+                completed_now=completed_now,
             )
     except Exception as exc:
         logger.exception(

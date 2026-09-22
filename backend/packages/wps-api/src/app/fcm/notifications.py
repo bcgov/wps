@@ -57,36 +57,59 @@ def build_fcm_message(
     return message
 
 
+def should_send_notifications(
+    completed_now: bool,
+    run_type: RunTypeEnum,
+    run_datetime: datetime,
+    for_date: date,
+    vancouver_now: datetime,
+    environment: str | None,
+) -> bool:
+    """Return whether an advisory run should send user notifications.
+
+    Notifications are only sent when a run is completed for the first time and is today's
+    forecast. In production, the run must have been created and processed during the same
+    Vancouver morning. Other environments skip the morning restriction so notification delivery
+    can be tested at any time.
+    """
+    if not completed_now or run_type == RunTypeEnum.actual or for_date != vancouver_now.date():
+        return False
+
+    if environment != "production":
+        return True
+
+    run_datetime_vancouver = convert_to_sfms_timezone(run_datetime)
+    return (
+        run_datetime_vancouver.date() == vancouver_now.date()
+        and run_datetime_vancouver.hour < 12
+        and vancouver_now.hour < 12
+    )
+
+
 async def trigger_notifications(
-    session: AsyncSession, run_type: RunTypeEnum, run_datetime: datetime, for_date: date
+    session: AsyncSession,
+    run_type: RunTypeEnum,
+    run_datetime: datetime,
+    for_date: date,
+    *,
+    completed_now: bool,
 ) -> None:
-    if run_type == RunTypeEnum.actual:
-        return
-
     vancouver_now = get_vancouver_now()
-
-    if for_date != vancouver_now.date():
-        logger.info("Skipping FCM notifications: for_date=%s is not today", for_date)
+    environment = config.get("ENVIRONMENT")
+    if not should_send_notifications(
+        completed_now, run_type, run_datetime, for_date, vancouver_now, environment
+    ):
+        logger.info(
+            "Skipping FCM notifications: eligibility criteria not met for run_type=%s "
+            "run_datetime=%s for_date=%s completed_now=%s vancouver_now=%s environment=%s",
+            run_type,
+            run_datetime,
+            for_date,
+            completed_now,
+            vancouver_now,
+            environment,
+        )
         return
-
-    if config.get("ENVIRONMENT") == "production":
-        run_datetime_vancouver = convert_to_sfms_timezone(run_datetime)
-        if (
-            run_datetime_vancouver.date() != vancouver_now.date()
-            or run_datetime_vancouver.hour >= 12
-        ):
-            logger.info(
-                "Skipping FCM notifications: run_datetime=%s was not created this Vancouver morning",
-                run_datetime,
-            )
-            return
-
-        if vancouver_now.hour >= 12:
-            logger.info(
-                "Skipping FCM notifications: current Vancouver time hour=%d is at or after noon",
-                vancouver_now.hour,
-            )
-            return
 
     logger.info("Checking for warnings/advisories to send FCM notifications for")
     zones_with_advisories = await get_zones_with_advisories(
