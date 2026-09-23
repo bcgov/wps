@@ -5,11 +5,11 @@ PODS:
   - AppAuth/Core (2.1.0)
   - AppAuth/ExternalUserAgent (2.1.0):
     - AppAuth/Core
-  - Capacitor (8.5.1):
+  - Capacitor (8.5.2):
     - CapacitorCordova
   - CapacitorApp (8.1.1):
     - Capacitor
-  - CapacitorCordova (8.5.1)
+  - CapacitorCordova (8.5.2)
   - CapacitorDevice (8.0.2):
     - Capacitor
   - CapacitorFilesystem (8.1.2):
@@ -175,9 +175,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AppAuth: ef4da5a3fc2e10b90c09a0a94a9baeaedc0341d5
-  Capacitor: 8ca6676b3b1147b00f7f3a547ccf68defd658d55
+  Capacitor: 89067779e14fb7ea56af07b4817f45d1f0c2a269
   CapacitorApp: 305bd13c44f6f9d164e2ee66a4faa956ed8c0e06
-  CapacitorCordova: eb79411a3a0ed517eeb4c6dcf5933ce4bcbb5c9e
+  CapacitorCordova: 5bec5648cbd09a176ce34ce5e7b6cdabb2c8a327
   CapacitorDevice: 14cba6f88d1c3074cbf825fea977c8c526453ff8
   CapacitorFilesystem: 2db285a1ac6e475cc27cae2e1bea999000f9e2be
   CapacitorFirebaseMessaging: d48c9156ee96e166416f1d910cb8de53143cea5f
