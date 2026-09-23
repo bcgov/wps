@@ -101,10 +101,6 @@ parameters:
     description: How long to cache env canada downloads for.
     required: True
     value: "21600"
-  - name: GUNICORN_TIMEOUT
-    description: Workers silent for more than this many seconds are killed and restarted. (https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout)
-    required: True
-    value: "180"
   - name: SFMS_SECRET
     description: Secret for SFMS process triger
     required: True
@@ -140,7 +136,6 @@ objects:
       env.redis-cache-noaa: ${REDIS_CACHE_NOAA}
       env.redis-env-canada-cache-expiry: ${REDIS_ENV_CANADA_CACHE_EXPIRY}
       env.redis-noaa-cache-expiry: ${REDIS_NOAA_CACHE_EXPIRY}
-      env.gunicorn.timeout: ${GUNICORN_TIMEOUT}
       env.nats-server: ${NATS_SERVER}
 
   - kind: Secret
