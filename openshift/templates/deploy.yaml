@@ -304,6 +304,11 @@ objects:
                     configMapKeyRef:
                       name: ${GLOBAL_NAME}
                       key: env.redis-use
+                - name: ASA_STATS_CACHE_ENABLED
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.asa-stats-cache-enabled
                 - name: REDIS_PASSWORD
                   valueFrom:
                     secretKeyRef:
@@ -433,7 +438,7 @@ objects:
                   scheme: HTTP
                 initialDelaySeconds: 10
                 periodSeconds: 5
-                failureThreshold: 50
+                failureThreshold: 60
                 timeoutSeconds: 2
               readinessProbe:
                 httpGet:

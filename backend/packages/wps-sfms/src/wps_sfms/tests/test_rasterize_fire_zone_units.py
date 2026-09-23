@@ -93,7 +93,7 @@ def test_rasterize_matches_reference_grid_and_burns_pixel_centres(tmp_path: Path
     output_band = output.GetRasterBand(1)
     assert output_band.DataType == gdal.GDT_Int32
     assert output_band.GetNoDataValue() == 0
-    assert output_band.GetDescription() == "fire_zone_objectid"
+    assert output_band.GetDescription() == "source_identifier"
     np.testing.assert_array_equal(output_band.ReadAsArray(), [[7, 0, 9], [7, 0, 0]])
     output = None
     reference = None

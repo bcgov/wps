@@ -12,6 +12,7 @@ import nats
 from nats.aio.msg import Msg
 from nats.js.api import AckPolicy, ConsumerConfig, RetentionPolicy, StreamConfig
 from wps_shared import config
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.utils.time import get_utc_datetime
 from wps_shared.wps_logging import configure_logging
 
@@ -27,7 +28,7 @@ from app.auto_spatial_advisory.process_stats import process_sfms_hfi_stats
 
 logger = logging.getLogger(__name__)
 
-_ACK_WAIT = 900           # 15 minutes; keepalive pings extend this for long-running jobs
+_ACK_WAIT = 900  # 15 minutes; keepalive pings extend this for long-running jobs
 _KEEPALIVE_INTERVAL = 450  # 7.5 minutes, half of _ACK_WAIT
 
 
@@ -75,6 +76,11 @@ async def process_message(msg: Msg):
             "Error processing HFI message: %s, requesting JetStream redelivery",
             msg.data,
             exc_info=exc,
+        )
+        send_chatops_notification(
+            f"ASA statistics processing failed for NATS message: {msg.data!r}",
+            exc,
+            severity="critical",
         )
         try:
             await msg.nak(delay=60)  # Request redelivery after 60 seconds

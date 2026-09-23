@@ -1,4 +1,3 @@
-import os
 from datetime import date, datetime, timezone
 from unittest.mock import patch
 
@@ -18,16 +17,12 @@ UPSERT_NOTIFICATION_SETTINGS = "app.routers.fcm.upsert_notification_settings"
 
 
 @pytest.fixture()
-def client():
+def client(monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "development")
     from app.asa_go_main import app as test_app
 
     with TestClient(test_app) as test_client:
         yield test_client
-
-
-@pytest.fixture(autouse=True)
-def before_each():
-    os.environ["DISABLE_ASA_GO_DATE_VALIDATION"] = "False"
 
 
 @patch("app.routers.psu.fetch_fire_centres")
@@ -114,8 +109,9 @@ def test_public_latest_sfms_run_datetime_range_endpoint(
 
 @patch("app.routers.fba.get_most_recent_run_datetime_for_date")
 def test_public_latest_sfms_run_datetime_rejects_past_dates(
-    mock_latest_run_parameter, client: TestClient
+    mock_latest_run_parameter, client: TestClient, monkeypatch
 ):
+    monkeypatch.setenv("ENVIRONMENT", "production")
     with patch(
         "app.routers.asa_go.get_vancouver_now",
         return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),
@@ -129,10 +125,24 @@ def test_public_latest_sfms_run_datetime_rejects_past_dates(
     mock_latest_run_parameter.assert_not_called()
 
 
+@patch("app.routers.fba.get_most_recent_run_datetime_for_date")
+def test_public_latest_sfms_run_datetime_allows_past_dates_in_development(
+    mock_latest_run_parameter, client: TestClient, monkeypatch
+):
+    monkeypatch.setenv("ENVIRONMENT", "development")
+    mock_latest_run_parameter.return_value = None
+
+    response = client.get("/api/asa-go/fba/latest-sfms-run-datetime/2025-08-25")
+
+    assert response.status_code == 200
+    mock_latest_run_parameter.assert_called_once()
+
+
 @patch("app.routers.fba.get_most_recent_run_datetime_for_date_range")
 def test_public_latest_sfms_run_datetime_range_rejects_past_dates(
-    mock_latest_run_parameter_range, client: TestClient
+    mock_latest_run_parameter_range, client: TestClient, monkeypatch
 ):
+    monkeypatch.setenv("ENVIRONMENT", "production")
     with patch(
         "app.routers.asa_go.get_vancouver_now",
         return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),

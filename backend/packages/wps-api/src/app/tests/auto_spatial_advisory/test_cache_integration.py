@@ -23,7 +23,9 @@ from wps_shared.schemas.fba import (
 
 from app.auto_spatial_advisory.advisory_run_stats.cache import ASARedisCache
 
-TESTCONTAINERS_REDIS_IMAGE = "redis:6-alpine"  # matches openshift/templates/redis.yaml's redis:6-el9
+TESTCONTAINERS_REDIS_IMAGE = (
+    "redis:6-alpine"  # matches openshift/templates/redis.yaml's redis:6-el9
+)
 
 RUN_TYPE = "forecast"
 RUN_DATETIME = "2025-01-01T12:00:00+00:00"
@@ -46,15 +48,20 @@ def real_cache(redis_container, monkeypatch):
     asa_stats_cache singleton (tests/conftest.py's autouse fixture keeps that one mocked)."""
     monkeypatch.setenv("REDIS_HOST", redis_container.get_container_host_ip())
     monkeypatch.setenv("REDIS_PORT", str(redis_container.get_exposed_port(6379)))
-    return ASARedisCache()
+    return ASARedisCache(enabled=True)
 
 
 @pytest.mark.anyio
 async def test_put_then_get_round_trips_through_real_redis(real_cache):
     """Every put_cached_*/get_cached_* pair, called directly against a real Redis."""
     provincial_summary = ProvincialSummaryResponse(provincial_summary=[])
-    await real_cache.put_cached_provincial_summary(RUN_TYPE, RUN_DATETIME, FOR_DATE, provincial_summary)
-    assert await real_cache.get_cached_provincial_summary(RUN_TYPE, RUN_DATETIME, FOR_DATE) == provincial_summary
+    await real_cache.put_cached_provincial_summary(
+        RUN_TYPE, RUN_DATETIME, FOR_DATE, provincial_summary
+    )
+    assert (
+        await real_cache.get_cached_provincial_summary(RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        == provincial_summary
+    )
 
     hfi_stats = HFIStatsResponse(zone_data=SAMPLE_ZONE_DATA)
     await real_cache.put_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE, hfi_stats)
@@ -68,16 +75,22 @@ async def test_put_then_get_round_trips_through_real_redis(real_cache):
         FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE, SAMPLE_ZONE_DATA
     )
     assert (
-        await real_cache.get_cached_fire_centre_hfi_stats(FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        await real_cache.get_cached_fire_centre_hfi_stats(
+            FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE
+        )
         == SAMPLE_ZONE_DATA
     )
 
-    fire_centre_tpi_stats = FireCentreTPIResponse(fire_centre_name=FIRE_CENTRE_NAME, firezone_tpi_stats=[])
+    fire_centre_tpi_stats = FireCentreTPIResponse(
+        fire_centre_name=FIRE_CENTRE_NAME, firezone_tpi_stats=[]
+    )
     await real_cache.put_cached_fire_centre_tpi_stats(
         FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE, fire_centre_tpi_stats
     )
     assert (
-        await real_cache.get_cached_fire_centre_tpi_stats(FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        await real_cache.get_cached_fire_centre_tpi_stats(
+            FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE
+        )
         == fire_centre_tpi_stats
     )
 
@@ -89,11 +102,15 @@ async def test_get_miss_returns_none_against_real_redis(real_cache):
     assert await real_cache.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE) is None
     assert await real_cache.get_cached_tpi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE) is None
     assert (
-        await real_cache.get_cached_fire_centre_hfi_stats(FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        await real_cache.get_cached_fire_centre_hfi_stats(
+            FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE
+        )
         is None
     )
     assert (
-        await real_cache.get_cached_fire_centre_tpi_stats(FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE)
+        await real_cache.get_cached_fire_centre_tpi_stats(
+            FIRE_CENTRE_NAME, RUN_TYPE, RUN_DATETIME, FOR_DATE
+        )
         is None
     )
 
@@ -117,7 +134,7 @@ async def test_unreachable_redis_falls_back_within_timeout(monkeypatch):
     at the OS level, isolating exactly the gap asyncio.wait_for was added to close."""
     monkeypatch.setenv("REDIS_HOST", "127.0.0.1")
     monkeypatch.setenv("REDIS_PORT", "1")
-    unreachable = ASARedisCache(timeout_seconds=0.2)
+    unreachable = ASARedisCache(timeout_seconds=0.2, enabled=True)
 
     start = time.monotonic()
     result = await unreachable.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE)

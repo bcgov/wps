@@ -25,7 +25,6 @@ def log_install_result(result: FuelGridInstallResult) -> None:
     logger.info("content_hash: %s", fuel_type_raster.content_hash)
     logger.info("fuel_masked_tpi_key: %s", result.fuel_masked_tpi_key)
     counts = result.counts
-    logger.info("advisory_fuel_types_count: %s", counts.advisory_fuel_types)
     logger.info("advisory_shape_fuels_count: %s", counts.advisory_shape_fuels)
     logger.info("combustible_area_count: %s", counts.combustible_area)
     logger.info("tpi_fuel_area_count: %s", counts.tpi_fuel_area)

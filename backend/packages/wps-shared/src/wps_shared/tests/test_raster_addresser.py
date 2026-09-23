@@ -32,6 +32,11 @@ def test_get_mask_key(addresser: BaseRasterAddresser):
     assert result == f"{addresser.s3_prefix}/sfms/static/bc_mask.tif"
 
 
+def test_get_fire_zone_units_path(addresser: BaseRasterAddresser):
+    result = addresser.get_fire_zone_units_path()
+    assert result == f"{addresser.s3_prefix}/zone-units/fire_zone_units.tif"
+
+
 def test_gdal_path(addresser: BaseRasterAddresser):
     key = S3Key("sfms/static/fuel/2026/fbp2026_v1.tif")
     result = addresser.gdal_path(key)

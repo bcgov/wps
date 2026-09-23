@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
@@ -5,6 +6,7 @@ import pytest
 
 from app.auto_spatial_advisory.process_elevation_hfi import (
     FireZoneTPIStats,
+    build_fire_zone_tpi_counts,
     process_hfi_elevation,
     store_elevation_tpi_stats,
 )
@@ -13,6 +15,14 @@ from app.auto_spatial_advisory.process_hfi import RunType
 RUN_DATETIME = datetime(2025, 1, 1, 12, 0, 0)
 FOR_DATE = datetime(2025, 1, 1).date()
 BASE = "app.auto_spatial_advisory.process_elevation_hfi."
+
+
+def test_build_fire_zone_tpi_counts_retains_shapes_without_qualifying_pixels():
+    counts = Counter({(10, 1): 4, (10, 3): 2})
+
+    result = build_fire_zone_tpi_counts(counts, {10: 101, 20: 202})
+
+    assert result == {101: {1: 4, 3: 2}, 202: {}}
 
 
 def _mock_process_hfi_elevation(mocker, exists: bool):
@@ -62,6 +72,7 @@ async def test_store_elevation_tpi_stats_maps_tpi_classes_to_fields(mocker):
         fire_zone_stats={
             101: {1: 10, 2: 20, 3: 30},
             202: {1: 5},  # missing mid/upper slope classes
+            303: {},  # no qualifying HFI pixels
         },
         pixel_size_metres=90,
     )
@@ -75,7 +86,7 @@ async def test_store_elevation_tpi_stats_maps_tpi_classes_to_fields(mocker):
     mock_save.assert_awaited_once()
     saved_session, saved_list = mock_save.call_args.args
     assert saved_session is session
-    assert len(saved_list) == 2
+    assert len(saved_list) == 3
 
     complete_stat = next(s for s in saved_list if s.advisory_shape_id == 101)
     assert complete_stat.run_parameters == 5
@@ -88,3 +99,8 @@ async def test_store_elevation_tpi_stats_maps_tpi_classes_to_fields(mocker):
     assert partial_stat.valley_bottom == 5
     assert partial_stat.mid_slope == 0
     assert partial_stat.upper_slope == 0
+
+    empty_stat = next(s for s in saved_list if s.advisory_shape_id == 303)
+    assert empty_stat.valley_bottom == 0
+    assert empty_stat.mid_slope == 0
+    assert empty_stat.upper_slope == 0

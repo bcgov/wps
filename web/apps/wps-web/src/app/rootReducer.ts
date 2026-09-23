@@ -4,7 +4,6 @@ import { combineReducers, createSelector } from '@reduxjs/toolkit'
 import authReducer from 'features/auth/slices/authenticationSlice'
 import fireCentreHFIFuelStatsSlice from 'features/fba/slices/fireCentreHFIFuelStatsSlice'
 import fireCentreTPIStatsSlice from 'features/fba/slices/fireCentreTPIStatsSlice'
-import fireZoneElevationInfoSlice from 'features/fba/slices/fireZoneElevationInfoSlice'
 import provincialSummarySlice from 'features/fba/slices/provincialSummarySlice'
 import runDatesSlice from 'features/fba/slices/runDatesSlice'
 import valueAtCoordinateSlice from 'features/fba/slices/valueAtCoordinateSlice'
@@ -37,7 +36,6 @@ const rootReducer = combineReducers({
   runDates: runDatesSlice,
   valueAtCoordinate: valueAtCoordinateSlice,
   fireCentreHFIFuelStats: fireCentreHFIFuelStatsSlice,
-  fireZoneElevationInfo: fireZoneElevationInfoSlice,
   fireCentreTPIStats: fireCentreTPIStatsSlice,
   stationGroups: stationGroupsSlice,
   stationGroupsMembers: selectedStationGroupsMembersSlice,
@@ -68,7 +66,6 @@ export const selectFireCentres = (state: RootState) => state.fireCentres
 export const selectRunDates = (state: RootState) => state.runDates
 export const selectValueAtCoordinate = (state: RootState) => state.valueAtCoordinate
 export const selectFireCentreHFIFuelStats = (state: RootState) => state.fireCentreHFIFuelStats
-export const selectFireZoneElevationInfo = (state: RootState) => state.fireZoneElevationInfo
 export const selectFireCentreTPIStats = (state: RootState) => state.fireCentreTPIStats
 export const selectHFIDailiesLoading = (state: RootState): boolean => state.hfiCalculatorDailies.fireCentresLoading
 export const selectHFICalculatorState = (state: RootState): HFICalculatorState => state.hfiCalculatorDailies

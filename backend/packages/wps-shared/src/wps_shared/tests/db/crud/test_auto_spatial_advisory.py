@@ -114,10 +114,17 @@ async def test_mark_run_parameter_complete(async_session, session_factory):
 
     # use new session
     async with session_factory() as separate_session:
-        await mark_run_parameter_complete(
+        completed_now = await mark_run_parameter_complete(
             separate_session, RunType.FORECAST, test_run_datetime, test_for_date
         )
+        assert completed_now is True
         await separate_session.commit()
+
+    async with session_factory() as already_complete_session:
+        completed_now = await mark_run_parameter_complete(
+            already_complete_session, RunType.FORECAST, test_run_datetime, test_for_date
+        )
+        assert completed_now is False
 
     # verify with a different session
     async with session_factory() as verify_session:

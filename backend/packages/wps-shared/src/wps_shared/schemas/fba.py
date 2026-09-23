@@ -141,16 +141,6 @@ class HFIStatsResponse(BaseModel):
     zone_data: Dict[int, FireZoneHFIStats]
 
 
-class FireZoneElevationStats(BaseModel):
-    """Basic elevation statistics for a firezone"""
-
-    minimum: float
-    quartile_25: float
-    median: float
-    quartile_75: float
-    maximum: float
-
-
 class FireZoneTPIStats(BaseModel):
     """Classified TPI areas of the fire zone contributing to the HFI >4k. Each area is in square metres."""
 
@@ -169,19 +159,6 @@ class TPIResponse(BaseModel):
 
 class FireCentreTPIResponse(TPIResponse):
     fire_centre_name: str
-
-
-class FireZoneElevationStatsByThreshold(BaseModel):
-    """Elevation statistics for a firezone by threshold"""
-
-    threshold: int
-    elevation_info: FireZoneElevationStats
-
-
-class FireZoneElevationStatsListResponse(BaseModel):
-    """Response for a firezone that includes elevation statistics by threshold for the run parameters of interest"""
-
-    hfi_elevation_info: List[FireZoneElevationStatsByThreshold]
 
 
 class SFMSBoundsDateRange(BaseModel):
