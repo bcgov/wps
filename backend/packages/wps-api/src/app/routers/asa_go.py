@@ -1,6 +1,5 @@
 import logging
 from datetime import date, datetime
-from typing import List
 
 from fastapi import APIRouter, HTTPException, status
 from wps_shared import config
@@ -9,9 +8,7 @@ from wps_shared.schemas.fba import (
     FireCentreInfoResponse,
     HFIStatsResponse,
     LatestSFMSRunParameterRangeResponse,
-    LatestSFMSRunParameterResponse,
     ProvincialSummaryResponse,
-    SFMSBoundsResponse,
     TPIResponse,
 )
 from wps_shared.schemas.psu import FireCentresResponse
@@ -65,30 +62,6 @@ async def get_provincial_summary(
 ):
     _validate_not_before_today(for_date)
     return await fba.get_provincial_summary(run_type, run_datetime, for_date)
-
-
-@router.get(
-    "/fba/latest-sfms-run-datetime/{for_date}", response_model=LatestSFMSRunParameterResponse
-)
-async def get_latest_sfms_run_datetime_for_date(
-    for_date: date,
-):
-    _validate_not_before_today(for_date)
-    return await fba.get_latest_sfms_run_datetime_for_date(for_date)
-
-
-@router.get("/fba/sfms-run-bounds", response_model=SFMSBoundsResponse)
-async def get_sfms_run_bounds():
-    return await fba.get_sfms_run_bounds()
-
-
-@router.get("/fba/sfms-run-datetimes/{run_type}/{for_date}", response_model=List[datetime])
-async def get_run_datetimes_for_date_and_runtype(
-    run_type: RunType,
-    for_date: date,
-):
-    _validate_not_before_today(for_date)
-    return await fba.get_run_datetimes_for_date_and_runtype(run_type, for_date)
 
 
 @router.get(
