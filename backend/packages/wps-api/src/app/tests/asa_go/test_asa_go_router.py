@@ -1,5 +1,5 @@
 from datetime import date, datetime, timezone
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -70,6 +70,29 @@ def test_public_latest_sfms_run_datetime_endpoint(mock_latest_run_parameter, cli
             "valid_until": "2025-08-27T01:00:00Z",
         }
     }
+
+
+@patch(
+    "app.auto_spatial_advisory.advisory_run_stats.stats.get_run_parameters",
+    new_callable=AsyncMock,
+    return_value=None,
+)
+def test_public_stats_endpoint_returns_not_found_for_unavailable_run(
+    mock_run_parameters, client: TestClient
+):
+    with patch(
+        "app.routers.asa_go.get_vancouver_now",
+        return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),
+    ):
+        response = client.get(
+            "/api/asa-go/fba/provincial-summary/forecast/2025-08-25T15:01:47Z/2025-08-26"
+        )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Advisory statistics are not available for the requested run."
+    }
+    mock_run_parameters.assert_awaited_once()
 
 
 @patch("app.routers.fba.get_most_recent_run_datetime_for_date_range")

@@ -427,6 +427,7 @@ async def get_sfms_bounds(session: AsyncSession):
             func.min(RunParameters.for_date).label("minDate"),
             func.max(RunParameters.for_date).label("maxDate"),
         )
+        .where(RunParameters.complete.is_(True))
         .group_by(extract("YEAR", RunParameters.for_date), RunParameters.run_type)
         .order_by("year")
     )

@@ -56,6 +56,7 @@ async def get_fire_centres_and_fire_zone_units():
 @router.get(
     "/fba/provincial-summary/{run_type}/{run_datetime}/{for_date}",
     response_model=ProvincialSummaryResponse,
+    responses=fba.RUN_NOT_FOUND_RESPONSES,
 )
 async def get_provincial_summary(
     run_type: RunType,
@@ -105,6 +106,7 @@ async def get_latest_sfms_run_datetime_for_date_range(
 @router.get(
     "/fba/hfi-stats/{run_type}/{run_datetime}/{for_date}",
     response_model=HFIStatsResponse,
+    responses=fba.RUN_NOT_FOUND_RESPONSES,
 )
 async def get_hfi_fuels_data_for_run_parameter(
     run_type: RunType,
@@ -118,6 +120,7 @@ async def get_hfi_fuels_data_for_run_parameter(
 @router.get(
     "/fba/tpi-stats/{run_type}/{run_datetime}/{for_date}",
     response_model=TPIResponse,
+    responses=fba.RUN_NOT_FOUND_RESPONSES,
 )
 async def get_tpi_stats_for_run_parameter(
     run_type: RunType,
