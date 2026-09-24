@@ -12,6 +12,8 @@ from wps_shared.utils.redis import create_redis
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_GRIB_CACHE_EXPIRY_SECONDS = 10800
+
 # Key weather model value fields.
 # Wind direction (wdir_tgl_10_b) is handled slightly differently, so not included here.
 SCALAR_MODEL_VALUE_KEYS = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10")
@@ -152,7 +154,11 @@ def download(
     if cache:
         try:
             with open(target, "rb") as file_object:
-                cache.set(url, file_object.read(), ex=config.get(config_cache_expiry_var, 21600))
+                cache.set(
+                    url,
+                    file_object.read(),
+                    ex=config.get(config_cache_expiry_var, DEFAULT_GRIB_CACHE_EXPIRY_SECONDS),
+                )
         except Exception as error:
             logger.exception(error)
     return target
