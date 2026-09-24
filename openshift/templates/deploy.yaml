@@ -432,8 +432,8 @@ objects:
                   port: 8080
                   scheme: HTTP
                 initialDelaySeconds: 5
-                periodSeconds: 2
-                failureThreshold: 20
+                periodSeconds: 10
+                failureThreshold: 4
                 timeoutSeconds: 2
               livenessProbe:
                 successThreshold: 1
