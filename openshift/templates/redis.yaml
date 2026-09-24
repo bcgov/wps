@@ -57,7 +57,7 @@ spec:
               memory: 2Gi
               ephemeral-storage: "2.5Gi"
             requests:
-              memory: 512Mi
+              memory: 1Gi
               ephemeral-storage: "2Gi"
               cpu: 100m
           volumeMounts:
