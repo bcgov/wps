@@ -43,8 +43,6 @@ spec:
             - 1536mb
             - --maxmemory-policy
             - allkeys-lru
-            - --save
-            - ""
           ports:
             - containerPort: 6379
               protocol: TCP
@@ -57,10 +55,10 @@ spec:
           resources:
             limits:
               memory: 2Gi
-              ephemeral-storage: "1Gi"
+              ephemeral-storage: "2.5Gi"
             requests:
-              memory: 1Gi
-              ephemeral-storage: "512Mi"
+              memory: 512Mi
+              ephemeral-storage: "2Gi"
               cpu: 100m
           volumeMounts:
             - name: wps-redis-data
