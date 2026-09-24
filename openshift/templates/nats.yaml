@@ -41,10 +41,10 @@ parameters:
     required: true
   - name: MEMORY_REQUEST
     required: true
-    value: 3800Mi
+    value: 2Gi
   - name: MEMORY_LIMIT
     required: true
-    value: 5000Mi
+    value: 3Gi
   - name: CPU_REQUEST
     required: true
     value: "1.5"
