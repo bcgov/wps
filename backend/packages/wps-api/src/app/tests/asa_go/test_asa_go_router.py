@@ -1,5 +1,5 @@
 from datetime import date, datetime, timezone
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -43,33 +43,27 @@ def test_public_psu_fire_centres_endpoint(mock_fetch_fire_centres, client: TestC
     }
 
 
-@patch("app.routers.fba.get_most_recent_run_datetime_for_date")
-def test_public_latest_sfms_run_datetime_endpoint(mock_latest_run_parameter, client: TestClient):
-    mock_latest_run_parameter.return_value = type(
-        "",
-        (),
-        {
-            "for_date": date(2025, 8, 26),
-            "run_datetime": datetime(2025, 8, 26, 15, 1, 47, 340947, tzinfo=timezone.utc),
-            "run_type": RunType.FORECAST.value,
-        },
-    )()
-
+@patch(
+    "app.auto_spatial_advisory.advisory_run_stats.stats.get_run_parameters",
+    new_callable=AsyncMock,
+    return_value=None,
+)
+def test_public_stats_endpoint_returns_not_found_for_unavailable_run(
+    mock_run_parameters, client: TestClient
+):
     with patch(
         "app.routers.asa_go.get_vancouver_now",
         return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),
     ):
-        response = client.get("/api/asa-go/fba/latest-sfms-run-datetime/2025-08-26")
+        response = client.get(
+            "/api/asa-go/fba/provincial-summary/forecast/2025-08-25T15:01:47Z/2025-08-26"
+        )
 
-    assert response.status_code == 200
+    assert response.status_code == 404
     assert response.json() == {
-        "run_parameter": {
-            "for_date": "2025-08-26",
-            "run_datetime": "2025-08-26T15:01:47.340947Z",
-            "run_type": RunType.FORECAST.value,
-            "valid_until": "2025-08-27T01:00:00Z",
-        }
+        "detail": "Advisory statistics are not available for the requested run."
     }
+    mock_run_parameters.assert_awaited_once()
 
 
 @patch("app.routers.fba.get_most_recent_run_datetime_for_date_range")
@@ -107,37 +101,6 @@ def test_public_latest_sfms_run_datetime_range_endpoint(
     }
 
 
-@patch("app.routers.fba.get_most_recent_run_datetime_for_date")
-def test_public_latest_sfms_run_datetime_rejects_past_dates(
-    mock_latest_run_parameter, client: TestClient, monkeypatch
-):
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    with patch(
-        "app.routers.asa_go.get_vancouver_now",
-        return_value=datetime(2025, 8, 26, 12, tzinfo=timezone.utc),
-    ):
-        response = client.get("/api/asa-go/fba/latest-sfms-run-datetime/2025-08-25")
-
-    assert response.status_code == 422
-    assert response.json()["detail"] == (
-        "ASA Go only accepts dates on or after 2025-08-26. Rejected: 2025-08-25"
-    )
-    mock_latest_run_parameter.assert_not_called()
-
-
-@patch("app.routers.fba.get_most_recent_run_datetime_for_date")
-def test_public_latest_sfms_run_datetime_allows_past_dates_in_development(
-    mock_latest_run_parameter, client: TestClient, monkeypatch
-):
-    monkeypatch.setenv("ENVIRONMENT", "development")
-    mock_latest_run_parameter.return_value = None
-
-    response = client.get("/api/asa-go/fba/latest-sfms-run-datetime/2025-08-25")
-
-    assert response.status_code == 200
-    mock_latest_run_parameter.assert_called_once()
-
-
 @patch("app.routers.fba.get_most_recent_run_datetime_for_date_range")
 def test_public_latest_sfms_run_datetime_range_rejects_past_dates(
     mock_latest_run_parameter_range, client: TestClient, monkeypatch
@@ -154,6 +117,18 @@ def test_public_latest_sfms_run_datetime_range_rejects_past_dates(
         "ASA Go only accepts dates on or after 2025-08-26. Rejected: 2025-08-25"
     )
     mock_latest_run_parameter_range.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/asa-go/fba/latest-sfms-run-datetime/2025-08-26",
+        "/api/asa-go/fba/sfms-run-datetimes/forecast/2025-08-26",
+        "/api/asa-go/fba/sfms-run-bounds",
+    ],
+)
+def test_unused_public_run_discovery_routes_are_not_exposed(client: TestClient, path: str):
+    assert client.get(path).status_code == 404
 
 
 def test_public_register_device_endpoint(client: TestClient):

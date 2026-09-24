@@ -1,7 +1,7 @@
 import math
 from collections import namedtuple
 from datetime import date, datetime, timezone
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import app.main
 import pytest
@@ -294,6 +294,24 @@ def client():
         yield test_client
 
 
+def make_run_parameters(complete: bool) -> RunParameters:
+    return RunParameters(
+        run_type="forecast",
+        run_datetime=datetime(2025, 8, 25, 15, 1, 47, tzinfo=timezone.utc),
+        for_date=date(2025, 8, 26),
+        complete=complete,
+    )
+
+
+@pytest.fixture(autouse=True)
+def mock_completed_run(mocker):
+    return mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.get_run_parameters",
+        new_callable=AsyncMock,
+        return_value=make_run_parameters(complete=True),
+    )
+
+
 @pytest.mark.usefixtures("mock_jwt_decode")
 @patch("app.routers.fba.fetch_fire_centres")
 def test_fba_endpoint_fire_centers(mock_fetch_fire_centres):
@@ -402,6 +420,20 @@ def test_get_fire_center_info_authorized(client: TestClient):
     assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["fuel_area"], 100)
     assert math.isclose(kfc_json["1"]["fuel_area_stats"][0]["area"], 50)
     assert math.isclose(kfc_json["1"]["min_wind_stats"][0]["min_wind_speed"], 1)
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_stats_endpoint_returns_not_found_for_incomplete_run(
+    client: TestClient, mock_completed_run
+):
+    mock_completed_run.return_value = make_run_parameters(complete=False)
+
+    response = client.get("/api/fba/provincial-summary/forecast/2025-08-25T15:01:47Z/2025-08-26")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Advisory statistics are not available for the requested run."
+    }
 
 
 @patch("app.auto_spatial_advisory.advisory_run_stats.stats.get_precomputed_stats_for_shape", mock_get_fire_centre_info)
