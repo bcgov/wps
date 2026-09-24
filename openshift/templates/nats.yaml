@@ -47,7 +47,7 @@ parameters:
     value: 3Gi
   - name: CPU_REQUEST
     required: true
-    value: "1.5"
+    value: "1"
   - name: REPLICAS
     description: Number of NATS consumer replicas
     value: "3"
