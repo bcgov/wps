@@ -190,6 +190,11 @@ objects:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
                           key: env.redis-cache-noaa
+                    - name: REDIS_NOAA_CACHE_EXPIRY
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.redis-noaa-cache-expiry
                     - name: DATA_RETENTION_THRESHOLD
                       valueFrom:
                         configMapKeyRef:
