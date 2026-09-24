@@ -17,7 +17,6 @@ metadata:
   name: wps-redis
   labels:
     template: redis-ephemeral-template
-    template.openshift.io/template-instance-owner: 31445217-3081-42d2-88f6-97ef32b19ff1
 spec:
   replicas: 1
   selector:
@@ -39,6 +38,7 @@ spec:
           image: >-
             image-registry.openshift-image-registry.svc:5000/openshift/redis@sha256:e12fc5970148659b3f3ac9d80799beb36138d559830f36ac2319e6ff606cefc3
           args:
+            - /usr/bin/run-redis
             - --maxmemory
             - 1536mb
             - --maxmemory-policy
