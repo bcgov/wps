@@ -40,7 +40,7 @@ spec:
           args:
             - /usr/bin/run-redis
             - --maxmemory
-            - 1536mb
+            - 1500mb
             - --maxmemory-policy
             - allkeys-lru
           ports:
