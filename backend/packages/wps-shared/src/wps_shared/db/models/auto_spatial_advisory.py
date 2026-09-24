@@ -108,46 +108,6 @@ class HfiClassificationThreshold(Base):
     name = Column(String, nullable=False)
 
 
-class ClassifiedHfi(Base):
-    """HFI classified into different groups.
-    NOTE: In actual fact, forecasts and actuals can be run multiple times per day,
-    but we only care about the most recent one, so we only store the date, not the timestamp.
-    """
-
-    __tablename__ = "advisory_classified_hfi"
-    __table_args__ = {
-        "comment": "HFI classification for some forecast/advisory run on some day, for some date"
-    }
-    id = Column(Integer, primary_key=True, index=True)
-    threshold = Column(
-        Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False, index=True
-    )
-    run_type = Column(Enum(RunTypeEnum), nullable=False, index=True)
-    run_datetime = Column(TZTimeStamp, nullable=False)
-    for_date = Column(Date, nullable=False)
-    geom = Column(Geometry("POLYGON", spatial_index=False, srid=NAD83_BC_ALBERS))
-
-
-# Explicit creation of index due to issue with alembic + geoalchemy.
-Index("idx_advisory_classified_hfi_geom", ClassifiedHfi.geom, postgresql_using="gist")
-
-
-class FuelType(Base):
-    """Identify some kind of fuel type."""
-
-    __tablename__ = "advisory_fuel_types"
-    __table_args__ = {"comment": "Identify some kind of fuel type"}
-    id = Column(Integer, primary_key=True, index=True)
-    fuel_type_id = Column(Integer, nullable=False, index=True)
-    geom = Column(Geometry("POLYGON", spatial_index=False, srid=NAD83_BC_ALBERS))
-    fuel_type_raster_id = Column(Integer, ForeignKey(FuelTypeRaster.id), nullable=True, index=True)
-    fuel_type_raster = relationship(FuelTypeRaster)
-
-
-# Explicit creation of index due to issue with alembic + geoalchemy.
-Index("idx_advisory_fuel_types_geom", FuelType.geom, postgresql_using="gist")
-
-
 class SFMSFuelType(Base):
     """Fuel types used by SFMS system"""
 
@@ -193,25 +153,6 @@ class HighHfiArea(Base):
     threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False)
     run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
     area = Column(Float, nullable=False)
-
-
-class AdvisoryElevationStats(Base):
-    """
-    Summary statistics about the elevation of area with high hfi (4k-10k and >10k) per fire shape
-    based on the set run_type, for_date and run_datetime.
-    """
-
-    __tablename__ = "advisory_elevation_stats"
-    __table_args__ = {"comment": "Elevation stats per fire shape by advisory threshold"}
-    id = Column(Integer, primary_key=True, index=True)
-    advisory_shape_id = Column(Integer, ForeignKey(Shape.id), nullable=False, index=True)
-    threshold = Column(Integer, ForeignKey(HfiClassificationThreshold.id), nullable=False)
-    run_parameters = Column(Integer, ForeignKey(RunParameters.id), nullable=False, index=True)
-    minimum = Column(Float, nullable=False)
-    quartile_25 = Column(Float, nullable=False)
-    median = Column(Float, nullable=False)
-    quartile_75 = Column(Float, nullable=False)
-    maximum = Column(Float, nullable=False)
 
 
 class AdvisoryFuelStats(Base):

@@ -560,9 +560,9 @@ async def mark_run_parameter_complete(
 
 
 async def save_advisory_elevation_tpi_stats(
-    session: AsyncSession, advisory_elevation_stats: List[AdvisoryTPIStats]
+    session: AsyncSession, advisory_tpi_stats: List[AdvisoryTPIStats]
 ):
-    session.add_all(advisory_elevation_stats)
+    session.add_all(advisory_tpi_stats)
 
 
 async def get_centre_tpi_stats(
