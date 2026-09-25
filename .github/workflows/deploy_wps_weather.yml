@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Build and push WPS Weather image
-        uses: bcgov/actions/builder-ghcr@ac9d89eede94f5f58d3446784c94cff634d98eac # v0.6.0
+        uses: bcgov/actions/builder-ghcr@6763b12e9c5e7548fe0e63a63e16fe01f0f33b91 # v0.7.0
         with:
           package: wps-weather
           build_context: .
