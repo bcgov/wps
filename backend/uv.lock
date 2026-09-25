@@ -597,8 +597,8 @@ wheels = [
 
 [[package]]
 name = "cffdrs"
-version = "0.2.0"
-source = { git = "https://github.com/cffdrs/cffdrs_py.git?rev=0f57fcca2a6a84b69fe8d50f29d947f0be34d5f6#0f57fcca2a6a84b69fe8d50f29d947f0be34d5f6" }
+version = "0.3.0"
+source = { git = "https://github.com/cffdrs/cffdrs_py.git?rev=7d8931e64fca7c5a0d0f34a14d258215a3b9506d#7d8931e64fca7c5a0d0f34a14d258215a3b9506d" }
 
 [[package]]
 name = "cffdrs-vec"
@@ -619,7 +619,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cffdrs", git = "https://github.com/cffdrs/cffdrs_py.git?rev=0f57fcca2a6a84b69fe8d50f29d947f0be34d5f6" },
+    { name = "cffdrs", git = "https://github.com/cffdrs/cffdrs_py.git?rev=7d8931e64fca7c5a0d0f34a14d258215a3b9506d" },
     { name = "gdal", marker = "extra == 'dev'", specifier = "==3.13.1" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.150.2" },
     { name = "numba", specifier = ">=0,<1" },
@@ -5036,7 +5036,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1,<2" },
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "autopep8", marker = "extra == 'dev'", specifier = ">=2,<3" },
-    { name = "cffdrs", git = "https://github.com/cffdrs/cffdrs_py.git?rev=0f57fcca2a6a84b69fe8d50f29d947f0be34d5f6" },
+    { name = "cffdrs", git = "https://github.com/cffdrs/cffdrs_py.git?rev=7d8931e64fca7c5a0d0f34a14d258215a3b9506d" },
     { name = "cffdrs-vec", editable = "packages/cffdrs-vec" },
     { name = "cryptography", specifier = ">=50,<51" },
     { name = "earthaccess", specifier = ">=0.15.1" },

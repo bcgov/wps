@@ -12,7 +12,7 @@ dependencies = ["cffdrs>=0,<1", "numba>=0,<1", "numpy>=1,<3"]
 dev = ["gdal==3.13.1", "hypothesis>=6.150.2", "wps-shared"]
 
 [tool.uv.sources]
-cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "0f57fcca2a6a84b69fe8d50f29d947f0be34d5f6" }
+cffdrs = { git = "https://github.com/cffdrs/cffdrs_py.git", rev = "7d8931e64fca7c5a0d0f34a14d258215a3b9506d" }
 wps-shared = { workspace = true }
 
 [build-system]
