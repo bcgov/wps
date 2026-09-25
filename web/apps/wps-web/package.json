@@ -75,7 +75,7 @@
   "devDependencies": {
     "@babel/core": "^8.0.0",
     "@babel/preset-env": "^8.0.0",
-    "@playwright/test": "^1.59.1",
+    "@playwright/test": "^1.63.0",
     "@swc/plugin-emotion": "^15.0.0",
     "@testing-library/dom": "^10.1.0",
     "@testing-library/jest-dom": "^7.0.0",
