@@ -64,6 +64,7 @@ objects:
     metadata:
       name: ${CRUNCHY_NAME}-${DATE}-${SUFFIX}
     spec:
+      image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-postgres-gis:ubi8-16.11-3.3-20260910
       postgresVersion: 16
       postGISVersion: "3.3"
       openshift: true
@@ -104,6 +105,7 @@ objects:
             storageClassName: netapp-block-standard
       backups:
         pgbackrest:
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbackrest:ubi8-2.56.0-20260910
           manual:
             repoName: repo1
             options:
@@ -129,6 +131,7 @@ objects:
                 region: "ca-central-1"
       proxy:
         pgBouncer:
+          image: artifacts.developer.gov.bc.ca/bcgov-docker-local/crunchy-pgbouncer:ubi8-1.24-20260910
           affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
