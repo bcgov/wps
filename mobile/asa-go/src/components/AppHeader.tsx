@@ -3,6 +3,7 @@ import Grid from '@mui/material/Grid'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { HamburgerMenu } from '@/components/HamburgerMenu'
 import { theme } from '@/theme'
+import { APP_HEADER_HEIGHT } from '@/utils/constants'
 
 export const AppHeader = () => {
   const headerRef = useRef<HTMLDivElement>(null)
@@ -21,7 +22,7 @@ export const AppHeader = () => {
     <Box
       ref={headerRef}
       sx={{
-        height: 100,
+        height: APP_HEADER_HEIGHT,
         background: theme.palette.primary.main,
         borderBottomWidth: 2,
         borderBottomStyle: 'solid',
