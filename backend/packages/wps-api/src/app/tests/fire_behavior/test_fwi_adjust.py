@@ -2,7 +2,6 @@ import math
 from datetime import datetime
 
 import pytest
-
 from app.fire_behaviour.fwi_adjust import calculate_adjusted_fwi_result
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.schemas.fba_calc import StationRequest
@@ -84,8 +83,6 @@ def test_adjusted_fwi_result_with_precipitation():
         },
         raw_daily=raw_daily,
     )
-    # cffdrs_py only clamps temperatures below -1.1°C for the DMC calculation, so 1°C
-    # is used as-is and the 25mm precipitation adjustment produces a DMC of ~0.256.
     assert math.isclose(adjusted_fwi_result.dmc, 0.256, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.dc, 0.0, abs_tol=0.001)
     assert math.isclose(adjusted_fwi_result.bui, 0.0, abs_tol=0.001)
