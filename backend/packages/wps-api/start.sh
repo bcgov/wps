@@ -5,7 +5,9 @@ set -e
 ./prestart.sh
 # set some defaults
 GUNICORN_WORKERS="${GUNICORN_WORKERS:-4}"
+# maximum requests each worker handles before restarting
 GUNICORN_MAX_REQUESTS="${GUNICORN_MAX_REQUESTS:-1000}"
+# maximum random offset added to each worker's request limit
 GUNICORN_MAX_REQUESTS_JITTER="${GUNICORN_MAX_REQUESTS_JITTER:-100}"
 APP_MODULE="${APP_MODULE:-app.main:app}"
 # start the server
