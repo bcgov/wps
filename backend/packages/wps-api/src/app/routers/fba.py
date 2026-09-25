@@ -46,6 +46,10 @@ from app.psu.fire_centres import build_fba_fire_centers_response, fetch_fire_cen
 
 logger = logging.getLogger(__name__)
 
+RUN_NOT_FOUND_RESPONSES = {
+    404: {"description": "The requested advisory run is missing or incomplete."}
+}
+
 router = APIRouter(
     prefix="/fba",
     dependencies=[Depends(asa_authentication_required), Depends(audit_asa)],
@@ -108,6 +112,7 @@ async def get_fire_centres_and_fire_zone_units():
 @router.get(
     "/provincial-summary/{run_type}/{run_datetime}/{for_date}",
     response_model=ProvincialSummaryResponse,
+    responses=RUN_NOT_FOUND_RESPONSES,
 )
 async def get_provincial_summary(
     run_type: RunType,
@@ -122,6 +127,7 @@ async def get_provincial_summary(
 @router.get(
     "/fire-centre-hfi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}",
     response_model=dict[str, dict[int, FireZoneHFIStats]],
+    responses=RUN_NOT_FOUND_RESPONSES,
 )
 async def get_hfi_fuels_data_for_fire_centre(
     run_type: RunType,
@@ -139,7 +145,9 @@ async def get_hfi_fuels_data_for_fire_centre(
         run_datetime,
         fire_centre_name,
     )
-    all_zone_data = await get_fire_centre_hfi_stats(fire_centre_name, run_type, run_datetime, for_date)
+    all_zone_data = await get_fire_centre_hfi_stats(
+        fire_centre_name, run_type, run_datetime, for_date
+    )
     return {fire_centre_name: all_zone_data}
 
 
@@ -176,6 +184,7 @@ async def get_sfms_run_bounds():
 @router.get(
     "/fire-centre-tpi-stats/{run_type}/{for_date}/{run_datetime}/{fire_centre_name}",
     response_model=FireCentreTPIResponse,
+    responses=RUN_NOT_FOUND_RESPONSES,
 )
 async def get_fire_centre_tpi_stats(
     fire_centre_name: str,
@@ -234,6 +243,7 @@ async def get_latest_sfms_run_datetime_for_date_range(
 @router.get(
     "/hfi-stats/{run_type}/{run_datetime}/{for_date}",
     response_model=HFIStatsResponse,
+    responses=RUN_NOT_FOUND_RESPONSES,
 )
 async def get_hfi_fuels_data_for_run_parameter(
     run_type: RunType,
@@ -255,6 +265,7 @@ async def get_hfi_fuels_data_for_run_parameter(
 @router.get(
     "/tpi-stats/{run_type}/{run_datetime}/{for_date}",
     response_model=TPIResponse,
+    responses=RUN_NOT_FOUND_RESPONSES,
 )
 async def get_tpi_stats_for_run_parameter(
     run_type: RunType,

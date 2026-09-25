@@ -7,7 +7,7 @@ These tests require Docker/Podman. Run with:
 import asyncio
 import json
 import uuid
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import nats as nats_lib
 import pytest
@@ -122,6 +122,7 @@ async def test_keepalive_prevents_redelivery(nats_setup, monkeypatch):
 async def test_message_nacked_after_failure(nats_setup, monkeypatch):
     """Processing failure naks the message; it remains in the stream for redelivery."""
     js, sub, _ = nats_setup
+    monkeypatch.setattr(f"{_MODULE}.send_chatops_notification", Mock())
     monkeypatch.setattr(
         f"{_MODULE}.process_sfms_hfi_stats", AsyncMock(side_effect=RuntimeError("boom"))
     )

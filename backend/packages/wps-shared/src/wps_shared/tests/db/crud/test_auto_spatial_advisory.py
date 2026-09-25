@@ -10,6 +10,7 @@ from wps_shared.db.crud.auto_spatial_advisory import (
     get_fire_centre_info,
     get_most_recent_run_datetime_for_date_range,
     get_provincial_rollup,
+    get_sfms_bounds,
     mark_run_parameter_complete,
 )
 from wps_shared.db.models import Base
@@ -114,10 +115,17 @@ async def test_mark_run_parameter_complete(async_session, session_factory):
 
     # use new session
     async with session_factory() as separate_session:
-        await mark_run_parameter_complete(
+        completed_now = await mark_run_parameter_complete(
             separate_session, RunType.FORECAST, test_run_datetime, test_for_date
         )
+        assert completed_now is True
         await separate_session.commit()
+
+    async with session_factory() as already_complete_session:
+        completed_now = await mark_run_parameter_complete(
+            already_complete_session, RunType.FORECAST, test_run_datetime, test_for_date
+        )
+        assert completed_now is False
 
     # verify with a different session
     async with session_factory() as verify_session:
@@ -164,6 +172,48 @@ async def test_get_most_recent_run_datetime_for_date_range_ignores_incomplete_ru
     result_by_date = {row.for_date: row for row in result}
     assert result_by_date[today].run_datetime == older_complete_run_datetime
     assert result_by_date[tomorrow].run_datetime == tomorrow_run_datetime
+
+
+@pytest.mark.anyio
+async def test_get_sfms_bounds_ignores_incomplete_runs(async_session):
+    async_session.add_all(
+        [
+            RunParameters(
+                run_type=RunType.FORECAST.value,
+                run_datetime=datetime(2025, 4, 1, tzinfo=timezone.utc),
+                for_date=datetime(2025, 4, 1, tzinfo=timezone.utc).date(),
+                complete=False,
+            ),
+            RunParameters(
+                run_type=RunType.FORECAST.value,
+                run_datetime=datetime(2025, 5, 1, tzinfo=timezone.utc),
+                for_date=datetime(2025, 5, 1, tzinfo=timezone.utc).date(),
+                complete=True,
+            ),
+            RunParameters(
+                run_type=RunType.FORECAST.value,
+                run_datetime=datetime(2025, 5, 10, tzinfo=timezone.utc),
+                for_date=datetime(2025, 5, 10, tzinfo=timezone.utc).date(),
+                complete=True,
+            ),
+            RunParameters(
+                run_type=RunType.FORECAST.value,
+                run_datetime=datetime(2025, 6, 1, tzinfo=timezone.utc),
+                for_date=datetime(2025, 6, 1, tzinfo=timezone.utc).date(),
+                complete=False,
+            ),
+        ]
+    )
+    await async_session.commit()
+
+    results = await get_sfms_bounds(async_session)
+
+    assert len(results) == 1
+    year, run_type, minimum, maximum = results[0]
+    assert year == 2025
+    assert run_type == RunType.FORECAST.value
+    assert minimum.isoformat() == "2025-05-01"
+    assert maximum.isoformat() == "2025-05-10"
 
 
 @pytest.mark.anyio

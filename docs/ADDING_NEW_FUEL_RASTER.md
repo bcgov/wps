@@ -8,8 +8,7 @@ The install job does the static setup for one fuel grid:
    versioned raster with the same content hash.
 2. Inserts one `fuel_type_raster` row.
 3. Generates the fuel-masked classified TPI raster.
-4. Populates static advisory data for that raster:
-   - `advisory_fuel_types`
+4. Calculates static advisory data from the fuel, fire-zone, and TPI rasters and populates:
    - `advisory_shape_fuels`
    - `combustible_area`
    - `tpi_fuel_area`
@@ -107,7 +106,6 @@ version: 1
 install_status: ready
 processed_raster_key: sfms/static/fuel/2026/fbp2026_v1.tif
 fuel_masked_tpi_key: dem/tpi/<classified_tpi_base>_fuel_masked_2026_v1.tif
-advisory_fuel_types_count: <count>
 advisory_shape_fuels_count: <count>
 combustible_area_count: <count>
 tpi_fuel_area_count: <count>
@@ -133,9 +131,7 @@ WITH target AS (
     WHERE year = 2026
       AND version = 1
 )
-SELECT 'advisory_fuel_types' AS table_name, count(*) FROM advisory_fuel_types WHERE fuel_type_raster_id IN (SELECT id FROM target)
-UNION ALL
-SELECT 'advisory_shape_fuels', count(*) FROM advisory_shape_fuels WHERE fuel_type_raster_id IN (SELECT id FROM target)
+SELECT 'advisory_shape_fuels' AS table_name, count(*) FROM advisory_shape_fuels WHERE fuel_type_raster_id IN (SELECT id FROM target)
 UNION ALL
 SELECT 'combustible_area', count(*) FROM combustible_area WHERE fuel_type_raster_id IN (SELECT id FROM target)
 UNION ALL

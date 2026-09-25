@@ -35,7 +35,9 @@ def mock_advisory_run_stats_redis(monkeypatch):
 
     Patches client() on the module-level `asa_stats_cache` instance only, not the ASARedisCache
     class. A test that wants to exercise ASARedisCache's own connection/client-building logic can
-    just instantiate a fresh ASARedisCache(), unaffected by this."""
+    just instantiate a fresh ASARedisCache(), unaffected by this.
+
+    Enables caching explicitly because the application default is disabled."""
 
     class MockRedis:
         def get(self, name):
@@ -47,6 +49,7 @@ def mock_advisory_run_stats_redis(monkeypatch):
         def delete(self, name):
             pass
 
+    monkeypatch.setattr(advisory_run_stats_cache.asa_stats_cache, "_enabled", True)
     monkeypatch.setattr(advisory_run_stats_cache.asa_stats_cache, "client", lambda: MockRedis())
 
 

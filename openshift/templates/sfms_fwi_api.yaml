@@ -119,8 +119,6 @@ objects:
                       key: pgbouncer-port
                 - name: POSTGRES_DATABASE
                   value: ${POSTGRES_DATABASE}
-                - name: PORT
-                  value: "8080"
                 - name: ENVIRONMENT
                   value: ${ENVIRONMENT}
                 - name: GUNICORN_WORKERS
@@ -166,7 +164,7 @@ objects:
                   scheme: HTTP
                 initialDelaySeconds: 5
                 periodSeconds: 5
-                failureThreshold: 20
+                failureThreshold: 40
                 timeoutSeconds: 2
               readinessProbe:
                 httpGet:
@@ -174,8 +172,8 @@ objects:
                   port: 8080
                   scheme: HTTP
                 initialDelaySeconds: 5
-                periodSeconds: 2
-                failureThreshold: 20
+                periodSeconds: 5
+                failureThreshold: 3
                 timeoutSeconds: 2
               livenessProbe:
                 successThreshold: 1

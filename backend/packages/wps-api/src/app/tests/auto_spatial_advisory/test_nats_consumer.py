@@ -56,12 +56,21 @@ async def test_process_message_acks_after_success(msg, patch_parse, monkeypatch)
 
 @pytest.mark.anyio
 async def test_process_message_naks_after_failure(msg, patch_parse, monkeypatch):
-    monkeypatch.setattr(f"{_MODULE}.process_sfms_hfi_stats", AsyncMock(side_effect=RuntimeError("boom")))
+    send_chatops_notification = Mock()
+    monkeypatch.setattr(f"{_MODULE}.send_chatops_notification", send_chatops_notification)
+    monkeypatch.setattr(
+        f"{_MODULE}.process_sfms_hfi_stats", AsyncMock(side_effect=RuntimeError("boom"))
+    )
 
     await process_message(msg)
 
     msg.ack.assert_not_called()
     msg.nak.assert_awaited_once()
+    send_chatops_notification.assert_called_once()
+    message, exception = send_chatops_notification.call_args.args
+    assert "ASA statistics processing failed" in message
+    assert str(exception) == "boom"
+    assert send_chatops_notification.call_args.kwargs == {"severity": "critical"}
 
 
 @pytest.mark.anyio
@@ -77,8 +86,12 @@ async def test_keepalive_task_cancelled_on_success(msg, patch_parse, captured_ta
 
 
 @pytest.mark.anyio
-async def test_keepalive_task_cancelled_on_processing_failure(msg, patch_parse, captured_tasks, monkeypatch):
-    monkeypatch.setattr(f"{_MODULE}.process_sfms_hfi_stats", AsyncMock(side_effect=RuntimeError("boom")))
+async def test_keepalive_task_cancelled_on_processing_failure(
+    msg, patch_parse, captured_tasks, monkeypatch
+):
+    monkeypatch.setattr(
+        f"{_MODULE}.process_sfms_hfi_stats", AsyncMock(side_effect=RuntimeError("boom"))
+    )
 
     await process_message(msg)
     await asyncio.sleep(0)

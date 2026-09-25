@@ -2,6 +2,7 @@ import io
 import math
 import uuid
 from contextlib import ExitStack, contextmanager
+from dataclasses import dataclass
 from typing import Iterator, List, NamedTuple, Optional, Tuple
 
 import numpy as np
@@ -10,6 +11,19 @@ from osgeo import gdal, ogr, osr
 from wps_shared.geospatial.geospatial import GDALResamplingMethod, rasters_match
 
 gdal.UseExceptions()
+
+DEFAULT_CHUNK_SIZE = 256
+
+
+@dataclass(frozen=True)
+class RasterWindow:
+    """One raster array and its pixel offsets for a bounded window."""
+
+    x_offset: int
+    y_offset: int
+    width: int
+    height: int
+    array: np.ndarray
 
 
 class Georeference(NamedTuple):
@@ -29,7 +43,7 @@ class WPSDataset:
         ds_path: Optional[str],
         ds=None,
         band: int = 1,
-        chunk_size: int = 256,
+        chunk_size: int = DEFAULT_CHUNK_SIZE,
         access=gdal.GA_ReadOnly,
         output_path: Optional[str] = None,
     ):
@@ -60,6 +74,41 @@ class WPSDataset:
     def read_array(self) -> np.ndarray:
         """Read this dataset's band into a NumPy array."""
         return self.ds.GetRasterBand(self.band).ReadAsArray()
+
+    def read_window(self, window: RasterWindow) -> np.ndarray:
+        """Read this dataset's configured band at the supplied window bounds."""
+        return self.ds.GetRasterBand(self.band).ReadAsArray(
+            window.x_offset, window.y_offset, window.width, window.height
+        )
+
+    def iter_windows(self, window_size: int | None = None) -> Iterator[RasterWindow]:
+        """Yield this dataset's configured band in row-major, memory-bounded windows.
+
+        ``window_size`` overrides the dataset's configured ``chunk_size`` for this iteration.
+        """
+        window_size = self.chunk_size if window_size is None else window_size
+        if window_size <= 0:
+            raise ValueError("Raster window size must be greater than zero")
+
+        band = self.ds.GetRasterBand(self.band)
+        for y_offset in range(0, self.ds.RasterYSize, window_size):
+            height = min(window_size, self.ds.RasterYSize - y_offset)
+            for x_offset in range(0, self.ds.RasterXSize, window_size):
+                width = min(window_size, self.ds.RasterXSize - x_offset)
+                yield RasterWindow(
+                    x_offset=x_offset,
+                    y_offset=y_offset,
+                    width=width,
+                    height=height,
+                    array=band.ReadAsArray(x_offset, y_offset, width, height),
+                )
+
+    def require_nodata_value(self) -> float | int:
+        """Return this dataset's nodata value, raising when the band does not declare one."""
+        nodata_value = self.ds.GetRasterBand(self.band).GetNoDataValue()
+        if nodata_value is None:
+            raise ValueError(f"Raster does not define a nodata value: {self.ds_path}")
+        return nodata_value
 
     @classmethod
     def from_array(
@@ -163,10 +212,7 @@ class WPSDataset:
         ):
             raise ValueError("The origins of the two rasters do not match.")
 
-        self_band: gdal.Band = self.ds.GetRasterBand(self.band)
-        other_band: gdal.Band = other.ds.GetRasterBand(self.band)
-
-        datatype = self_band.DataType
+        datatype = self.ds.GetRasterBand(self.band).DataType
 
         # Create the output raster
         if self.output_path is None:
@@ -181,31 +227,19 @@ class WPSDataset:
         out_ds.SetGeoTransform(geotransform)
         out_ds.SetProjection(projection)
 
-        # Process in chunks
-        for y in range(0, y_size, self.chunk_size):
-            y_chunk_size = min(self.chunk_size, y_size - y)
+        for window in self.iter_windows():
+            self_chunk = window.array
+            other_chunk = other.read_window(window)
+            wider_type = np.promote_types(self_chunk.dtype, other_chunk.dtype)
 
-            for x in range(0, x_size, self.chunk_size):
-                x_chunk_size = min(self.chunk_size, x_size - x)
+            self_chunk = self_chunk.astype(wider_type)
+            other_chunk = other_chunk.astype(wider_type)
 
-                # Read chunks from both rasters
-                self_chunk = self_band.ReadAsArray(x, y, x_chunk_size, y_chunk_size)
-                other_chunk = other_band.ReadAsArray(x, y, x_chunk_size, y_chunk_size)
-                wider_type = np.promote_types(self_chunk.dtype, other_chunk.dtype)
+            other_chunk[other_chunk >= 1] = 1
+            other_chunk[other_chunk < 1] = 0
 
-                self_chunk = self_chunk.astype(wider_type)
-                other_chunk = other_chunk.astype(wider_type)
-
-                other_chunk[other_chunk >= 1] = 1
-                other_chunk[other_chunk < 1] = 0
-
-                # Multiply the chunks
-                self_chunk *= other_chunk
-
-                # Write the result to the output raster
-                out_ds.GetRasterBand(self.band).WriteArray(self_chunk, x, y)
-                self_chunk = None
-                other_chunk = None
+            self_chunk *= other_chunk
+            out_ds.GetRasterBand(self.band).WriteArray(self_chunk, window.x_offset, window.y_offset)
 
         return WPSDataset(ds_path=None, ds=out_ds)
 
@@ -215,15 +249,21 @@ class WPSDataset:
         output_path: str | None = None,
         resample_method: GDALResamplingMethod = GDALResamplingMethod.NEAREST_NEIGHBOUR,
         max_value: float | None = None,
+        creation_options: list[str] | None = None,
     ):
         """
         Warp the dataset to match the extent, pixel size, and projection of the other dataset.
         A /vsimem/ output_path is automatically gdal.Unlink'd when the returned WPSDataset is
         closed.
 
+        Nearest-neighbour is the default because it preserves categorical raster values. Callers
+        working with continuous measurements must explicitly choose an appropriate interpolating
+        resampling method.
+
         :param other: the reference WPSDataset raster to match the source against
         :param output_path: output path of the resulting raster
         :param resample_method: gdal resampling algorithm
+        :param creation_options: optional GeoTIFF creation options for the warped output
         :return: warped raster dataset
         """
         if output_path is None:
@@ -252,6 +292,7 @@ class WPSDataset:
                 xRes=x_res,
                 yRes=y_res,
                 resampleAlg=resample_method.value,
+                creationOptions=creation_options,
             ),
         )
 
@@ -518,6 +559,12 @@ class WPSDataset:
     def georeference(self) -> Georeference:
         """This dataset's geotransform and projection, e.g. to pass straight to `from_array`."""
         return Georeference(self.ds.GetGeoTransform(), self.ds.GetProjection())
+
+    @property
+    def pixel_area(self) -> float:
+        """Return one north-up pixel's area in the squared units of the raster projection."""
+        geotransform = self.ds.GetGeoTransform()
+        return abs(geotransform[1] * geotransform[5])
 
     def extract_value_at_point(self, lat: float, lon: float) -> Optional[float]:
         """Return the raster value at a WGS84 lat/lon coordinate, or None if out of bounds or nodata."""

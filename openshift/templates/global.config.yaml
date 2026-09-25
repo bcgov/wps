@@ -65,6 +65,10 @@ parameters:
     description: Indicate if redis should be used.
     required: True
     value: "True"
+  - name: ASA_STATS_CACHE_ENABLED
+    description: Cache ASA statistics responses in production; disable for development testing and reprocessing.
+    required: True
+    value: "False"
   - name: REDIS_STATION_CACHE_EXPIRY
     description: How long to cache station lists for.
     required: True
@@ -96,11 +100,15 @@ parameters:
   - name: REDIS_ENV_CANADA_CACHE_EXPIRY
     description: How long to cache env canada downloads for.
     required: True
-    value: "21600"
-  - name: GUNICORN_TIMEOUT
-    description: Workers silent for more than this many seconds are killed and restarted. (https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker#timeout)
+    value: "10800"
+  - name: REDIS_CACHE_NOAA
+    description: If True then cache NOAA downloads
     required: True
-    value: "180"
+    value: "False"
+  - name: REDIS_NOAA_CACHE_EXPIRY
+    description: How long to cache NOAA downloads for.
+    required: True
+    value: "10800"
   - name: SFMS_SECRET
     description: Secret for SFMS process triger
     required: True
@@ -127,6 +135,7 @@ objects:
       env.redis-host: ${REDIS_HOST}
       env.redis-port: ${REDIS_PORT}
       env.redis-use: ${REDIS_USE}
+      env.asa-stats-cache-enabled: ${ASA_STATS_CACHE_ENABLED}
       env.redis-station-cache-expiry: ${REDIS_STATION_CACHE_EXPIRY}
       env.redis-auth-cache-expiry: ${REDIS_AUTH_CACHE_EXPIRY}
       env.redis-dailies-by-station-code-expiry: ${REDIS_DAILIES_BY_STATION_CODE_EXPIRY}
@@ -135,7 +144,6 @@ objects:
       env.redis-cache-noaa: ${REDIS_CACHE_NOAA}
       env.redis-env-canada-cache-expiry: ${REDIS_ENV_CANADA_CACHE_EXPIRY}
       env.redis-noaa-cache-expiry: ${REDIS_NOAA_CACHE_EXPIRY}
-      env.gunicorn.timeout: ${GUNICORN_TIMEOUT}
       env.nats-server: ${NATS_SERVER}
 
   - kind: Secret

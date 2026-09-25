@@ -4,13 +4,15 @@ fire-centre-scoped counterparts).
 Safe to cache: this data is immutable once an SFMS run completes because it's keyed on the run itself
 (run_type/run_datetime/for_date, plus fire_centre_name for the scoped variants), so a new run
 gets a new key rather than needing invalidation.
+
+Keep ``ASA_STATS_CACHE_ENABLED`` disabled in development and enable it only in production.
 """
 
 import asyncio
 import logging
 from typing import Optional, TypeVar
 
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 from redis import StrictRedis
 from wps_shared import config
 from wps_shared.schemas.fba import (
@@ -52,11 +54,14 @@ class ASARedisCache:
     below is the one thing tests mock (see tests/conftest.py's autouse
     mock_advisory_run_stats_redis)."""
 
-    def __init__(self, timeout_seconds: float = 1):
+    def __init__(self, timeout_seconds: float = 1, enabled: Optional[bool] = None):
         # socket_connect_timeout/socket_timeout below don't cover DNS resolution (getaddrinfo)
         # _get()/_put() wrap the whole call in asyncio.wait_for(timeout_seconds) as the real ceiling,
         # via asyncio.to_thread so this blocking redis-py call doesn't sit on the event loop.
         self._timeout_seconds = timeout_seconds
+        if enabled is None:
+            enabled = config.get("ASA_STATS_CACHE_ENABLED", "False") == "True"
+        self._enabled = enabled
         self._client: Optional[StrictRedis] = None
 
     def connection_kwargs(self) -> dict:
@@ -78,6 +83,9 @@ class ASARedisCache:
         return self._client
 
     async def _get(self, key: str, adapter: TypeAdapter) -> Optional[T]:
+        if not self._enabled:
+            return None
+
         try:
             cached_json = await asyncio.wait_for(
                 asyncio.to_thread(self.client().get, key), timeout=self._timeout_seconds
@@ -86,12 +94,29 @@ class ASARedisCache:
             cached_json = None
             logger.error(error, exc_info=error)
         if cached_json:
+            try:
+                value = adapter.validate_json(cached_json)
+            except ValidationError as error:
+                logger.warning("invalid redis cache value for %s", key, exc_info=error)
+                await self._delete(key)
+                return None
             logger.info("redis cache hit %s", key)
-            return adapter.validate_json(cached_json)
+            return value
         logger.info("redis cache miss %s", key)
         return None
 
+    async def _delete(self, key: str):
+        try:
+            await asyncio.wait_for(
+                asyncio.to_thread(self.client().delete, key), timeout=self._timeout_seconds
+            )
+        except Exception as error:
+            logger.error(error, exc_info=error)
+
     async def _put(self, key: str, value: T, adapter: TypeAdapter):
+        if not self._enabled:
+            return
+
         try:
             await asyncio.wait_for(
                 asyncio.to_thread(

@@ -31,23 +31,6 @@ export interface FireZoneFuelStats {
   fuel_area: number
 }
 
-export interface ElevationInfo {
-  minimum: number
-  quartile_25: number
-  median: number
-  quartile_75: number
-  maximum: number
-}
-
-export interface ElevationInfoByThreshold {
-  threshold: number
-  elevation_info: ElevationInfo
-}
-
-export interface FireZoneElevationInfoResponse {
-  hfi_elevation_info: ElevationInfoByThreshold[]
-}
-
 export interface FireZoneTPIStats {
   fire_zone_id: number
   valley_bottom_hfi?: number
@@ -156,12 +139,6 @@ export async function getProvincialSummary(
   return data
 }
 
-export async function getMostRecentRunParameter(forDate: string): Promise<RunParameter> {
-  const url = `fba/latest-sfms-run-datetime/${forDate}`
-  const { data } = await axios.get(url)
-  return data.run_parameter
-}
-
 export async function getMostRecentRunParameters(startDate: string, endDate: string): Promise<RunParametersResponse> {
   const url = `fba/latest-sfms-run-parameters/${startDate}/${endDate}`
   const { data } = await axios.get(url)
@@ -174,17 +151,6 @@ export async function getHFIStats(
   for_date: string
 ): Promise<HFIStatsResponse> {
   const url = `fba/hfi-stats/${run_type.toLowerCase()}/${run_datetime}/${for_date}`
-  const { data } = await axios.get(url)
-  return data
-}
-
-export async function getFireZoneElevationInfo(
-  fire_zone_id: number,
-  run_type: RunType,
-  run_datetime: string,
-  for_date: string
-): Promise<FireZoneElevationInfoResponse> {
-  const url = `fba/fire-zone-elevation-info/${run_type.toLowerCase()}/${run_datetime}/${for_date}/${fire_zone_id}`
   const { data } = await axios.get(url)
   return data
 }

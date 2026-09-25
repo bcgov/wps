@@ -115,8 +115,6 @@ objects:
                   value: ${ALLOWED_ORIGINS}
                 - name: APP_MODULE
                   value: app.asa_go_main:app
-                - name: PORT
-                  value: "8080"
                 - name: ENVIRONMENT
                   value: ${ENVIRONMENT}
                 - name: GUNICORN_WORKERS
@@ -167,6 +165,26 @@ objects:
                   value: ${POSTGRES_POOL_SIZE}
                 - name: POSTGRES_MAX_OVERFLOW
                   value: ${POSTGRES_MAX_OVERFLOW}
+                - name: REDIS_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-host
+                - name: REDIS_PORT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.redis-port
+                - name: ASA_STATS_CACHE_ENABLED
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: env.asa-stats-cache-enabled
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wps-redis
+                      key: database-password
                 - name: STATUS_CHECKER_SECRET
                   valueFrom:
                     secretKeyRef:
@@ -207,7 +225,7 @@ objects:
                   scheme: HTTP
                 initialDelaySeconds: 5
                 periodSeconds: 5
-                failureThreshold: 20
+                failureThreshold: 40
                 timeoutSeconds: 2
               readinessProbe:
                 httpGet:
@@ -215,8 +233,8 @@ objects:
                   port: 8080
                   scheme: HTTP
                 initialDelaySeconds: 5
-                periodSeconds: 2
-                failureThreshold: 20
+                periodSeconds: 5
+                failureThreshold: 3
                 timeoutSeconds: 2
               livenessProbe:
                 successThreshold: 1
