@@ -12,10 +12,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
     }
 
-    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) {
         let appDelegate = UIApplication.shared.delegate as? AppDelegate
         // consume login callbacks before forwarding ordinary links to the web app
-        let unhandledContexts = URLContexts.filter { context in
+        let unhandledContexts = urlContexts.filter { context in
             appDelegate?.resumeAuthorizationFlow(with: context.url) != true
         }
         SceneDelegateProxy.shared.scene(scene, openURLContexts: unhandledContexts)
