@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		037EA0E251A74669AA90FD50 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037EA0E251A74669AA90FD52 /* SceneDelegate.swift */; };
+		037EA0E251A74669AA90FD51 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 037EA0E251A74669AA90FD52 /* SceneDelegate.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		3051119718597F082FD266F3 /* Pods_ASA_Go.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0146A60730585B7E7BDD0243 /* Pods_ASA_Go.framework */; };
 		4309C9DBE16C4DF38D493C6C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 1E60787A749448FB8E269E5A /* PrivacyInfo.xcprivacy */; };
@@ -31,6 +33,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		037EA0E251A74669AA90FD52 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		0146A60730585B7E7BDD0243 /* Pods_ASA_Go.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ASA_Go.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E60787A749448FB8E269E5A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -114,6 +117,7 @@
 				6654B5E52E29AC1C000DA498 /* App.entitlements */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
+				037EA0E251A74669AA90FD52 /* SceneDelegate.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -325,6 +329,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				037EA0E251A74669AA90FD50 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,6 +338,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A511FA762F630E36007AD49F /* AppDelegate.swift in Sources */,
+				037EA0E251A74669AA90FD51 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
