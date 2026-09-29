@@ -37,3 +37,10 @@ runs:
       working-directory: ./mobile/asa-go
       shell: bash
       run: yarn install
+
+    # keycloak is a local file dependency whose version never changes, so a cache hit keeps a stale copy
+    - name: Refresh keycloak plugin
+      if: steps.asa-go-cache.outputs.cache-hit == 'true'
+      working-directory: ./mobile/asa-go
+      shell: bash
+      run: rm -rf node_modules/keycloak && yarn install --frozen-lockfile --check-files --ignore-scripts

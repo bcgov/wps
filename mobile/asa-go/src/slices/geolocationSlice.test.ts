@@ -8,6 +8,16 @@ import geolocationSlice, {
 } from '@/slices/geolocationSlice'
 import { createTestStore } from '@/testUtils'
 
+vi.mock('@capacitor/geolocation', () => ({
+  Geolocation: {
+    checkPermissions: vi.fn(),
+    requestPermissions: vi.fn(),
+    getCurrentPosition: vi.fn(),
+    watchPosition: vi.fn(),
+    clearWatch: vi.fn()
+  }
+}))
+
 describe('geolocationSlice', () => {
   it('should handle setPosition', () => {
     const position = {
@@ -29,16 +39,6 @@ describe('geolocationSlice', () => {
 })
 
 describe('geolocationSlice thunks', () => {
-  vi.mock('@capacitor/geolocation', () => ({
-    Geolocation: {
-      checkPermissions: vi.fn(),
-      requestPermissions: vi.fn(),
-      getCurrentPosition: vi.fn(),
-      watchPosition: vi.fn(),
-      clearWatch: vi.fn()
-    }
-  }))
-
   beforeEach(() => {
     vi.resetAllMocks()
   })
