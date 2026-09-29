@@ -1,7 +1,7 @@
 {
   "extends": "@wps/tsconfig/react-app.json",
   "compilerOptions": {
-    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom", "@wps/types"],
+    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom/vitest", "@wps/types"],
     "noUnusedLocals": false,
     "noEmit": true,
     "paths": {
