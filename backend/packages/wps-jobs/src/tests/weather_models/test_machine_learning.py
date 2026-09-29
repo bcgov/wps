@@ -62,6 +62,9 @@ def test_bias_adjustment_with_samples(
     assert rh_result == 100
     assert math.isclose(wdir_result, 115.51556685719027)
     assert precip_result == 3
+    # missing model wind returns None instead of raising in sklearn
+    assert machine_learner.predict_wind_direction(None, 120, predict_date_with_samples) is None
+    assert machine_learner.predict_wind_direction(10, None, predict_date_with_samples) is None
 
 
 def test_bias_adjustment_of_rh_above_100(

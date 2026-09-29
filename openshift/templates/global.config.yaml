@@ -100,7 +100,15 @@ parameters:
   - name: REDIS_ENV_CANADA_CACHE_EXPIRY
     description: How long to cache env canada downloads for.
     required: True
-    value: "21600"
+    value: "10800"
+  - name: REDIS_CACHE_NOAA
+    description: If True then cache NOAA downloads
+    required: True
+    value: "False"
+  - name: REDIS_NOAA_CACHE_EXPIRY
+    description: How long to cache NOAA downloads for.
+    required: True
+    value: "10800"
   - name: SFMS_SECRET
     description: Secret for SFMS process triger
     required: True
