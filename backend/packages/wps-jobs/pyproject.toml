@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ipykernel>=6.29.5,<7"]
+dev = ["ipykernel>=7.3,<8"]
 
 [tool.uv.sources]
 wps-shared = { workspace = true }
