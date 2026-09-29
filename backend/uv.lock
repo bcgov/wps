@@ -5131,7 +5131,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.38,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },
     { name = "wps-wf1", editable = "packages/wps-wf1" },
-    { name = "xarray", specifier = ">=2025.3.1,<2026" },
+    { name = "xarray", specifier = ">=2026.7,<2027" },
 ]
 provides-extras = ["dev"]
 
@@ -5289,7 +5289,7 @@ requires-dist = [
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },
-    { name = "xarray", specifier = ">=2025.3.1,<2026" },
+    { name = "xarray", specifier = ">=2026.7,<2027" },
 ]
 
 [package.metadata.requires-dev]
@@ -5361,16 +5361,16 @@ wheels = [
 
 [[package]]
 name = "xarray"
-version = "2025.12.0"
+version = "2026.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "packaging" },
     { name = "pandas" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/af/7b945f331ba8911fdfff2fdfa092763156119f124be1ba4144615c540222/xarray-2025.12.0.tar.gz", hash = "sha256:73f6a6fadccc69c4d45bdd70821a47c72de078a8a0313ff8b1e97cd54ac59fed", size = 3082244, upload-time = "2025-12-05T21:51:22.432Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/96/3f7bdd00e505ec3698903415b30135024703e017b28c6b61f98da3193b0d/xarray-2026.7.0.tar.gz", hash = "sha256:361b495928fdbf5b58d0969bb6775339019da5e93ca74d61ddf4eb5edd6ce604", size = 3145348, upload-time = "2026-07-09T17:38:26.515Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/e4/62a677feefde05b12a70a4fc9bdc8558010182a801fbcab68cb56c2b0986/xarray-2025.12.0-py3-none-any.whl", hash = "sha256:9e77e820474dbbe4c6c2954d0da6342aa484e33adaa96ab916b15a786181e970", size = 1381742, upload-time = "2025-12-05T21:51:20.841Z" },
+    { url = "https://files.pythonhosted.org/packages/57/5b/28365212062939d213802e5e5fe855cdb231e1c2a93254ba1690066504e3/xarray-2026.7.0-py3-none-any.whl", hash = "sha256:bf9dd130b93806dc78e90c1b7ac24851b31557b888674c53622235691cf21824", size = 1426778, upload-time = "2026-07-09T17:38:24.224Z" },
 ]
 
 [[package]]
