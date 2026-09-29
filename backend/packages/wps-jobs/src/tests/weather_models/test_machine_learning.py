@@ -185,3 +185,30 @@ def test_bias_adjustment_with_missing_model_values(
     assert machine_learner.predict_wind_direction(None, 120, predict_date_with_samples) is None
     assert machine_learner.predict_wind_direction(10, None, predict_date_with_samples) is None
     assert machine_learner.predict_precipitation(math.nan, datetime(2023, 10, 26, 20)) is None
+
+
+def test_each_learn_queries_hourly_data_again(
+    monkeypatch, mock_get_accumulated_precip_by_24h_interval, mock_get_predicted_daily_precip
+):
+    """hourly_pairs is cached per LearningContext, so a second learn() must not reuse the first's data."""
+    calls = []
+
+    def query(*args):
+        calls.append(args)
+        return get_actuals_left_outer_join_with_predictions(*args)
+
+    monkeypatch.setattr(
+        bias_adjusted_variable, "get_actuals_left_outer_join_with_predictions", query
+    )
+    machine_learner = StationMachineLearning(
+        session=None,
+        model=PredictionModel(id=1),
+        target_coordinate=[-120.4816667, 50.6733333],
+        station_code=None,
+        max_learn_date=datetime.now(),
+    )
+
+    machine_learner.learn()
+    machine_learner.learn()
+
+    assert len(calls) == 2
