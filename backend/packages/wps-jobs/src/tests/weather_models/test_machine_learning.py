@@ -155,3 +155,28 @@ def test_bias_adjustment_without_samples(
     assert rh_result is None
     assert wdir_result is None
     assert precip_result is None
+
+
+def test_bias_adjustment_with_missing_model_values(
+    mock_get_actuals_left_outer_join_with_predictions,
+    mock_get_accumulated_precip_by_24h_interval,
+    mock_get_predicted_daily_precip,
+):
+    predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
+
+    machine_learner = StationMachineLearning(
+        session=None,
+        model=PredictionModel(id=1),
+        target_coordinate=[-120.4816667, 50.6733333],
+        station_code=None,
+        max_learn_date=datetime.now(),
+    )
+    machine_learner.learn()
+
+    # hour 21 is trained, so a missing input must return None rather than raise in sklearn
+    assert machine_learner.predict_temperature(None, predict_date_with_samples) is None
+    assert machine_learner.predict_rh(math.nan, predict_date_with_samples) is None
+    assert machine_learner.predict_wind_speed(None, predict_date_with_samples) is None
+    assert machine_learner.predict_wind_direction(None, 120, predict_date_with_samples) is None
+    assert machine_learner.predict_wind_direction(10, None, predict_date_with_samples) is None
+    assert machine_learner.predict_precipitation(math.nan, datetime(2023, 10, 26, 20)) is None
