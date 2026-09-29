@@ -1,7 +1,7 @@
 from datetime import datetime
 import pytest
 from wps_shared.db.models.observations import HourlyActual
-from weather_model_jobs import machine_learning
+from weather_model_jobs import bias_adjusted_variable
 from tests.weather_models.crud import (
     get_actuals_left_outer_join_with_predictions,
     get_accumulated_precip_by_24h_interval,
@@ -16,7 +16,7 @@ import math
 def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
     """Mock out call to DB returning actuals macthed with predictions"""
     monkeypatch.setattr(
-        machine_learning,
+        bias_adjusted_variable,
         "get_actuals_left_outer_join_with_predictions",
         get_actuals_left_outer_join_with_predictions,
     )
@@ -26,7 +26,7 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 def mock_get_accumulated_precip_by_24h_interval(monkeypatch):
     """Mock out call to DB returning actual 24 hour precipitation data"""
     monkeypatch.setattr(
-        machine_learning,
+        bias_adjusted_variable,
         "get_accumulated_precip_by_24h_interval",
         get_accumulated_precip_by_24h_interval,
     )
@@ -35,7 +35,9 @@ def mock_get_accumulated_precip_by_24h_interval(monkeypatch):
 @pytest.fixture()
 def mock_get_predicted_daily_precip(monkeypatch):
     """Mock out call to DB returning modelled/predicted 24 hour precipitation data"""
-    monkeypatch.setattr(machine_learning, "get_predicted_daily_precip", get_predicted_daily_precip)
+    monkeypatch.setattr(
+        bias_adjusted_variable, "get_predicted_daily_precip", get_predicted_daily_precip
+    )
 
 
 def test_bias_adjustment_with_samples(
@@ -114,7 +116,7 @@ def test_bias_adjustment_of_rh_above_100(
         ]
 
     monkeypatch.setattr(
-        machine_learning,
+        bias_adjusted_variable,
         "get_actuals_left_outer_join_with_predictions",
         get_actuals_and_predictions_with_high_rh,
     )

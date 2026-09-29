@@ -2,7 +2,8 @@ import pytest
 from datetime import datetime
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.db.models.weather_models import ModelRunPrediction
-from weather_model_jobs.machine_learning import TARGETS, HourlyRegression
+from weather_model_jobs.bias_adjusted_variable import TEMPERATURE
+from weather_model_jobs.machine_learning import HourOfDayRegression
 
 
 @pytest.mark.parametrize(
@@ -34,14 +35,14 @@ from weather_model_jobs.machine_learning import TARGETS, HourlyRegression
     ],
 )
 def test_regression_model_sample_values(actual, prediction, expected_x, expected_y):
-    target = TARGETS["temperature"]
+    variable = TEMPERATURE
 
-    assert target.predicted(prediction) == expected_x
-    assert target.observed(actual) == expected_y
+    assert variable.predicted(prediction) == expected_x
+    assert variable.observed(actual) == expected_y
 
 
-def test_hourly_regression_learns_linear_relationship():
-    regression = HourlyRegression()
+def test_hour_of_day_regression_learns_linear_relationship():
+    regression = HourOfDayRegression()
     # y = 2x + 1 at hour 18
     for x in (1.0, 2.0, 3.0):
         regression.add(18, [x], [2 * x + 1])
@@ -51,8 +52,8 @@ def test_hourly_regression_learns_linear_relationship():
     assert regression.predict(18, [4.0])[0] == pytest.approx(9.0)
 
 
-def test_hourly_regression_untrained_hour_returns_none():
-    regression = HourlyRegression()
+def test_hour_of_day_regression_untrained_hour_returns_none():
+    regression = HourOfDayRegression()
     regression.add(18, [1.0], [1.0])
     regression.fit()
 

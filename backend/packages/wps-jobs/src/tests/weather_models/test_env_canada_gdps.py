@@ -17,7 +17,7 @@ from tests.weather_models.test_models_common import (
     MockResponse,
     mock_get_stations,
 )
-from weather_model_jobs import common_model_fetchers, env_canada, machine_learning
+from weather_model_jobs import bias_adjusted_variable, common_model_fetchers, env_canada
 from wps_shared.db.models.weather_models import (
     PredictionModel,
     PredictionModelRunTimestamp,
@@ -106,7 +106,7 @@ def mock_get_processed_file_record(monkeypatch):
 def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
     """Mock out call to DB returning actuals macthed with predictions"""
     monkeypatch.setattr(
-        machine_learning,
+        bias_adjusted_variable,
         "get_actuals_left_outer_join_with_predictions",
         get_actuals_left_outer_join_with_predictions,
     )

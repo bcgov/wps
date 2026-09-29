@@ -20,7 +20,7 @@ from wps_shared.db.models.weather_models import (
     PredictionModel,
     WeatherStationModelPrediction,
 )
-from weather_model_jobs import machine_learning
+from weather_model_jobs import bias_adjusted_variable
 from weather_model_jobs.machine_learning import StationMachineLearning
 
 GOLDEN_PATH = os.path.join(os.path.dirname(__file__), "ml_golden_predictions.json")
@@ -97,12 +97,14 @@ def _predictions(monkeypatch, seed: int, step: int):
     rows = _build_rows(seed, step)
     precip_actuals, precip_predicted = _build_precip(seed)
     monkeypatch.setattr(
-        machine_learning, "get_actuals_left_outer_join_with_predictions", lambda *a: rows
+        bias_adjusted_variable, "get_actuals_left_outer_join_with_predictions", lambda *a: rows
     )
     monkeypatch.setattr(
-        machine_learning, "get_accumulated_precip_by_24h_interval", lambda *a: precip_actuals
+        bias_adjusted_variable, "get_accumulated_precip_by_24h_interval", lambda *a: precip_actuals
     )
-    monkeypatch.setattr(machine_learning, "get_predicted_daily_precip", lambda *a: precip_predicted)
+    monkeypatch.setattr(
+        bias_adjusted_variable, "get_predicted_daily_precip", lambda *a: precip_predicted
+    )
 
     machine = StationMachineLearning(
         session=None,

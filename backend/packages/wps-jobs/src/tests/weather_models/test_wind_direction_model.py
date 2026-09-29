@@ -3,7 +3,8 @@ import pytest
 from datetime import datetime
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.db.models.weather_models import ModelRunPrediction
-from weather_model_jobs.machine_learning import TARGETS, HourlyRegression
+from weather_model_jobs.bias_adjusted_variable import WIND_DIRECTION
+from weather_model_jobs.machine_learning import HourOfDayRegression
 from weather_model_jobs.utils.wind_direction_utils import compute_u_v
 
 
@@ -78,16 +79,16 @@ OBSERVED_U_V = [0.0, -15.0]
     ],
 )
 def test_wind_direction_model_sample_values(actual, prediction, expected_x, expected_y):
-    target = TARGETS["wind_direction"]
+    variable = WIND_DIRECTION
 
-    x, y = target.predicted(prediction), target.observed(actual)
+    x, y = variable.predicted(prediction), variable.observed(actual)
 
     assert x == (None if expected_x is None else pytest.approx(expected_x, abs=1e-9))
     assert y == (None if expected_y is None else pytest.approx(expected_y, abs=1e-9))
 
 
 def test_wind_direction_regression_learns_u_v_relationship():
-    regression = HourlyRegression()
+    regression = HourOfDayRegression()
     # observed wind is always the model wind, so the regression is the identity on u, v
     for speed, direction in ((10, 90), (15, 180), (5, 270), (20, 45)):
         u_v = compute_u_v(speed, direction)
@@ -100,7 +101,7 @@ def test_wind_direction_regression_learns_u_v_relationship():
 
 
 def test_wind_direction_regression_untrained_hour_returns_none():
-    regression = HourlyRegression()
+    regression = HourOfDayRegression()
     regression.add(18, compute_u_v(10, 90), compute_u_v(10, 90))
     regression.fit()
 
