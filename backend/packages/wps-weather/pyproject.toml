@@ -7,7 +7,7 @@ requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "wps_shared",
     "numpy==2.3.*",
-    "xarray>=2025.3.1,<2026",
+    "xarray>=2026.7,<2027",
     "matplotlib>=3.7.0,<4",
     "cartopy>=0.22.0,<1",
     "scipy>=1.15.2,<2",
