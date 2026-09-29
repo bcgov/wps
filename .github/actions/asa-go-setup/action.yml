@@ -43,4 +43,4 @@ runs:
       if: steps.asa-go-cache.outputs.cache-hit == 'true'
       working-directory: ./mobile/asa-go
       shell: bash
-      run: rm -rf node_modules/keycloak && yarn install --frozen-lockfile
+      run: rm -rf node_modules/keycloak && yarn install --frozen-lockfile --check-files
