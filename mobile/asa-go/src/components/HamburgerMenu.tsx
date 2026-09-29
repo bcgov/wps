@@ -2,7 +2,9 @@ import { Close as CloseIcon, Menu as MenuIcon } from '@mui/icons-material'
 import { Box, Drawer, IconButton, List, ListItemButton, Stack, Typography } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { AboutDataPanel } from '@/components/AboutDataPanel'
 import { FeedbackDialog } from '@/components/FeedbackDialog'
+import { useIsTablet } from '@/hooks/useIsTablet'
 import { selectAuthentication, selectNetworkStatus } from '@/store'
 
 export interface HamburgerMenuProps {
@@ -12,24 +14,41 @@ export interface HamburgerMenuProps {
 }
 
 export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenuProps) => {
+  // state
   const [open, setOpen] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+
+  // refs
   const pendingFeedbackDialog = useRef(false)
+
+  // hooks
+  const isTablet = useIsTablet()
+
+  // selectors
   const { email } = useSelector(selectAuthentication)
   const { networkStatus } = useSelector(selectNetworkStatus)
 
-  const handleListButtonClick = (url: string) => {
+  // handlers
+  const handleExternalLink = (url: string) => {
     setOpen(false)
-    if (url === 'sentry:feedback') {
-      pendingFeedbackDialog.current = true
-    } else {
-      window.open(url, '_blank', 'noopener,noreferrer')
-    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleFeedbackClick = () => {
+    pendingFeedbackDialog.current = true
+    setOpen(false)
   }
 
   return (
     <div data-testid={testId}>
-      <IconButton aria-label="open menu" onClick={() => setOpen(true)}>
+      <IconButton
+        aria-label="open menu"
+        onClick={() => {
+          setShowAbout(false)
+          setOpen(true)
+        }}
+      >
         <MenuIcon fontSize="large" sx={{ color: 'white' }} />
       </IconButton>
       <Drawer
@@ -39,6 +58,7 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
         slotProps={{
           transition: {
             onExited: () => {
+              setShowAbout(false)
               if (!pendingFeedbackDialog.current) {
                 return
               }
@@ -52,14 +72,17 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
             sx: {
               top: `${drawerTop}px`,
               height: `${drawerHeight}px`,
-              backgroundColor: 'lightGrey',
-              borderTopLeftRadius: 16,
-              borderBottomLeftRadius: 16
+              width: showAbout ? (isTablet ? 460 : '100vw') : undefined,
+              maxWidth: showAbout ? '100vw' : undefined,
+              backgroundColor: showAbout ? 'background.paper' : 'lightGrey',
+              borderTopLeftRadius: showAbout && !isTablet ? 0 : 16,
+              borderBottomLeftRadius: showAbout && !isTablet ? 0 : 16,
+              overflow: showAbout ? 'hidden' : undefined
             }
           }
         }}
       >
-        <Stack spacing={1} sx={{ width: 250, padding: '16px' }}>
+        <Stack spacing={1} sx={{ width: 250, padding: '16px', display: showAbout ? 'none' : undefined }}>
           <Box
             sx={{
               alignItems: 'center',
@@ -94,25 +117,26 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
             }}
           >
             {[
-              { url: 'https://psu.nrs.gov.bc.ca/', title: 'Home' },
+              { onClick: () => handleExternalLink('https://psu.nrs.gov.bc.ca/'), title: 'Home' },
+              { onClick: () => setShowAbout(true), title: 'About This Data' },
               {
-                url: 'https://www2.gov.bc.ca/gov/content/home/disclaimer',
+                onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/disclaimer'),
                 title: 'Disclaimer'
               },
               {
-                url: 'https://www2.gov.bc.ca/gov/content/home/privacy',
+                onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/privacy'),
                 title: 'Privacy'
               },
               {
-                url: 'https://www2.gov.bc.ca/gov/content/home/accessible-government',
+                onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/accessible-government'),
                 title: 'Accessibility'
               },
               {
-                url: 'https://www2.gov.bc.ca/gov/content/home/copyright',
+                onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/copyright'),
                 title: 'Copyright'
               },
               {
-                url: 'sentry:feedback',
+                onClick: handleFeedbackClick,
                 title: 'Submit Feedback',
                 disabled: !networkStatus.connected
               }
@@ -121,13 +145,14 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
                 disabled={item.disabled}
                 divider
                 key={`hamburger-menu-${item.title}`}
-                onClick={() => handleListButtonClick(item.url)}
+                onClick={item.onClick}
               >
                 <Typography variant="subtitle1">{item.title}</Typography>
               </ListItemButton>
             ))}
           </List>
         </Stack>
+        {showAbout && <AboutDataPanel onBack={() => setShowAbout(false)} onClose={() => setOpen(false)} />}
       </Drawer>
       <FeedbackDialog
         defaultEmail={email}
