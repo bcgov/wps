@@ -40,7 +40,7 @@ def test_regression_model_sample_values(actual, prediction, expected_x, expected
     assert target.observed(actual) == expected_y
 
 
-def test_regression_model_train():
+def test_hourly_regression_learns_linear_relationship():
     regression = HourlyRegression()
     # y = 2x + 1 at hour 18
     for x in (1.0, 2.0, 3.0):
@@ -51,7 +51,7 @@ def test_regression_model_train():
     assert regression.predict(18, [4.0])[0] == pytest.approx(9.0)
 
 
-def test_regression_model_predict():
+def test_hourly_regression_untrained_hour_returns_none():
     regression = HourlyRegression()
     regression.add(18, [1.0], [1.0])
     regression.fit()

@@ -86,7 +86,7 @@ def test_wind_direction_model_sample_values(actual, prediction, expected_x, expe
     assert y == (None if expected_y is None else pytest.approx(expected_y, abs=1e-9))
 
 
-def test_wind_direction_model_train():
+def test_wind_direction_regression_learns_u_v_relationship():
     regression = HourlyRegression()
     # observed wind is always the model wind, so the regression is the identity on u, v
     for speed, direction in ((10, 90), (15, 180), (5, 270), (20, 45)):
@@ -99,7 +99,7 @@ def test_wind_direction_model_train():
     assert list(regression.predict(18, expected)) == pytest.approx(expected)
 
 
-def test_wind_direction_model_predict():
+def test_wind_direction_regression_untrained_hour_returns_none():
     regression = HourlyRegression()
     regression.add(18, compute_u_v(10, 90), compute_u_v(10, 90))
     regression.fit()
