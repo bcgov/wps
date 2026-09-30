@@ -142,3 +142,45 @@ async def test_registration_deduplicates_zones_and_preserves_them_during_token_r
 
     rotated_settings = await fcm.get_notification_settings(device_id=DEVICE_ID)
     assert set(rotated_settings.fire_zone_source_ids) == set(ZONE_IDS)
+
+
+@pytest.mark.anyio
+async def test_registration_updates_row_inserted_by_concurrent_request(
+    use_test_database, session_factory, monkeypatch
+):
+    # another request inserted this token after our lookup ran, so the insert hits the unique index
+    async with session_factory() as session:
+        session.add(
+            DeviceToken(
+                device_id="other-device-id",
+                token=INITIAL_TOKEN,
+                platform=PlatformEnum.android,
+                is_active=False,
+            )
+        )
+        await session.commit()
+
+    real_lookup = fcm.get_device_token_for_registration
+    lookups = []
+
+    async def lookup_misses_first_time(*args):
+        lookups.append(args)
+        return None if len(lookups) == 1 else await real_lookup(*args)
+
+    monkeypatch.setattr(fcm, "get_device_token_for_registration", lookup_misses_first_time)
+
+    response = await fcm.register_device(
+        RegisterDeviceRequest(
+            user_id="test-user",
+            device_id=DEVICE_ID,
+            token=INITIAL_TOKEN,
+            platform=PlatformEnum.ios.value,
+        )
+    )
+
+    assert response.success
+    async with session_factory() as session:
+        devices = (await session.scalars(select(DeviceToken))).all()
+        assert len(devices) == 1
+        assert devices[0].device_id == DEVICE_ID
+        assert devices[0].is_active
