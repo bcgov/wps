@@ -1,7 +1,6 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.exc import IntegrityError
 from wps_shared.auth import asa_authentication_required, audit_asa
 from wps_shared.db.crud.fcm import (
     DeviceTokenConflictError,
@@ -45,12 +44,19 @@ async def register_device(request: RegisterDeviceRequest):
       iOS development installs that reuse a token with a new device ID while preserving settings.
     - If the device ID and token match two different rows, return 409. We cannot safely choose which
       row and notification settings to keep, so the conflict guard prevents silent data loss.
-    - If a concurrent request inserts the same token between our lookup and insert (FOR UPDATE
-      can't lock a row that doesn't exist yet), update the row it created instead.
     """
     logger.info("/device/register")
     async with get_async_write_session_scope() as session:
-        existing_row = await _lock_registration_row(session, request)
+        try:
+            existing_row = await get_device_token_for_registration(
+                session, request.device_id, request.token
+            )
+        except DeviceTokenConflictError as exc:
+            logger.error("%s", exc)
+            raise HTTPException(
+                status_code=409,
+                detail="Token is already registered to another device",
+            ) from exc
 
         if existing_row is None:
             new_device_token = DeviceToken(
@@ -60,36 +66,17 @@ async def register_device(request: RegisterDeviceRequest):
                 platform=request.platform,
                 is_active=True,
             )
-            try:
-                async with session.begin_nested():
-                    save_device_token(session, new_device_token)
-                logger.info("Successfully created new DeviceToken record.")
-                return DeviceRequestResponse(success=True)
-            except IntegrityError:
-                existing_row = await _lock_registration_row(session, request)
-                if existing_row is None:
-                    raise
-                logger.info("Token registered concurrently, updating that row instead.")
-
-        existing_row.is_active = True
-        existing_row.token = request.token
-        existing_row.device_id = request.device_id
-        existing_row.platform = request.platform
-        existing_row.updated_at = get_utc_now()
-        existing_row.user_id = request.user_id
-        logger.info(f"Updated existing DeviceToken record for token: {request.token}")
+            save_device_token(session, new_device_token)
+            logger.info("Successfully created new DeviceToken record.")
+        else:
+            existing_row.is_active = True
+            existing_row.token = request.token
+            existing_row.device_id = request.device_id
+            existing_row.platform = request.platform
+            existing_row.updated_at = get_utc_now()
+            existing_row.user_id = request.user_id
+            logger.info(f"Updated existing DeviceToken record for token: {request.token}")
         return DeviceRequestResponse(success=True)
-
-
-async def _lock_registration_row(session, request: RegisterDeviceRequest) -> DeviceToken | None:
-    try:
-        return await get_device_token_for_registration(session, request.device_id, request.token)
-    except DeviceTokenConflictError as exc:
-        logger.error("%s", exc)
-        raise HTTPException(
-            status_code=409,
-            detail="Token is already registered to another device",
-        ) from exc
 
 
 @router.post("/unregister", responses={404: {"description": "Token not found."}})

@@ -1,4 +1,4 @@
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared.db.models.auto_spatial_advisory import Shape
@@ -34,7 +34,14 @@ async def get_device_token_for_registration(
 
     Return None when neither value exists. Raise DeviceTokenConflictError when the values match two
     different rows.
+
+    FOR UPDATE can't lock rows that don't exist yet, so concurrent registrations of the same new
+    device ID or token would both insert. Transaction-scoped advisory locks on the values
+    themselves serialize them until commit; keys are sorted so two requests can't deadlock.
     """
+    for key in sorted({device_id, token}):
+        await session.execute(select(func.pg_advisory_xact_lock(func.hashtextextended(key, 0))))
+
     statement = (
         select(DeviceToken)
         .where(or_(DeviceToken.device_id == device_id, DeviceToken.token == token))

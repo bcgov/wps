@@ -1,7 +1,7 @@
 """Unit tests for FCM endpoints."""
 
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import app.main
 import pytest
@@ -74,7 +74,7 @@ def test_register_device_new_token_and_device_id():
     client = TestClient(app.main.app)
 
     with patch(DB_SESSION) as mock_session_scope:
-        mock_session_scope.return_value.__aenter__.return_value.begin_nested = MagicMock()
+        mock_session_scope.return_value.__aenter__.return_value
         with (
             patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=None),
             patch(SAVE_DEVICE_TOKEN) as mock_save,
@@ -252,7 +252,7 @@ def test_register_device_without_user_id():
     }
 
     with patch(DB_SESSION) as mock_session_scope:
-        mock_session_scope.return_value.__aenter__.return_value.begin_nested = MagicMock()
+        mock_session_scope.return_value.__aenter__.return_value
         with (
             patch(GET_DEVICE_TOKEN_FOR_REGISTRATION, return_value=None),
             patch(SAVE_DEVICE_TOKEN),
