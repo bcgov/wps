@@ -39,6 +39,8 @@ async def get_device_token_for_registration(
     device ID or token would both insert. Transaction-scoped advisory locks on the values
     themselves serialize them until commit; keys are sorted so two requests can't deadlock.
     """
+    # Lock both values, not one: device_id and token are each unique, so two requests collide if
+    # they share either one (same device with a rotated token, or a reused token on a new device ID).
     for key in sorted({device_id, token}):
         await session.execute(select(func.pg_advisory_xact_lock(func.hashtextextended(key, 0))))
 
