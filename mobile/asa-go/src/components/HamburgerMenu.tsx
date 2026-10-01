@@ -4,7 +4,6 @@ import { useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { AboutDataPanel } from '@/components/AboutDataPanel'
 import { FeedbackDialog } from '@/components/FeedbackDialog'
-import { useIsTablet } from '@/hooks/useIsTablet'
 import { selectAuthentication, selectNetworkStatus } from '@/store'
 
 export interface HamburgerMenuProps {
@@ -21,9 +20,6 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
 
   // refs
   const pendingFeedbackDialog = useRef(false)
-
-  // hooks
-  const isTablet = useIsTablet()
 
   // selectors
   const { email } = useSelector(selectAuthentication)
@@ -72,87 +68,87 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
             sx: {
               top: `${drawerTop}px`,
               height: `${drawerHeight}px`,
-              width: showAbout ? (isTablet ? 460 : '100vw') : undefined,
-              maxWidth: showAbout ? '100vw' : undefined,
-              backgroundColor: showAbout ? 'background.paper' : 'lightGrey',
-              borderTopLeftRadius: showAbout && !isTablet ? 0 : 16,
-              borderBottomLeftRadius: showAbout && !isTablet ? 0 : 16,
-              overflow: showAbout ? 'hidden' : undefined
+              backgroundColor: 'lightGrey',
+              borderTopLeftRadius: 16,
+              borderBottomLeftRadius: 16
             }
           }
         }}
       >
-        <Stack spacing={1} sx={{ width: 250, padding: '16px', display: showAbout ? 'none' : undefined }}>
-          <Box
-            sx={{
-              alignItems: 'center',
-              display: 'flex',
-              justifyContent: 'space-between'
-            }}
-          >
-            <IconButton
-              onClick={() => setOpen(false)}
+        {showAbout ? (
+          <AboutDataPanel onBack={() => setShowAbout(false)} onClose={() => setOpen(false)} />
+        ) : (
+          <Stack spacing={1} sx={{ width: 250, padding: '16px' }}>
+            <Box
               sx={{
-                cursor: 'pointer',
-                backgroundColor: 'transparent',
-                transition: 'background-color 0.2s',
-                alignSelf: 'flex-end',
-                marginLeft: 'auto',
-                '&:hover': {
-                  backgroundColor: '#f0f0f0'
+                alignItems: 'center',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}
+            >
+              <IconButton
+                onClick={() => setOpen(false)}
+                sx={{
+                  cursor: 'pointer',
+                  backgroundColor: 'transparent',
+                  transition: 'background-color 0.2s',
+                  alignSelf: 'flex-end',
+                  marginLeft: 'auto',
+                  '&:hover': {
+                    backgroundColor: '#f0f0f0'
+                  }
+                }}
+                aria-label="close settings"
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            <List
+              sx={{
+                width: '100%',
+                '& .MuiListItemButton-root': {
+                  width: '100%',
+                  justifyContent: 'flex-end'
                 }
               }}
-              aria-label="close settings"
             >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          <List
-            sx={{
-              width: '100%',
-              '& .MuiListItemButton-root': {
-                width: '100%',
-                justifyContent: 'flex-end'
-              }
-            }}
-          >
-            {[
-              { onClick: () => handleExternalLink('https://psu.nrs.gov.bc.ca/'), title: 'Home' },
-              { onClick: () => setShowAbout(true), title: 'About This Data' },
-              {
-                onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/disclaimer'),
-                title: 'Disclaimer'
-              },
-              {
-                onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/privacy'),
-                title: 'Privacy'
-              },
-              {
-                onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/accessible-government'),
-                title: 'Accessibility'
-              },
-              {
-                onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/copyright'),
-                title: 'Copyright'
-              },
-              {
-                onClick: handleFeedbackClick,
-                title: 'Submit Feedback',
-                disabled: !networkStatus.connected
-              }
-            ].map(item => (
-              <ListItemButton
-                disabled={item.disabled}
-                divider
-                key={`hamburger-menu-${item.title}`}
-                onClick={item.onClick}
-              >
-                <Typography variant="subtitle1">{item.title}</Typography>
-              </ListItemButton>
-            ))}
-          </List>
-        </Stack>
-        {showAbout && <AboutDataPanel onBack={() => setShowAbout(false)} onClose={() => setOpen(false)} />}
+              {[
+                { onClick: () => handleExternalLink('https://psu.nrs.gov.bc.ca/'), title: 'Home' },
+                { onClick: () => setShowAbout(true), title: 'About This Data' },
+                {
+                  onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/disclaimer'),
+                  title: 'Disclaimer'
+                },
+                {
+                  onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/privacy'),
+                  title: 'Privacy'
+                },
+                {
+                  onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/accessible-government'),
+                  title: 'Accessibility'
+                },
+                {
+                  onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/copyright'),
+                  title: 'Copyright'
+                },
+                {
+                  onClick: handleFeedbackClick,
+                  title: 'Submit Feedback',
+                  disabled: !networkStatus.connected
+                }
+              ].map(item => (
+                <ListItemButton
+                  disabled={item.disabled}
+                  divider
+                  key={`hamburger-menu-${item.title}`}
+                  onClick={item.onClick}
+                >
+                  <Typography variant="subtitle1">{item.title}</Typography>
+                </ListItemButton>
+              ))}
+            </List>
+          </Stack>
+        )}
       </Drawer>
       <FeedbackDialog
         defaultEmail={email}
