@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Keycloak",
-    platforms: [.iOS(.v14)],
+    platforms: [.iOS(.v15)],
     products: [
         .library(
             name: "Keycloak",
@@ -11,7 +11,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.5.0"),
-        .package(url: "https://github.com/openid/AppAuth-iOS.git", from: "2.1.0"),
+        .package(url: "https://github.com/openid/AppAuth-iOS.git", from: "3.0.0"),
     ],
     targets: [
         .target(

@@ -22,10 +22,10 @@
     "clean": "turbo clean"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.12",
-    "@vitest/coverage-v8": "^4.1.0",
+    "@biomejs/biome": "2.5.14",
+    "@vitest/coverage-v8": "^5.0.0",
     "turbo": "^2.0.0",
     "typescript": "^7.0.0",
-    "vitest": "^4.1.0"
+    "vitest": "^5.0.0"
   }
 }

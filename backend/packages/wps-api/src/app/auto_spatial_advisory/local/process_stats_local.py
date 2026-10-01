@@ -27,6 +27,7 @@ BEGIN
     DELETE FROM advisory_hfi_wind_speed WHERE run_parameters = ANY(run_ids);
     DELETE FROM advisory_hfi_percent_conifer WHERE run_parameters = ANY(run_ids);
     DELETE FROM critical_hours WHERE run_parameters = ANY(run_ids);
+    DELETE FROM advisory_zone_status WHERE run_parameters = ANY(run_ids);
 
 END $$;
 """
