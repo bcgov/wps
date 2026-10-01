@@ -82,10 +82,19 @@ export const AboutDataPanel = ({ onBack, onClose }: AboutDataPanelProps) => {
           </Box>
           <Box component="section">
             <Typography component="h3" gutterBottom sx={{ color: 'primary.main', fontWeight: 700 }} variant="subtitle1">
+              Fuel types in the Profile tab
+            </Typography>
+            <Typography variant="body1">
+              “% Under Advisory” is the percentage of each fuel type’s total area in the selected Fire Zone with Head
+              Fire Intensity of at least 4,000 kW/m.
+            </Typography>
+          </Box>
+          <Box component="section">
+            <Typography component="h3" gutterBottom sx={{ color: 'primary.main', fontWeight: 700 }} variant="subtitle1">
               Portion under advisory
             </Typography>
             <Typography variant="body1">
-              For each topographic position, “Portion under advisory” shows the percentage of it's combustible area
+              For each topographic position, “Portion under advisory” shows the percentage of its combustible area
               within the Fire Zone with Head Fire Intensity of at least 4,000 kW/m. Each position’s percentage is
               calculated separately.
             </Typography>

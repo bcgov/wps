@@ -21,6 +21,7 @@ describe('AboutDataPanel', () => {
     expect(screen.getByRole('heading', { name: 'Fire Behaviour Advisory', level: 3 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Fire Behaviour Warning', level: 3 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Fuel types in the text bulletin', level: 3 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Fuel types in the Profile tab', level: 3 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Portion under advisory', level: 3 })).toBeInTheDocument()
   })
 
