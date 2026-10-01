@@ -8,6 +8,8 @@ import { RunType } from '@/api/fbaAPI'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import { mapLayerLoadFailed } from '@/slices/mapLayersSlice'
+import { enqueueNotification } from '@/slices/notificationSlice'
 import { initialState as pushNotificationInitialState } from '@/slices/pushNotificationSlice'
 import type { NavPanel } from '@/utils/constants'
 import App from './App'
@@ -99,8 +101,22 @@ vi.mock('@/components/report/Advisory', () => ({
 }))
 
 vi.mock('@/components/TabPanel', () => ({
-  default: ({ value, panel, children }: { value: NavPanel; panel: NavPanel; children: React.ReactNode }) =>
-    value === panel ? <div data-testid={`tab-panel-${panel}`}>{children}</div> : null
+  default: ({
+    value,
+    panel,
+    loading,
+    children
+  }: {
+    value: NavPanel
+    panel: NavPanel
+    loading?: boolean
+    children: React.ReactNode
+  }) =>
+    value === panel ? (
+      <div data-testid={`tab-panel-${panel}`} data-loading={loading}>
+        {children}
+      </div>
+    ) : null
 }))
 
 vi.mock('@/components/SideNavigation', () => ({
@@ -234,6 +250,70 @@ describe('App', () => {
     expect(screen.getByTestId('asa-go-map')).toBeInTheDocument()
   })
 
+  it('marks the Map tab loading while operational data is loading', () => {
+    const store = createTestStore({
+      data: {
+        loading: true,
+        error: null,
+        lastUpdated: null,
+        provincialSummaries: null,
+        tpiStats: null,
+        hfiStats: null
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    expect(screen.getByTestId('tab-panel-Map')).toHaveAttribute('data-loading', 'true')
+    expect(screen.getByTestId('app-header')).toBeInTheDocument()
+    expect(screen.getByTestId('bottom-nav')).toBeInTheDocument()
+  })
+
+  it('marks the Map tab loading while map layers are loading', () => {
+    const store = createTestStore({
+      mapLayers: { pendingLoads: 1, latestErrorVersion: 0 }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    expect(screen.getByTestId('tab-panel-Map')).toHaveAttribute('data-loading', 'true')
+  })
+
+  it('shows a loading error snackbar when map layer setup fails', async () => {
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    act(() => {
+      store.dispatch(mapLayerLoadFailed())
+    })
+
+    expect(
+      screen.getByText('Unable to load one or more map layers. Some map information may be unavailable.')
+    ).toBeInTheDocument()
+    const appContent = screen.getByTestId('app-content')
+    const notification = screen.getByTestId('notification-center')
+    expect(notification.parentElement).toBe(appContent)
+    expect(screen.getByTestId('info-bar').parentElement).toBe(appContent)
+    expect(notification).toHaveStyle({ position: 'absolute', top: 0, left: 0, right: 0 })
+  })
+
   it('renders App component with Redux store integration', () => {
     const store = createTestStore()
 
@@ -306,6 +386,7 @@ describe('App', () => {
         networkStatus: { connected: true, connectionType: 'wifi' }
       },
       runParameters: {
+        loading: false,
         error: null,
         runParameters: beforeMidnightRunParameters
       }
@@ -447,6 +528,7 @@ describe('App', () => {
     vi.mocked(useMediaQuery).mockReturnValue(true)
 
     const store = createTestStore()
+    store.dispatch(enqueueNotification({ message: 'Landscape notification' }))
 
     render(
       <Provider store={store}>
@@ -456,6 +538,9 @@ describe('App', () => {
 
     await waitFor(() => expect(screen.getByTestId('side-navigation')).toBeInTheDocument())
     expect(screen.queryByTestId('bottom-nav')).not.toBeInTheDocument()
+    expect(screen.getByText('Landscape notification')).toBeInTheDocument()
+    expect(screen.getByTestId('notification-center').parentElement).toBe(screen.getByTestId('app-content'))
+    expect(screen.getByTestId('side-navigation').contains(screen.getByTestId('notification-center'))).toBe(false)
   })
 
   it('displays AppHeader and BottomNavigation in portrait on small screens', async () => {

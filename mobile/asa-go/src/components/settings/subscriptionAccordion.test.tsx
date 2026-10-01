@@ -269,7 +269,9 @@ describe('SubscriptionAccordion', () => {
     })
 
     expect(updateNotificationSettings).toHaveBeenCalled()
-    expect(screen.getByText(subscriptionUpdateErrorMessage)).toBeInTheDocument()
+    expect(store.getState().notifications.notifications).toEqual([
+      expect.objectContaining({ message: subscriptionUpdateErrorMessage })
+    ])
     expect(screen.queryAllByTestId('loading-switch-error')).toHaveLength(0)
   })
 
@@ -548,7 +550,7 @@ describe('SubscriptionAccordion', () => {
     expect(subs4).not.toContain(mockFireCentreInfo.fire_zone_units[1].id)
   })
 
-  it('shows error snackbar when subscription update fails', async () => {
+  it('queues an error notification when subscription update fails', async () => {
     vi.mocked(updateNotificationSettings).mockRejectedValue(new Error('server error'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -586,7 +588,9 @@ describe('SubscriptionAccordion', () => {
     fireEvent.click(screen.getByLabelText('Toggle subscription for K4-Vernon Zone (Vernon)'))
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to update/i)).toBeInTheDocument()
+      expect(store.getState().notifications.notifications).toEqual([
+        expect.objectContaining({ message: subscriptionUpdateErrorMessage })
+      ])
     })
   })
 

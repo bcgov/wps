@@ -29,8 +29,11 @@ export const createBasemapLayer = async () => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
   })
+  if (!response.ok) {
+    throw new Error(`Basemap style request failed with status ${response.status}`)
+  }
   const style = await response.json()
-  applyStyle(basemapLayer, style, { updateSource: false })
+  await applyStyle(basemapLayer, style, { updateSource: false })
   return basemapLayer
 }
 

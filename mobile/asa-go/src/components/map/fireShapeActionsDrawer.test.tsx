@@ -10,6 +10,7 @@ import { useDeviceId } from '@/hooks/useDeviceId'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { useIsTablet } from '@/hooks/useIsTablet'
 import { createTestStore } from '@/testUtils'
+import { subscriptionUpdateErrorMessage } from '@/utils/constants'
 
 vi.mock('@/hooks/useDeviceId', () => ({
   useDeviceId: vi.fn().mockReturnValue('test-device-id')
@@ -389,11 +390,11 @@ describe('FireShapeActionsDrawer', () => {
     })
   })
 
-  it('shows error snackbar when subscription toggle fails', async () => {
+  it('queues an error notification when subscription toggle fails', async () => {
     vi.mocked(updateNotificationSettings).mockRejectedValue(new Error('server error'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    renderWithProviders()
+    const { store } = renderWithProviders()
     fireEvent.click(
       screen.getByRole('button', {
         name: /Toggle subscription for Test Fire Zone/i
@@ -401,7 +402,9 @@ describe('FireShapeActionsDrawer', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to update/i)).toBeInTheDocument()
+      expect(store.getState().notifications.notifications).toEqual([
+        expect.objectContaining({ message: subscriptionUpdateErrorMessage })
+      ])
     })
   })
 

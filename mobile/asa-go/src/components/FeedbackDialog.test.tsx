@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 import { FeedbackDialog } from '@/components/FeedbackDialog'
+import NotificationCenter from '@/components/NotificationCenter'
 import { createTestStore } from '@/testUtils'
 
 vi.mock('@sentry/react', () => ({
@@ -16,7 +17,10 @@ const mockSendFeedback = vi.mocked(sendFeedback)
 const renderFeedbackDialog = (props: Partial<ComponentProps<typeof FeedbackDialog>> = {}) =>
   render(
     <Provider store={createTestStore()}>
-      <FeedbackDialog isOnline onClose={vi.fn()} open {...props} />
+      <div style={{ position: 'relative' }}>
+        <FeedbackDialog isOnline onClose={vi.fn()} open {...props} />
+        <NotificationCenter />
+      </div>
     </Provider>
   )
 

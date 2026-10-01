@@ -5,10 +5,9 @@ import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNone
 import NotificationsOffIcon from '@mui/icons-material/NotificationsOff'
 import TextSnippetIcon from '@mui/icons-material/TextSnippet'
 import { Box, Button, CircularProgress, IconButton, Typography, useMediaQuery, useTheme } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { FireShape } from '@/api/fbaAPI'
-import NotificationSnackbar from '@/components/NotificationSnackbar'
 import { SwipeableBottomDrawer } from '@/components/SwipeableBottomDrawer'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { useIsTablet } from '@/hooks/useIsTablet'
@@ -24,7 +23,6 @@ import {
   selectRegistrationFailed,
   selectSettings
 } from '@/store'
-import { subscriptionUpdateErrorMessage } from '@/utils/constants'
 import { fireZoneUnitNameFormatter } from '@/utils/stringUtils'
 
 interface FireShapeActionsDrawerProps {
@@ -43,7 +41,7 @@ const FireShapeActionsDrawer = ({
   onSelectAdvisory
 }: FireShapeActionsDrawerProps) => {
   const dispatch: AppDispatch = useDispatch()
-  const { toggleSubscription, updateError, clearUpdateError } = useNotificationSettings()
+  const { toggleSubscription } = useNotificationSettings()
   const { retryRegistration } = usePushNotifications()
   const theme = useTheme()
 
@@ -54,7 +52,6 @@ const FireShapeActionsDrawer = ({
 
   const { subscriptions } = useSelector(selectSettings)
   const { pushNotificationPermission, deviceIdError } = useSelector(selectPushNotification)
-  const [registrationErrorDismissed, setRegistrationErrorDismissed] = useState(false)
   const { networkStatus } = useSelector(selectNetworkStatus)
   const setupState = useSelector(selectNotificationSetupState)
   const notificationSettingsDisabled = useSelector(selectNotificationSettingsDisabled)
@@ -99,99 +96,89 @@ const FireShapeActionsDrawer = ({
   }
 
   return (
-    <>
-      <NotificationSnackbar open={updateError} onClose={clearUpdateError} message={subscriptionUpdateErrorMessage} />
-      <NotificationSnackbar
-        open={isRegistrationFailed && networkStatus.connected && !registrationErrorDismissed}
-        onClose={() => setRegistrationErrorDismissed(true)}
-        message="Unable to register this device for notifications. Retrying automatically."
-        severity="warning"
-        autoHideDuration={null}
-      />
-      <SwipeableBottomDrawer open={open} onClose={onClose}>
+    <SwipeableBottomDrawer open={open} onClose={onClose}>
+      <Box
+        sx={{
+          px: 2,
+          pb: 2,
+          pt: useSideSheet ? 2 : 0
+        }}
+      >
         <Box
           sx={{
-            px: 2,
-            pb: 2,
-            pt: useSideSheet ? 2 : 0
+            alignItems: 'flex-start',
+            display: 'flex',
+            gap: 1,
+            justifyContent: 'space-between',
+            mb: 2
+          }}
+        >
+          <Typography
+            sx={{
+              flex: 1,
+              fontWeight: 700,
+              fontSize: '1.25rem',
+              pl: 0.5
+            }}
+            variant="h6"
+          >
+            {fireZoneUnitNameFormatter(selectedFireShape?.mof_fire_zone_name)}
+          </Typography>
+          <IconButton
+            aria-label="Close fire zone actions"
+            data-testid="fire-shape-drawer-close-button"
+            onClick={onClose}
+            size="small"
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 1.5,
+            gridTemplateColumns: useSideSheet ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))'
           }}
         >
           <Box
             sx={{
-              alignItems: 'flex-start',
               display: 'flex',
-              gap: 1,
-              justifyContent: 'space-between',
-              mb: 2
+              flexDirection: 'column',
+              alignItems: 'center'
             }}
           >
-            <Typography
-              sx={{
-                flex: 1,
-                fontWeight: 700,
-                fontSize: '1.25rem',
-                pl: 0.5
-              }}
-              variant="h6"
+            <Button
+              aria-label={`Toggle subscription for ${selectedFireShape?.mof_fire_zone_name ?? 'selected fire zone'}`}
+              disabled={selectedFireShapeId === undefined || notificationSettingsDisabled}
+              disableElevation
+              onClick={handleSubscriptionUpdate}
+              sx={{ ...actionButtonSx, width: '100%' }}
+              variant="text"
             >
-              {fireZoneUnitNameFormatter(selectedFireShape?.mof_fire_zone_name)}
-            </Typography>
-            <IconButton
-              aria-label="Close fire zone actions"
-              data-testid="fire-shape-drawer-close-button"
-              onClick={onClose}
-              size="small"
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-          <Box
-            sx={{
-              display: 'grid',
-              gap: 1.5,
-              gridTemplateColumns: useSideSheet ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))'
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center'
-              }}
-            >
-              <Button
-                aria-label={`Toggle subscription for ${selectedFireShape?.mof_fire_zone_name ?? 'selected fire zone'}`}
-                disabled={selectedFireShapeId === undefined || notificationSettingsDisabled}
-                disableElevation
-                onClick={handleSubscriptionUpdate}
-                sx={{ ...actionButtonSx, width: '100%' }}
-                variant="text"
-              >
-                {isAwaitingToken ? (
-                  <CircularProgress size={actionIconSize} color="inherit" />
-                ) : isRegistrationFailed ? (
-                  <NotificationsOffIcon sx={actionIconSx} />
-                ) : isSubscribed ? (
-                  <NotificationsActiveIcon sx={actionIconSx} />
-                ) : (
-                  <NotificationsNoneOutlinedIcon sx={actionIconSx} />
-                )}
-                {isRegistrationFailed ? 'Unavailable' : isSubscribed ? 'Unsubscribe' : 'Subscribe'}
-              </Button>
-            </Box>
-            <Button disableElevation onClick={onSelectProfile} sx={actionButtonSx} variant="text">
-              <AnalyticsIcon sx={actionIconSx} />
-              Profile
-            </Button>
-            <Button disableElevation onClick={onSelectAdvisory} sx={actionButtonSx} variant="text">
-              <TextSnippetIcon sx={actionIconSx} />
-              Advisory
+              {isAwaitingToken ? (
+                <CircularProgress size={actionIconSize} color="inherit" />
+              ) : isRegistrationFailed ? (
+                <NotificationsOffIcon sx={actionIconSx} />
+              ) : isSubscribed ? (
+                <NotificationsActiveIcon sx={actionIconSx} />
+              ) : (
+                <NotificationsNoneOutlinedIcon sx={actionIconSx} />
+              )}
+              {isRegistrationFailed ? 'Unavailable' : isSubscribed ? 'Unsubscribe' : 'Subscribe'}
             </Button>
           </Box>
+          <Button disableElevation onClick={onSelectProfile} sx={actionButtonSx} variant="text">
+            <AnalyticsIcon sx={actionIconSx} />
+            Profile
+          </Button>
+          <Button disableElevation onClick={onSelectAdvisory} sx={actionButtonSx} variant="text">
+            <TextSnippetIcon sx={actionIconSx} />
+            Advisory
+          </Button>
         </Box>
-      </SwipeableBottomDrawer>
-    </>
+      </Box>
+    </SwipeableBottomDrawer>
   )
 }
 

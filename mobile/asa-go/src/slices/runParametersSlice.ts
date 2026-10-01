@@ -9,11 +9,13 @@ import { getTodayKey, getTomorrowKey } from '@/utils/dataSliceUtils'
 import { RUN_PARAMETERS_CACHE_KEY, readFromFilesystem, writeToFileSystem } from '@/utils/storage'
 
 export interface RunParametersState {
+  loading: boolean
   error: string | null
   runParameters: { [key: string]: RunParameter } | null
 }
 
 export const initialState: RunParametersState = {
+  loading: false,
   error: null,
   runParameters: null
 }
@@ -24,9 +26,11 @@ const runParameterSlice = createSlice({
   reducers: {
     getRunParametersStart(state: RunParametersState) {
       state.error = null
+      state.loading = true
     },
     getRunParametersFailed(state: RunParametersState, action: PayloadAction<string>) {
       state.error = action.payload
+      state.loading = false
     },
     getRunParametersSuccess(
       state: RunParametersState,
@@ -35,12 +39,17 @@ const runParameterSlice = createSlice({
       }>
     ) {
       state.error = null
+      state.loading = false
       state.runParameters = action.payload.runParameters
+    },
+    getRunParametersFinished(state: RunParametersState) {
+      state.loading = false
     }
   }
 })
 
-export const { getRunParametersStart, getRunParametersFailed, getRunParametersSuccess } = runParameterSlice.actions
+export const { getRunParametersStart, getRunParametersFailed, getRunParametersSuccess, getRunParametersFinished } =
+  runParameterSlice.actions
 
 export default runParameterSlice.reducer
 
@@ -51,8 +60,8 @@ const handleOnlineRunParameters = async (
   reduxRunParameters: { [key: string]: RunParameter } | null
 ) => {
   const now = DateTime.now()
+  dispatch(getRunParametersStart())
   try {
-    dispatch(getRunParametersStart())
     const latestRunParameters: { [key: string]: RunParameter } = await getMostRecentRunParameters(todayKey, tomorrowKey)
 
     if (isNil(latestRunParameters) || Object.keys(latestRunParameters).length === 0) {
@@ -73,6 +82,8 @@ const handleOnlineRunParameters = async (
   } catch (err) {
     dispatch(getRunParametersFailed((err as Error).toString()))
     console.log(err)
+  } finally {
+    dispatch(getRunParametersFinished())
   }
 }
 

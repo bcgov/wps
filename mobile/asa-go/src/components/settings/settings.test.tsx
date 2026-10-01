@@ -236,7 +236,7 @@ describe('Settings', () => {
     expect(fireCentreElements[0]).toHaveTextContent(/PRINCE GEORGE/i)
   })
 
-  it('renders loading state when loading is true', async () => {
+  it('leaves loading presentation to the parent tab', () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: 'unknown' }),
@@ -254,13 +254,11 @@ describe('Settings', () => {
       </Provider>
     )
 
-    await waitFor(() => {
-      expect(screen.getByText(/Retrieving notification settings/i)).toBeInTheDocument()
-      expect(screen.getByRole('progressbar')).toBeInTheDocument()
-    })
+    expect(screen.queryByText(/Retrieving notification settings/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 
-  it('renders error state when error is present', async () => {
+  it('leaves data error presentation to the app-level snackbar', () => {
     const store = createTestStore({
       settings: {
         ...settingsReducer(undefined, { type: 'unknown' }),
@@ -279,8 +277,7 @@ describe('Settings', () => {
       </Provider>
     )
 
-    expect(screen.getByTestId('settings-error-alert')).toBeInTheDocument()
-    expect(screen.getByText(/An error occurred when attempting to retrieve notification settings/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('settings-error-alert')).not.toBeInTheDocument()
   })
   it('sorts fire centres alphabetically', async () => {
     // Mock permission check to return granted immediately

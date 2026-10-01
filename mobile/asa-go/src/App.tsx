@@ -14,7 +14,9 @@ import { AppHeader } from '@/components/AppHeader'
 import BottomNavigationBar from '@/components/BottomNavigationBar'
 import GuestDisclaimerBanner from '@/components/GuestDisclaimerBanner'
 import InfoBar from '@/components/InfoBar'
+import LoadingErrorNotifier from '@/components/LoadingErrorNotifier'
 import ASAGoMap from '@/components/map/ASAGoMap'
+import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/profile/Profile'
 import Advisory from '@/components/report/Advisory'
 import SideNavigation from '@/components/SideNavigation'
@@ -41,7 +43,9 @@ import { initSubscriptions } from '@/slices/settingsSlice'
 import {
   type AppDispatch,
   selectFireCentres,
+  selectMapLayersLoadState,
   selectNetworkStatus,
+  selectOperationalDataLoading,
   selectPendingNotificationData,
   selectProvincialSummaries,
   selectPushNotification,
@@ -72,7 +76,9 @@ const App = () => {
   const { networkStatus } = useSelector(selectNetworkStatus)
   const runParameters = useSelector(selectRunParameters)
   const { registeredFcmToken } = useSelector(selectPushNotification)
-  const { subscriptionsInitialized } = useSelector(selectSettings)
+  const { loading: settingsLoading, subscriptionsInitialized } = useSelector(selectSettings)
+  const operationalDataLoading = useSelector(selectOperationalDataLoading)
+  const { loading: mapLayersLoading } = useSelector(selectMapLayersLoadState)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
   const dateOfInterest = useSelector(selectDateOfInterest)
@@ -239,14 +245,20 @@ const App = () => {
       {/* Show AppHeader in portrait OR landscape with medium or larger screen */}
       {(isPortrait || !isSmallScreen) && <AppHeader />}
 
+      <LoadingErrorNotifier activeTab={tab} />
+
       <Box
+        data-testid="app-content"
         sx={{
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          minWidth: 0,
+          overflow: 'hidden',
+          position: 'relative'
         }}
       >
+        <NotificationCenter />
         <InfoBar
           status={networkStatus.connected ? StatusEnum.INFO : StatusEnum.WARNING}
           statusText={networkStatus.connected ? '' : 'Offline.'}
@@ -255,7 +267,7 @@ const App = () => {
           Icon={networkStatus.connected ? InfoIcon : NetworkIcon}
         />
         <GuestDisclaimerBanner />
-        <TabPanel value={tab} panel={NavPanel.MAP}>
+        <TabPanel value={tab} panel={NavPanel.MAP} loading={operationalDataLoading || mapLayersLoading}>
           <ASAGoMap
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
@@ -264,7 +276,7 @@ const App = () => {
             testId="asa-go-map"
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.PROFILE}>
+        <TabPanel value={tab} panel={NavPanel.PROFILE} loading={operationalDataLoading}>
           <Profile
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
@@ -272,7 +284,7 @@ const App = () => {
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.ADVISORY}>
+        <TabPanel value={tab} panel={NavPanel.ADVISORY} loading={operationalDataLoading}>
           <Advisory
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
@@ -280,7 +292,7 @@ const App = () => {
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.SETTINGS}>
+        <TabPanel value={tab} panel={NavPanel.SETTINGS} loading={settingsLoading}>
           <Settings activeTab={tab} />
         </TabPanel>
       </Box>
