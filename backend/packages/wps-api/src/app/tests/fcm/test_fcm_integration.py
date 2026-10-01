@@ -1,5 +1,6 @@
 """PostgreSQL integration test for the FCM device lifecycle."""
 
+import asyncio
 from contextlib import asynccontextmanager
 
 import pytest
@@ -142,3 +143,49 @@ async def test_registration_deduplicates_zones_and_preserves_them_during_token_r
 
     rotated_settings = await fcm.get_notification_settings(device_id=DEVICE_ID)
     assert set(rotated_settings.fire_zone_source_ids) == set(ZONE_IDS)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "tokens",
+    [
+        [INITIAL_TOKEN] * 5,  # same device re-registering the same token
+        [INITIAL_TOKEN, ROTATED_TOKEN],  # same device registering two tokens at once
+    ],
+)
+async def test_concurrent_registrations_for_new_device_create_one_row(
+    use_test_database, session_factory, monkeypatch, tokens
+):
+    # hold every request after its lookup until all have looked up, so without locking they all
+    # see no row and all insert; with locking the later ones block, so the wait just times out
+    real_lookup = fcm.get_device_token_for_registration
+    all_looked_up = asyncio.Barrier(len(tokens))
+
+    async def lookup_then_wait_for_others(*args):
+        row = await real_lookup(*args)
+        try:
+            await asyncio.wait_for(all_looked_up.wait(), timeout=1)
+        except (TimeoutError, asyncio.BrokenBarrierError):
+            pass
+        return row
+
+    monkeypatch.setattr(fcm, "get_device_token_for_registration", lookup_then_wait_for_others)
+
+    responses = await asyncio.gather(
+        *(
+            fcm.register_device(
+                RegisterDeviceRequest(
+                    user_id="test-user",
+                    device_id=DEVICE_ID,
+                    token=token,
+                    platform=PlatformEnum.ios.value,
+                )
+            )
+            for token in tokens
+        )
+    )
+
+    assert all(response.success for response in responses)
+    async with session_factory() as session:
+        device_count = await session.scalar(select(func.count()).select_from(DeviceToken))
+        assert device_count == 1

@@ -159,7 +159,9 @@ const UPDATE_SETTINGS_PROBABILITY = 0.1; // rough stand-in for "occasional user 
 
 function deviceLifecycle() {
   if (vuDeviceId === null) {
-    const uniquePart = `${exec.vu.idInTest}-${Date.now()}`;
+    // VU ids restart at 1 in every Lambda invocation and they all start within the same
+    // millisecond or so, so id + timestamp alone collides across invocations.
+    const uniquePart = `${exec.vu.idInTest}-${Date.now()}-${crypto.randomUUID()}`;
     vuDeviceId = `k6-loadtest-${uniquePart}`;
     vuToken = `k6-loadtest-token-${uniquePart}`;
     post("device/register", {
