@@ -1,4 +1,5 @@
-import { ArrowBack as ArrowBackIcon, Close as CloseIcon } from '@mui/icons-material'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import CloseIcon from '@mui/icons-material/Close'
 import { Box, Divider, IconButton, Link, Stack, Typography } from '@mui/material'
 import { useIsTablet } from '@/hooks/useIsTablet'
 
@@ -7,7 +8,7 @@ interface AboutDataPanelProps {
   onClose: () => void
 }
 
-const fuelTypesUrl = 'https://cwfis.cfs.nrcan.gc.ca/background/fueltypes/c1'
+const fuelTypesUrl = 'https://cwfis.cfs.nrcan.gc.ca/en/background/fuel-types?fuel=c1'
 
 export const AboutDataPanel = ({ onBack, onClose }: AboutDataPanelProps) => {
   const isTablet = useIsTablet()
@@ -84,9 +85,9 @@ export const AboutDataPanel = ({ onBack, onClose }: AboutDataPanelProps) => {
               Portion under advisory
             </Typography>
             <Typography variant="body1">
-              For each topographic position—valley bottom, mid slope and upper slope—“Portion under advisory” shows the
-              percentage of its combustible area within the Fire Zone with Head Fire Intensity of at least 4,000 kW/m.
-              This includes warning-level intensity. Each position’s percentage is calculated separately.
+              For each topographic position, “Portion under advisory” shows the percentage of it's combustible area
+              within the Fire Zone with Head Fire Intensity of at least 4,000 kW/m. Each position’s percentage is
+              calculated separately.
             </Typography>
           </Box>
         </Stack>
