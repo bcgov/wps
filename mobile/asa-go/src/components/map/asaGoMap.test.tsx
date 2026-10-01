@@ -9,7 +9,7 @@ import * as featureStylers from '@/featureStylers'
 import { initialState as dataInitialState } from '@/slices/dataSlice'
 import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { geolocationInitialState } from '@/slices/geolocationSlice'
-import { createLayerMock, createTestStore, setupOpenLayersMocks } from '@/testUtils'
+import { createLayerMock, createTestStore } from '@/testUtils'
 import { AdvisoryStatus } from '@/utils/constants'
 
 vi.mock('@capacitor/filesystem', () => ({
@@ -21,7 +21,6 @@ vi.mock('@capacitor/filesystem', () => ({
   Encoding: { UTF8: 'utf8' }
 }))
 
-setupOpenLayersMocks()
 class ResizeObserver {
   observe() {
     // mock no-op

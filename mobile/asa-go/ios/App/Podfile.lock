@@ -1,9 +1,9 @@
 PODS:
-  - AppAuth (2.1.0):
-    - AppAuth/Core (= 2.1.0)
-    - AppAuth/ExternalUserAgent (= 2.1.0)
-  - AppAuth/Core (2.1.0)
-  - AppAuth/ExternalUserAgent (2.1.0):
+  - AppAuth (3.0.0):
+    - AppAuth/Core (= 3.0.0)
+    - AppAuth/ExternalUserAgent (= 3.0.0)
+  - AppAuth/Core (3.0.0)
+  - AppAuth/ExternalUserAgent (3.0.0):
     - AppAuth/Core
   - Capacitor (8.5.2):
     - CapacitorCordova
@@ -87,7 +87,7 @@ PODS:
   - IONFilesystemLib (1.1.1)
   - IONGeolocationLib (2.1.0)
   - Keycloak (0.0.1):
-    - AppAuth (< 3.0, >= 2.1.0)
+    - AppAuth (~> 3.0)
     - Capacitor
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
@@ -174,7 +174,7 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@sentry/capacitor"
 
 SPEC CHECKSUMS:
-  AppAuth: ef4da5a3fc2e10b90c09a0a94a9baeaedc0341d5
+  AppAuth: 5dec4b6a833eb0342b26bacbc5f3af694f71274a
   Capacitor: 89067779e14fb7ea56af07b4817f45d1f0c2a269
   CapacitorApp: 305bd13c44f6f9d164e2ee66a4faa956ed8c0e06
   CapacitorCordova: 5bec5648cbd09a176ce34ce5e7b6cdabb2c8a327
@@ -198,7 +198,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   IONFilesystemLib: dfa8706539ac9ab77ccfd6e5b3830ce9b5e57f6c
   IONGeolocationLib: 6a7b6f76063fb1b01cfb14fae7d0f526e3c9b271
-  Keycloak: e3ca1622271e8581222372fa6ae2f26e3bbf2ba0
+  Keycloak: a7926e78636ac5f079d85a9cb9b9671c56e067bf
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   Sentry: e5d82a3c1f2d951f75c04c57215a0abb1facbd51
