@@ -3,7 +3,7 @@
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, Iterable
 
 from wps_sfms.interpolation.field import (
     build_dc_field,
@@ -35,6 +35,7 @@ from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.db.crud.fuel_layer import (
     get_latest_temporal_fuel_raster_version,
     get_temporal_fuel_raster,
+    lock_temporal_fuel_raster_date,
 )
 from wps_shared.db.crud.sfms_run import track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
@@ -125,64 +126,78 @@ async def get_missing_fwi_seed_keys(
     return missing_keys
 
 
-async def resolve_temporal_fuel_raster(
-    target_date: date,
+async def resolve_temporal_fuel_rasters(
+    target_dates: Iterable[date],
     fuel_type_raster: FuelTypeRaster,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-) -> TemporalFuel:
-    """Return the temporal fuel raster for a date, creating a new version when needed.
+) -> dict[date, TemporalFuel]:
+    """Return the temporal fuel raster for each date, creating a new version when needed.
 
     An existing raster is reused only when it was built from the same base fuel raster and the
-    same green-up Julian date rasters.
+    same green-up Julian date rasters. The green-up rasters are hashed once for all dates.
     """
     green_up_on_key = raster_addresser.get_green_up_on_key()
     green_up_off_key = raster_addresser.get_green_up_off_key()
+    if not await s3_client.all_objects_exist(green_up_on_key, green_up_off_key):
+        raise RuntimeError(
+            f"Missing green-up Julian date rasters: {green_up_on_key}, {green_up_off_key}"
+        )
     green_up_on_hash = await s3_client.get_content_hash(green_up_on_key)
     green_up_off_hash = await s3_client.get_content_hash(green_up_off_key)
 
-    async with get_async_write_session_scope() as session:
-        existing = await get_temporal_fuel_raster(
-            session, target_date, fuel_type_raster.id, green_up_on_hash, green_up_off_hash
-        )
-        if existing is not None:
-            logger.info(
-                "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
+    temporal_fuels = {}
+    for target_date in target_dates:
+        async with get_async_write_session_scope() as session:
+            # held until commit so concurrent runs for the same date reuse rather than collide
+            await lock_temporal_fuel_raster_date(session, target_date)
+            existing = await get_temporal_fuel_raster(
+                session, target_date, fuel_type_raster.id, green_up_on_hash, green_up_off_hash
             )
-            return TemporalFuel(
-                raster_path=raster_addresser.gdal_path(existing.object_store_path),
-                fuel_codes_lookup_path=S3Key(existing.fuel_codes_lookup_path),
-            )
+            if existing is not None:
+                logger.info(
+                    "Reusing temporal fuel raster for %s: %s",
+                    target_date,
+                    existing.object_store_path,
+                )
+                temporal_fuels[target_date] = TemporalFuel(
+                    raster_path=raster_addresser.gdal_path(existing.object_store_path),
+                    fuel_codes_lookup_path=S3Key(existing.fuel_codes_lookup_path),
+                )
+                continue
 
-        version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
-        output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
-        fuel_codes_lookup_path = raster_addresser.get_fuel_codes_lookup_path(target_date, version)
-        content_hash = await publish_temporal_fuel_raster(
-            s3_client,
-            raster_addresser.gdal_path(fuel_type_raster.object_store_path),
-            raster_addresser.gdal_path(green_up_on_key),
-            raster_addresser.gdal_path(green_up_off_key),
-            target_date,
-            output_key,
-            fuel_codes_lookup_path,
-        )
-        session.add(
-            TemporalFuelRaster(
-                fuel_type_raster_id=fuel_type_raster.id,
-                for_date=target_date,
-                version=version,
-                object_store_path=output_key,
-                fuel_codes_lookup_path=fuel_codes_lookup_path,
-                content_hash=content_hash,
-                green_up_on_hash=green_up_on_hash,
-                green_up_off_hash=green_up_off_hash,
-                create_timestamp=get_utc_now(),
+            version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
+            output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
+            fuel_codes_lookup_path = raster_addresser.get_fuel_codes_lookup_path(
+                target_date, version
             )
+            content_hash = await publish_temporal_fuel_raster(
+                s3_client,
+                raster_addresser.gdal_path(fuel_type_raster.object_store_path),
+                raster_addresser.gdal_path(green_up_on_key),
+                raster_addresser.gdal_path(green_up_off_key),
+                target_date,
+                output_key,
+                fuel_codes_lookup_path,
+            )
+            session.add(
+                TemporalFuelRaster(
+                    fuel_type_raster_id=fuel_type_raster.id,
+                    for_date=target_date,
+                    version=version,
+                    object_store_path=output_key,
+                    fuel_codes_lookup_path=fuel_codes_lookup_path,
+                    content_hash=content_hash,
+                    green_up_on_hash=green_up_on_hash,
+                    green_up_off_hash=green_up_off_hash,
+                    create_timestamp=get_utc_now(),
+                )
+            )
+        temporal_fuels[target_date] = TemporalFuel(
+            raster_path=raster_addresser.gdal_path(output_key),
+            fuel_codes_lookup_path=fuel_codes_lookup_path,
         )
-    return TemporalFuel(
-        raster_path=raster_addresser.gdal_path(output_key),
-        fuel_codes_lookup_path=fuel_codes_lookup_path,
-    )
+    return temporal_fuels
 
 
 async def _resolve_percent_conifer_path(

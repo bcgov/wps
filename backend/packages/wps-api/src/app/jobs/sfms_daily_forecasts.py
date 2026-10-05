@@ -36,7 +36,7 @@ from app.jobs.sfms_run_pipeline import (
     run_fbp_calculations,
     run_fwi_calculations,
     run_weather_interpolation,
-    resolve_temporal_fuel_raster,
+    resolve_temporal_fuel_rasters,
 )
 
 logger = logging.getLogger(__name__)
@@ -120,12 +120,12 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                 fuel_raster_path = raster_addresser.gdal_path(fuel_type_raster.object_store_path)
                 logger.info("Using reference raster: %s", fuel_raster_path)
 
-                temporal_fuels = {
-                    datetime_to_process: await resolve_temporal_fuel_raster(
-                        datetime_to_process.date(), fuel_type_raster, raster_addresser, s3_client
-                    )
-                    for datetime_to_process in datetimes_to_process
-                }
+                temporal_fuels = await resolve_temporal_fuel_rasters(
+                    [datetime_to_process.date() for datetime_to_process in datetimes_to_process],
+                    fuel_type_raster,
+                    raster_addresser,
+                    s3_client,
+                )
 
                 fmc_inputs = raster_addresser.get_fmc_inputs(
                     [datetime_to_process.date() for datetime_to_process in datetimes_to_process],
@@ -182,7 +182,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                             datetime_to_process,
                             raster_addresser,
                             s3_client,
-                            temporal_fuels[datetime_to_process],
+                            temporal_fuels[datetime_to_process.date()],
                             fuel_type_raster.year,
                             sfms_run_id,
                             write_session,

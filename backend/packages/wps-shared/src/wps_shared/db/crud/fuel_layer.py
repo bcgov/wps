@@ -106,6 +106,16 @@ async def get_ready_fuel_type_raster_by_year_and_hash(
     return result.scalar_one_or_none()
 
 
+async def lock_temporal_fuel_raster_date(session: AsyncSession, for_date: date) -> None:
+    """Serialize temporal fuel raster creation for a date until the transaction ends.
+
+    Choosing the next version and inserting it are separate statements, so two runs for the same
+    date could otherwise both pick the same version and write to the same object store keys.
+    """
+    key = f"temporal_fuel_raster:{for_date.isoformat()}"
+    await session.execute(select(func.pg_advisory_xact_lock(func.hashtextextended(key, 0))))
+
+
 async def get_temporal_fuel_raster(
     session: AsyncSession,
     for_date: date,

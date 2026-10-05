@@ -1,12 +1,15 @@
 from datetime import date, datetime, timezone
 
 import pytest
+from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from testcontainers.postgres import PostgresContainer
 
 from wps_shared.db.crud.fuel_layer import (
     get_latest_temporal_fuel_raster_version,
     get_temporal_fuel_raster,
+    lock_temporal_fuel_raster_date,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
@@ -16,7 +19,7 @@ FOR_DATE = date(2026, 7, 1)
 CREATED = datetime(2026, 7, 1, 20, tzinfo=timezone.utc)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def postgres_container():
     with PostgresContainer(TESTCONTAINERS_POSTGRES_IMAGE) as postgres:
         yield postgres
@@ -30,8 +33,10 @@ async def engine(postgres_container):
     engine = create_async_engine(db_url, echo=False)
 
     async with engine.begin() as conn:
-        await conn.run_sync(FuelTypeRaster.__table__.create)
-        await conn.run_sync(TemporalFuelRaster.__table__.create)
+        await conn.run_sync(FuelTypeRaster.__table__.create, checkfirst=True)
+        await conn.run_sync(TemporalFuelRaster.__table__.create, checkfirst=True)
+        # the container is shared across the module, so start every test from empty tables
+        await conn.execute(text("TRUNCATE temporal_fuel_raster, fuel_type_raster"))
 
     yield engine
 
@@ -39,8 +44,13 @@ async def engine(postgres_container):
 
 
 @pytest.fixture(scope="function")
-async def async_session(engine):
-    async with async_sessionmaker(engine, expire_on_commit=False)() as session:
+def session_factory(engine):
+    return async_sessionmaker(engine, expire_on_commit=False)
+
+
+@pytest.fixture(scope="function")
+async def async_session(session_factory):
+    async with session_factory() as session:
         yield session
 
 
@@ -139,3 +149,27 @@ async def test_get_latest_temporal_fuel_raster_version_is_zero_without_rasters(
     seeded_session: AsyncSession,
 ):
     assert await get_latest_temporal_fuel_raster_version(seeded_session, date(2026, 7, 3)) == 0
+
+
+async def lock_without_waiting(session: AsyncSession, for_date: date) -> None:
+    """Take the date lock, failing immediately instead of waiting if another session holds it."""
+    await session.execute(text("SET LOCAL lock_timeout = '1ms'"))
+    await lock_temporal_fuel_raster_date(session, for_date)
+
+
+@pytest.mark.anyio
+async def test_lock_temporal_fuel_raster_date_blocks_same_date_until_commit(session_factory):
+    async with session_factory() as holder, session_factory() as waiter:
+        await lock_temporal_fuel_raster_date(holder, FOR_DATE)
+
+        # a different date is not blocked
+        await lock_without_waiting(waiter, date(2026, 7, 2))
+        await waiter.commit()
+
+        with pytest.raises(DBAPIError, match="lock timeout"):
+            await lock_without_waiting(waiter, FOR_DATE)
+        await waiter.rollback()
+
+        await holder.commit()
+        await lock_without_waiting(waiter, FOR_DATE)
+        await waiter.commit()
