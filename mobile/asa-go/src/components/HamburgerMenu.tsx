@@ -2,6 +2,7 @@ import { Close as CloseIcon, Menu as MenuIcon } from '@mui/icons-material'
 import { Box, Drawer, IconButton, List, ListItemButton, Stack, Typography } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { AboutDataPanel } from '@/components/AboutDataPanel'
 import { FeedbackDialog } from '@/components/FeedbackDialog'
 import { selectAuthentication, selectNetworkStatus } from '@/store'
 
@@ -12,24 +13,38 @@ export interface HamburgerMenuProps {
 }
 
 export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenuProps) => {
+  // state
   const [open, setOpen] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+
+  // refs
   const pendingFeedbackDialog = useRef(false)
+
+  // selectors
   const { email } = useSelector(selectAuthentication)
   const { networkStatus } = useSelector(selectNetworkStatus)
 
-  const handleListButtonClick = (url: string) => {
+  // handlers
+  const handleExternalLink = (url: string) => {
     setOpen(false)
-    if (url === 'sentry:feedback') {
-      pendingFeedbackDialog.current = true
-    } else {
-      window.open(url, '_blank', 'noopener,noreferrer')
-    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleFeedbackClick = () => {
+    pendingFeedbackDialog.current = true
+    setOpen(false)
   }
 
   return (
     <div data-testid={testId}>
-      <IconButton aria-label="open menu" onClick={() => setOpen(true)}>
+      <IconButton
+        aria-label="open menu"
+        onClick={() => {
+          setShowAbout(false)
+          setOpen(true)
+        }}
+      >
         <MenuIcon fontSize="large" sx={{ color: 'white' }} />
       </IconButton>
       <Drawer
@@ -39,6 +54,7 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
         slotProps={{
           transition: {
             onExited: () => {
+              setShowAbout(false)
               if (!pendingFeedbackDialog.current) {
                 return
               }
@@ -59,75 +75,80 @@ export const HamburgerMenu = ({ drawerTop, drawerHeight, testId }: HamburgerMenu
           }
         }}
       >
-        <Stack spacing={1} sx={{ width: 250, padding: '16px' }}>
-          <Box
-            sx={{
-              alignItems: 'center',
-              display: 'flex',
-              justifyContent: 'space-between'
-            }}
-          >
-            <IconButton
-              onClick={() => setOpen(false)}
+        {showAbout ? (
+          <AboutDataPanel onBack={() => setShowAbout(false)} onClose={() => setOpen(false)} />
+        ) : (
+          <Stack spacing={1} sx={{ width: 250, padding: '16px' }}>
+            <Box
               sx={{
-                cursor: 'pointer',
-                backgroundColor: 'transparent',
-                transition: 'background-color 0.2s',
-                alignSelf: 'flex-end',
-                marginLeft: 'auto',
-                '&:hover': {
-                  backgroundColor: '#f0f0f0'
+                alignItems: 'center',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}
+            >
+              <IconButton
+                onClick={() => setOpen(false)}
+                sx={{
+                  cursor: 'pointer',
+                  backgroundColor: 'transparent',
+                  transition: 'background-color 0.2s',
+                  alignSelf: 'flex-end',
+                  marginLeft: 'auto',
+                  '&:hover': {
+                    backgroundColor: '#f0f0f0'
+                  }
+                }}
+                aria-label="close settings"
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            <List
+              sx={{
+                width: '100%',
+                '& .MuiListItemButton-root': {
+                  width: '100%',
+                  justifyContent: 'flex-end'
                 }
               }}
-              aria-label="close settings"
             >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          <List
-            sx={{
-              width: '100%',
-              '& .MuiListItemButton-root': {
-                width: '100%',
-                justifyContent: 'flex-end'
-              }
-            }}
-          >
-            {[
-              { url: 'https://psu.nrs.gov.bc.ca/', title: 'Home' },
-              {
-                url: 'https://www2.gov.bc.ca/gov/content/home/disclaimer',
-                title: 'Disclaimer'
-              },
-              {
-                url: 'https://www2.gov.bc.ca/gov/content/home/privacy',
-                title: 'Privacy'
-              },
-              {
-                url: 'https://www2.gov.bc.ca/gov/content/home/accessible-government',
-                title: 'Accessibility'
-              },
-              {
-                url: 'https://www2.gov.bc.ca/gov/content/home/copyright',
-                title: 'Copyright'
-              },
-              {
-                url: 'sentry:feedback',
-                title: 'Submit Feedback',
-                disabled: !networkStatus.connected
-              }
-            ].map(item => (
-              <ListItemButton
-                disabled={item.disabled}
-                divider
-                key={`hamburger-menu-${item.title}`}
-                onClick={() => handleListButtonClick(item.url)}
-              >
-                <Typography variant="subtitle1">{item.title}</Typography>
-              </ListItemButton>
-            ))}
-          </List>
-        </Stack>
+              {[
+                { onClick: () => handleExternalLink('https://psu.nrs.gov.bc.ca/'), title: 'Home' },
+                { onClick: () => setShowAbout(true), title: 'About This Data' },
+                {
+                  onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/disclaimer'),
+                  title: 'Disclaimer'
+                },
+                {
+                  onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/privacy'),
+                  title: 'Privacy'
+                },
+                {
+                  onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/accessible-government'),
+                  title: 'Accessibility'
+                },
+                {
+                  onClick: () => handleExternalLink('https://www2.gov.bc.ca/gov/content/home/copyright'),
+                  title: 'Copyright'
+                },
+                {
+                  onClick: handleFeedbackClick,
+                  title: 'Submit Feedback',
+                  disabled: !networkStatus.connected
+                }
+              ].map(item => (
+                <ListItemButton
+                  disabled={item.disabled}
+                  divider
+                  key={`hamburger-menu-${item.title}`}
+                  onClick={item.onClick}
+                >
+                  <Typography variant="subtitle1">{item.title}</Typography>
+                </ListItemButton>
+              ))}
+            </List>
+          </Stack>
+        )}
       </Drawer>
       <FeedbackDialog
         defaultEmail={email}
