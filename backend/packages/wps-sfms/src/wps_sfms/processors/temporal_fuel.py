@@ -6,6 +6,7 @@ dates inside each pixel's green-up period.
 """
 
 import logging
+from dataclasses import dataclass
 from datetime import date
 
 import numpy as np
@@ -27,17 +28,23 @@ from wps_sfms.raster_dependencies import GriddedRasterDependencies
 logger = logging.getLogger(__name__)
 
 
-def calculate_temporal_fuel(
-    base_fuel: np.ndarray,
-    green_up_on: np.ndarray,
-    green_up_off: np.ndarray,
-    target_date: date,
-) -> np.ndarray:
+@dataclass(frozen=True)
+class TemporalFuelDatasets:
+    base_fuel: WPSDataset
+    green_up_on: WPSDataset
+    green_up_off: WPSDataset
+
+
+def calculate_temporal_fuel(datasets: TemporalFuelDatasets, target_date: date) -> np.ndarray:
     """Return national fuel grid values for ``target_date``, with NaN where the base is nodata.
 
-    A pixel is green when ``green_up_on <= day of year < green_up_off``. Missing Julian values
-    (NaN) never green up. A ``ValueError`` is raised for unrecognized base fuel values.
+    A pixel is green when ``green_up_on <= day of year < green_up_off``. Julian date nodata
+    pixels never green up. A ``ValueError`` is raised for unrecognized base fuel values.
     """
+    base_fuel, _ = datasets.base_fuel.replace_nodata_with(np.nan)
+    green_up_on, _ = datasets.green_up_on.replace_nodata_with(np.nan)
+    green_up_off, _ = datasets.green_up_off.replace_nodata_with(np.nan)
+
     temporal = np.full(base_fuel.shape, np.nan, dtype=np.float32)
     for bc_value, national_value in NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE.items():
         temporal[base_fuel == bc_value] = national_value
@@ -87,10 +94,9 @@ async def publish_temporal_fuel_raster(
             dependencies.validate_grids(
                 base_fuel, {"green_up_on": green_up_on, "green_up_off": green_up_off}
             )
-            base_values, _ = base_fuel.replace_nodata_with(np.nan)
-            on_values, _ = green_up_on.replace_nodata_with(np.nan)
-            off_values, _ = green_up_off.replace_nodata_with(np.nan)
-            temporal = calculate_temporal_fuel(base_values, on_values, off_values, target_date)
+            temporal = calculate_temporal_fuel(
+                TemporalFuelDatasets(base_fuel, green_up_on, green_up_off), target_date
+            )
 
             nodata_value = base_fuel.require_nodata_value()
             band = base_fuel.as_gdal_ds().GetRasterBand(1)

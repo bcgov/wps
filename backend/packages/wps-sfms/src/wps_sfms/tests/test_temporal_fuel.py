@@ -11,16 +11,28 @@ from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.schemas.sfms import FuelCodesLookup
 
 from wps_sfms.processors.temporal_fuel import (
+    TemporalFuelDatasets,
     calculate_temporal_fuel,
     fuel_codes_lookup,
     publish_temporal_fuel_raster,
 )
+from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 # interim green-up rasters: on Jun 1 (day 152), off Sep 15 (day 258)
 GREEN_UP_ON = np.full((1, 5), 152.0)
 GREEN_UP_OFF = np.full((1, 5), 258.0)
 # BC base values: D-1, M-1, C-3, non-fuel, nodata
-BASE_FUEL = np.array([[8, 14, 3, 99, np.nan]], dtype=np.float32)
+BASE_FUEL = np.array([[8, 14, 3, 99, TEST_INPUT_NODATA]])
+
+
+def make_datasets(
+    base_fuel: np.ndarray, green_up_on: np.ndarray, green_up_off: np.ndarray
+) -> TemporalFuelDatasets:
+    return TemporalFuelDatasets(
+        base_fuel=create_test_wps_dataset("base_fuel.tif", base_fuel),
+        green_up_on=create_test_wps_dataset("green_up_on.tif", green_up_on),
+        green_up_off=create_test_wps_dataset("green_up_off.tif", green_up_off),
+    )
 
 
 @pytest.mark.parametrize(
@@ -33,31 +45,31 @@ BASE_FUEL = np.array([[8, 14, 3, 99, np.nan]], dtype=np.float32)
     ],
 )
 def test_translates_base_fuel_and_applies_green_up(target_date: date, expected: list):
-    result = calculate_temporal_fuel(BASE_FUEL, GREEN_UP_ON, GREEN_UP_OFF, target_date)
+    result = calculate_temporal_fuel(
+        make_datasets(BASE_FUEL, GREEN_UP_ON, GREEN_UP_OFF), target_date
+    )
 
     np.testing.assert_array_equal(result, np.array([expected], dtype=np.float32))
 
 
-def test_missing_julian_values_never_green_up():
-    on = np.array([[np.nan, 152.0]])
-    off = np.array([[258.0, np.nan]])
-
-    result = calculate_temporal_fuel(
-        np.array([[8, 8]], dtype=np.float32), on, off, date(2026, 7, 1)
+def test_julian_nodata_never_greens_up():
+    datasets = make_datasets(
+        np.array([[8, 8]]),
+        np.array([[TEST_INPUT_NODATA, 152.0]]),
+        np.array([[258.0, TEST_INPUT_NODATA]]),
     )
+
+    result = calculate_temporal_fuel(datasets, date(2026, 7, 1))
 
     np.testing.assert_array_equal(result, np.array([[11, 11]], dtype=np.float32))
 
 
 @pytest.mark.parametrize("value", [0, 15, 101, 1.5])
 def test_rejects_unsupported_base_fuel_values(value: float):
+    datasets = make_datasets(np.array([[value]]), GREEN_UP_ON[:, :1], GREEN_UP_OFF[:, :1])
+
     with pytest.raises(ValueError, match="unsupported classifications"):
-        calculate_temporal_fuel(
-            np.array([[value]], dtype=np.float32),
-            GREEN_UP_ON[:, :1],
-            GREEN_UP_OFF[:, :1],
-            date(2026, 7, 1),
-        )
+        calculate_temporal_fuel(datasets, date(2026, 7, 1))
 
 
 def test_fuel_codes_lookup_lists_present_grid_values_in_order():
