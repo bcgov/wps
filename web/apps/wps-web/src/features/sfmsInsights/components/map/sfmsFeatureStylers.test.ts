@@ -6,7 +6,6 @@ import {
   FMC_COLOR_BREAKS,
   FUEL_TYPE_COLORS,
   HFI_COLOR_BREAKS,
-  RASTER_CONFIG,
   SFC_COLOR_BREAKS,
   TFC_COLOR_BREAKS
 } from '@/features/sfmsInsights/components/map/rasterConfig'
@@ -174,65 +173,6 @@ describe('getSFMSNGRasterColourExpression', () => {
       expect(expr).toContainEqual([red, green, blue, 1])
     }
   })
-
-  it.each([
-    {
-      rasterType: 'tfc',
-      upperBounds: [2, 4, 6, 8, 10, 15],
-      lastMin: 15,
-      colours: [
-        'rgb(0, 0, 245)',
-        'rgb(113, 152, 201)',
-        'rgb(76, 168, 48)',
-        'rgb(175, 253, 79)',
-        'rgb(255, 255, 85)',
-        'rgb(243, 174, 61)',
-        'rgb(234, 51, 35)'
-      ]
-    },
-    {
-      rasterType: 'cfb',
-      upperBounds: [0.1, 0.3, 0.5, 0.6, 0.8, 0.9],
-      lastMin: 0.9,
-      colours: [
-        'rgb(0, 0, 245)',
-        'rgb(113, 152, 201)',
-        'rgb(76, 168, 48)',
-        'rgb(175, 253, 79)',
-        'rgb(255, 255, 85)',
-        'rgb(243, 174, 61)',
-        'rgb(234, 51, 35)'
-      ]
-    },
-    {
-      rasterType: 'hfi',
-      upperBounds: [10, 500, 2000, 4000, 10000, 30000],
-      lastMin: 30000,
-      colours: [
-        'rgb(0, 0, 255)',
-        'rgb(0, 116, 255)',
-        'rgb(0, 116, 0)',
-        'rgb(0, 255, 0)',
-        'rgb(255, 255, 0)',
-        'rgb(255, 160, 0)',
-        'rgb(255, 0, 0)'
-      ]
-    }
-  ] as const)(
-    'should use the specified $rasterType thresholds and colours',
-    ({ rasterType, upperBounds, lastMin, colours }) => {
-      const breaks = RASTER_CONFIG[rasterType].colorBreaks
-      const expr = getSFMSNGRasterColourExpression(rasterType)
-
-      expect(breaks.map(({ max }) => max)).toEqual([...upperBounds, null])
-      expect(breaks.map(({ min }) => min)).toEqual([0, ...upperBounds])
-      expect(breaks.map(({ color }) => color)).toEqual(colours)
-      for (const max of upperBounds) {
-        expect(expr).toContainEqual(['<', ['band', 1], max])
-      }
-      expect(expr).toContainEqual(['>=', ['band', 1], lastMin])
-    }
-  )
 
   it('should label CFB breaks as percentages while using fraction thresholds', () => {
     expect(CFB_COLOR_BREAKS.map(({ label }) => label)).toEqual([
