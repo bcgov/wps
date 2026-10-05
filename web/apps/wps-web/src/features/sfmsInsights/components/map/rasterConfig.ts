@@ -263,23 +263,23 @@ export const FUEL_COLOR_BREAKS: ColorBreak[] = FUEL_TYPE_COLORS.map(({ value, fu
 
 export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   fuel: { label: 'Fuel', colorBreaks: FUEL_COLOR_BREAKS },
-  fwi: { label: 'FWI', colorBreaks: FWI_COLOR_BREAKS },
-  dmc: { label: 'DMC', colorBreaks: DMC_COLOR_BREAKS },
-  dc: { label: 'DC', colorBreaks: DC_COLOR_BREAKS },
-  ffmc: { label: 'FFMC', colorBreaks: FFMC_COLOR_BREAKS },
-  bui: { label: 'BUI', colorBreaks: BUI_COLOR_BREAKS },
-  isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS },
-  sfc: { label: 'SFC', colorBreaks: SFC_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
-  tfc: { label: 'TFC', colorBreaks: TFC_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
-  cfb: { label: 'CFB', colorBreaks: CFB_COLOR_BREAKS },
-  hfi: { label: 'HFI', colorBreaks: HFI_COLOR_BREAKS },
-  fmc: { label: 'FMC', colorBreaks: FMC_COLOR_BREAKS },
-  ros: { label: 'ROS', colorBreaks: ROS_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
   temperature: { label: 'Temperature', colorBreaks: TEMPERATURE_COLOR_BREAKS },
   relative_humidity: { label: 'Relative Humidity', colorBreaks: RH_COLOR_BREAKS },
   wind_speed: { label: 'Wind Speed', colorBreaks: WIND_SPEED_COLOR_BREAKS },
   wind_direction: { label: 'Wind Direction', colorBreaks: WIND_DIRECTION_COLOR_BREAKS },
-  precipitation: { label: 'Precipitation', colorBreaks: PRECIPITATION_COLOR_BREAKS }
+  precipitation: { label: 'Precipitation', colorBreaks: PRECIPITATION_COLOR_BREAKS },
+  ffmc: { label: 'FFMC', colorBreaks: FFMC_COLOR_BREAKS },
+  dmc: { label: 'DMC', colorBreaks: DMC_COLOR_BREAKS },
+  dc: { label: 'DC', colorBreaks: DC_COLOR_BREAKS },
+  isi: { label: 'ISI', colorBreaks: ISI_COLOR_BREAKS },
+  bui: { label: 'BUI', colorBreaks: BUI_COLOR_BREAKS },
+  fwi: { label: 'FWI', colorBreaks: FWI_COLOR_BREAKS },
+  fmc: { label: 'FMC', colorBreaks: FMC_COLOR_BREAKS },
+  sfc: { label: 'SFC', colorBreaks: SFC_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
+  ros: { label: 'ROS', colorBreaks: ROS_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
+  cfb: { label: 'CFB', colorBreaks: CFB_COLOR_BREAKS },
+  tfc: { label: 'TFC', colorBreaks: TFC_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
+  hfi: { label: 'HFI', colorBreaks: HFI_COLOR_BREAKS }
 }
 
 // Backward compatibility - export just the color breaks
