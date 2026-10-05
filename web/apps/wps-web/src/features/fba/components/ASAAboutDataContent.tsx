@@ -14,11 +14,25 @@ export const ASAAboutDataContent = () => (
     <br />
     <li>
       The{' '}
-      <a href="https://cwfis.cfs.nrcan.gc.ca/background/fueltypes/c1" target="_blank" rel="noopener noreferrer">
+      <a
+        href="https://cwfis.cfs.nrcan.gc.ca/en/background/fuel-types?fuel=c1"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         fuel types
       </a>{' '}
       chosen for the text bulletin are the most common fuel types in a zone that meet or exceed the Fire Behaviour
       Advisory threshold of 4,000 kW/m.
+    </li>
+    <br />
+    <li>
+      “Portion under advisory” is the percentage of each fuel type’s total area in the selected Fire Zone with Head Fire
+      Intensity of at least 4,000 kW/m.
+    </li>
+    <br />
+    <li>
+      For each topographic position, “Portion under advisory” shows the percentage of its combustible area within the
+      Fire Zone with Head Fire Intensity of at least 4,000 kW/m. Each position’s percentage is calculated separately.
     </li>
   </ul>
 )
