@@ -1,2 +1,1 @@
-""" CRUD operations for management of resources
-"""
+"""CRUD operations for management of resources"""

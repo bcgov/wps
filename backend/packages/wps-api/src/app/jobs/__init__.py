@@ -1,1 +1,1 @@
-""" Module for cronjobs retrieving data from WFWX """
+"""Module for cronjobs retrieving data from WFWX"""

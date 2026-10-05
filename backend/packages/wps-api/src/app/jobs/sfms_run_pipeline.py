@@ -2,7 +2,7 @@
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Awaitable, Callable
 
 from wps_sfms.interpolation.field import (
@@ -28,10 +28,18 @@ from wps_sfms.processors.fwi import (
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
+from wps_sfms.processors.temporal_fuel import publish_temporal_fuel_raster
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
+from wps_shared.db.crud.fuel_layer import (
+    get_latest_temporal_fuel_raster_version,
+    get_temporal_fuel_raster,
+)
 from wps_shared.db.crud.sfms_run import track_sfms_run
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
@@ -41,6 +49,7 @@ from wps_shared.sfms.raster_addresser import (
     SFMSInterpolatedWeatherParameter,
 )
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +114,60 @@ async def get_missing_fwi_seed_keys(
             missing_keys.append(f"{param.value}={key}")
 
     return missing_keys
+
+
+async def resolve_temporal_fuel_raster(
+    target_date: date,
+    fuel_type_raster: FuelTypeRaster,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+) -> GDALPath:
+    """Return the temporal fuel raster for a date, creating a new version when needed.
+
+    An existing raster is reused only when it was built from the same base fuel raster and the
+    same green-up Julian date rasters.
+    """
+    green_up_on_key = raster_addresser.get_green_up_on_key()
+    green_up_off_key = raster_addresser.get_green_up_off_key()
+    green_up_on_hash = await s3_client.get_content_hash(green_up_on_key)
+    green_up_off_hash = await s3_client.get_content_hash(green_up_off_key)
+
+    async with get_async_write_session_scope() as session:
+        existing = await get_temporal_fuel_raster(
+            session, target_date, fuel_type_raster.id, green_up_on_hash, green_up_off_hash
+        )
+        if existing is not None:
+            logger.info(
+                "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
+            )
+            return raster_addresser.gdal_path(existing.object_store_path)
+
+        version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
+        output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
+        metadata_key = raster_addresser.get_temporal_fuel_metadata_key(target_date, version)
+        content_hash = await publish_temporal_fuel_raster(
+            s3_client,
+            raster_addresser.gdal_path(fuel_type_raster.object_store_path),
+            raster_addresser.gdal_path(green_up_on_key),
+            raster_addresser.gdal_path(green_up_off_key),
+            target_date,
+            output_key,
+            metadata_key,
+        )
+        session.add(
+            TemporalFuelRaster(
+                fuel_type_raster_id=fuel_type_raster.id,
+                for_date=target_date,
+                version=version,
+                object_store_path=output_key,
+                metadata_object_store_path=metadata_key,
+                content_hash=content_hash,
+                green_up_on_hash=green_up_on_hash,
+                green_up_off_hash=green_up_off_hash,
+                create_timestamp=get_utc_now(),
+            )
+        )
+    return raster_addresser.gdal_path(output_key)
 
 
 async def _resolve_percent_conifer_path(

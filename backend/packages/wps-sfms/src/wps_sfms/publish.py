@@ -9,6 +9,7 @@ import aiofiles
 
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.geospatial.cog import generate_web_optimized_cog
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -30,6 +31,7 @@ async def publish_dataset(
     dataset: WPSDataset,
     output_key: S3Key | str,
     generate_cog: bool = True,
+    cog_resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
 ) -> PublishedRaster:
     """Upload a GeoTIFF to object storage and optionally generate a matching web COG."""
 
@@ -48,6 +50,8 @@ async def publish_dataset(
             await s3_client.put_object(key=s3_output_key, body=await f.read())
 
         if cog_key is not None:
-            generate_web_optimized_cog(input_path=tmp_path, output_path=cog_key)
+            generate_web_optimized_cog(
+                input_path=tmp_path, output_path=cog_key, resample_alg=cog_resample_alg
+            )
 
     return PublishedRaster(output_key=s3_output_key, cog_key=cog_key)

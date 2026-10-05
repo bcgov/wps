@@ -152,13 +152,17 @@ def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
         (5, "C5", 0.0),
         (6, "C6", 0.0),
         (7, "C7", 0.0),
-        (8, "D1", 0.0),
-        (9, "S1", 0.0),
-        (10, "S2", 0.0),
-        (11, "S3", 0.0),
-        (12, "O1A", 0.0),
-        (13, "M3", 0.0),
-        (14, "M1", 40.0),
+        (11, "D1", 0.0),
+        (12, "D2", 0.0),
+        (21, "S1", 0.0),
+        (22, "S2", 0.0),
+        (23, "S3", 0.0),
+        (31, "O1A", 0.0),
+        (32, "O1B", 0.0),
+        (40, "M1", 40.0),
+        (50, "M2", 40.0),
+        (70, "M3", 0.0),
+        (80, "M4", 0.0),
     ],
 )
 def test_sfc_matches_standalone_reference(grid_value: int, fuel_type: str, percent_conifer: float):
@@ -233,7 +237,7 @@ def test_aspect_nodata_is_preserved_when_slope_is_clamped_to_zero():
 
 
 def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
-    datasets = make_datasets(np.array([[99, 102, TEST_INPUT_NODATA]]))
+    datasets = make_datasets(np.array([[101, 102, TEST_INPUT_NODATA]]))
 
     result = calculate_primary_fire_behaviour(datasets)
 
@@ -247,7 +251,7 @@ def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
 
 def test_non_fuel_becomes_zero_when_other_inputs_are_nodata():
     datasets = make_datasets(
-        np.array([[99, 102]]),
+        np.array([[101, 102]]),
         ffmc=np.full((1, 2), TEST_INPUT_NODATA),
         fmc=np.full((1, 2), TEST_INPUT_NODATA),
     )

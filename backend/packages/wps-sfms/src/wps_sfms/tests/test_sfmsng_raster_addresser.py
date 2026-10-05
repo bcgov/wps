@@ -22,6 +22,20 @@ def addresser():
     return SFMSNGRasterAddresser()
 
 
+class TestTemporalFuelKeys:
+    def test_green_up_keys_use_julian_static_prefix(self, addresser: SFMSNGRasterAddresser):
+        assert addresser.get_green_up_on_key() == "sfms_ng/static/julian/green_up_on.tif"
+        assert addresser.get_green_up_off_key() == "sfms_ng/static/julian/green_up_off.tif"
+
+    def test_temporal_fuel_keys_are_dated_and_versioned(self, addresser: SFMSNGRasterAddresser):
+        assert addresser.get_temporal_fuel_key(date(2026, 6, 1), 2) == (
+            "sfms_ng/fuel/temporal/2026/06/01/2/fbp2026_06_01_2.tif"
+        )
+        assert addresser.get_temporal_fuel_metadata_key(date(2026, 6, 1), 2) == (
+            "sfms_ng/fuel/temporal/2026/06/01/2/fbp2026_06_01_2.json"
+        )
+
+
 class TestGetFoliarMoistureContentInputs:
     def test_get_fmc_key_uses_shared_static_date_path(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_fmc_key(date(2024, 4, 15)) == (

@@ -57,7 +57,9 @@ class WindDirectionInterpolator(RasterProcessor):
         grid = build_grid_context(reference_raster_path, self.mask_path)
         wind_direction_array = np.full((grid.y_size, grid.x_size), SFMS_NO_DATA, dtype=np.float32)
 
-        logger.info("Interpolating wind direction for raster grid (%d x %d)", grid.x_size, grid.y_size)
+        logger.info(
+            "Interpolating wind direction for raster grid (%d x %d)", grid.x_size, grid.y_size
+        )
 
         u_result = idw_on_valid_pixels(
             valid_lats=grid.valid_lats,

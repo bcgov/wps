@@ -3,7 +3,7 @@
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
@@ -67,6 +67,7 @@ class MockDailyActualsDeps(NamedTuple):
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     primary_fbp_processor: MagicMock
+    resolve_temporal_fuel_raster: AsyncMock
     fmc_processor: MagicMock
     fmc_processor_class: MagicMock
     fmc_inputs: MagicMock
@@ -103,6 +104,11 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_fuel_type_raster = MagicMock()
     mock_fuel_type_raster.year = 2024
     mock_fuel_type_raster.object_store_path = "sfms/fuel/2024/fuel.tif"
+    mock_resolve_temporal_fuel_raster = mocker.patch(
+        f"{MODULE_PATH}.resolve_temporal_fuel_raster",
+        new_callable=AsyncMock,
+        side_effect=lambda target_date, *_: f"/vsis3/test-bucket/temporal/{target_date}.tif",
+    )
     mocker.patch(
         f"{MODULE_PATH}.get_fuel_type_raster_by_year",
         new_callable=AsyncMock,
@@ -201,6 +207,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         primary_fbp_processor=mock_primary_fbp_processor,
+        resolve_temporal_fuel_raster=mock_resolve_temporal_fuel_raster,
         fmc_processor=mock_fmc_processor,
         fmc_processor_class=mock_fmc_processor_class,
         fmc_inputs=mock_fmc_inputs,
@@ -243,6 +250,17 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.wind_direction_processor.process.assert_called_once()
         mock_dependencies.interpolation_processor.process.assert_called_once()
         mock_dependencies.primary_fbp_processor.process.assert_called_once()
+
+    @pytest.mark.anyio
+    async def test_fbp_uses_temporal_fuel_raster_for_target_date(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))
+
+        mock_dependencies.resolve_temporal_fuel_raster.assert_awaited_once()
+        assert mock_dependencies.resolve_temporal_fuel_raster.call_args.args[0] == date(2024, 7, 4)
+        fbp_call = mock_dependencies.addresser.get_primary_fire_behaviour_inputs.call_args
+        assert fbp_call.args[2] == "/vsis3/test-bucket/temporal/2024-07-04.tif"
 
     @pytest.mark.anyio
     async def test_processes_shared_fmc_for_target_date(
