@@ -33,7 +33,7 @@ from app.jobs.sfms_run_pipeline import (
     run_fwi_calculations,
     run_fwi_interpolation,
     run_weather_interpolation,
-    resolve_temporal_fuel_rasters,
+    run_temporal_fuel,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,13 +67,6 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     logger.info("Using reference raster: %s", fuel_raster_path)
 
     async with S3Client() as s3_client:
-        date_to_process = datetime_to_process.date()
-        temporal_fuel = (
-            await resolve_temporal_fuel_rasters(
-                [date_to_process], fuel_type_raster, raster_addresser, s3_client
-            )
-        )[date_to_process]
-
         fmc_inputs = raster_addresser.get_fmc_inputs(
             [datetime_to_process.date()],
             fuel_raster_path,
@@ -144,6 +137,14 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 )
 
             if fwi_calculated:
+                temporal_fuel = await run_temporal_fuel(
+                    datetime_to_process,
+                    fuel_type_raster,
+                    raster_addresser,
+                    s3_client,
+                    sfms_run_id,
+                    session,
+                )
                 await run_fbp_calculations(
                     datetime_to_process,
                     raster_addresser,

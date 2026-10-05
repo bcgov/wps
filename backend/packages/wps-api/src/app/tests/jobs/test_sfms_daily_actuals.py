@@ -67,7 +67,7 @@ class MockDailyActualsDeps(NamedTuple):
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     primary_fbp_processor: MagicMock
-    resolve_temporal_fuel_rasters: AsyncMock
+    run_temporal_fuel: AsyncMock
     fmc_processor: MagicMock
     fmc_processor_class: MagicMock
     fmc_inputs: MagicMock
@@ -104,16 +104,13 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_fuel_type_raster = MagicMock()
     mock_fuel_type_raster.year = 2024
     mock_fuel_type_raster.object_store_path = "sfms/fuel/2024/fuel.tif"
-    mock_resolve_temporal_fuel_rasters = mocker.patch(
-        f"{MODULE_PATH}.resolve_temporal_fuel_rasters",
+    mock_run_temporal_fuel = mocker.patch(
+        f"{MODULE_PATH}.run_temporal_fuel",
         new_callable=AsyncMock,
-        side_effect=lambda target_dates, *_: {
-            target_date: TemporalFuel(
-                raster_path=f"/vsis3/test-bucket/temporal/{target_date}.tif",
-                fuel_codes_lookup_path=f"temporal/{target_date}.json",
-            )
-            for target_date in target_dates
-        },
+        side_effect=lambda datetime_to_process, *_: TemporalFuel(
+            raster_path=f"/vsis3/test-bucket/temporal/{datetime_to_process.date()}.tif",
+            fuel_codes_lookup_path=f"temporal/{datetime_to_process.date()}.json",
+        ),
     )
     mocker.patch(
         f"{MODULE_PATH}.get_fuel_type_raster_by_year",
@@ -213,7 +210,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         primary_fbp_processor=mock_primary_fbp_processor,
-        resolve_temporal_fuel_rasters=mock_resolve_temporal_fuel_rasters,
+        run_temporal_fuel=mock_run_temporal_fuel,
         fmc_processor=mock_fmc_processor,
         fmc_processor_class=mock_fmc_processor_class,
         fmc_inputs=mock_fmc_inputs,
@@ -263,10 +260,10 @@ class TestRunSfmsDailyActuals:
     ):
         await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))
 
-        mock_dependencies.resolve_temporal_fuel_rasters.assert_awaited_once()
-        assert mock_dependencies.resolve_temporal_fuel_rasters.call_args.args[0] == [
-            date(2024, 7, 4)
-        ]
+        mock_dependencies.run_temporal_fuel.assert_awaited_once()
+        assert mock_dependencies.run_temporal_fuel.call_args.args[0] == datetime(
+            2024, 7, 4, 20, tzinfo=timezone.utc
+        )
         fbp_call = mock_dependencies.addresser.get_primary_fire_behaviour_inputs.call_args
         assert fbp_call.args[2:4] == (
             "/vsis3/test-bucket/temporal/2024-07-04.tif",
@@ -398,6 +395,20 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.wind_speed_processor.process.assert_not_called()
         mock_dependencies.wind_direction_processor.process.assert_not_called()
         mock_dependencies.interpolation_processor.process.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_temporal_fuel_failure_keeps_weather_and_fwi_and_raises(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        mock_dependencies.run_temporal_fuel.side_effect = RuntimeError("temporal fuel failed")
+
+        with pytest.raises(RuntimeError, match="temporal fuel failed"):
+            await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))
+
+        mock_dependencies.temp_processor.process.assert_called_once()
+        mock_dependencies.interpolation_processor.process.assert_called_once()
+        assert mock_dependencies.fwi_processor.calculate_index.call_count == 6
+        mock_dependencies.primary_fbp_processor.process.assert_not_called()
 
     @pytest.mark.anyio
     async def test_precipitation_failure_logs_failed_and_raises(
@@ -606,6 +617,7 @@ class TestFWICalculationVsInterpolation:
         await run_sfms_daily_actuals(target_date)
 
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
+        mock_dependencies.run_temporal_fuel.assert_not_awaited()
         mock_dependencies.primary_fbp_processor.process.assert_not_called()
         # Only weather interpolation jobs are tracked when the FWI chain is skipped.
         assert mock_dependencies.db_session.execute.call_count == 5

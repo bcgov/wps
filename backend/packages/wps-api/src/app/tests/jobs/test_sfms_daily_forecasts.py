@@ -48,7 +48,7 @@ class MockDailyForecastsDeps(NamedTuple):
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     primary_fbp_processor: MagicMock
-    resolve_temporal_fuel_rasters: AsyncMock
+    run_temporal_fuel: AsyncMock
     fmc_processor: MagicMock
     fmc_processor_class: MagicMock
     fmc_inputs: MagicMock
@@ -79,16 +79,13 @@ def mock_dependencies(
     mock_fuel_type_raster = MagicMock()
     mock_fuel_type_raster.year = 2024
     mock_fuel_type_raster.object_store_path = "sfms/fuel/2024/fuel.tif"
-    mock_resolve_temporal_fuel_rasters = mocker.patch(
-        f"{MODULE_PATH}.resolve_temporal_fuel_rasters",
+    mock_run_temporal_fuel = mocker.patch(
+        f"{MODULE_PATH}.run_temporal_fuel",
         new_callable=AsyncMock,
-        side_effect=lambda target_dates, *_: {
-            target_date: TemporalFuel(
-                raster_path=f"/vsis3/test-bucket/temporal/{target_date}.tif",
-                fuel_codes_lookup_path=f"temporal/{target_date}.json",
-            )
-            for target_date in target_dates
-        },
+        side_effect=lambda datetime_to_process, *_: TemporalFuel(
+            raster_path=f"/vsis3/test-bucket/temporal/{datetime_to_process.date()}.tif",
+            fuel_codes_lookup_path=f"temporal/{datetime_to_process.date()}.json",
+        ),
     )
     mock_get_fuel_type_raster_by_year = mocker.patch(
         f"{MODULE_PATH}.get_fuel_type_raster_by_year",
@@ -177,7 +174,7 @@ def mock_dependencies(
         interpolation_processor=mock_interpolation_processor,
         fwi_processor=mock_fwi_processor,
         primary_fbp_processor=mock_primary_fbp_processor,
-        resolve_temporal_fuel_rasters=mock_resolve_temporal_fuel_rasters,
+        run_temporal_fuel=mock_run_temporal_fuel,
         fmc_processor=mock_fmc_processor,
         fmc_processor_class=mock_fmc_processor_class,
         fmc_inputs=mock_fmc_inputs,
@@ -256,6 +253,19 @@ class TestRunSfmsDailyForecasts:
         assert mock_dependencies.primary_fbp_processor.process.call_count == 3
         mock_dependencies.get_fuel_type_raster_by_year.assert_awaited_once()
         assert mock_dependencies.get_fuel_type_raster_by_year.call_args.args[1] == 2024
+
+    @pytest.mark.anyio
+    async def test_temporal_fuel_failure_keeps_weather_and_fwi_for_every_date(
+        self, mock_dependencies: MockDailyForecastsDeps
+    ):
+        mock_dependencies.run_temporal_fuel.side_effect = RuntimeError("temporal fuel failed")
+
+        with pytest.raises(RuntimeError, match="temporal fuel failed"):
+            await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
+
+        assert mock_dependencies.temp_processor.process.call_count == 3
+        assert mock_dependencies.fwi_processor.calculate_index.call_count == 18
+        mock_dependencies.primary_fbp_processor.process.assert_not_called()
 
     @pytest.mark.anyio
     async def test_fbp_uses_temporal_fuel_raster_per_forecast_date(

@@ -53,10 +53,11 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
   - Continue producing the daily FWI ISI raster as an FWI output, but do not use it as a primary
     FBP input.
 - [x] Apply green-up through a daily temporal fuel grid (#5880).
-  - Each actual and forecast run first builds, or reuses, one temporal fuel grid per processed
-    date from the base fuel grid and two Julian-date rasters. Those rasters must be uploaded
-    manually before the job can run; it fails with "Missing green-up Julian date rasters"
-    otherwise:
+  - Right before primary FBP, each actual and forecast run builds, or reuses, one temporal fuel
+    grid per processed date from the base fuel grid and two Julian-date rasters. It runs as the
+    `temporal_fuel` job in `sfms_run_log`, after weather and FWI, so a failure only blocks FBP.
+    The Julian-date rasters must be uploaded manually; the step fails with "Missing green-up
+    Julian date rasters" otherwise:
     - `sfms_ng/static/julian/green_up_on.tif`: day of year green-up starts, per pixel.
     - `sfms_ng/static/julian/green_up_off.tif`: day of year green-up ends, per pixel.
     - Both must match the fuel grid (778 by 683, 2 km). The interim rasters from the Predictive
