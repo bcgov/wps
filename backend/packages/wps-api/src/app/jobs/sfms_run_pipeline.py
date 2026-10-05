@@ -71,8 +71,12 @@ class FWICalculationJob:
 
 
 @dataclass(frozen=True)
-class TemporalFuel:
-    """A day's temporal fuel raster and the fuel codes lookup describing its grid values."""
+class TemporalFuelPaths:
+    """Where a day's temporal fuel raster and its fuel codes lookup are stored.
+
+    A plain copy of the stored paths rather than the ``TemporalFuelRaster`` row, which can't be
+    read once the session that created it has committed and closed.
+    """
 
     raster_path: GDALPath
     fuel_codes_lookup_path: S3Key
@@ -131,7 +135,7 @@ async def resolve_temporal_fuel_raster(
     fuel_type_raster: FuelTypeRaster,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-) -> TemporalFuel:
+) -> TemporalFuelPaths:
     """Return the temporal fuel raster for a date, creating a new version when needed.
 
     An existing raster is reused only when it was built from the same base fuel raster and the
@@ -156,7 +160,7 @@ async def resolve_temporal_fuel_raster(
             logger.info(
                 "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
             )
-            return TemporalFuel(
+            return TemporalFuelPaths(
                 raster_path=raster_addresser.gdal_path(existing.object_store_path),
                 fuel_codes_lookup_path=S3Key(existing.fuel_codes_lookup_path),
             )
@@ -186,7 +190,7 @@ async def resolve_temporal_fuel_raster(
                 create_timestamp=get_utc_now(),
             )
         )
-    return TemporalFuel(
+    return TemporalFuelPaths(
         raster_path=raster_addresser.gdal_path(output_key),
         fuel_codes_lookup_path=fuel_codes_lookup_path,
     )
@@ -199,10 +203,10 @@ async def run_temporal_fuel(
     s3_client: S3Client,
     sfms_run_id: int,
     session,
-) -> TemporalFuel:
+) -> TemporalFuelPaths:
     """Resolve the date's temporal fuel raster as a tracked job of the SFMS run."""
 
-    async def _resolve() -> TemporalFuel:
+    async def _resolve() -> TemporalFuelPaths:
         return await resolve_temporal_fuel_raster(
             datetime_to_process.date(), fuel_type_raster, raster_addresser, s3_client
         )
@@ -246,7 +250,7 @@ async def run_fbp_calculations(
     datetime_to_process: datetime,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-    temporal_fuel: TemporalFuel,
+    temporal_fuel: TemporalFuelPaths,
     fuel_raster_year: int,
     sfms_run_id: int,
     session,

@@ -12,7 +12,7 @@ from wps_shared.run_type import RunType
 from app.jobs.sfms_run_pipeline import (
     _resolve_percent_conifer_path,
     _resolve_percent_dead_conifer_path,
-    TemporalFuel,
+    TemporalFuelPaths,
     resolve_temporal_fuel_raster,
     run_temporal_fuel,
     run_fbp_calculations,
@@ -116,7 +116,9 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
         datetime_to_process,
         addresser,
         s3_client,
-        TemporalFuel(raster_path="/vsis3/test/fuel.tif", fuel_codes_lookup_path="test/fuel.json"),
+        TemporalFuelPaths(
+            raster_path="/vsis3/test/fuel.tif", fuel_codes_lookup_path="test/fuel.json"
+        ),
         2025,
         42,
         session,
@@ -190,7 +192,7 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
         date(2026, 6, 1), deps.fuel_type_raster, addresser, deps.s3_client
     )
 
-    assert result == TemporalFuel(
+    assert result == TemporalFuelPaths(
         raster_path="/vsis3/bucket/sfms_ng/fuel/temporal/existing.tif",
         fuel_codes_lookup_path="sfms_ng/fuel/temporal/existing.json",
     )
@@ -222,7 +224,7 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
         date(2026, 6, 1), deps.fuel_type_raster, addresser, deps.s3_client
     )
 
-    assert result == TemporalFuel(
+    assert result == TemporalFuelPaths(
         raster_path="/vsis3/bucket/temporal/3/fbp.tif",
         fuel_codes_lookup_path="temporal/3/fbp.json",
     )
@@ -258,7 +260,7 @@ async def test_resolve_temporal_fuel_raster_requires_green_up_rasters(temporal_f
 
 @pytest.mark.anyio
 async def test_run_temporal_fuel_is_a_tracked_job_for_the_date(mocker: MockerFixture):
-    temporal_fuel = TemporalFuel(raster_path="/vsis3/t.tif", fuel_codes_lookup_path="t.json")
+    temporal_fuel = TemporalFuelPaths(raster_path="/vsis3/t.tif", fuel_codes_lookup_path="t.json")
     resolve = mocker.patch(
         f"{PIPELINE_PATH}.resolve_temporal_fuel_raster",
         new_callable=AsyncMock,

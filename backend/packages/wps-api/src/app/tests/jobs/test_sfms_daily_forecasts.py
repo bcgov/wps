@@ -29,7 +29,7 @@ from app.jobs.sfms_daily_forecasts import (
     run_datetime_for_cli_date,
     run_sfms_daily_forecasts,
 )
-from app.jobs.sfms_run_pipeline import TemporalFuel
+from app.jobs.sfms_run_pipeline import TemporalFuelPaths
 from app.tests.conftest import create_mock_sfms_actuals
 
 MODULE_PATH = "app.jobs.sfms_daily_forecasts"
@@ -82,7 +82,7 @@ def mock_dependencies(
     mock_run_temporal_fuel = mocker.patch(
         f"{MODULE_PATH}.run_temporal_fuel",
         new_callable=AsyncMock,
-        side_effect=lambda datetime_to_process, *_: TemporalFuel(
+        side_effect=lambda datetime_to_process, *_: TemporalFuelPaths(
             raster_path=f"/vsis3/test-bucket/temporal/{datetime_to_process.date()}.tif",
             fuel_codes_lookup_path=f"temporal/{datetime_to_process.date()}.json",
         ),

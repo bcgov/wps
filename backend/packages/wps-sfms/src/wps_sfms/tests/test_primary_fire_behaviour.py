@@ -14,11 +14,9 @@ from wps_shared.run_type import RunType
 from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import FBPParameter
 
-from wps_sfms.fbp_fuel_types import (
-    NATIONAL_FUEL_LOOKUP,
-    cffdrs_fuel_types_from_lookup,
-)
+from wps_sfms.fbp_fuel_types import CFFDRSFuelTypes
 from wps_sfms.interpolation.common import SFMS_NO_DATA
+from wps_sfms.processors.temporal_fuel import TemporalFuelGrid
 from wps_sfms.processors.primary_fire_behaviour import (
     PrimaryFireBehaviourDatasets,
     PrimaryFireBehaviourProcessor,
@@ -29,8 +27,8 @@ from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 TEST_DATETIME = datetime(2024, 7, 4, 20, tzinfo=timezone.utc)
-FUEL_CODES_LOOKUP = FuelCodesLookup(list(NATIONAL_FUEL_LOOKUP.values()))
-FUEL_TYPES = cffdrs_fuel_types_from_lookup(FUEL_CODES_LOOKUP)
+FUEL_CODES_LOOKUP = FuelCodesLookup(list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
+FUEL_TYPES = CFFDRSFuelTypes.from_lookup(FUEL_CODES_LOOKUP)
 
 
 def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehaviourDatasets:

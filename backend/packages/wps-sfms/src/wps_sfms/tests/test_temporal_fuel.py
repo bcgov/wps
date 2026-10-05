@@ -10,10 +10,10 @@ from pytest_mock import MockerFixture
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.schemas.sfms import FuelCodesLookup
 
+from wps_sfms.fbp_fuel_types import CFFDRSFuelTypes
 from wps_sfms.processors.temporal_fuel import (
-    TemporalFuelDatasets,
-    calculate_temporal_fuel,
-    fuel_codes_lookup,
+    TemporalFuelInputDatasets,
+    TemporalFuelGrid,
     publish_temporal_fuel_raster,
 )
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
@@ -25,10 +25,31 @@ GREEN_UP_OFF = np.full((1, 5), 258.0)
 BASE_FUEL = np.array([[8, 14, 3, 99, TEST_INPUT_NODATA]])
 
 
+def test_bc_grid_values_translate_to_national_lookup_values():
+    assert set(TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE.values()) <= set(
+        TemporalFuelGrid.NATIONAL_FUEL_LOOKUP
+    )
+    assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[8] == 11  # D-1
+    assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[12] == 31  # O-1a
+    assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[14] == 40  # M-1
+    assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[99] == 101  # Non-fuel
+
+
+def test_green_up_swaps_leafless_for_green_fuel_types():
+    fuel_types = CFFDRSFuelTypes.from_lookup(
+        FuelCodesLookup(list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
+    )
+
+    assert {
+        fuel_types.by_grid_value[leafless]: fuel_types.by_grid_value[green]
+        for leafless, green in TemporalFuelGrid.GREEN_UP_GRID_VALUES.items()
+    } == {"D1": "D2", "M1": "M2", "M3": "M4"}
+
+
 def make_datasets(
     base_fuel: np.ndarray, green_up_on: np.ndarray, green_up_off: np.ndarray
-) -> TemporalFuelDatasets:
-    return TemporalFuelDatasets(
+) -> TemporalFuelInputDatasets:
+    return TemporalFuelInputDatasets(
         base_fuel=create_test_wps_dataset("base_fuel.tif", base_fuel),
         green_up_on=create_test_wps_dataset("green_up_on.tif", green_up_on),
         green_up_off=create_test_wps_dataset("green_up_off.tif", green_up_off),
@@ -45,9 +66,9 @@ def make_datasets(
     ],
 )
 def test_translates_base_fuel_and_applies_green_up(target_date: date, expected: list):
-    result = calculate_temporal_fuel(
+    result = TemporalFuelGrid.build(
         make_datasets(BASE_FUEL, GREEN_UP_ON, GREEN_UP_OFF), target_date
-    )
+    ).values
 
     np.testing.assert_array_equal(result, np.array([expected], dtype=np.float32))
 
@@ -59,7 +80,7 @@ def test_julian_nodata_never_greens_up():
         np.array([[258.0, TEST_INPUT_NODATA]]),
     )
 
-    result = calculate_temporal_fuel(datasets, date(2026, 7, 1))
+    result = TemporalFuelGrid.build(datasets, date(2026, 7, 1)).values
 
     np.testing.assert_array_equal(result, np.array([[11, 11]], dtype=np.float32))
 
@@ -69,13 +90,13 @@ def test_rejects_unsupported_base_fuel_values(value: float):
     datasets = make_datasets(np.array([[value]]), GREEN_UP_ON[:, :1], GREEN_UP_OFF[:, :1])
 
     with pytest.raises(ValueError, match="unsupported classifications"):
-        calculate_temporal_fuel(datasets, date(2026, 7, 1))
+        TemporalFuelGrid.build(datasets, date(2026, 7, 1))
 
 
 def test_fuel_codes_lookup_lists_present_grid_values_in_order():
     temporal = np.array([[50, 12, 101, 12, np.nan]], dtype=np.float32)
 
-    result = fuel_codes_lookup(temporal)
+    result = TemporalFuelGrid(temporal).fuel_codes_lookup()
 
     assert [row.grid_value for row in result.root] == [12, 50, 101]
     assert result.root[0].model_dump() == {

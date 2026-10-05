@@ -1,15 +1,10 @@
 """Validation for loaded Fire Behaviour Prediction input rasters."""
 
-from typing import Iterable
-
 import numpy as np
 
 
-def validate_percent_conifer(
-    fuel: np.ndarray, percent_conifer: np.ndarray, mixedwood_grid_values: Iterable[int]
-) -> None:
+def validate_percent_conifer(percent_conifer: np.ndarray, mixedwood_mask: np.ndarray) -> None:
     """Require percent conifer to be present and within range on M1/M2 pixels."""
-    mixedwood_mask = np.isin(fuel, tuple(mixedwood_grid_values))
     invalid = mixedwood_mask & (
         ~np.isfinite(percent_conifer) | (percent_conifer < 0) | (percent_conifer > 100)
     )
