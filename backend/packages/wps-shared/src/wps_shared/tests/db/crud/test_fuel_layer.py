@@ -67,12 +67,16 @@ def fuel_type_raster(id: int) -> FuelTypeRaster:
     )
 
 
+JULIAN_HASHES = {
+    "green_up_on_hash": "on",
+    "green_up_off_hash": "off",
+    "grass_standing_hash": "standing",
+    "grass_matted_hash": "matted",
+}
+
+
 def temporal_fuel_raster(
-    for_date: date,
-    version: int,
-    fuel_type_raster_id: int = 1,
-    green_up_on_hash: str = "on",
-    green_up_off_hash: str = "off",
+    for_date: date, version: int, fuel_type_raster_id: int = 1, **julian_hashes: str
 ) -> TemporalFuelRaster:
     return TemporalFuelRaster(
         fuel_type_raster_id=fuel_type_raster_id,
@@ -81,9 +85,8 @@ def temporal_fuel_raster(
         object_store_path=f"temporal/{for_date}/{version}.tif",
         fuel_codes_lookup_path=f"temporal/{for_date}/{version}.json",
         content_hash=f"temporal-{version}",
-        green_up_on_hash=green_up_on_hash,
-        green_up_off_hash=green_up_off_hash,
         create_timestamp=CREATED,
+        **{**JULIAN_HASHES, **julian_hashes},
     )
 
 
@@ -95,8 +98,10 @@ async def seeded_session(async_session: AsyncSession):
         [
             temporal_fuel_raster(FOR_DATE, 1),
             temporal_fuel_raster(FOR_DATE, 2),
-            # same date rebuilt from a different base raster and green-up raster
-            temporal_fuel_raster(FOR_DATE, 3, fuel_type_raster_id=2, green_up_on_hash="on-2"),
+            # same date rebuilt from a different base raster and Julian date rasters
+            temporal_fuel_raster(
+                FOR_DATE, 3, fuel_type_raster_id=2, green_up_on_hash="on-2", grass_matted_hash="m-2"
+            ),
             temporal_fuel_raster(date(2026, 7, 2), 1),
         ]
     )
@@ -108,7 +113,7 @@ async def seeded_session(async_session: AsyncSession):
 async def test_get_temporal_fuel_raster_returns_latest_matching_version(
     seeded_session: AsyncSession,
 ):
-    result = await get_temporal_fuel_raster(seeded_session, FOR_DATE, 1, "on", "off")
+    result = await get_temporal_fuel_raster(seeded_session, FOR_DATE, 1, **JULIAN_HASHES)
 
     assert result is not None
     assert (result.for_date, result.version) == (FOR_DATE, 2)
@@ -116,21 +121,20 @@ async def test_get_temporal_fuel_raster_returns_latest_matching_version(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "fuel_type_raster_id,green_up_on_hash,green_up_off_hash",
+    "fuel_type_raster_id,changed_hash",
     [
-        (2, "on", "off"),  # different base raster
-        (1, "on-2", "off"),  # different green-up on raster
-        (1, "on", "off-2"),  # different green-up off raster
+        (2, {}),  # different base raster
+        (1, {"green_up_on_hash": "on-2"}),
+        (1, {"green_up_off_hash": "off-2"}),
+        (1, {"grass_standing_hash": "standing-2"}),
+        (1, {"grass_matted_hash": "matted-2"}),
     ],
 )
 async def test_get_temporal_fuel_raster_requires_all_inputs_to_match(
-    seeded_session: AsyncSession,
-    fuel_type_raster_id: int,
-    green_up_on_hash: str,
-    green_up_off_hash: str,
+    seeded_session: AsyncSession, fuel_type_raster_id: int, changed_hash: dict[str, str]
 ):
     result = await get_temporal_fuel_raster(
-        seeded_session, FOR_DATE, fuel_type_raster_id, green_up_on_hash, green_up_off_hash
+        seeded_session, FOR_DATE, fuel_type_raster_id, **{**JULIAN_HASHES, **changed_hash}
     )
 
     assert result is None

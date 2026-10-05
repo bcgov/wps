@@ -18,11 +18,16 @@ from wps_sfms.processors.temporal_fuel import (
 )
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
-# interim green-up rasters: on Jun 1 (day 152), off Sep 15 (day 258)
-GREEN_UP_ON = np.full((1, 5), 152.0)
-GREEN_UP_OFF = np.full((1, 5), 258.0)
-# BC base values: D-1, M-1, C-3, non-fuel, nodata
-BASE_FUEL = np.array([[8, 14, 3, 99, TEST_INPUT_NODATA]])
+# interim Julian date rasters: green-up Jun 1 (152) to Sep 15 (258), grass standing Jun 1 (152)
+# to Dec 1 (335)
+JULIAN_DAYS = {
+    "green_up_on": 152.0,
+    "green_up_off": 258.0,
+    "grass_standing": 152.0,
+    "grass_matted": 335.0,
+}
+# BC base values: D-1, M-1, C-3, O-1a, non-fuel, nodata
+BASE_FUEL = np.array([[8, 14, 3, 12, 99, TEST_INPUT_NODATA]])
 
 
 def test_bc_grid_values_translate_to_national_lookup_values():
@@ -35,59 +40,79 @@ def test_bc_grid_values_translate_to_national_lookup_values():
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[99] == 101  # Non-fuel
 
 
-def test_green_up_swaps_leafless_for_green_fuel_types():
-    fuel_types = CFFDRSFuelTypes.from_lookup(
-        FuelCodesLookup(list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
-    )
+NATIONAL_FUEL_TYPES = CFFDRSFuelTypes.from_lookup(
+    FuelCodesLookup(list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
+).by_grid_value
 
+
+@pytest.mark.parametrize(
+    "swaps,expected",
+    [
+        (TemporalFuelGrid.GREEN_UP_GRID_VALUES, {"D1": "D2", "M1": "M2", "M3": "M4"}),
+        (TemporalFuelGrid.GRASS_STANDING_GRID_VALUES, {"O1A": "O1B"}),
+    ],
+)
+def test_seasonal_swaps_map_to_their_cffdrs_fuel_types(swaps, expected):
     assert {
-        fuel_types.by_grid_value[leafless]: fuel_types.by_grid_value[green]
-        for leafless, green in TemporalFuelGrid.GREEN_UP_GRID_VALUES.items()
-    } == {"D1": "D2", "M1": "M2", "M3": "M4"}
+        NATIONAL_FUEL_TYPES[before]: NATIONAL_FUEL_TYPES[after] for before, after in swaps.items()
+    } == expected
 
 
-def make_datasets(
-    base_fuel: np.ndarray, green_up_on: np.ndarray, green_up_off: np.ndarray
-) -> TemporalFuelInputDatasets:
+def make_datasets(base_fuel: np.ndarray, **julian: np.ndarray) -> TemporalFuelInputDatasets:
+    """Build input datasets, using the interim Julian days for any raster not given."""
+    julian_values = {
+        name: julian.get(name, np.full(base_fuel.shape, day)) for name, day in JULIAN_DAYS.items()
+    }
     return TemporalFuelInputDatasets(
         base_fuel=create_test_wps_dataset("base_fuel.tif", base_fuel),
-        green_up_on=create_test_wps_dataset("green_up_on.tif", green_up_on),
-        green_up_off=create_test_wps_dataset("green_up_off.tif", green_up_off),
+        **{
+            name: create_test_wps_dataset(f"{name}.tif", values)
+            for name, values in julian_values.items()
+        },
     )
 
 
 @pytest.mark.parametrize(
     "target_date,expected",
     [
-        (date(2026, 5, 31), [11, 40, 3, 101, np.nan]),  # day 151, before green-up
-        (date(2026, 6, 1), [12, 50, 3, 101, np.nan]),  # day 152, first green day
-        (date(2026, 9, 14), [12, 50, 3, 101, np.nan]),  # day 257, last green day
-        (date(2026, 9, 15), [11, 40, 3, 101, np.nan]),  # day 258, leafless again
+        (date(2026, 5, 31), [11, 40, 3, 31, 101, np.nan]),  # day 151, leafless and matted
+        (date(2026, 6, 1), [12, 50, 3, 32, 101, np.nan]),  # day 152, first green and standing day
+        (date(2026, 9, 14), [12, 50, 3, 32, 101, np.nan]),  # day 257, last green day
+        (date(2026, 9, 15), [11, 40, 3, 32, 101, np.nan]),  # day 258, leafless, still standing
+        (date(2026, 11, 30), [11, 40, 3, 32, 101, np.nan]),  # day 334, last standing day
+        (date(2026, 12, 1), [11, 40, 3, 31, 101, np.nan]),  # day 335, matted again
     ],
 )
-def test_translates_base_fuel_and_applies_green_up(target_date: date, expected: list):
-    result = TemporalFuelGrid.build(
-        make_datasets(BASE_FUEL, GREEN_UP_ON, GREEN_UP_OFF), target_date
-    ).values
+def test_translates_base_fuel_and_applies_green_up_and_grass_curing(
+    target_date: date, expected: list
+):
+    result = TemporalFuelGrid.build(make_datasets(BASE_FUEL), target_date).values
 
     np.testing.assert_array_equal(result, np.array([expected], dtype=np.float32))
 
 
-def test_julian_nodata_never_greens_up():
+@pytest.mark.parametrize(
+    "julian_name,base_value,unchanged_value",
+    [
+        ("green_up_on", 8, 11),
+        ("green_up_off", 8, 11),
+        ("grass_standing", 12, 31),
+        ("grass_matted", 12, 31),
+    ],
+)
+def test_julian_nodata_never_switches(julian_name: str, base_value: int, unchanged_value: int):
     datasets = make_datasets(
-        np.array([[8, 8]]),
-        np.array([[TEST_INPUT_NODATA, 152.0]]),
-        np.array([[258.0, TEST_INPUT_NODATA]]),
+        np.array([[base_value]]), **{julian_name: np.array([[TEST_INPUT_NODATA]])}
     )
 
     result = TemporalFuelGrid.build(datasets, date(2026, 7, 1)).values
 
-    np.testing.assert_array_equal(result, np.array([[11, 11]], dtype=np.float32))
+    np.testing.assert_array_equal(result, np.array([[unchanged_value]], dtype=np.float32))
 
 
 @pytest.mark.parametrize("value", [0, 15, 101, 1.5])
 def test_rejects_unsupported_base_fuel_values(value: float):
-    datasets = make_datasets(np.array([[value]]), GREEN_UP_ON[:, :1], GREEN_UP_OFF[:, :1])
+    datasets = make_datasets(np.array([[value]]))
 
     with pytest.raises(ValueError, match="unsupported classifications"):
         TemporalFuelGrid.build(datasets, date(2026, 7, 1))
@@ -135,14 +160,18 @@ def write_tif(
 @pytest.fixture
 def rasters(tmp_path: Path) -> SimpleNamespace:
     return SimpleNamespace(
-        base=write_tif(
+        base_fuel_key=write_tif(
             tmp_path / "base.tif",
-            np.array([[8, 14, 3, BASE_NODATA]], dtype=np.float32),
+            np.array([[8, 14, 3, 12, BASE_NODATA]], dtype=np.float32),
             gdal.GDT_Float32,
             BASE_NODATA,
         ),
-        on=write_tif(tmp_path / "on.tif", np.full((1, 4), 152, dtype=np.int16), gdal.GDT_Int16),
-        off=write_tif(tmp_path / "off.tif", np.full((1, 4), 258, dtype=np.int16), gdal.GDT_Int16),
+        **{
+            f"{name}_key": write_tif(
+                tmp_path / f"{name}.tif", np.full((1, 5), day, dtype=np.int16), gdal.GDT_Int16
+            )
+            for name, day in JULIAN_DAYS.items()
+        },
     )
 
 
@@ -176,20 +205,18 @@ async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
 
     content_hash = await publish_temporal_fuel_raster(
         s3_client,
-        rasters.base,
-        rasters.on,
-        rasters.off,
         date(2026, 7, 1),
-        "temporal/fbp.tif",
-        "temporal/fbp.json",
+        **vars(rasters),
+        output_key="temporal/fbp.tif",
+        fuel_codes_lookup_path="temporal/fbp.json",
     )
 
     assert content_hash == "temporal-hash"
     s3_client.get_content_hash.assert_awaited_once_with("temporal/fbp.tif")
     assert published["output_key"] == "temporal/fbp.tif"
-    # green on Jul 1: D-1 -> D-2 (12), M-1 -> M-2 (50); nodata keeps the base grid's value
+    # Jul 1: D-1 -> D-2 (12), M-1 -> M-2 (50), O-1a -> O-1b (32); nodata keeps the base value
     np.testing.assert_array_equal(
-        published["values"], np.array([[12, 50, 3, BASE_NODATA]], dtype=np.float32)
+        published["values"], np.array([[12, 50, 3, 32, BASE_NODATA]], dtype=np.float32)
     )
     assert published["datatype"] == gdal.GDT_Float32
     assert published["nodata"] == BASE_NODATA
@@ -199,30 +226,34 @@ async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
     put_kwargs = s3_client.put_object.await_args.kwargs
     assert put_kwargs["key"] == "temporal/fbp.json"
     lookup = FuelCodesLookup.model_validate_json(put_kwargs["body"])
-    assert [row.grid_value for row in lookup.root] == [3, 12, 50]
+    assert [row.grid_value for row in lookup.root] == [3, 12, 32, 50]
 
 
 @pytest.mark.anyio
-async def test_publish_temporal_fuel_raster_rejects_misaligned_green_up_raster(
-    mocker: MockerFixture, tmp_path: Path, rasters: SimpleNamespace, s3_client: SimpleNamespace
+@pytest.mark.parametrize("julian_name", ["green_up_on", "grass_matted"])
+async def test_publish_temporal_fuel_raster_rejects_misaligned_julian_raster(
+    mocker: MockerFixture,
+    tmp_path: Path,
+    rasters: SimpleNamespace,
+    s3_client: SimpleNamespace,
+    julian_name: str,
 ):
-    shifted_on = write_tif(
-        tmp_path / "shifted_on.tif",
-        np.full((1, 4), 152, dtype=np.int16),
+    shifted = write_tif(
+        tmp_path / f"shifted_{julian_name}.tif",
+        np.full((1, 5), 152, dtype=np.int16),
         gdal.GDT_Int16,
         x_origin=2000.0,
     )
+    keys = {**vars(rasters), f"{julian_name}_key": shifted}
     publish = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
 
-    with pytest.raises(ValueError, match="green_up_on raster does not match the fuel grid"):
+    with pytest.raises(ValueError, match=f"{julian_name} raster does not match the fuel grid"):
         await publish_temporal_fuel_raster(
             s3_client,
-            rasters.base,
-            shifted_on,
-            rasters.off,
             date(2026, 7, 1),
-            "temporal/fbp.tif",
-            "temporal/fbp.json",
+            **keys,
+            output_key="temporal/fbp.tif",
+            fuel_codes_lookup_path="temporal/fbp.json",
         )
 
     publish.assert_not_called()
@@ -239,12 +270,10 @@ async def test_publish_temporal_fuel_raster_requires_all_inputs(
     with pytest.raises(RuntimeError, match="Missing raster dependencies"):
         await publish_temporal_fuel_raster(
             s3_client,
-            rasters.base,
-            rasters.on,
-            rasters.off,
             date(2026, 7, 1),
-            "temporal/fbp.tif",
-            "temporal/fbp.json",
+            **vars(rasters),
+            output_key="temporal/fbp.tif",
+            fuel_codes_lookup_path="temporal/fbp.json",
         )
 
     publish.assert_not_called()

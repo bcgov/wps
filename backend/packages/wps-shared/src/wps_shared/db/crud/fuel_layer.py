@@ -120,8 +120,11 @@ async def get_temporal_fuel_raster(
     session: AsyncSession,
     for_date: date,
     fuel_type_raster_id: int,
+    *,
     green_up_on_hash: str,
     green_up_off_hash: str,
+    grass_standing_hash: str,
+    grass_matted_hash: str,
 ) -> Optional[TemporalFuelRaster]:
     """
     Get the latest temporal fuel raster for a date that was built from the same base fuel raster
@@ -134,6 +137,8 @@ async def get_temporal_fuel_raster(
             TemporalFuelRaster.fuel_type_raster_id == fuel_type_raster_id,
             TemporalFuelRaster.green_up_on_hash == green_up_on_hash,
             TemporalFuelRaster.green_up_off_hash == green_up_off_hash,
+            TemporalFuelRaster.grass_standing_hash == grass_standing_hash,
+            TemporalFuelRaster.grass_matted_hash == grass_matted_hash,
         )
         .order_by(TemporalFuelRaster.version.desc())
         .limit(1)

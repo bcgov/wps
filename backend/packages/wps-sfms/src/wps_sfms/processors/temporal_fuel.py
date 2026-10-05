@@ -30,14 +30,17 @@ class TemporalFuelInputDatasets:
     base_fuel: WPSDataset
     green_up_on: WPSDataset
     green_up_off: WPSDataset
+    grass_standing: WPSDataset
+    grass_matted: WPSDataset
 
 
 @dataclass(frozen=True, eq=False)
 class TemporalFuelGrid:
     """A day's fuel grid in national FBP lookup grid values, built from the BC base fuel grid.
 
-    BC base values are translated to national values, then green-up turns leafless D1, M1 and M3
-    into D2, M2 and M4 wherever the date is inside the pixel's green-up period.
+    BC base values are translated to national values. Green-up then turns leafless D1, M1 and M3
+    into D2, M2 and M4 wherever the date is inside the pixel's green-up period, and grass curing
+    turns matted O1A into standing O1B wherever the date is inside the pixel's standing period.
     """
 
     # BC base fuel grid values (fuel_type_raster) translated to the national FBP fuel lookup grid
@@ -65,6 +68,9 @@ class TemporalFuelGrid:
 
     # national grid values swapped from leafless to green during the green-up period
     GREEN_UP_GRID_VALUES: ClassVar[Mapping[int, int]] = MappingProxyType({11: 12, 40: 50, 70: 80})
+
+    # national grid values swapped from matted to standing grass during the standing period
+    GRASS_STANDING_GRID_VALUES: ClassVar[Mapping[int, int]] = MappingProxyType({31: 32})
 
     # national FBP fuel lookup rows for the grid values temporal fuel grids can contain; written
     # alongside each temporal fuel grid so consumers can label and colour it.
@@ -321,14 +327,17 @@ class TemporalFuelGrid:
 
     @classmethod
     def build(cls, datasets: TemporalFuelInputDatasets, target_date: date) -> "TemporalFuelGrid":
-        """Build the grid for ``target_date``.
+        """Build the grid for ``target_date``, applying green-up and then grass curing.
 
-        A pixel is green when ``green_up_on <= day of year < green_up_off``. Julian date nodata
-        pixels never green up. A ``ValueError`` is raised for unrecognized base fuel values.
+        A pixel is green when ``green_up_on <= day of year < green_up_off``, and its grass is
+        standing when ``grass_standing <= day of year < grass_matted``. Julian date nodata pixels
+        never switch. A ``ValueError`` is raised for unrecognized base fuel values.
         """
         base_fuel, _ = datasets.base_fuel.replace_nodata_with(np.nan)
         green_up_on, _ = datasets.green_up_on.replace_nodata_with(np.nan)
         green_up_off, _ = datasets.green_up_off.replace_nodata_with(np.nan)
+        grass_standing, _ = datasets.grass_standing.replace_nodata_with(np.nan)
+        grass_matted, _ = datasets.grass_matted.replace_nodata_with(np.nan)
 
         values = np.full(base_fuel.shape, np.nan, dtype=np.float32)
         for bc_value, national_value in cls.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE.items():
@@ -345,6 +354,10 @@ class TemporalFuelGrid:
         green = (green_up_on <= day_of_year) & (day_of_year < green_up_off)
         for leafless_value, green_value in cls.GREEN_UP_GRID_VALUES.items():
             values[green & (values == leafless_value)] = green_value
+
+        standing = (grass_standing <= day_of_year) & (day_of_year < grass_matted)
+        for matted_value, standing_value in cls.GRASS_STANDING_GRID_VALUES.items():
+            values[standing & (values == matted_value)] = standing_value
         return cls(values)
 
     def fuel_codes_lookup(self) -> FuelCodesLookup:
@@ -355,10 +368,13 @@ class TemporalFuelGrid:
 
 async def publish_temporal_fuel_raster(
     s3_client: S3Client,
+    target_date: date,
+    *,
     base_fuel_key: GDALPath,
     green_up_on_key: GDALPath,
     green_up_off_key: GDALPath,
-    target_date: date,
+    grass_standing_key: GDALPath,
+    grass_matted_key: GDALPath,
     output_key: S3Key,
     fuel_codes_lookup_path: S3Key,
 ) -> str:
@@ -370,18 +386,36 @@ async def publish_temporal_fuel_raster(
     dependencies = GriddedRasterDependencies()
     with gdal_s3_context():
         await dependencies.assert_keys_exist(
-            s3_client, (base_fuel_key, green_up_on_key, green_up_off_key)
+            s3_client,
+            (
+                base_fuel_key,
+                green_up_on_key,
+                green_up_off_key,
+                grass_standing_key,
+                grass_matted_key,
+            ),
         )
         with (
             WPSDataset(base_fuel_key) as base_fuel,
             WPSDataset(green_up_on_key) as green_up_on,
             WPSDataset(green_up_off_key) as green_up_off,
+            WPSDataset(grass_standing_key) as grass_standing,
+            WPSDataset(grass_matted_key) as grass_matted,
         ):
             dependencies.validate_grids(
-                base_fuel, {"green_up_on": green_up_on, "green_up_off": green_up_off}
+                base_fuel,
+                {
+                    "green_up_on": green_up_on,
+                    "green_up_off": green_up_off,
+                    "grass_standing": grass_standing,
+                    "grass_matted": grass_matted,
+                },
             )
             grid = TemporalFuelGrid.build(
-                TemporalFuelInputDatasets(base_fuel, green_up_on, green_up_off), target_date
+                TemporalFuelInputDatasets(
+                    base_fuel, green_up_on, green_up_off, grass_standing, grass_matted
+                ),
+                target_date,
             )
 
             nodata_value = base_fuel.require_nodata_value()

@@ -156,7 +156,14 @@ def temporal_fuel_deps(mocker: MockerFixture):
     mocker.patch(f"{PIPELINE_PATH}.get_async_write_session_scope", _write_scope)
     s3_client = MagicMock()
     s3_client.all_objects_exist = AsyncMock(return_value=True)
-    s3_client.get_content_hash = AsyncMock(side_effect=["on-hash", "off-hash"])
+    s3_client.get_content_hash = AsyncMock(
+        side_effect=lambda key: {
+            "green_up_on": "on-hash",
+            "green_up_off": "off-hash",
+            "grass_standing": "standing-hash",
+            "grass_matted": "matted-hash",
+        }[key]
+    )
     lock = mocker.patch(f"{PIPELINE_PATH}.lock_temporal_fuel_raster_date", new_callable=AsyncMock)
     publish = mocker.patch(
         f"{PIPELINE_PATH}.publish_temporal_fuel_raster",
@@ -164,7 +171,14 @@ def temporal_fuel_deps(mocker: MockerFixture):
         return_value="temporal-hash",
     )
     fuel_type_raster = MagicMock(id=7, object_store_path="sfms/static/fuel/2026/fbp2026_v1.tif")
+    addresser = MagicMock()
+    addresser.gdal_path.side_effect = lambda key: f"/vsis3/bucket/{key}"
+    addresser.get_green_up_on_key.return_value = "green_up_on"
+    addresser.get_green_up_off_key.return_value = "green_up_off"
+    addresser.get_grass_standing_key.return_value = "grass_standing"
+    addresser.get_grass_matted_key.return_value = "grass_matted"
     return SimpleNamespace(
+        addresser=addresser,
         session=session,
         s3_client=s3_client,
         publish=publish,
@@ -185,8 +199,7 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
     get_existing = mocker.patch(
         f"{PIPELINE_PATH}.get_temporal_fuel_raster", new_callable=AsyncMock, return_value=existing
     )
-    addresser = MagicMock()
-    addresser.gdal_path.side_effect = lambda key: f"/vsis3/bucket/{key}"
+    addresser = deps.addresser
 
     result = await resolve_temporal_fuel_raster(
         date(2026, 6, 1), deps.fuel_type_raster, addresser, deps.s3_client
@@ -197,7 +210,13 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
         fuel_codes_lookup_path="sfms_ng/fuel/temporal/existing.json",
     )
     deps.lock.assert_awaited_once_with(deps.session, date(2026, 6, 1))
-    assert get_existing.call_args.args[1:] == (date(2026, 6, 1), 7, "on-hash", "off-hash")
+    assert get_existing.call_args.args[1:] == (date(2026, 6, 1), 7)
+    assert get_existing.call_args.kwargs == {
+        "green_up_on_hash": "on-hash",
+        "green_up_off_hash": "off-hash",
+        "grass_standing_hash": "standing-hash",
+        "grass_matted_hash": "matted-hash",
+    }
     deps.publish.assert_not_awaited()
     deps.session.add.assert_not_called()
 
@@ -215,8 +234,7 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
         new_callable=AsyncMock,
         return_value=2,
     )
-    addresser = MagicMock()
-    addresser.gdal_path.side_effect = lambda key: f"/vsis3/bucket/{key}"
+    addresser = deps.addresser
     addresser.get_temporal_fuel_key.return_value = "temporal/3/fbp.tif"
     addresser.get_fuel_codes_lookup_path.return_value = "temporal/3/fbp.json"
 
@@ -230,6 +248,8 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
     )
     addresser.get_temporal_fuel_key.assert_called_once_with(date(2026, 6, 1), 3)
     deps.publish.assert_awaited_once()
+    assert deps.publish.await_args.kwargs["grass_standing_key"] == "/vsis3/bucket/grass_standing"
+    assert deps.publish.await_args.kwargs["grass_matted_key"] == "/vsis3/bucket/grass_matted"
     record: TemporalFuelRaster = deps.session.add.call_args.args[0]
     assert (record.fuel_type_raster_id, record.for_date, record.version) == (
         7,
@@ -239,22 +259,27 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
     assert record.object_store_path == "temporal/3/fbp.tif"
     assert record.fuel_codes_lookup_path == "temporal/3/fbp.json"
     assert record.content_hash == "temporal-hash"
-    assert (record.green_up_on_hash, record.green_up_off_hash) == ("on-hash", "off-hash")
+    assert (
+        record.green_up_on_hash,
+        record.green_up_off_hash,
+        record.grass_standing_hash,
+        record.grass_matted_hash,
+    ) == ("on-hash", "off-hash", "standing-hash", "matted-hash")
 
 
 @pytest.mark.anyio
-async def test_resolve_temporal_fuel_raster_requires_green_up_rasters(temporal_fuel_deps):
+async def test_resolve_temporal_fuel_raster_requires_julian_rasters(temporal_fuel_deps):
     deps = temporal_fuel_deps
     deps.s3_client.all_objects_exist = AsyncMock(return_value=False)
-    addresser = MagicMock()
-    addresser.get_green_up_on_key.return_value = "sfms_ng/static/julian/green_up_on.tif"
-    addresser.get_green_up_off_key.return_value = "sfms_ng/static/julian/green_up_off.tif"
 
-    with pytest.raises(RuntimeError, match="Missing green-up Julian date rasters"):
+    with pytest.raises(RuntimeError, match="Missing Julian date rasters"):
         await resolve_temporal_fuel_raster(
-            date(2026, 6, 1), deps.fuel_type_raster, addresser, deps.s3_client
+            date(2026, 6, 1), deps.fuel_type_raster, deps.addresser, deps.s3_client
         )
 
+    deps.s3_client.all_objects_exist.assert_awaited_once_with(
+        "green_up_on", "green_up_off", "grass_standing", "grass_matted"
+    )
     deps.s3_client.get_content_hash.assert_not_awaited()
 
 

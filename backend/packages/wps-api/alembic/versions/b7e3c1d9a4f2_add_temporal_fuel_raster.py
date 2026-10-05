@@ -29,6 +29,8 @@ def upgrade():
         sa.Column("content_hash", sa.String(), nullable=False),
         sa.Column("green_up_on_hash", sa.String(), nullable=False),
         sa.Column("green_up_off_hash", sa.String(), nullable=False),
+        sa.Column("grass_standing_hash", sa.String(), nullable=False),
+        sa.Column("grass_matted_hash", sa.String(), nullable=False),
         sa.Column("create_timestamp", TZTimeStamp(), nullable=False),
         sa.ForeignKeyConstraint(["fuel_type_raster_id"], ["fuel_type_raster.id"]),
         sa.PrimaryKeyConstraint("id"),

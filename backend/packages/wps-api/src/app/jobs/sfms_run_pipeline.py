@@ -139,22 +139,33 @@ async def resolve_temporal_fuel_raster(
     """Return the temporal fuel raster for a date, creating a new version when needed.
 
     An existing raster is reused only when it was built from the same base fuel raster and the
-    same green-up Julian date rasters.
+    same green-up and grass curing Julian date rasters.
     """
     green_up_on_key = raster_addresser.get_green_up_on_key()
     green_up_off_key = raster_addresser.get_green_up_off_key()
-    if not await s3_client.all_objects_exist(green_up_on_key, green_up_off_key):
-        raise RuntimeError(
-            f"Missing green-up Julian date rasters: {green_up_on_key}, {green_up_off_key}"
-        )
+    grass_standing_key = raster_addresser.get_grass_standing_key()
+    grass_matted_key = raster_addresser.get_grass_matted_key()
+    julian_keys = (green_up_on_key, green_up_off_key, grass_standing_key, grass_matted_key)
+    if not await s3_client.all_objects_exist(*julian_keys):
+        raise RuntimeError(f"Missing Julian date rasters, expected: {', '.join(julian_keys)}")
+    # ponytail: rehashes the four ~1.4 MB Julian rasters per date (3x per forecast run); hash
+    # once per run and pass the hashes in if these grow or more Julian rasters are added
     green_up_on_hash = await s3_client.get_content_hash(green_up_on_key)
     green_up_off_hash = await s3_client.get_content_hash(green_up_off_key)
+    grass_standing_hash = await s3_client.get_content_hash(grass_standing_key)
+    grass_matted_hash = await s3_client.get_content_hash(grass_matted_key)
 
     async with get_async_write_session_scope() as session:
         # held until commit so concurrent runs for the same date reuse rather than collide
         await lock_temporal_fuel_raster_date(session, target_date)
         existing = await get_temporal_fuel_raster(
-            session, target_date, fuel_type_raster.id, green_up_on_hash, green_up_off_hash
+            session,
+            target_date,
+            fuel_type_raster.id,
+            green_up_on_hash=green_up_on_hash,
+            green_up_off_hash=green_up_off_hash,
+            grass_standing_hash=grass_standing_hash,
+            grass_matted_hash=grass_matted_hash,
         )
         if existing is not None:
             logger.info(
@@ -170,12 +181,14 @@ async def resolve_temporal_fuel_raster(
         fuel_codes_lookup_path = raster_addresser.get_fuel_codes_lookup_path(target_date, version)
         content_hash = await publish_temporal_fuel_raster(
             s3_client,
-            raster_addresser.gdal_path(fuel_type_raster.object_store_path),
-            raster_addresser.gdal_path(green_up_on_key),
-            raster_addresser.gdal_path(green_up_off_key),
             target_date,
-            output_key,
-            fuel_codes_lookup_path,
+            base_fuel_key=raster_addresser.gdal_path(fuel_type_raster.object_store_path),
+            green_up_on_key=raster_addresser.gdal_path(green_up_on_key),
+            green_up_off_key=raster_addresser.gdal_path(green_up_off_key),
+            grass_standing_key=raster_addresser.gdal_path(grass_standing_key),
+            grass_matted_key=raster_addresser.gdal_path(grass_matted_key),
+            output_key=output_key,
+            fuel_codes_lookup_path=fuel_codes_lookup_path,
         )
         session.add(
             TemporalFuelRaster(
@@ -187,6 +200,8 @@ async def resolve_temporal_fuel_raster(
                 content_hash=content_hash,
                 green_up_on_hash=green_up_on_hash,
                 green_up_off_hash=green_up_off_hash,
+                grass_standing_hash=grass_standing_hash,
+                grass_matted_hash=grass_matted_hash,
                 create_timestamp=get_utc_now(),
             )
         )

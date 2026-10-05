@@ -6,7 +6,7 @@ from wps_shared.db.models.common import TZTimeStamp
 class TemporalFuelRaster(Base):
     """
     Records the daily fuel type rasters derived from a base fuel type raster and the Julian
-    date season rasters (e.g. green-up) that were applied to it.
+    date season rasters (green-up and grass curing) that were applied to it.
     """
 
     __tablename__ = "temporal_fuel_raster"
@@ -21,6 +21,8 @@ class TemporalFuelRaster(Base):
     content_hash = Column(String, nullable=False)
     green_up_on_hash = Column(String, nullable=False)
     green_up_off_hash = Column(String, nullable=False)
+    grass_standing_hash = Column(String, nullable=False)
+    grass_matted_hash = Column(String, nullable=False)
     create_timestamp = Column(TZTimeStamp, nullable=False)
 
     __table_args__ = (

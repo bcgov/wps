@@ -23,9 +23,11 @@ def addresser():
 
 
 class TestTemporalFuelKeys:
-    def test_green_up_keys_use_julian_static_prefix(self, addresser: SFMSNGRasterAddresser):
+    def test_julian_keys_use_julian_static_prefix(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_green_up_on_key() == "sfms_ng/static/julian/green_up_on.tif"
         assert addresser.get_green_up_off_key() == "sfms_ng/static/julian/green_up_off.tif"
+        assert addresser.get_grass_standing_key() == "sfms_ng/static/julian/grass_standing.tif"
+        assert addresser.get_grass_matted_key() == "sfms_ng/static/julian/grass_matted.tif"
 
     def test_temporal_fuel_keys_are_dated_and_versioned(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_temporal_fuel_key(date(2026, 6, 1), 2) == (

@@ -52,26 +52,30 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
   - Pass `isi=0` so CFFDRS calculates ISI from FFMC and the slope-adjusted effective wind.
   - Continue producing the daily FWI ISI raster as an FWI output, but do not use it as a primary
     FBP input.
-- [x] Apply green-up through a daily temporal fuel grid (#5880).
+- [x] Apply green-up and grass curing through a daily temporal fuel grid (#5880).
   - Right before primary FBP, each actual and forecast run builds, or reuses, one temporal fuel
-    grid per processed date from the base fuel grid and two Julian-date rasters. It runs as the
+    grid per processed date from the base fuel grid and four Julian-date rasters. It runs as the
     `temporal_fuel` job in `sfms_run_log`, after weather and FWI, so a failure only blocks FBP.
-    The Julian-date rasters must be uploaded manually; the step fails with "Missing green-up
-    Julian date rasters" otherwise:
+    The Julian-date rasters must be uploaded manually; the step fails with "Missing Julian date
+    rasters" otherwise:
     - `sfms_ng/static/julian/green_up_on.tif`: day of year green-up starts, per pixel.
     - `sfms_ng/static/julian/green_up_off.tif`: day of year green-up ends, per pixel.
-    - Both must match the fuel grid (778 by 683, 2 km). The interim rasters from the Predictive
-      Services SharePoint (`Geospatial Data/Fuel Layer`) are constant: day `152` (Jun 1) to `258`
-      (Sep 15).
-  - A pixel is green when `green_up_on <= day of year < green_up_off`, which turns D1, M1 and M3
-    into D2, M2 and M4.
+    - `sfms_ng/static/julian/grass_standing.tif`: day of year grass becomes standing, per pixel.
+    - `sfms_ng/static/julian/grass_matted.tif`: day of year grass becomes matted, per pixel.
+    - All must match the fuel grid (778 by 683, 2 km). The interim rasters from the Predictive
+      Services SharePoint (`Geospatial Data/Fuel Layer`) are constant: green-up day `152` (Jun 1)
+      to `258` (Sep 15), and grass standing day `152` (Jun 1) to `335` (Dec 1).
+  - Green-up is applied first, then grass curing:
+    - A pixel is green when `green_up_on <= day of year < green_up_off`, which turns D1, M1 and
+      M3 into D2, M2 and M4.
+    - Its grass is standing when `grass_standing <= day of year < grass_matted`, which turns O1A
+      into O1B.
+    - Julian-date nodata pixels never switch.
   - Temporal grids use national FBP lookup codes, not BC base grid codes, and are stored at
     `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/` with a JSON fuel codes lookup that primary FBP
     reads its fuel types from.
   - D2 is supported by `cffdrs_vec`. It applies BUI thresholding, so D2 produces almost no spread
     below BUI 80.
-- [ ] Apply grass standing (O1A to O1B) to the temporal fuel grid after green-up, using
-      `sfms_ng/static/julian/grass_standing_on.tif` and `grass_standing_off.tif`.
 
 ## Inputs Already Available or Derivable
 
