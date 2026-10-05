@@ -1,0 +1,141 @@
+from datetime import date, datetime, timezone
+
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from testcontainers.postgres import PostgresContainer
+
+from wps_shared.db.crud.fuel_layer import (
+    get_latest_temporal_fuel_raster_version,
+    get_temporal_fuel_raster,
+)
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
+from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
+from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
+
+FOR_DATE = date(2026, 7, 1)
+CREATED = datetime(2026, 7, 1, 20, tzinfo=timezone.utc)
+
+
+@pytest.fixture(scope="function")
+def postgres_container():
+    with PostgresContainer(TESTCONTAINERS_POSTGRES_IMAGE) as postgres:
+        yield postgres
+
+
+@pytest.fixture(scope="function")
+async def engine(postgres_container):
+    sync_url = postgres_container.get_connection_url()
+    db_url = sync_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://")
+
+    engine = create_async_engine(db_url, echo=False)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(FuelTypeRaster.__table__.create)
+        await conn.run_sync(TemporalFuelRaster.__table__.create)
+
+    yield engine
+
+    await engine.dispose()
+
+
+@pytest.fixture(scope="function")
+async def async_session(engine):
+    async with async_sessionmaker(engine, expire_on_commit=False)() as session:
+        yield session
+
+
+def fuel_type_raster(id: int) -> FuelTypeRaster:
+    return FuelTypeRaster(
+        id=id,
+        year=2026,
+        version=id,
+        xsize=778,
+        ysize=683,
+        object_store_path=f"sfms/static/fuel/2026/fbp2026_v{id}.tif",
+        content_hash=f"base-{id}",
+        create_timestamp=CREATED,
+    )
+
+
+def temporal_fuel_raster(
+    for_date: date,
+    version: int,
+    fuel_type_raster_id: int = 1,
+    green_up_on_hash: str = "on",
+    green_up_off_hash: str = "off",
+) -> TemporalFuelRaster:
+    return TemporalFuelRaster(
+        fuel_type_raster_id=fuel_type_raster_id,
+        for_date=for_date,
+        version=version,
+        object_store_path=f"temporal/{for_date}/{version}.tif",
+        fuel_codes_lookup_path=f"temporal/{for_date}/{version}.json",
+        content_hash=f"temporal-{version}",
+        green_up_on_hash=green_up_on_hash,
+        green_up_off_hash=green_up_off_hash,
+        create_timestamp=CREATED,
+    )
+
+
+@pytest.fixture(scope="function")
+async def seeded_session(async_session: AsyncSession):
+    async_session.add_all([fuel_type_raster(1), fuel_type_raster(2)])
+    await async_session.flush()
+    async_session.add_all(
+        [
+            temporal_fuel_raster(FOR_DATE, 1),
+            temporal_fuel_raster(FOR_DATE, 2),
+            # same date rebuilt from a different base raster and green-up raster
+            temporal_fuel_raster(FOR_DATE, 3, fuel_type_raster_id=2, green_up_on_hash="on-2"),
+            temporal_fuel_raster(date(2026, 7, 2), 1),
+        ]
+    )
+    await async_session.commit()
+    yield async_session
+
+
+@pytest.mark.anyio
+async def test_get_temporal_fuel_raster_returns_latest_matching_version(
+    seeded_session: AsyncSession,
+):
+    result = await get_temporal_fuel_raster(seeded_session, FOR_DATE, 1, "on", "off")
+
+    assert result is not None
+    assert (result.for_date, result.version) == (FOR_DATE, 2)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "fuel_type_raster_id,green_up_on_hash,green_up_off_hash",
+    [
+        (2, "on", "off"),  # different base raster
+        (1, "on-2", "off"),  # different green-up on raster
+        (1, "on", "off-2"),  # different green-up off raster
+    ],
+)
+async def test_get_temporal_fuel_raster_requires_all_inputs_to_match(
+    seeded_session: AsyncSession,
+    fuel_type_raster_id: int,
+    green_up_on_hash: str,
+    green_up_off_hash: str,
+):
+    result = await get_temporal_fuel_raster(
+        seeded_session, FOR_DATE, fuel_type_raster_id, green_up_on_hash, green_up_off_hash
+    )
+
+    assert result is None
+
+
+@pytest.mark.anyio
+async def test_get_latest_temporal_fuel_raster_version_spans_all_inputs_for_the_date(
+    seeded_session: AsyncSession,
+):
+    assert await get_latest_temporal_fuel_raster_version(seeded_session, FOR_DATE) == 3
+    assert await get_latest_temporal_fuel_raster_version(seeded_session, date(2026, 7, 2)) == 1
+
+
+@pytest.mark.anyio
+async def test_get_latest_temporal_fuel_raster_version_is_zero_without_rasters(
+    seeded_session: AsyncSession,
+):
+    assert await get_latest_temporal_fuel_raster_version(seeded_session, date(2026, 7, 3)) == 0
