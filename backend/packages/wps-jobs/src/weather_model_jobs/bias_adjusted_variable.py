@@ -161,8 +161,7 @@ WIND_SPEED = HourlyVariable(
     predicted=lambda p: features(p.wind_tgl_10), observed=lambda a: features(a.wind_speed)
 )
 # Wind direction has never learned from the interpolated noon sample for 3-hourly models
-# (e.g. GDPS), because its noon sample was built without wind speed. Kept as-is so this
-# refactor doesn't change predictions.
+# (e.g. GDPS), because its noon sample was built without wind speed.
 WIND_DIRECTION = HourlyVariable(
     predicted=lambda p: u_v(p.wind_tgl_10, p.wdir_tgl_10),
     observed=lambda a: u_v(a.wind_speed, a.wind_direction),
