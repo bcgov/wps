@@ -2,16 +2,7 @@
 
 import logging
 import numpy as np
-from sqlalchemy import (
-    Column,
-    String,
-    Integer,
-    Float,
-    Boolean,
-    Sequence,
-    ForeignKey,
-    UniqueConstraint,
-)
+from sqlalchemy import Column, String, Integer, Float, Boolean, Sequence, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from wps_shared.db.models import Base
 import wps_shared.utils.time as time_utils
@@ -27,17 +18,9 @@ class ProcessedModelRunUrl(Base):
     """
 
     __tablename__ = "processed_model_run_urls"
-    __table_args__ = {
-        "comment": "Record to indicate that a particular model run file has been processed."
-    }
+    __table_args__ = {"comment": "Record to indicate that a particular model run file has been processed."}
     # Unique identifier.
-    id = Column(
-        Integer,
-        Sequence("processed_model_run_url_id_seq"),
-        primary_key=True,
-        nullable=False,
-        index=True,
-    )
+    id = Column(Integer, Sequence("processed_model_run_url_id_seq"), primary_key=True, nullable=False, index=True)
     # Source URL of file processed.
     url = Column(String, nullable=False, unique=True, index=True)
     # Date this record was created.
@@ -52,17 +35,9 @@ class SavedModelRunForSFMSUrl(Base):
     """
 
     __tablename__ = "saved_model_run_for_sfms_urls"
-    __table_args__ = {
-        "comment": "Record to indicate that a particular RDPS model run file has been downloaded and saved to S3 storage."
-    }
+    __table_args__ = {"comment": "Record to indicate that a particular RDPS model run file has been downloaded and saved to S3 storage."}
     # Unique identifier.
-    id = Column(
-        Integer,
-        Sequence("saved_model_run_for_sfms_urls_id_seq"),
-        primary_key=True,
-        nullable=False,
-        index=True,
-    )
+    id = Column(Integer, Sequence("saved_model_run_for_sfms_urls_id_seq"), primary_key=True, nullable=False, index=True)
     # Source URL of file processed.
     url = Column(String, nullable=False, unique=True, index=True)
     # The S3 key for the downloaded data
@@ -77,13 +52,9 @@ class ModelRunForSFMS(Base):
     """Record to indicate numerical weather model data for SFMS has been downloaded and stored in S3."""
 
     __tablename__ = "model_run_for_sfms"
-    __table_args__ = {
-        "comment": "Record to indicate numerical weather model data for SFMS has been downloaded and stored in S3."
-    }
+    __table_args__ = {"comment": "Record to indicate numerical weather model data for SFMS has been downloaded and stored in S3."}
     # Unique identifier.
-    id = Column(
-        Integer, Sequence("model_run_for_sfms_id_seq"), primary_key=True, nullable=False, index=True
-    )
+    id = Column(Integer, Sequence("model_run_for_sfms_id_seq"), primary_key=True, nullable=False, index=True)
     # The numerical weather model.
     prediction_model_id = Column(Integer, ForeignKey("prediction_models.id"), nullable=False)
     prediction_model = relationship("PredictionModel")
@@ -99,14 +70,9 @@ class PredictionModel(Base):
     """Identifies the Weather Prediction model (e.g. GDPS 15km resolution)."""
 
     __tablename__ = "prediction_models"
-    __table_args__ = (
-        UniqueConstraint("abbreviation", "projection"),
-        {"comment": "Identifies the Weather Prediction model"},
-    )
+    __table_args__ = (UniqueConstraint("abbreviation", "projection"), {"comment": "Identifies the Weather Prediction model"})
 
-    id = Column(
-        Integer, Sequence("prediction_models_id_seq"), primary_key=True, nullable=False, index=True
-    )
+    id = Column(Integer, Sequence("prediction_models_id_seq"), primary_key=True, nullable=False, index=True)
     # E.g. Global Deterministic Prediction System
     name = Column(String, nullable=False)
     # E.g. GDPS
@@ -117,31 +83,18 @@ class PredictionModel(Base):
     projection = Column(String, nullable=False)
 
     def __str__(self):
-        return "id:{self.id}, name:{self.name}, abbreviation:{self.abbreviation}, projection:{self.projection}".format(
-            self=self
-        )
+        return "id:{self.id}, name:{self.name}, abbreviation:{self.abbreviation}, projection:{self.projection}".format(self=self)
 
 
 class PredictionModelRunTimestamp(Base):
     """Identify which prediction model run (e.g.  2020 07 07 12:00)."""
 
     __tablename__ = "prediction_model_run_timestamps"
-    __table_args__ = (
-        UniqueConstraint("prediction_model_id", "prediction_run_timestamp"),
-        {"comment": "Identify which prediction model run (e.g.  2020 07 07 12:00)."},
-    )
+    __table_args__ = (UniqueConstraint("prediction_model_id", "prediction_run_timestamp"), {"comment": "Identify which prediction model run (e.g.  2020 07 07 12:00)."})
 
-    id = Column(
-        Integer,
-        Sequence("prediction_model_run_timestamps_id_seq"),
-        primary_key=True,
-        nullable=False,
-        index=True,
-    )
+    id = Column(Integer, Sequence("prediction_model_run_timestamps_id_seq"), primary_key=True, nullable=False, index=True)
     # The numerical weather model.
-    prediction_model_id = Column(
-        Integer, ForeignKey("prediction_models.id"), nullable=False, index=True
-    )
+    prediction_model_id = Column(Integer, ForeignKey("prediction_models.id"), nullable=False, index=True)
     prediction_model = relationship("PredictionModel")
     # The date and time of the model run.
     prediction_run_timestamp = Column(TZTimeStamp, nullable=False, index=True)
@@ -164,27 +117,12 @@ class ModelRunPrediction(Base):
     Each value is a numeric value that corresponds to the lat lon from the model raster"""
 
     __tablename__ = "model_run_predictions"
-    __table_args__ = (
-        UniqueConstraint(
-            "prediction_model_run_timestamp_id", "prediction_timestamp", "station_code"
-        ),
-        {"comment": "The prediction values of a particular model run."},
-    )
+    __table_args__ = (UniqueConstraint("prediction_model_run_timestamp_id", "prediction_timestamp", "station_code"), {"comment": "The prediction values of a particular model run."})
 
-    id = Column(
-        Integer,
-        Sequence("model_run_predictions_id_seq"),
-        primary_key=True,
-        nullable=False,
-        index=True,
-    )
+    id = Column(Integer, Sequence("model_run_predictions_id_seq"), primary_key=True, nullable=False, index=True)
     # Which model run does this forecacst apply to? E.g. The GDPS 15x.15 run from 2020 07 07 12h00.
-    prediction_model_run_timestamp_id = Column(
-        Integer, ForeignKey("prediction_model_run_timestamps.id"), nullable=False, index=True
-    )
-    prediction_model_run_timestamp = relationship(
-        "PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id]
-    )
+    prediction_model_run_timestamp_id = Column(Integer, ForeignKey("prediction_model_run_timestamps.id"), nullable=False, index=True)
+    prediction_model_run_timestamp = relationship("PredictionModelRunTimestamp", foreign_keys=[prediction_model_run_timestamp_id])
     # The date and time to which the prediction applies.
     prediction_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     # The station code representing the location (aka weather station).
@@ -200,9 +138,7 @@ class ModelRunPrediction(Base):
     # Wind speed 10m above ground.
     wind_tgl_10 = Column(Float, nullable=True)
 
-    def _get_field_value(
-        self, field_name: str, field_value: float | np.float64 | None
-    ) -> float | None:
+    def _get_field_value(self, field_name: str, field_value: float | np.float64 | None) -> float | None:
         """Helper method to process field values."""
         value = field_value.item() if isinstance(field_value, np.float64) else field_value
         if value is None:
@@ -214,14 +150,14 @@ class ModelRunPrediction(Base):
 
     def get_rh(self) -> float | None:
         return self._get_field_value(ModelRunPrediction.rh_tgl_2.name, self.rh_tgl_2)
-
+    
     def get_precip(self) -> float | None:
         precip = self._get_field_value(ModelRunPrediction.apcp_sfc_0.name, self.apcp_sfc_0)
         return precip if precip is not None else 0.0
-
+    
     def get_wind_speed(self) -> float | None:
         return self._get_field_value(ModelRunPrediction.wind_tgl_10.name, self.wind_tgl_10)
-
+    
     def get_wind_direction(self) -> float | None:
         return self._get_field_value(ModelRunPrediction.wdir_tgl_10.name, self.wdir_tgl_10)
 
@@ -242,27 +178,15 @@ class WeatherStationModelPrediction(Base):
 
     __tablename__ = "weather_station_model_predictions"
     __table_args__ = (
-        UniqueConstraint(
-            "station_code", "prediction_model_run_timestamp_id", "prediction_timestamp"
-        ),
-        {
-            "comment": "The interpolated weather values for a weather station, weather date, and model run"
-        },
+        UniqueConstraint("station_code", "prediction_model_run_timestamp_id", "prediction_timestamp"),
+        {"comment": "The interpolated weather values for a weather station, weather date, and model run"},
     )
 
-    id = Column(
-        Integer,
-        Sequence("weather_station_model_predictions_id_seq"),
-        primary_key=True,
-        nullable=False,
-        index=True,
-    )
+    id = Column(Integer, Sequence("weather_station_model_predictions_id_seq"), primary_key=True, nullable=False, index=True)
     # The 3-digit code for the weather station to which the prediction applies
     station_code = Column(Integer, nullable=False, index=True)
     # Which PredictionModelRunTimestamp is this station's prediction based on?
-    prediction_model_run_timestamp_id = Column(
-        Integer, ForeignKey("prediction_model_run_timestamps.id"), nullable=False, index=True
-    )
+    prediction_model_run_timestamp_id = Column(Integer, ForeignKey("prediction_model_run_timestamps.id"), nullable=False, index=True)
     prediction_model_run_timestamp = relationship("PredictionModelRunTimestamp")
     # The date and time to which the prediction applies. Usually copied from ModelRunPrediction,
     # but may represent a time-interpolated prediction.
@@ -309,9 +233,7 @@ class MoreCast2MaterializedView(Base):
     stations and dates."""
 
     __tablename__ = "morecast_2_materialized_view"
-    id = Column(
-        Integer, Sequence("morecast_forecast_id_seq"), primary_key=True, nullable=False, index=True
-    )
+    id = Column(Integer, Sequence("morecast_forecast_id_seq"), primary_key=True, nullable=False, index=True)
     abbreviation = Column(String, nullable=False)
     apcp_sfc_0 = Column(Float, nullable=False)
     bias_adjusted_precip_24h = Column(Float, nullable=False)

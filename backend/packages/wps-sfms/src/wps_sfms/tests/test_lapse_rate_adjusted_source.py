@@ -8,11 +8,7 @@ from numpy.testing import assert_allclose
 from hypothesis import given, strategies as st, settings
 import hypothesis.extra.numpy as hnp
 
-from wps_sfms.interpolation.field import (
-    LAPSE_RATE,
-    compute_adjusted_values,
-    compute_sea_level_values,
-)
+from wps_sfms.interpolation.field import LAPSE_RATE, compute_adjusted_values, compute_sea_level_values
 
 
 finite_value_c = st.floats(

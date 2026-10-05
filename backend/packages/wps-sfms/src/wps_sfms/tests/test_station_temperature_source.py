@@ -1,11 +1,7 @@
 import numpy as np
 from numpy.testing import assert_allclose
 
-from wps_sfms.interpolation.field import (
-    LAPSE_RATE,
-    compute_adjusted_values,
-    compute_sea_level_values,
-)
+from wps_sfms.interpolation.field import LAPSE_RATE, compute_adjusted_values, compute_sea_level_values
 
 
 def test_zero_elevation_identity():

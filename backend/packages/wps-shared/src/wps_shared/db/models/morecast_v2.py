@@ -1,16 +1,14 @@
 from wps_shared.db.models import Base
-from sqlalchemy import Column, Float, Integer, String, Sequence
+from sqlalchemy import (Column, Float, Integer, String, Sequence)
 from wps_shared.db.models.common import TZTimeStamp
 
 
 class MorecastForecastRecord(Base):
-    """A forecast created within Morecast v2"""
+    """ A forecast created within Morecast v2 """
+    __tablename__ = 'morecast_forecast'
 
-    __tablename__ = "morecast_forecast"
-
-    id = Column(
-        Integer, Sequence("morecast_forecast_id_seq"), primary_key=True, nullable=False, index=True
-    )
+    id = Column(Integer, Sequence('morecast_forecast_id_seq'),
+                primary_key=True, nullable=False, index=True)
     station_code = Column(Integer, nullable=False, index=True)
     for_date = Column(TZTimeStamp, nullable=False, index=True)
     temp = Column(Float, nullable=False, index=True)

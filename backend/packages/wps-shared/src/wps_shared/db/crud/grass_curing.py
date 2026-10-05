@@ -1,5 +1,5 @@
-"""CRUD operations relating to processing grass curing"""
-
+""" CRUD operations relating to processing grass curing
+"""
 from datetime import date
 
 from sqlalchemy import select
@@ -10,10 +10,8 @@ from sqlalchemy.sql import func
 from wps_shared.db.models.grass_curing import PercentGrassCuring
 
 
-async def save_percent_grass_curing(
-    session: AsyncSession, percent_grass_curing: PercentGrassCuring
-):
-    """Add a new PercentGrassCuring record.
+async def save_percent_grass_curing(session: AsyncSession, percent_grass_curing: PercentGrassCuring):
+    """ Add a new PercentGrassCuring record.
 
     :param session: A session object for asynchronous database access.
     :type session: AsyncSession
@@ -24,8 +22,8 @@ async def save_percent_grass_curing(
 
 
 async def get_last_percent_grass_curing_for_date(session: AsyncSession):
-    """Get the last date for which a PercentGrassCuring record exists.
-
+    """ Get the last date for which a PercentGrassCuring record exists.
+    
     :param session: A session object for asynchronous database access.
     :type session: AsyncSession
     """
@@ -34,9 +32,7 @@ async def get_last_percent_grass_curing_for_date(session: AsyncSession):
     return result.scalar()
 
 
-def get_percent_grass_curing_by_station_for_date_range(
-    session: Session, start_date: date, end_date: date, station_codes: list[int]
-):
+def get_percent_grass_curing_by_station_for_date_range(session: Session, start_date: date, end_date: date, station_codes: list[int]):
     """Given a list of stations, a start date and an end date, return the percent grass curing from processed CWFIS data
         for each station and each date in the specified range.
 
@@ -50,10 +46,9 @@ def get_percent_grass_curing_by_station_for_date_range(
     :type station_codes: List[int]
     """
 
-    stmt = (
-        select(PercentGrassCuring)
-        .filter(PercentGrassCuring.for_date.between(start_date, end_date))
-        .filter(PercentGrassCuring.station_code.in_(station_codes))
+    stmt = select(PercentGrassCuring)\
+        .filter(PercentGrassCuring.for_date.between(start_date, end_date))\
+        .filter(PercentGrassCuring.station_code.in_(station_codes))\
         .order_by(PercentGrassCuring.station_code)
-    )
     return session.execute(stmt)
+        

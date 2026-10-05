@@ -71,9 +71,9 @@ def interpolate_to_raster(
     interpolated_count = int(np.sum(interpolation_succeeded))
     failed_interpolation_count = len(interpolated_values) - interpolated_count
 
-    output_array[grid.valid_yi[interpolation_succeeded], grid.valid_xi[interpolation_succeeded]] = (
-        interpolated_values[interpolation_succeeded]
-    )
+    output_array[
+        grid.valid_yi[interpolation_succeeded], grid.valid_xi[interpolation_succeeded]
+    ] = interpolated_values[interpolation_succeeded]
 
     log_interpolation_stats(
         grid.total_pixels,

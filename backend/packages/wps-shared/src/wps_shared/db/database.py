@@ -33,19 +33,12 @@ connect_args = {"options": "-c timezone=utc"}
 # services that don't set them keep today's behaviour; set per-service via env var to size
 # for that service's expected burst concurrency (see openshift/templates/asa_go_api.yaml).
 _write_engine = create_engine(
-    DB_WRITE_STRING,
-    pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)),
-    max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10)),
-    connect_args=connect_args,
+    DB_WRITE_STRING, pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)), max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10)), connect_args=connect_args
 )
 
 # use pre-ping on read, as connections are quite often stale due to how few users we have at the moment.
 _read_engine = create_engine(
-    DB_READ_STRING,
-    pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)),
-    max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10)),
-    pool_pre_ping=True,
-    connect_args=connect_args,
+    DB_READ_STRING, pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)), max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10)), pool_pre_ping=True, connect_args=connect_args
 )
 
 # TODO: pre-ping still not configured for the async engines (see the sync read engine above)
@@ -56,9 +49,7 @@ _async_read_engine = create_async_engine(
     connect_args={"timeout": 30},
 )
 _async_write_engine = create_async_engine(
-    ASYNC_DB_WRITE_STRING,
-    pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)),
-    max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10)),
+    ASYNC_DB_WRITE_STRING, pool_size=int(config.get("POSTGRES_POOL_SIZE", 5)), max_overflow=int(config.get("POSTGRES_MAX_OVERFLOW", 10))
 )
 
 # bind session to database
@@ -67,12 +58,8 @@ _async_write_engine = create_async_engine(
 # connections and becoming non-responsive.
 _write_session = sessionmaker(autocommit=False, autoflush=False, bind=_write_engine)
 _read_session = sessionmaker(autocommit=False, autoflush=False, bind=_read_engine)
-_async_read_sessionmaker = sessionmaker(
-    autocommit=False, autoflush=False, bind=_async_read_engine, class_=AsyncSession
-)
-_async_write_sessionmaker = sessionmaker(
-    autocommit=False, autoflush=False, bind=_async_write_engine, class_=AsyncSession
-)
+_async_read_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=_async_read_engine, class_=AsyncSession)
+_async_write_sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=_async_write_engine, class_=AsyncSession)
 
 
 def _get_write_session() -> Session:
