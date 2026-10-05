@@ -30,8 +30,6 @@ from wps_shared.db.models.weather_models import PredictionModel
 logger = getLogger(__name__)
 
 # Number of days of historical actual data to learn from when training model.
-# Experimentation has shown that about two weeks worth of data starts giving fairly good results
-# compared to human forecasters.
 MAX_DAYS_TO_LEARN = 19
 
 
