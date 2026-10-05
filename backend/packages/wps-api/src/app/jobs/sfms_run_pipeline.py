@@ -46,6 +46,7 @@ from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FWIParameter,
     GDALPath,
+    S3Key,
     SFMSInterpolatedWeatherParameter,
 )
 from wps_shared.utils.s3_client import S3Client
@@ -66,6 +67,14 @@ class RasterInterpolationJob:
 class FWICalculationJob:
     job_name: SFMSRunLogJobName
     calculator: FWICalculator
+
+
+@dataclass(frozen=True)
+class TemporalFuel:
+    """A day's temporal fuel raster and the fuel codes lookup describing its grid values."""
+
+    raster_path: GDALPath
+    fuel_codes_lookup_path: S3Key
 
 
 async def _run_tracked_job(
@@ -121,7 +130,7 @@ async def resolve_temporal_fuel_raster(
     fuel_type_raster: FuelTypeRaster,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-) -> GDALPath:
+) -> TemporalFuel:
     """Return the temporal fuel raster for a date, creating a new version when needed.
 
     An existing raster is reused only when it was built from the same base fuel raster and the
@@ -140,11 +149,14 @@ async def resolve_temporal_fuel_raster(
             logger.info(
                 "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
             )
-            return raster_addresser.gdal_path(existing.object_store_path)
+            return TemporalFuel(
+                raster_path=raster_addresser.gdal_path(existing.object_store_path),
+                fuel_codes_lookup_path=S3Key(existing.fuel_codes_lookup_path),
+            )
 
         version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
         output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
-        metadata_key = raster_addresser.get_temporal_fuel_metadata_key(target_date, version)
+        fuel_codes_lookup_path = raster_addresser.get_fuel_codes_lookup_path(target_date, version)
         content_hash = await publish_temporal_fuel_raster(
             s3_client,
             raster_addresser.gdal_path(fuel_type_raster.object_store_path),
@@ -152,7 +164,7 @@ async def resolve_temporal_fuel_raster(
             raster_addresser.gdal_path(green_up_off_key),
             target_date,
             output_key,
-            metadata_key,
+            fuel_codes_lookup_path,
         )
         session.add(
             TemporalFuelRaster(
@@ -160,14 +172,17 @@ async def resolve_temporal_fuel_raster(
                 for_date=target_date,
                 version=version,
                 object_store_path=output_key,
-                metadata_object_store_path=metadata_key,
+                fuel_codes_lookup_path=fuel_codes_lookup_path,
                 content_hash=content_hash,
                 green_up_on_hash=green_up_on_hash,
                 green_up_off_hash=green_up_off_hash,
                 create_timestamp=get_utc_now(),
             )
         )
-    return raster_addresser.gdal_path(output_key)
+    return TemporalFuel(
+        raster_path=raster_addresser.gdal_path(output_key),
+        fuel_codes_lookup_path=fuel_codes_lookup_path,
+    )
 
 
 async def _resolve_percent_conifer_path(
@@ -206,7 +221,7 @@ async def run_fbp_calculations(
     datetime_to_process: datetime,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-    fuel_raster_path: GDALPath,
+    temporal_fuel: TemporalFuel,
     fuel_raster_year: int,
     sfms_run_id: int,
     session,
@@ -219,7 +234,8 @@ async def run_fbp_calculations(
     inputs = raster_addresser.get_primary_fire_behaviour_inputs(
         datetime_to_process,
         run_type,
-        fuel_raster_path,
+        temporal_fuel.raster_path,
+        temporal_fuel.fuel_codes_lookup_path,
         percent_conifer_path,
         raster_addresser.gdal_path(
             raster_addresser.get_weather_key(

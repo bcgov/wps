@@ -30,9 +30,14 @@ class FWIInputs:
 
 @dataclass(frozen=True)
 class PrimaryFireBehaviourInputs:
-    """Raster locations and metadata needed for one primary FBP calculation."""
+    """Raster locations and metadata needed for one primary FBP calculation.
+
+    `fuel_codes_lookup_path` is the plain S3 key of the JSON fuel codes lookup stored alongside the
+    fuel grid.
+    """
 
     fuel_key: GDALPath
+    fuel_codes_lookup_path: S3Key
     ffmc_key: GDALPath
     bui_key: GDALPath
     wind_speed_key: GDALPath

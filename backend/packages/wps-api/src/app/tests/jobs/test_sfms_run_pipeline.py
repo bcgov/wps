@@ -11,6 +11,7 @@ from wps_shared.run_type import RunType
 from app.jobs.sfms_run_pipeline import (
     _resolve_percent_conifer_path,
     _resolve_percent_dead_conifer_path,
+    TemporalFuel,
     resolve_temporal_fuel_raster,
     run_fbp_calculations,
 )
@@ -113,7 +114,7 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
         datetime_to_process,
         addresser,
         s3_client,
-        "/vsis3/test/fuel.tif",
+        TemporalFuel(raster_path="/vsis3/test/fuel.tif", fuel_codes_lookup_path="test/fuel.json"),
         2025,
         42,
         session,
@@ -125,6 +126,7 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
         datetime_to_process,
         RunType.ACTUAL,
         "/vsis3/test/fuel.tif",
+        "test/fuel.json",
         "/vsis3/test/sfms/static/m12_2025.tif",
         addresser.gdal_path.return_value,
         addresser.gdal_path.return_value,
@@ -164,7 +166,10 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
     mocker: MockerFixture, temporal_fuel_deps
 ):
     session, s3_client, publish, fuel_type_raster = temporal_fuel_deps
-    existing = MagicMock(object_store_path="sfms_ng/fuel/temporal/existing.tif")
+    existing = MagicMock(
+        object_store_path="sfms_ng/fuel/temporal/existing.tif",
+        fuel_codes_lookup_path="sfms_ng/fuel/temporal/existing.json",
+    )
     get_existing = mocker.patch(
         f"{PIPELINE_PATH}.get_temporal_fuel_raster", new_callable=AsyncMock, return_value=existing
     )
@@ -175,7 +180,10 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
         date(2026, 6, 1), fuel_type_raster, addresser, s3_client
     )
 
-    assert result == "/vsis3/bucket/sfms_ng/fuel/temporal/existing.tif"
+    assert result == TemporalFuel(
+        raster_path="/vsis3/bucket/sfms_ng/fuel/temporal/existing.tif",
+        fuel_codes_lookup_path="sfms_ng/fuel/temporal/existing.json",
+    )
     assert get_existing.call_args.args[1:] == (date(2026, 6, 1), 7, "on-hash", "off-hash")
     publish.assert_not_awaited()
     session.add.assert_not_called()
@@ -197,13 +205,15 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
     addresser = MagicMock()
     addresser.gdal_path.side_effect = lambda key: f"/vsis3/bucket/{key}"
     addresser.get_temporal_fuel_key.return_value = "temporal/3/fbp.tif"
-    addresser.get_temporal_fuel_metadata_key.return_value = "temporal/3/fbp.json"
+    addresser.get_fuel_codes_lookup_path.return_value = "temporal/3/fbp.json"
 
     result = await resolve_temporal_fuel_raster(
         date(2026, 6, 1), fuel_type_raster, addresser, s3_client
     )
 
-    assert result == "/vsis3/bucket/temporal/3/fbp.tif"
+    assert result == TemporalFuel(
+        raster_path="/vsis3/bucket/temporal/3/fbp.tif", fuel_codes_lookup_path="temporal/3/fbp.json"
+    )
     addresser.get_temporal_fuel_key.assert_called_once_with(date(2026, 6, 1), 3)
     publish.assert_awaited_once()
     record: TemporalFuelRaster = session.add.call_args.args[0]
@@ -213,6 +223,6 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
         3,
     )
     assert record.object_store_path == "temporal/3/fbp.tif"
-    assert record.metadata_object_store_path == "temporal/3/fbp.json"
+    assert record.fuel_codes_lookup_path == "temporal/3/fbp.json"
     assert record.content_hash == "temporal-hash"
     assert (record.green_up_on_hash, record.green_up_off_hash) == ("on-hash", "off-hash")

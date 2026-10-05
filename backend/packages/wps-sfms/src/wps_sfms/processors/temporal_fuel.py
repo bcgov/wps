@@ -5,13 +5,13 @@ applies green-up so leafless deciduous and mixedwood fuels become their green va
 dates inside each pixel's green-up period.
 """
 
-import json
 import logging
 from datetime import date
 
 import numpy as np
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
@@ -19,7 +19,6 @@ from wps_shared.utils.s3_client import S3Client
 from wps_sfms.fbp_fuel_types import (
     GREEN_UP_GRID_VALUES,
     NATIONAL_FUEL_LOOKUP,
-    NATIONAL_FUEL_LOOKUP_COLUMNS,
     NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE,
 )
 from wps_sfms.publish import publish_dataset
@@ -55,13 +54,10 @@ def calculate_temporal_fuel(
     return temporal
 
 
-def fuel_lookup_metadata(temporal: np.ndarray) -> list[dict]:
+def fuel_codes_lookup(temporal: np.ndarray) -> FuelCodesLookup:
     """Return the national fuel lookup rows for the grid values present in ``temporal``."""
     grid_values = np.unique(temporal[np.isfinite(temporal)]).astype(int).tolist()
-    return [
-        dict(zip(NATIONAL_FUEL_LOOKUP_COLUMNS, NATIONAL_FUEL_LOOKUP[value]))
-        for value in grid_values
-    ]
+    return FuelCodesLookup([NATIONAL_FUEL_LOOKUP[value] for value in grid_values])
 
 
 async def publish_temporal_fuel_raster(
@@ -71,7 +67,7 @@ async def publish_temporal_fuel_raster(
     green_up_off_key: GDALPath,
     target_date: date,
     output_key: S3Key,
-    metadata_key: S3Key,
+    fuel_codes_lookup_path: S3Key,
 ) -> str:
     """Calculate, store and return the content hash of the temporal fuel raster for one date.
 
@@ -113,13 +109,13 @@ async def publish_temporal_fuel_raster(
                 )
 
     await s3_client.put_object(
-        key=metadata_key, body=json.dumps(fuel_lookup_metadata(temporal)).encode()
+        key=fuel_codes_lookup_path, body=fuel_codes_lookup(temporal).model_dump_json().encode()
     )
     logger.info(
-        "Stored temporal fuel raster for %s: %s (COG: %s, metadata: %s)",
+        "Stored temporal fuel raster for %s: %s (COG: %s, fuel codes lookup: %s)",
         target_date,
         published.output_key,
         published.cog_key,
-        metadata_key,
+        fuel_codes_lookup_path,
     )
     return await s3_client.get_content_hash(output_key)

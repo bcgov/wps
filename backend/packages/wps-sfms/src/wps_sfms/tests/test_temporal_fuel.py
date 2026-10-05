@@ -3,7 +3,7 @@ from datetime import date
 import numpy as np
 import pytest
 
-from wps_sfms.processors.temporal_fuel import calculate_temporal_fuel, fuel_lookup_metadata
+from wps_sfms.processors.temporal_fuel import calculate_temporal_fuel, fuel_codes_lookup
 
 # interim green-up rasters: on Jun 1 (day 152), off Sep 15 (day 258)
 GREEN_UP_ON = np.full((1, 5), 152.0)
@@ -49,13 +49,13 @@ def test_rejects_unsupported_base_fuel_values(value: float):
         )
 
 
-def test_fuel_lookup_metadata_lists_present_grid_values_in_order():
+def test_fuel_codes_lookup_lists_present_grid_values_in_order():
     temporal = np.array([[50, 12, 101, 12, np.nan]], dtype=np.float32)
 
-    result = fuel_lookup_metadata(temporal)
+    result = fuel_codes_lookup(temporal)
 
-    assert [row["grid_value"] for row in result] == [12, 50, 101]
-    assert result[0] == {
+    assert [row.grid_value for row in result.root] == [12, 50, 101]
+    assert result.root[0].model_dump() == {
         "grid_value": 12,
         "export_value": 12,
         "descriptive_name": "Green Aspen (with BUI Thresholding)",

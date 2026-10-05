@@ -29,6 +29,7 @@ from app.jobs.sfms_daily_forecasts import (
     run_datetime_for_cli_date,
     run_sfms_daily_forecasts,
 )
+from app.jobs.sfms_run_pipeline import TemporalFuel
 from app.tests.conftest import create_mock_sfms_actuals
 
 MODULE_PATH = "app.jobs.sfms_daily_forecasts"
@@ -81,7 +82,10 @@ def mock_dependencies(
     mock_resolve_temporal_fuel_raster = mocker.patch(
         f"{MODULE_PATH}.resolve_temporal_fuel_raster",
         new_callable=AsyncMock,
-        side_effect=lambda target_date, *_: f"/vsis3/test-bucket/temporal/{target_date}.tif",
+        side_effect=lambda target_date, *_: TemporalFuel(
+            raster_path=f"/vsis3/test-bucket/temporal/{target_date}.tif",
+            fuel_codes_lookup_path=f"temporal/{target_date}.json",
+        ),
     )
     mock_get_fuel_type_raster_by_year = mocker.patch(
         f"{MODULE_PATH}.get_fuel_type_raster_by_year",
@@ -257,13 +261,13 @@ class TestRunSfmsDailyForecasts:
         await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
 
         fbp_fuel_paths = [
-            call.args[2]
+            call.args[2:4]
             for call in mock_dependencies.addresser.get_primary_fire_behaviour_inputs.call_args_list
         ]
         assert fbp_fuel_paths == [
-            "/vsis3/test-bucket/temporal/2024-07-05.tif",
-            "/vsis3/test-bucket/temporal/2024-07-06.tif",
-            "/vsis3/test-bucket/temporal/2024-07-07.tif",
+            ("/vsis3/test-bucket/temporal/2024-07-05.tif", "temporal/2024-07-05.json"),
+            ("/vsis3/test-bucket/temporal/2024-07-06.tif", "temporal/2024-07-06.json"),
+            ("/vsis3/test-bucket/temporal/2024-07-07.tif", "temporal/2024-07-07.json"),
         ]
 
     @pytest.mark.anyio

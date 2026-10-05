@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
@@ -47,3 +47,22 @@ class SFMSRunBounds(BaseModel):
     run_type: RunTypeEnum
     minimum: date
     maximum: date
+
+
+class FuelCode(BaseModel):
+    """One row of the national FBP fuel lookup table, describing a fuel grid value."""
+
+    grid_value: int
+    export_value: int
+    descriptive_name: str
+    fuel_type: str
+    r: int
+    g: int
+    b: int
+    h: int
+    s: int
+    l: int  # noqa: E741 - lightness, named to match the national lookup table column
+
+
+class FuelCodesLookup(RootModel[list[FuelCode]]):
+    """The fuel codes lookup stored alongside a fuel grid, one row per grid value it contains."""

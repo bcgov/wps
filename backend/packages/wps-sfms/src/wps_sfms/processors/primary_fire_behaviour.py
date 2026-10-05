@@ -9,18 +9,21 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from time import perf_counter
-from typing import Generator
+from typing import Generator, Mapping
 
 import numpy as np
 from cffdrs_vec.fbp import vectorized_primary_fire_behaviour_prediction
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import FBPParameter, GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
 from wps_sfms.fbp_fuel_types import (
     NODATA_FUEL_TYPE_CODE,
-    NON_COMBUSTIBLE_FUEL_VALUES,
+    NON_FUEL_TYPE,
+    PERCENT_CONIFER_FUEL_TYPES,
+    cffdrs_fuel_types_from_lookup,
     fuel_type_codes_from_grid,
 )
 from wps_sfms.fbp_input_validation import validate_percent_conifer
@@ -115,6 +118,7 @@ def _result_values(
 
 def calculate_primary_fire_behaviour(
     datasets: PrimaryFireBehaviourDatasets,
+    fuel_types: Mapping[int, str],
 ) -> PrimaryFireBehaviourResult:
     """Calculate SFC, equilibrium head ROS, HFI, TFC, and CFB on the shared raster grid.
 
@@ -126,6 +130,9 @@ def calculate_primary_fire_behaviour(
 
     Pixels missing a required input produce ``SFMS_NO_DATA`` in every output. Recognized
     non-combustible fuel pixels produce zero regardless of other missing inputs.
+
+    ``fuel_types`` maps each fuel grid value to its CFFDRS fuel type, as read from the fuel
+    grid's lookup metadata.
     """
     fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
     ffmc, _ = datasets.ffmc.replace_nodata_with(np.nan)
@@ -147,10 +154,20 @@ def calculate_primary_fire_behaviour(
     # keep valid flat pixels deterministic even though aspect cannot affect their result
     aspect_rad = np.where(slope_percent == 0, 0.0, aspect_rad)
 
-    fuel_type_codes = fuel_type_codes_from_grid(fuel)
-    validate_percent_conifer(fuel, percent_conifer)
+    fuel_type_codes = fuel_type_codes_from_grid(fuel, fuel_types)
+    validate_percent_conifer(
+        fuel,
+        percent_conifer,
+        [
+            value
+            for value, fuel_type in fuel_types.items()
+            if fuel_type in PERCENT_CONIFER_FUEL_TYPES
+        ],
+    )
 
-    non_combustible_mask = np.isin(fuel, tuple(NON_COMBUSTIBLE_FUEL_VALUES))
+    non_combustible_mask = np.isin(
+        fuel, [value for value, fuel_type in fuel_types.items() if fuel_type == NON_FUEL_TYPE]
+    )
     calculation_mask = (
         ~non_combustible_mask
         & (fuel_type_codes != NODATA_FUEL_TYPE_CODE)
@@ -304,6 +321,11 @@ class PrimaryFireBehaviourProcessor:
                 s3_client,
                 self._dependency_keys(inputs),
             )
+            fuel_types = cffdrs_fuel_types_from_lookup(
+                FuelCodesLookup.model_validate_json(
+                    await s3_client.read_object(inputs.fuel_codes_lookup_path)
+                )
+            )
             logger.info(
                 "Calculating primary FBP %s for %s",
                 inputs.run_type.value,
@@ -312,7 +334,7 @@ class PrimaryFireBehaviourProcessor:
 
             with self._open_datasets(input_dataset_context, inputs) as datasets:
                 self._validate_grids(datasets)
-                result = calculate_primary_fire_behaviour(datasets)
+                result = calculate_primary_fire_behaviour(datasets, fuel_types)
 
                 with open_bc_mask_dataset() as mask:
                     for output in result.raster_outputs():

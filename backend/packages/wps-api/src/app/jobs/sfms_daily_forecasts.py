@@ -120,7 +120,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                 fuel_raster_path = raster_addresser.gdal_path(fuel_type_raster.object_store_path)
                 logger.info("Using reference raster: %s", fuel_raster_path)
 
-                temporal_fuel_raster_paths = {
+                temporal_fuels = {
                     datetime_to_process: await resolve_temporal_fuel_raster(
                         datetime_to_process.date(), fuel_type_raster, raster_addresser, s3_client
                     )
@@ -182,7 +182,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                             datetime_to_process,
                             raster_addresser,
                             s3_client,
-                            temporal_fuel_raster_paths[datetime_to_process],
+                            temporal_fuels[datetime_to_process],
                             fuel_type_raster.year,
                             sfms_run_id,
                             write_session,

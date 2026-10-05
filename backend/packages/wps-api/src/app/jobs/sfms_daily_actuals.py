@@ -67,7 +67,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     logger.info("Using reference raster: %s", fuel_raster_path)
 
     async with S3Client() as s3_client:
-        temporal_fuel_raster_path = await resolve_temporal_fuel_raster(
+        temporal_fuel = await resolve_temporal_fuel_raster(
             datetime_to_process.date(), fuel_type_raster, raster_addresser, s3_client
         )
 
@@ -145,7 +145,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                     datetime_to_process,
                     raster_addresser,
                     s3_client,
-                    temporal_fuel_raster_path,
+                    temporal_fuel,
                     fuel_type_raster.year,
                     sfms_run_id,
                     session,

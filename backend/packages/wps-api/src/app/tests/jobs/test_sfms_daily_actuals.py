@@ -27,7 +27,7 @@ from app.jobs.sfms_daily_actuals import (
     main,
     run_sfms_daily_actuals,
 )
-from app.jobs.sfms_run_pipeline import get_missing_fwi_seed_keys
+from app.jobs.sfms_run_pipeline import TemporalFuel, get_missing_fwi_seed_keys
 from app.tests.conftest import create_mock_sfms_actuals
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
@@ -107,7 +107,10 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_resolve_temporal_fuel_raster = mocker.patch(
         f"{MODULE_PATH}.resolve_temporal_fuel_raster",
         new_callable=AsyncMock,
-        side_effect=lambda target_date, *_: f"/vsis3/test-bucket/temporal/{target_date}.tif",
+        side_effect=lambda target_date, *_: TemporalFuel(
+            raster_path=f"/vsis3/test-bucket/temporal/{target_date}.tif",
+            fuel_codes_lookup_path=f"temporal/{target_date}.json",
+        ),
     )
     mocker.patch(
         f"{MODULE_PATH}.get_fuel_type_raster_by_year",
@@ -260,7 +263,10 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.resolve_temporal_fuel_raster.assert_awaited_once()
         assert mock_dependencies.resolve_temporal_fuel_raster.call_args.args[0] == date(2024, 7, 4)
         fbp_call = mock_dependencies.addresser.get_primary_fire_behaviour_inputs.call_args
-        assert fbp_call.args[2] == "/vsis3/test-bucket/temporal/2024-07-04.tif"
+        assert fbp_call.args[2:4] == (
+            "/vsis3/test-bucket/temporal/2024-07-04.tif",
+            "temporal/2024-07-04.json",
+        )
 
     @pytest.mark.anyio
     async def test_processes_shared_fmc_for_target_date(

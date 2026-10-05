@@ -5,7 +5,7 @@ from typing import Mapping
 
 import numpy as np
 from cffdrs_vec.fbp import FUEL_TYPE_CODES
-from wps_shared.fuel_types import FuelTypeEnum
+from wps_shared.schemas.sfms import FuelCode, FuelCodesLookup
 
 # BC base fuel grid values (fuel_type_raster) translated to the national FBP fuel lookup grid
 # values used by temporal fuel grids. Leafless/matted variants are the off-season defaults.
@@ -33,55 +33,11 @@ NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE: Mapping[int, int] = MappingProxyType(
 # national grid values swapped from leafless to green during the green-up period
 GREEN_UP_GRID_VALUES: Mapping[int, int] = MappingProxyType({11: 12, 40: 50, 70: 80})
 
-# national FBP fuel lookup grid values found in temporal fuel grids
-FUEL_TYPES_BY_GRID_VALUE: Mapping[int, FuelTypeEnum] = MappingProxyType(
-    {
-        1: FuelTypeEnum.C1,
-        2: FuelTypeEnum.C2,
-        3: FuelTypeEnum.C3,
-        4: FuelTypeEnum.C4,
-        5: FuelTypeEnum.C5,
-        6: FuelTypeEnum.C6,
-        7: FuelTypeEnum.C7,
-        11: FuelTypeEnum.D1,
-        12: FuelTypeEnum.D2,
-        21: FuelTypeEnum.S1,
-        22: FuelTypeEnum.S2,
-        23: FuelTypeEnum.S3,
-        31: FuelTypeEnum.O1A,
-        32: FuelTypeEnum.O1B,
-        40: FuelTypeEnum.M1,
-        50: FuelTypeEnum.M2,
-        70: FuelTypeEnum.M3,
-        80: FuelTypeEnum.M4,
-    }
-)
-
-CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE: Mapping[int, str] = MappingProxyType(
-    {
-        101: "NF",
-        102: "WA",
-    }
-)
-NON_COMBUSTIBLE_FUEL_VALUES = frozenset(CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE)
-
 # national FBP fuel lookup rows for the grid values temporal fuel grids can contain; written
 # alongside each temporal fuel grid so consumers can label and colour it.
-NATIONAL_FUEL_LOOKUP_COLUMNS = (
-    "grid_value",
-    "export_value",
-    "descriptive_name",
-    "fuel_type",
-    "r",
-    "g",
-    "b",
-    "h",
-    "s",
-    "l",
-)
-NATIONAL_FUEL_LOOKUP: Mapping[int, tuple] = MappingProxyType(
+NATIONAL_FUEL_LOOKUP: Mapping[int, FuelCode] = MappingProxyType(
     {
-        row[0]: row
+        row[0]: FuelCode(**dict(zip(FuelCode.model_fields, row)))
         for row in (
             (1, 1, "Spruce-Lichen Woodland", "C-1", 209, 255, 115, 57, 255, 185),
             (2, 2, "Boreal Spruce", "C-2", 34, 102, 51, 95, 128, 68),
@@ -118,12 +74,29 @@ NATIONAL_FUEL_LOOKUP: Mapping[int, tuple] = MappingProxyType(
     }
 )
 NODATA_FUEL_TYPE_CODE = -1
-PERCENT_CONIFER_GRID_VALUES = frozenset(
-    grid_value
-    for grid_value, fuel_type in FUEL_TYPES_BY_GRID_VALUE.items()
-    if fuel_type in (FuelTypeEnum.M1, FuelTypeEnum.M2)
-)
+NON_FUEL_TYPE = "NF"
+PERCENT_CONIFER_FUEL_TYPES = frozenset({"M1", "M2"})
 GRASS_FUEL_LOAD = 0.35
+
+
+def cffdrs_fuel_types_from_lookup(lookup: FuelCodesLookup) -> dict[int, str]:
+    """Map each fuel codes lookup row's grid value to its CFFDRS fuel type, e.g. ``{12: "D2"}``.
+
+    National lookup labels such as ``"O-1a"`` become CFFDRS fuel types such as ``"O1A"``, and
+    every ``"Non-fuel"`` row (including water) becomes ``"NF"``. A ``ValueError`` is raised for
+    labels CFFDRS cannot calculate, such as the combined seasonal class ``"M-1/M-2"``.
+    """
+    fuel_types = {}
+    for row in lookup.root:
+        label = row.fuel_type
+        fuel_type = NON_FUEL_TYPE if label == "Non-fuel" else label.replace("-", "").upper()
+        if fuel_type not in FUEL_TYPE_CODES:
+            raise ValueError(
+                f"Fuel lookup contains unsupported fuel type {label!r} "
+                f"for grid value {row.grid_value}"
+            )
+        fuel_types[row.grid_value] = fuel_type
+    return fuel_types
 
 
 def _integer_fuel_values(fuel: np.ndarray) -> set[int]:
@@ -135,26 +108,23 @@ def _integer_fuel_values(fuel: np.ndarray) -> set[int]:
     return {int(value) for value in np.unique(finite_values)}
 
 
-def fuel_type_codes_from_grid(fuel: np.ndarray) -> np.ndarray:
-    """Convert a temporal fuel raster (national grid values) into the fuel-type codes used by CFFDRS.
+def fuel_type_codes_from_grid(fuel: np.ndarray, fuel_types: Mapping[int, str]) -> np.ndarray:
+    """Convert a fuel raster into the fuel-type codes used by CFFDRS.
 
-    Every recognized classification, including the non-fuel and water classes, receives its
-    matching CFFDRS code. Source nodata pixels receive ``NODATA_FUEL_TYPE_CODE`` so callers can
-    keep missing data distinct from valid pixels whose FBP outputs should be zero.
+    ``fuel_types`` maps each grid value to its CFFDRS fuel type (see
+    ``cffdrs_fuel_types_from_lookup``). Source nodata pixels receive ``NODATA_FUEL_TYPE_CODE`` so
+    callers can keep missing data distinct from valid pixels whose FBP outputs should be zero.
 
     The returned array has the same shape as ``fuel`` and uses the ``int64`` data type. A
     ``ValueError`` is raised if the source contains a fractional or unknown classification.
     """
-    known_values = set(FUEL_TYPES_BY_GRID_VALUE) | set(NON_COMBUSTIBLE_FUEL_VALUES)
-    unexpected_values = _integer_fuel_values(fuel) - known_values
+    unexpected_values = _integer_fuel_values(fuel) - set(fuel_types)
     if unexpected_values:
         raise ValueError(
             f"Fuel raster contains unsupported classifications: {sorted(unexpected_values)}"
         )
 
     fuel_type_codes = np.full(fuel.shape, NODATA_FUEL_TYPE_CODE, dtype=np.int64)
-    for grid_value, fuel_type in FUEL_TYPES_BY_GRID_VALUE.items():
-        fuel_type_codes[fuel == grid_value] = FUEL_TYPE_CODES[fuel_type.value]
-    for grid_value, fuel_type in CFFDRS_NON_FUEL_TYPES_BY_GRID_VALUE.items():
+    for grid_value, fuel_type in fuel_types.items():
         fuel_type_codes[fuel == grid_value] = FUEL_TYPE_CODES[fuel_type]
     return fuel_type_codes
