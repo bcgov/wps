@@ -55,15 +55,6 @@ jobs:
         run: |
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
 
-      # Tag the GHCR mirrors as prod. OpenShift doesn't pull these, so failure must not block the deploy.
-      - name: Promote GHCR mirror images to prod
-        if: vars.PUSH_GHCR != 'false'
-        continue-on-error: true
-        run: |
-          for package in wps-api wps-web wps-jobs; do
-            PACKAGE=${package} bash openshift/scripts/oc_promote_gh.sh ${SUFFIX} apply
-          done
-
       - uses: ./.github/actions/gwa-setup
 
       - name: Render and publish ASA Go APS gateway config
