@@ -25,7 +25,7 @@ def postgres_container():
         yield postgres
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def engine(postgres_container):
     sync_url = postgres_container.get_connection_url()
     db_url = sync_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://")
@@ -43,12 +43,12 @@ async def engine(postgres_container):
     await engine.dispose()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def session_factory(engine):
     return async_sessionmaker(engine, expire_on_commit=False)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def async_session(session_factory):
     async with session_factory() as session:
         yield session
@@ -90,7 +90,7 @@ def temporal_fuel_raster(
     )
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def seeded_session(async_session: AsyncSession):
     async_session.add_all([fuel_type_raster(1), fuel_type_raster(2)])
     await async_session.flush()
@@ -106,7 +106,7 @@ async def seeded_session(async_session: AsyncSession):
         ]
     )
     await async_session.commit()
-    yield async_session
+    return async_session
 
 
 @pytest.mark.anyio
