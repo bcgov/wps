@@ -1,12 +1,12 @@
 """Shared SFMS weather interpolation and FWI calculation pipeline."""
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Awaitable, Callable
 
 from botocore.exceptions import ClientError
-
 from wps_sfms.interpolation.field import (
     build_dc_field,
     build_dewpoint_field,
@@ -174,12 +174,14 @@ async def resolve_temporal_fuel_raster(
     julian_keys = (green_up_on_key, green_up_off_key, grass_standing_key, grass_matted_key)
     if not await s3_client.all_objects_exist(*julian_keys):
         raise RuntimeError(f"Missing Julian date rasters, expected: {', '.join(julian_keys)}")
-    # ponytail: rehashes the four ~1.4 MB Julian rasters per date (3x per forecast run); hash
+    # Rehashes the four ~1.4 MB Julian rasters per date (3x per forecast run); hash
     # once per run and pass the hashes in if these grow or more Julian rasters are added
-    green_up_on_hash = await s3_client.get_content_hash(green_up_on_key)
-    green_up_off_hash = await s3_client.get_content_hash(green_up_off_key)
-    grass_standing_hash = await s3_client.get_content_hash(grass_standing_key)
-    grass_matted_hash = await s3_client.get_content_hash(grass_matted_key)
+    (
+        green_up_on_hash,
+        green_up_off_hash,
+        grass_standing_hash,
+        grass_matted_hash,
+    ) = await asyncio.gather(*(s3_client.get_content_hash(key) for key in julian_keys))
 
     async with get_async_write_session_scope() as session:
         # held until commit so concurrent runs for the same date reuse rather than collide

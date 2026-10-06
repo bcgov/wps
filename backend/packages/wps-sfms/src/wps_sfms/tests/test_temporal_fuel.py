@@ -189,7 +189,6 @@ def s3_client() -> SimpleNamespace:
     return SimpleNamespace(
         all_objects_exist=AsyncMock(return_value=True),
         put_object=AsyncMock(),
-        get_content_hash=AsyncMock(return_value="temporal-hash"),
     )
 
 
@@ -208,7 +207,9 @@ async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
             nodata=band.GetNoDataValue(),
             cog_resample_alg=cog_resample_alg,
         )
-        return SimpleNamespace(output_key=output_key, cog_key=f"{output_key}_cog")
+        return SimpleNamespace(
+            output_key=output_key, cog_key=f"{output_key}_cog", content_hash="temporal-hash"
+        )
 
     mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset", side_effect=capture_publish)
 
@@ -221,7 +222,6 @@ async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
     )
 
     assert content_hash == "temporal-hash"
-    s3_client.get_content_hash.assert_awaited_once_with("temporal/fbp.tif")
     assert published["output_key"] == "temporal/fbp.tif"
     # Jul 1: D-1 -> D-2 (12), M-1 -> M-2 (50), O-1a -> O-1b (32); nodata keeps the base value
     np.testing.assert_array_equal(

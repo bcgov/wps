@@ -482,4 +482,5 @@ async def test_processor_rejects_missing_dependency():
         inputs.aspect_key,
         inputs.percent_conifer_key,
         inputs.fmc_key,
+        inputs.fuel_codes_lookup_path,
     )

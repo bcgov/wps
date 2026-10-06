@@ -452,4 +452,4 @@ async def publish_temporal_fuel_raster(
         published.cog_key,
         fuel_codes_lookup_path,
     )
-    return await s3_client.get_content_hash(output_key)
+    return published.content_hash

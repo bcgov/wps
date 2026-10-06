@@ -1,3 +1,4 @@
+import hashlib
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -44,6 +45,10 @@ async def test_publish_dataset_uploads_raster_and_generates_cog_by_default(mocke
 
     assert published.output_key == output_key
     assert published.cog_key == expected_cog_key
+    assert (
+        published.content_hash
+        == hashlib.sha256(mock_s3_client.put_object.await_args.kwargs["body"]).hexdigest()
+    )
 
 
 @pytest.mark.anyio
