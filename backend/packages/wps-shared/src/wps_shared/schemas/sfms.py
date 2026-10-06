@@ -61,7 +61,7 @@ class FuelCode(BaseModel):
     b: int
     h: int
     s: int
-    l: int  # noqa: E741 - lightness, named to match the national lookup table column
+    l: int  # noqa: E741  # lightness, named to match the national lookup table column
 
 
 class FuelCodesLookup(RootModel[list[FuelCode]]):
