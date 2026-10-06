@@ -38,7 +38,7 @@ class CFFDRSFuelTypes:
         labels CFFDRS cannot calculate, such as the combined seasonal class ``"M-1/M-2"``.
         """
         fuel_types = {}
-        for row in lookup.root:
+        for row in lookup.fuel_codes:
             label = row.fuel_type
             fuel_type = NON_FUEL_TYPE if label == "Non-fuel" else label.replace("-", "").upper()
             if fuel_type not in FUEL_TYPE_CODES:

@@ -363,7 +363,9 @@ class TemporalFuelGrid:
     def fuel_codes_lookup(self) -> FuelCodesLookup:
         """Return the national fuel lookup rows for the grid values present in this grid."""
         grid_values = np.unique(self.values[np.isfinite(self.values)]).astype(int).tolist()
-        return FuelCodesLookup([self.NATIONAL_FUEL_LOOKUP[value] for value in grid_values])
+        return FuelCodesLookup(
+            fuel_codes=[self.NATIONAL_FUEL_LOOKUP[value] for value in grid_values]
+        )
 
 
 async def publish_temporal_fuel_raster(

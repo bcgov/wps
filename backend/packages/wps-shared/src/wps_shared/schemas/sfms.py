@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, RootModel
+from pydantic import BaseModel
 
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
@@ -64,5 +64,7 @@ class FuelCode(BaseModel):
     l: int  # noqa: E741  # lightness, named to match the national lookup table column
 
 
-class FuelCodesLookup(RootModel[list[FuelCode]]):
+class FuelCodesLookup(BaseModel):
     """The fuel codes lookup stored alongside a fuel grid, one row per grid value it contains."""
+
+    fuel_codes: list[FuelCode]

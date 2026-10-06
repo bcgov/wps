@@ -27,7 +27,7 @@ from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 TEST_DATETIME = datetime(2024, 7, 4, 20, tzinfo=timezone.utc)
-FUEL_CODES_LOOKUP = FuelCodesLookup(list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
+FUEL_CODES_LOOKUP = FuelCodesLookup(fuel_codes=list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
 FUEL_TYPES = CFFDRSFuelTypes.from_lookup(FUEL_CODES_LOOKUP)
 
 

@@ -41,7 +41,7 @@ def test_bc_grid_values_translate_to_national_lookup_values():
 
 
 NATIONAL_FUEL_TYPES = CFFDRSFuelTypes.from_lookup(
-    FuelCodesLookup(list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
+    FuelCodesLookup(fuel_codes=list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
 ).by_grid_value
 
 
@@ -125,8 +125,8 @@ def test_fuel_codes_lookup_lists_present_grid_values_in_order():
 
     result = TemporalFuelGrid(temporal).fuel_codes_lookup()
 
-    assert [row.grid_value for row in result.root] == [12, 50, 101]
-    assert result.root[0].model_dump() == {
+    assert [row.grid_value for row in result.fuel_codes] == [12, 50, 101]
+    assert result.fuel_codes[0].model_dump() == {
         "grid_value": 12,
         "export_value": 12,
         "descriptive_name": "Green Aspen (with BUI Thresholding)",
@@ -228,7 +228,7 @@ async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
     put_kwargs = s3_client.put_object.await_args.kwargs
     assert put_kwargs["key"] == "temporal/fbp.json"
     lookup = FuelCodesLookup.model_validate_json(put_kwargs["body"])
-    assert [row.grid_value for row in lookup.root] == [3, 12, 32, 50]
+    assert [row.grid_value for row in lookup.fuel_codes] == [3, 12, 32, 50]
 
 
 @pytest.mark.anyio

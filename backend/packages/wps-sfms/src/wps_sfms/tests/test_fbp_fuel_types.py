@@ -6,7 +6,7 @@ from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_sfms.fbp_fuel_types import NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
 from wps_sfms.processors.temporal_fuel import TemporalFuelGrid
 
-FUEL_CODES_LOOKUP = FuelCodesLookup(list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
+FUEL_CODES_LOOKUP = FuelCodesLookup(fuel_codes=list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
 FUEL_TYPES = CFFDRSFuelTypes.from_lookup(FUEL_CODES_LOOKUP)
 
 
@@ -44,7 +44,7 @@ def test_national_lookup_maps_to_cffdrs_fuel_types():
 @pytest.mark.parametrize("label", ["M-1/M-2", "M-1 (05 PC)", "Unknown"])
 def test_lookup_rejects_fuel_types_cffdrs_cannot_calculate(label: str):
     lookup = FuelCodesLookup(
-        [
+        fuel_codes=[
             TemporalFuelGrid.NATIONAL_FUEL_LOOKUP[40].model_copy(
                 update={"grid_value": 60, "fuel_type": label}
             )
