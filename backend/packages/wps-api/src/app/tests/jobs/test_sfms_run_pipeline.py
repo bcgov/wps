@@ -182,6 +182,7 @@ def temporal_fuel_deps(mocker: MockerFixture):
     s3_client.all_objects_exist = AsyncMock(return_value=True)
     s3_client.get_content_hash = AsyncMock(side_effect=lambda key: JULIAN_HASHES[f"{key}_hash"])
     s3_client.get_fuel_raster = AsyncMock(return_value=b"stored tif")
+    s3_client.read_object = AsyncMock(return_value=b'{"fuel_codes": []}')
 
     return SimpleNamespace(
         session=session,
@@ -291,6 +292,29 @@ async def test_resolve_temporal_fuel_raster_rebuilds_unverified_raster(
     result = await resolve(deps)
 
     assert result.raster_path == "/vsis3/bucket/temporal/3.tif"
+    deps.publish.assert_awaited_once()
+    assert deps.session.add.call_args.args[0].version == 3
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "lookup_error",
+    [
+        {"side_effect": ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")},
+        {"return_value": b"not json"},
+    ],
+    ids=["missing", "unparseable"],
+)
+async def test_resolve_temporal_fuel_raster_rebuilds_unverified_lookup(
+    mocker: MockerFixture, temporal_fuel_deps, lookup_error: dict
+):
+    deps = temporal_fuel_deps
+    patch_db(mocker, existing=stored_raster(version=2), latest_version=2)
+    deps.s3_client.read_object = AsyncMock(**lookup_error)
+
+    result = await resolve(deps)
+
+    assert result.fuel_codes_lookup_path == "temporal/3.json"
     deps.publish.assert_awaited_once()
     assert deps.session.add.call_args.args[0].version == 3
 

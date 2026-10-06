@@ -81,6 +81,13 @@ def make_datasets(base_fuel: np.ndarray, **julian: np.ndarray) -> TemporalFuelIn
         (date(2026, 9, 15), [11, 40, 3, 32, 101, np.nan]),  # day 258, leafless, still standing
         (date(2026, 11, 30), [11, 40, 3, 32, 101, np.nan]),  # day 334, last standing day
         (date(2026, 12, 1), [11, 40, 3, 31, 101, np.nan]),  # day 335, matted again
+        # leap years switch on the same calendar dates
+        (date(2028, 5, 31), [11, 40, 3, 31, 101, np.nan]),
+        (date(2028, 6, 1), [12, 50, 3, 32, 101, np.nan]),
+        (date(2028, 9, 14), [12, 50, 3, 32, 101, np.nan]),
+        (date(2028, 9, 15), [11, 40, 3, 32, 101, np.nan]),
+        (date(2028, 11, 30), [11, 40, 3, 32, 101, np.nan]),
+        (date(2028, 12, 1), [11, 40, 3, 31, 101, np.nan]),
     ],
 )
 def test_translates_base_fuel_and_applies_green_up_and_grass_curing(

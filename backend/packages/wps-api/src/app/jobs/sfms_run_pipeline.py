@@ -46,6 +46,7 @@ from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
+from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import (
     FWIParameter,
     GDALPath,
@@ -132,17 +133,25 @@ async def get_missing_fwi_seed_keys(
     return missing_keys
 
 
-async def _stored_raster_matches(s3_client: S3Client, key: str, content_hash: str) -> bool:
-    """Return whether the stored raster still exists and matches its recorded content hash."""
+async def _stored_outputs_match(s3_client: S3Client, existing: TemporalFuelRaster) -> bool:
+    """Return whether the stored raster still matches its recorded content hash and its fuel codes
+    lookup still exists and parses."""
     try:
-        await s3_client.get_fuel_raster(key, content_hash)
+        await s3_client.get_fuel_raster(existing.object_store_path, existing.content_hash)
+        FuelCodesLookup.model_validate_json(
+            await s3_client.read_object(existing.fuel_codes_lookup_path)
+        )
     except ValueError:
-        logger.warning("Stored raster no longer matches its recorded content hash: %s", key)
+        # pydantic's ValidationError is a ValueError, so an unparseable lookup lands here too
+        logger.warning(
+            "Stored temporal fuel output no longer matches what was recorded: %s",
+            existing.object_store_path,
+        )
         return False
     except ClientError as e:
         if e.response["Error"]["Code"] not in ("404", "NoSuchKey"):
             raise
-        logger.warning("Stored raster is missing: %s", key)
+        logger.warning("Stored temporal fuel output is missing: %s", existing.object_store_path)
         return False
     return True
 
@@ -184,9 +193,7 @@ async def resolve_temporal_fuel_raster(
             grass_standing_hash=grass_standing_hash,
             grass_matted_hash=grass_matted_hash,
         )
-        if existing is not None and await _stored_raster_matches(
-            s3_client, existing.object_store_path, existing.content_hash
-        ):
+        if existing is not None and await _stored_outputs_match(s3_client, existing):
             logger.info(
                 "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
             )

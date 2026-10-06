@@ -6,6 +6,7 @@ each pixel's green-up period, and grass curing so matted grass becomes standing 
 each pixel's standing period.
 """
 
+import calendar
 import logging
 from dataclasses import dataclass
 from datetime import date
@@ -351,7 +352,11 @@ class TemporalFuelGrid:
                 f"Base fuel raster contains unsupported classifications: {unsupported}"
             )
 
+        # the Julian date rasters number days as in a non-leap year (152 is Jun 1), so drop Feb 29
+        # from the count in leap years; Feb 29 itself counts as Feb 28
         day_of_year = target_date.timetuple().tm_yday
+        if calendar.isleap(target_date.year) and day_of_year > 59:
+            day_of_year -= 1
         green = (green_up_on <= day_of_year) & (day_of_year < green_up_off)
         for leafless_value, green_value in cls.GREEN_UP_GRID_VALUES.items():
             values[green & (values == leafless_value)] = green_value
