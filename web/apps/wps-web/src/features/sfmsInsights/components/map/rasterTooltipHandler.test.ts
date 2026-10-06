@@ -64,6 +64,9 @@ describe('getRasterTooltipData', () => {
       ['bui', 'bui' as const, 'BUI'],
       ['isi', 'isi' as const, 'ISI'],
       ['sfc', 'sfc' as const, 'SFC'],
+      ['tfc', 'tfc' as const, 'TFC'],
+      ['cfb', 'cfb' as const, 'CFB'],
+      ['hfi', 'hfi' as const, 'HFI'],
       ['fmc', 'fmc' as const, 'FMC'],
       ['undefined defaults to FWI', undefined, 'FWI']
     ])('%s -> %s', (_description, rasterType, expectedLabel) => {
@@ -85,6 +88,19 @@ describe('getRasterTooltipData', () => {
 
     expect(result.value).toBe(7)
     expect(result.label).toBe('SFC')
+  })
+
+  it.each([
+    [0, '0%'],
+    [0.35, '35%'],
+    [1, '100%']
+  ])('should display CFB fraction %f as %s', (input, expected) => {
+    expect(getRasterTooltipData(new Float32Array([input]), 'cfb')).toEqual({ value: expected, label: 'CFB' })
+  })
+
+  it('should show TFC with one decimal and HFI as a whole number', () => {
+    expect(getRasterTooltipData(new Float32Array([7.64]), 'tfc').value).toBe(7.6)
+    expect(getRasterTooltipData(new Float32Array([1234.6]), 'hfi').value).toBe(1235)
   })
 
   it.each([

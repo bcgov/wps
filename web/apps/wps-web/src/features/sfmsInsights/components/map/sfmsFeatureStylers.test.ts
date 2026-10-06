@@ -2,9 +2,12 @@ import * as ol from 'ol'
 import type Geometry from 'ol/geom/Geometry'
 import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
 import {
+  CFB_COLOR_BREAKS,
   FMC_COLOR_BREAKS,
   FUEL_TYPE_COLORS,
-  SFC_COLOR_BREAKS
+  HFI_COLOR_BREAKS,
+  SFC_COLOR_BREAKS,
+  TFC_COLOR_BREAKS
 } from '@/features/sfmsInsights/components/map/rasterConfig'
 import {
   EMPTY_FILL,
@@ -158,7 +161,10 @@ describe('getSFMSNGRasterColourExpression', () => {
 
   it.each([
     ['sfc', SFC_COLOR_BREAKS],
-    ['fmc', FMC_COLOR_BREAKS]
+    ['fmc', FMC_COLOR_BREAKS],
+    ['tfc', TFC_COLOR_BREAKS],
+    ['cfb', CFB_COLOR_BREAKS],
+    ['hfi', HFI_COLOR_BREAKS]
   ] as const)('should include every %s colour break', (rasterType, colorBreaks) => {
     const expr = getSFMSNGRasterColourExpression(rasterType)
 
@@ -166,6 +172,20 @@ describe('getSFMSNGRasterColourExpression', () => {
       const [red, green, blue] = colorBreak.color.match(/\d+/g)!.map(Number)
       expect(expr).toContainEqual([red, green, blue, 1])
     }
+  })
+
+  it('should label CFB breaks as percentages while using fraction thresholds', () => {
+    expect(CFB_COLOR_BREAKS.map(({ label }) => label)).toEqual([
+      '0-10%',
+      '10-30%',
+      '30-50%',
+      '50-60%',
+      '60-80%',
+      '80-90%',
+      '90-100%'
+    ])
+    expect(CFB_COLOR_BREAKS[0].min).toBe(0)
+    expect(CFB_COLOR_BREAKS.at(-1)?.max).toBeNull()
   })
 })
 

@@ -22,3 +22,4 @@ jobs:
       - uses: ./.github/actions/zap-baseline-scan
         with:
           target: "https://wps-prod.apps.silver.devops.gov.bc.ca/"
+          allow-issue-writing: "true"
