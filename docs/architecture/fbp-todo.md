@@ -34,7 +34,8 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
   - If PDF is required, missing or out-of-range values on M3/M4 pixels should prevent calculation
     rather than silently use a generic percentage.
 - [ ] Identify, retain, and align an initial percent-grass-curing (`cc`) raster source.
-  - It is only meaningful for O1A/O1B pixels.
+  - It is only meaningful for O1A/O1B pixels. Primary FBP passes a fixed `65%` placeholder, which
+    matters more now that the temporal fuel grid makes grass O1B (standing) from June to December.
   - The initial source and update cadence still need to be determined.
   - Define staleness and fallback rules once the source is selected.
 - [x] Generate one shared Foliar Moisture Content (FMC) raster per calendar date from the
@@ -55,7 +56,9 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
 - [x] Apply green-up and grass curing through a daily temporal fuel grid (#5880).
   - Right before primary FBP, each actual and forecast run builds, or reuses, one temporal fuel
     grid per processed date from the base fuel grid and four Julian-date rasters. It runs as the
-    `temporal_fuel` job in `sfms_run_log`, after weather and FWI, so a failure only blocks FBP.
+    `temporal_fuel` job, after weather and FWI, so a failure can't stop the weather and FWI
+    rasters from being written. Like every tracked SFMS job, a failure rolls back the run's
+    `sfms_run` and `sfms_run_log` rows; the job exits with an error and alerts chatops instead.
     The Julian-date rasters must be uploaded manually; the step fails with "Missing Julian date
     rasters" otherwise:
     - `sfms_ng/static/julian/green_up_on.tif`: day of year green-up starts, per pixel.
@@ -76,6 +79,10 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
     reads its fuel types from.
   - D2 is supported by `cffdrs_vec`. It applies BUI thresholding, so D2 produces almost no spread
     below BUI 80.
+  - Seasonal variants apply to every primary FBP output, including SFC, following the
+    `fuel_type_code` policy below. This replaces the standalone SFC processor's use of base fuel
+    types (#5696): green aspen now uses D2's SFC, which is zero below BUI 80. M2 and O1B SFC
+    match M1 and O1A.
 
 ## Inputs Already Available or Derivable
 

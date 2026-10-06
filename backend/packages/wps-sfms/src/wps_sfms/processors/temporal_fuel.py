@@ -1,8 +1,9 @@
 """Build daily temporal fuel grids from the BC base fuel grid and Julian-date season rasters.
 
 The temporal grid translates BC base fuel values to national FBP fuel lookup values, then
-applies green-up so leafless deciduous and mixedwood fuels become their green variants on
-dates inside each pixel's green-up period.
+applies green-up so leafless deciduous and mixedwood fuels become their green variants inside
+each pixel's green-up period, and grass curing so matted grass becomes standing grass inside
+each pixel's standing period.
 """
 
 import logging

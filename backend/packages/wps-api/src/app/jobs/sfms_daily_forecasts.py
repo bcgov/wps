@@ -131,7 +131,8 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                 )
 
                 async with get_async_write_session_scope() as write_session:
-                    # weather and FWI for every date first, so a fuel failure can't block them
+                    # weather and FWI for every date first, so a fuel failure can't stop their
+                    # rasters from being written
                     sfms_run_ids = {}
                     for index, datetime_to_process in enumerate(datetimes_to_process):
                         sfms_forecasts = await wfwx_api.get_sfms_daily_weather_all_stations(
