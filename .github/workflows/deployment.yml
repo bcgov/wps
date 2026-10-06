@@ -297,6 +297,9 @@ jobs:
     name: ZAP Baseline Scan Dev
     needs: [deploy-dev]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/zap-baseline-scan
