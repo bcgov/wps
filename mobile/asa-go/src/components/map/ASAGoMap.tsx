@@ -465,7 +465,7 @@ const ASAGoMap = ({
         mapObject.addLayer(fireZoneHighlightFileLayer)
       }
     }
-    loadPMTiles().catch(Sentry.captureException).finally(finishLayerLoad)
+    void loadPMTiles().catch(Sentry.captureException).finally(finishLayerLoad)
 
     return () => {
       finishLayerLoad()
@@ -513,7 +513,7 @@ const ASAGoMap = ({
 
     const finishLayerLoad = beginLayerLoad(dispatch)
 
-    ;(async () => {
+    void (async () => {
       let hfiLayer: VectorTileLayer | null = null
       if (!isNil(runParameter?.run_type) && !isNil(runParameter?.run_datetime)) {
         hfiLayer = await createHFILayer(
