@@ -63,6 +63,7 @@ describe('ASAGoMap', () => {
 
   const defaultProps: ASAGoMapProps = {
     testId: 'asa-go-map',
+    operationalDataLoading: false,
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
     setSelectedFireCentre: vi.fn(),
@@ -111,8 +112,78 @@ describe('ASAGoMap', () => {
       </Provider>
     )
 
-    expect(store.getState().mapLayers.pendingLoads).toBeGreaterThan(0)
-    await waitFor(() => expect(store.getState().mapLayers.pendingLoads).toBe(0))
+    const map = screen.getByTestId(defaultProps.testId)
+    expect(map).toHaveAttribute('aria-busy', 'true')
+    await waitFor(() => expect(map).toHaveAttribute('aria-busy', 'false'))
+  })
+
+  it('reports operational data loading after layer setup settles', async () => {
+    const store = createTestStore()
+    const { rerender } = render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+    const map = screen.getByTestId(defaultProps.testId)
+    await waitFor(() => expect(map).toHaveAttribute('aria-busy', 'false'))
+
+    rerender(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} operationalDataLoading />
+      </Provider>
+    )
+
+    expect(map).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('stays loading until overlapping layer loads settle', async () => {
+    let resolveBasemap: (layer: ReturnType<typeof createLayerMock>) => void = () => {}
+    let resolveHFI: (layer: ReturnType<typeof createLayerMock>) => void = () => {}
+    const basemapPromise = new Promise<ReturnType<typeof createLayerMock>>(resolve => {
+      resolveBasemap = resolve
+    })
+    const hfiPromise = new Promise<ReturnType<typeof createLayerMock>>(resolve => {
+      resolveHFI = resolve
+    })
+    vi.mocked(createBasemapLayer).mockReturnValueOnce(basemapPromise as never)
+    vi.mocked(createHFILayer).mockReturnValueOnce(hfiPromise as never)
+    const staticLayerSpy = vi
+      .spyOn(PMTilesFileVectorSource, 'createStaticLayer')
+      .mockResolvedValue(createPMTilesSource('ready'))
+    const dateKey = '2025-08-01'
+    const store = createTestStore({
+      dateOfInterest: { dateKey },
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          [dateKey]: {
+            for_date: dateKey,
+            run_datetime: '2025-08-01T00:00:00Z',
+            run_type: RunType.FORECAST
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+    const map = screen.getByTestId(defaultProps.testId)
+    await waitFor(() => {
+      expect(createBasemapLayer).toHaveBeenCalled()
+      expect(createHFILayer).toHaveBeenCalled()
+    })
+
+    await act(async () => resolveHFI(createLayerMock('HFILayer')))
+    expect(map).toHaveAttribute('aria-busy', 'true')
+
+    await act(async () => resolveBasemap(createLayerMock('vectorBasemapLayer')))
+    await waitFor(() => expect(map).toHaveAttribute('aria-busy', 'false'))
+
+    staticLayerSpy.mockRestore()
   })
 
   it('renders the location button and location indicator', () => {
@@ -270,7 +341,7 @@ describe('ASAGoMap', () => {
 
     await waitFor(() => {
       expect(createBasemapLayer).toHaveBeenCalled()
-      expect(store.getState().mapLayers.pendingLoads).toBe(0)
+      expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false')
     })
 
     staticLayerSpy.mockRestore()
@@ -294,7 +365,7 @@ describe('ASAGoMap', () => {
       </Provider>
     )
 
-    await waitFor(() => expect(store.getState().mapLayers.pendingLoads).toBe(0))
+    await waitFor(() => expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false'))
 
     staticLayerSpy.mockRestore()
     warnSpy.mockRestore()
@@ -312,7 +383,7 @@ describe('ASAGoMap', () => {
       </Provider>
     )
 
-    await waitFor(() => expect(store.getState().mapLayers.pendingLoads).toBe(0))
+    await waitFor(() => expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false'))
 
     staticLayerSpy.mockRestore()
   })
@@ -346,7 +417,7 @@ describe('ASAGoMap', () => {
       </Provider>
     )
 
-    await waitFor(() => expect(store.getState().mapLayers.pendingLoads).toBe(0))
+    await waitFor(() => expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false'))
 
     staticLayerSpy.mockRestore()
   })

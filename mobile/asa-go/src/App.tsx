@@ -45,7 +45,6 @@ import { initSubscriptions } from '@/slices/settingsSlice'
 import {
   type AppDispatch,
   selectFireCentres,
-  selectMapLayersLoading,
   selectNetworkStatus,
   selectOperationalDataLoading,
   selectPendingNotificationData,
@@ -80,7 +79,6 @@ const App = () => {
   const { registeredFcmToken } = useSelector(selectPushNotification)
   const { loading: settingsLoading, subscriptionsInitialized } = useSelector(selectSettings)
   const operationalDataLoading = useSelector(selectOperationalDataLoading)
-  const mapLayersLoading = useSelector(selectMapLayersLoading)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
   const dateOfInterest = useSelector(selectDateOfInterest)
@@ -286,8 +284,9 @@ const App = () => {
           Icon={networkStatus.connected ? InfoIcon : NetworkIcon}
         />
         <GuestDisclaimerBanner />
-        <TabPanel value={tab} panel={NavPanel.MAP} loading={operationalDataLoading || mapLayersLoading}>
+        <TabPanel value={tab} panel={NavPanel.MAP}>
           <ASAGoMap
+            operationalDataLoading={operationalDataLoading}
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
             setSelectedFireCentre={setFireCentre}

@@ -51,7 +51,6 @@ const onlineState = {
     registeredFcmToken: 'test-token',
     deviceIdError: false,
     registrationError: false,
-    registrationAttempts: 0,
     pendingNotificationData: null
   }
 }
@@ -128,7 +127,6 @@ describe('useNotificationSettings', () => {
         registeredFcmToken: 'tok',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       }
     })
@@ -201,7 +199,6 @@ describe('useNotificationSettings', () => {
         registeredFcmToken: null,
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       }
     })

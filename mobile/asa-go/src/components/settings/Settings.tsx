@@ -5,8 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import type { FireCentreInfo } from '@/api/fbaAPI'
 import SubscriptionAccordion from '@/components/settings/SubscriptionAccordion'
 import { useAppIsActive } from '@/hooks/useAppIsActive'
-import { usePushNotifications } from '@/hooks/usePushNotifications'
-import { checkPushNotificationPermission } from '@/slices/pushNotificationSlice'
+import { checkPushNotificationPermission, retryPushNotificationRegistration } from '@/slices/pushNotificationSlice'
 import { fetchFireCentreInfo, initPinnedFireCentre } from '@/slices/settingsSlice'
 import {
   type AppDispatch,
@@ -27,7 +26,6 @@ const Settings = ({ activeTab }: SettingsProps) => {
   const dispatch: AppDispatch = useDispatch()
   const isActive = useAppIsActive()
   const isVisible = activeTab === NavPanel.SETTINGS
-  const { retryRegistration } = usePushNotifications()
   const { networkStatus } = useSelector(selectNetworkStatus)
   const { fireCentreInfos, error, pinnedFireCentre } = useSelector(selectSettings)
   const { deviceIdError } = useSelector(selectPushNotification)
@@ -41,14 +39,12 @@ const Settings = ({ activeTab }: SettingsProps) => {
 
   // Check push notification settings and fetch fire centre info on mount and when app is foregrounded.
   // Also retry device registration in case the initial attempt failed (e.g. offline at startup).
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetchFireCentreInfo and checkPushNotificationPermission are stable action creators
   useEffect(() => {
-    if (isVisible) {
-      dispatch(fetchFireCentreInfo())
-      dispatch(checkPushNotificationPermission())
-      void retryRegistration()
-    }
-  }, [isActive, isVisible, dispatch, retryRegistration])
+    if (!isActive || !isVisible) return
+    dispatch(fetchFireCentreInfo())
+    dispatch(checkPushNotificationPermission())
+    dispatch(retryPushNotificationRegistration())
+  }, [isActive, isVisible, dispatch])
 
   // Derived ordered list of centres for display (memoized)
   const orderedFireCentres = useMemo<FireCentreInfo[]>(() => {

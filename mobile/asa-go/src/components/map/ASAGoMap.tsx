@@ -13,6 +13,7 @@ import ScaleLine from 'ol/control/ScaleLine'
 import { boundingExtent } from 'ol/extent'
 import { defaults as defaultInteractions } from 'ol/interaction'
 import VectorTileLayer from 'ol/layer/VectorTile'
+import LoadingOverlay from '@/components/LoadingOverlay'
 import MapIconButton from '@/components/MapIconButton'
 import FireShapeActionsDrawer from '@/components/map/FireShapeActionsDrawer'
 import { centerOnFireShape } from '@/components/map/fireShapeCentering'
@@ -52,7 +53,6 @@ import {
 } from '@/layerDefinitions'
 import { selectDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { startWatchingLocation } from '@/slices/geolocationSlice'
-import { mapLayerLoadFinished, mapLayerLoadStarted } from '@/slices/mapLayersSlice'
 import { type AppDispatch, selectGeolocation, selectNetworkStatus } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel } from '@/utils/constants'
@@ -71,18 +71,6 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 const buffer = 1_500_000
 const BC_FULL_MAP_EXTENT_3857 = [bcExtent[0] - buffer, bcExtent[1] - buffer, bcExtent[2] + buffer, bcExtent[3] + buffer]
 
-const beginLayerLoad = (dispatch: AppDispatch) => {
-  dispatch(mapLayerLoadStarted())
-
-  let finished = false
-  return () => {
-    // keep async completion and effect cleanup from finishing the same load twice
-    if (finished) return
-    finished = true
-    dispatch(mapLayerLoadFinished())
-  }
-}
-
 const removeLayerByName = (map: OlMap, layerName: string) => {
   const layer = map
     .getLayers()
@@ -95,6 +83,7 @@ const removeLayerByName = (map: OlMap, layerName: string) => {
 
 export interface ASAGoMapProps {
   testId: string
+  operationalDataLoading: boolean
   selectedFireShape: FireShape | undefined
   setSelectedFireShape: React.Dispatch<React.SetStateAction<FireShape | undefined>>
   setSelectedFireCentre: React.Dispatch<React.SetStateAction<FireCentre | undefined>>
@@ -103,6 +92,7 @@ export interface ASAGoMapProps {
 
 const ASAGoMap = ({
   testId,
+  operationalDataLoading,
   selectedFireShape,
   setSelectedFireShape,
   setSelectedFireCentre,
@@ -129,6 +119,23 @@ const ASAGoMap = ({
   const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>(defaultLayerVisibility)
   const [legendAnchorEl, setLegendAnchorEl] = useState<HTMLButtonElement | null>(null)
   const [isFireShapeDrawerOpen, setIsFireShapeDrawerOpen] = useState<boolean>(false)
+  // count concurrent layer preparations so one finishing cannot hide another still in progress
+  const [pendingLayerLoads, setPendingLayerLoads] = useState(0)
+
+  const beginLayerLoad = React.useCallback(() => {
+    setPendingLayerLoads(count => count + 1)
+    let finished = false
+
+    return () => {
+      // keep async completion and effect cleanup from finishing the same load twice
+      if (finished) return
+      finished = true
+      setPendingLayerLoads(count => Math.max(0, count - 1))
+    }
+  }, [])
+
+  // combine API and layer work because either can leave the map temporarily incomplete
+  const mapLoading = operationalDataLoading || pendingLayerLoads > 0
 
   const [fireZoneFileLayer] = useState<VectorTileLayer>(
     new VectorTileLayer({
@@ -336,7 +343,7 @@ const ASAGoMap = ({
       })
     })
     mapObject.setTarget(mapRef.current)
-    const finishLayerLoad = beginLayerLoad(dispatch)
+    const finishLayerLoad = beginLayerLoad()
 
     /******* Start scale line ******/
 
@@ -474,7 +481,7 @@ const ASAGoMap = ({
       mapObject.getView().un('change:resolution', setScalelineVisibility)
       mapObject.setTarget('')
     }
-  }, [])
+  }, [beginLayerLoad])
 
   // map state storage and restoration
   useEffect(() => {
@@ -511,7 +518,7 @@ const ASAGoMap = ({
   useEffect(() => {
     if (!map) return
 
-    const finishLayerLoad = beginLayerLoad(dispatch)
+    const finishLayerLoad = beginLayerLoad()
 
     void (async () => {
       let hfiLayer: VectorTileLayer | null = null
@@ -539,7 +546,7 @@ const ASAGoMap = ({
       .finally(finishLayerLoad)
 
     return finishLayerLoad
-  }, [map, runParameter, date, layerVisibility, replaceMapLayer, dispatch])
+  }, [map, runParameter, date, layerVisibility, replaceMapLayer, beginLayerLoad])
 
   const handleDrawerClose = () => {
     setIsFireShapeDrawerOpen(false)
@@ -565,6 +572,7 @@ const ASAGoMap = ({
       <Box
         ref={mapRef}
         data-testid={testId}
+        aria-busy={mapLoading}
         sx={{
           display: 'flex',
           flex: 1,
@@ -616,6 +624,8 @@ const ASAGoMap = ({
             handleDrawerClose()
           }}
         />
+        {/* keep the overlay map-scoped so surrounding status and navigation remain visible */}
+        <LoadingOverlay loading={mapLoading} />
       </Box>
     </MapContext.Provider>
   )

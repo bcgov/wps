@@ -158,7 +158,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -243,7 +242,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       settings: {
@@ -362,7 +360,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -401,7 +398,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -506,7 +502,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -569,7 +564,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -610,7 +604,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {

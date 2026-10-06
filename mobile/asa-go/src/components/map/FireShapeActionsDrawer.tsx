@@ -12,8 +12,7 @@ import { SwipeableBottomDrawer } from '@/components/SwipeableBottomDrawer'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { useIsTablet } from '@/hooks/useIsTablet'
 import { useNotificationSettings } from '@/hooks/useNotificationSettings'
-import { usePushNotifications } from '@/hooks/usePushNotifications'
-import { checkPushNotificationPermission } from '@/slices/pushNotificationSlice'
+import { checkPushNotificationPermission, retryPushNotificationRegistration } from '@/slices/pushNotificationSlice'
 import {
   type AppDispatch,
   selectNetworkStatus,
@@ -42,7 +41,6 @@ const FireShapeActionsDrawer = ({
 }: FireShapeActionsDrawerProps) => {
   const dispatch: AppDispatch = useDispatch()
   const { toggleSubscription } = useNotificationSettings()
-  const { retryRegistration } = usePushNotifications()
   const theme = useTheme()
 
   const isPortrait = useIsPortrait()
@@ -83,9 +81,9 @@ const FireShapeActionsDrawer = ({
 
   useEffect(() => {
     if (open) {
-      void retryRegistration()
+      dispatch(retryPushNotificationRegistration())
     }
-  }, [open, retryRegistration])
+  }, [dispatch, open])
 
   const handleSubscriptionUpdate = () => {
     if (selectedFireShapeId === undefined || notificationSettingsDisabled) {

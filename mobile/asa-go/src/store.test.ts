@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RootState } from '@/store'
 import {
-  selectMapLayersLoading,
   selectNotificationSettingsDisabled,
   selectNotificationSetupState,
   selectOperationalDataLoading,
@@ -172,13 +171,5 @@ describe('load-state selectors', () => {
     } as unknown as RootState
 
     expect(selectSettingsLoadState(state)).toEqual({ loading: true, errorKey: 'settings failed' })
-  })
-
-  it('reports whether map layers are loading', () => {
-    const state = {
-      mapLayers: { pendingLoads: 2 }
-    } as unknown as RootState
-
-    expect(selectMapLayersLoading(state)).toBe(true)
   })
 })

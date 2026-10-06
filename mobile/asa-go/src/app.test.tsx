@@ -93,7 +93,11 @@ vi.mock('@/components/BottomNavigationBar', () => ({
 }))
 
 vi.mock('@/components/map/ASAGoMap', () => ({
-  default: () => <div data-testid="asa-go-map">ASA Go Map</div>
+  default: ({ operationalDataLoading }: { operationalDataLoading: boolean }) => (
+    <div data-testid="asa-go-map" data-loading={operationalDataLoading}>
+      ASA Go Map
+    </div>
+  )
 }))
 
 vi.mock('@/components/profile/Profile', () => ({
@@ -159,9 +163,7 @@ vi.mock('@/hooks/useAppIsActive', () => ({
 
 vi.mock('@/hooks/usePushNotifications', () => ({
   usePushNotifications: vi.fn().mockReturnValue({
-    initPushNotifications: vi.fn().mockResolvedValue(undefined),
-    retryRegistration: vi.fn().mockResolvedValue(undefined),
-    currentFcmToken: null
+    initPushNotifications: vi.fn().mockResolvedValue(undefined)
   })
 }))
 
@@ -221,8 +223,7 @@ describe('App', () => {
     vi.mocked(useIsPortrait).mockReturnValue(true)
     vi.mocked(useMediaQuery).mockReturnValue(false)
     vi.mocked(usePushNotifications).mockReturnValue({
-      initPushNotifications: vi.fn().mockResolvedValue(undefined),
-      retryRegistration: vi.fn().mockResolvedValue(undefined)
+      initPushNotifications: vi.fn().mockResolvedValue(undefined)
     })
     vi.mocked(axios.get).mockImplementation((url: string) => {
       if (url === 'psu/fire-centres') {
@@ -275,23 +276,9 @@ describe('App', () => {
       </Provider>
     )
 
-    expect(screen.getByTestId('tab-panel-Map')).toHaveAttribute('data-loading', 'true')
+    expect(screen.getByTestId('asa-go-map')).toHaveAttribute('data-loading', 'true')
     expect(screen.getByTestId('app-header')).toBeInTheDocument()
     expect(screen.getByTestId('bottom-nav')).toBeInTheDocument()
-  })
-
-  it('marks the Map tab loading while map layers are loading', () => {
-    const store = createTestStore({
-      mapLayers: { pendingLoads: 1 }
-    })
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>
-    )
-
-    expect(screen.getByTestId('tab-panel-Map')).toHaveAttribute('data-loading', 'true')
   })
 
   it('does not notify when the HFI cache preflight succeeds', async () => {
@@ -679,8 +666,7 @@ describe('App', () => {
   it('calls initPushNotifications when authenticated', async () => {
     const initPushNotifications = vi.fn().mockResolvedValue(undefined)
     vi.mocked(usePushNotifications).mockReturnValue({
-      initPushNotifications,
-      retryRegistration: vi.fn().mockResolvedValue(undefined)
+      initPushNotifications
     })
 
     const store = createTestStore({
@@ -709,8 +695,7 @@ describe('App', () => {
   it('calls initPushNotifications when not authenticated', async () => {
     const initPushNotifications = vi.fn().mockResolvedValue(undefined)
     vi.mocked(usePushNotifications).mockReturnValue({
-      initPushNotifications,
-      retryRegistration: vi.fn().mockResolvedValue(undefined)
+      initPushNotifications
     })
 
     const store = createTestStore()

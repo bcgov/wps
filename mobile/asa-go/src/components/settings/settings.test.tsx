@@ -1,15 +1,21 @@
+import { FirebaseMessaging } from '@capacitor-firebase/messaging'
 import { configureStore } from '@reduxjs/toolkit'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { describe, expect, it, type Mock, vi } from 'vitest'
 import { type FireCentreInfo, getFireCentreInfo } from '@/api/fbaAPI'
+import { useAppIsActive } from '@/hooks/useAppIsActive'
 import authenticationReducer from '@/slices/authenticationSlice'
 import networkStatusReducer from '@/slices/networkStatusSlice'
-import pushNotificationReducer from '@/slices/pushNotificationSlice'
+import pushNotificationReducer, { initialState as pushNotificationInitialState } from '@/slices/pushNotificationSlice'
 import settingsReducer from '@/slices/settingsSlice'
 import { NavPanel } from '@/utils/constants'
 import * as Storage from '@/utils/storage'
 import Settings from './Settings'
+
+vi.mock('@/hooks/useAppIsActive', () => ({
+  useAppIsActive: vi.fn()
+}))
 
 // Mock the API call
 vi.mock('@/api/fbaAPI', async () => {
@@ -77,6 +83,9 @@ const createTestStore = (initialState = {}) => {
 describe('Settings', () => {
   // Mock the API call before each test
   beforeEach(() => {
+    vi.mocked(useAppIsActive).mockReturnValue(true)
+    vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({ receive: 'denied' })
+    vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({ token: 'test-token' })
     ;(getFireCentreInfo as Mock).mockResolvedValue({
       fire_centre_info: mockFireCentreInfos
     })
@@ -99,6 +108,56 @@ describe('Settings', () => {
     await waitFor(() => {
       expect(screen.getByTestId('asa-go-settings')).toBeInTheDocument()
     })
+  })
+
+  it('retries failed registration on each settings access and foreground resume', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    ;(FirebaseMessaging.checkPermissions as Mock).mockResolvedValue({ receive: 'granted' })
+    ;(FirebaseMessaging.getToken as Mock).mockRejectedValue(new Error('token error'))
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      },
+      pushNotification: {
+        ...pushNotificationInitialState,
+        pushNotificationPermission: 'granted',
+        registrationError: true
+      }
+    })
+
+    const view = render(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>
+    )
+    await waitFor(() => expect(FirebaseMessaging.getToken).toHaveBeenCalledTimes(1))
+
+    view.rerender(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.MAP} />
+      </Provider>
+    )
+    view.rerender(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>
+    )
+    await waitFor(() => expect(FirebaseMessaging.getToken).toHaveBeenCalledTimes(2))
+
+    vi.mocked(useAppIsActive).mockReturnValue(false)
+    view.rerender(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>
+    )
+    vi.mocked(useAppIsActive).mockReturnValue(true)
+    view.rerender(
+      <Provider store={store}>
+        <Settings activeTab={NavPanel.SETTINGS} />
+      </Provider>
+    )
+    await waitFor(() => expect(FirebaseMessaging.getToken).toHaveBeenCalledTimes(3))
+    consoleSpy.mockRestore()
   })
 
   it('renders fire centre accordions when data is loaded', async () => {

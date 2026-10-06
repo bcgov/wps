@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import { describe, expect, it } from 'vitest'
 import NotificationCenter from '@/components/NotificationCenter'
 import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
+import { updateNetworkStatus } from '@/slices/networkStatusSlice'
 import { dismissNotification, enqueueNotification } from '@/slices/notificationSlice'
 import { initialState as pushNotificationInitialState, setRegistrationError } from '@/slices/pushNotificationSlice'
 import { createTestStore } from '@/testUtils'
@@ -68,7 +69,7 @@ describe('NotificationCenter', () => {
     await waitFor(() => expect(screen.queryByText('Error')).not.toBeInTheDocument())
   })
 
-  it('keeps a dismissed registration warning hidden until the failure recurs', async () => {
+  it('keeps a dismissed registration warning hidden until a new failure cycle', async () => {
     const store = createTestStore({
       networkStatus: { networkStatus: { connected: true, connectionType: 'wifi' } },
       pushNotification: {
@@ -87,12 +88,42 @@ describe('NotificationCenter', () => {
     )
 
     act(() => {
+      store.dispatch(setRegistrationError(true))
+    })
+    expect(screen.queryByText(NOTIFICATION_DEFINITIONS.pushRegistrationError.message)).not.toBeInTheDocument()
+
+    act(() => {
       store.dispatch(setRegistrationError(false))
     })
     act(() => {
       store.dispatch(setRegistrationError(true))
     })
 
+    expect(await screen.findByText(NOTIFICATION_DEFINITIONS.pushRegistrationError.message)).toBeInTheDocument()
+  })
+
+  it('restores an unresolved registration warning after reconnecting', async () => {
+    const store = createTestStore({
+      networkStatus: { networkStatus: { connected: true, connectionType: 'wifi' } },
+      pushNotification: {
+        ...pushNotificationInitialState,
+        pushNotificationPermission: 'granted',
+        registrationError: true
+      }
+    })
+    renderCenter(store)
+    expect(await screen.findByText(NOTIFICATION_DEFINITIONS.pushRegistrationError.message)).toBeInTheDocument()
+
+    act(() => {
+      store.dispatch(updateNetworkStatus({ connected: false, connectionType: 'none' }))
+    })
+    await waitFor(() =>
+      expect(screen.queryByText(NOTIFICATION_DEFINITIONS.pushRegistrationError.message)).not.toBeInTheDocument()
+    )
+
+    act(() => {
+      store.dispatch(updateNetworkStatus({ connected: true, connectionType: 'wifi' }))
+    })
     expect(await screen.findByText(NOTIFICATION_DEFINITIONS.pushRegistrationError.message)).toBeInTheDocument()
   })
 })

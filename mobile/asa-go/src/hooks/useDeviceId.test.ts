@@ -58,7 +58,6 @@ describe('useDeviceId', () => {
         registeredFcmToken: null,
         deviceIdError: true,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       }
     })

@@ -22,7 +22,7 @@ export const NOTIFICATION_DEFINITIONS = {
   pushRegistrationError: {
     autoHideDuration: null,
     dedupeKey: 'push-registration-error',
-    message: 'Unable to register this device for notifications. Retrying automatically.',
+    message: 'Unable to register this device for notifications.',
     severity: 'warning'
   },
   settingsDataError: {

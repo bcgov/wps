@@ -11,7 +11,8 @@ export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
 
-export type AppThunk = ThunkAction<void, RootState, undefined, Action>
+// allow async thunks to expose their promise when callers need to await nested work
+export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, undefined, Action>
 
 export const selectFireCentres = (state: RootState) => state.fireCentres
 export const selectGeolocation = (state: RootState) => state.geolocation
@@ -66,11 +67,6 @@ export const selectOperationalDataLoading = createSelector(selectOperationalLoad
 export const selectSettingsLoadState = createSelector(
   selectSettings,
   ({ loading, error }): LoadSourceState => ({ loading, errorKey: error })
-)
-
-export const selectMapLayersLoading = createSelector(
-  (state: RootState) => state.mapLayers,
-  ({ pendingLoads }) => pendingLoads > 0
 )
 
 export type NotificationSetupState = 'permissionDenied' | 'unregistered' | 'registrationFailed' | 'ready'

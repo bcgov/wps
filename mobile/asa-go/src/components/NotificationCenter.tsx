@@ -1,5 +1,5 @@
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import NotificationSnackbar from '@/components/NotificationSnackbar'
 import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
@@ -11,17 +11,13 @@ const NotificationCenter = () => {
   const notification = useSelector(selectCurrentNotification)
   const isRegistrationFailed = useSelector(selectRegistrationFailed)
   const { networkStatus } = useSelector(selectNetworkStatus)
-  const registrationFailureActive = useRef(false)
   const shouldShowRegistrationError = isRegistrationFailed && networkStatus.connected
 
   useEffect(() => {
-    if (shouldShowRegistrationError && !registrationFailureActive.current) {
-      registrationFailureActive.current = true
-      dispatch(enqueueNotification(NOTIFICATION_DEFINITIONS.pushRegistrationError))
-    } else if (!shouldShowRegistrationError && registrationFailureActive.current) {
-      registrationFailureActive.current = false
-      dispatch(removeNotificationByKey(NOTIFICATION_DEFINITIONS.pushRegistrationError.dedupeKey))
-    }
+    const action = shouldShowRegistrationError
+      ? enqueueNotification(NOTIFICATION_DEFINITIONS.pushRegistrationError)
+      : removeNotificationByKey(NOTIFICATION_DEFINITIONS.pushRegistrationError.dedupeKey)
+    dispatch(action)
   }, [dispatch, shouldShowRegistrationError])
 
   if (!notification) return null
