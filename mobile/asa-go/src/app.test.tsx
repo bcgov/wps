@@ -8,6 +8,7 @@ import axios from '@/api/axios'
 import { RunType } from '@/api/fbaAPI'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { updateNetworkStatus } from '@/slices/networkStatusSlice'
 import { enqueueNotification } from '@/slices/notificationSlice'
@@ -319,7 +320,11 @@ describe('App', () => {
 
     await waitFor(() => expect(clearStaleHFIPMTiles).toHaveBeenCalled())
     expect(
-      store.getState().notifications.notifications.find(notification => notification.dedupeKey === 'hfi-cache-error')
+      store
+        .getState()
+        .notifications.notifications.find(
+          notification => notification.dedupeKey === NOTIFICATION_DEFINITIONS.hfiCacheError.dedupeKey
+        )
     ).toBeUndefined()
   })
 
@@ -356,12 +361,12 @@ describe('App', () => {
     await waitFor(() => expect(mockLoadHFIPMTiles).toHaveBeenCalledTimes(2))
     await waitFor(() => {
       expect(
-        store.getState().notifications.notifications.find(notification => notification.dedupeKey === 'hfi-cache-error')
-      ).toEqual(
-        expect.objectContaining({
-          message: 'Unable to update HFI map data. Some map information may be unavailable.'
-        })
-      )
+        store
+          .getState()
+          .notifications.notifications.find(
+            notification => notification.dedupeKey === NOTIFICATION_DEFINITIONS.hfiCacheError.dedupeKey
+          )
+      ).toEqual(expect.objectContaining(NOTIFICATION_DEFINITIONS.hfiCacheError))
     })
 
     act(() => {
@@ -374,7 +379,11 @@ describe('App', () => {
 
     await waitFor(() => expect(mockLoadHFIPMTiles).toHaveBeenCalledTimes(4))
     expect(
-      store.getState().notifications.notifications.filter(notification => notification.dedupeKey === 'hfi-cache-error')
+      store
+        .getState()
+        .notifications.notifications.filter(
+          notification => notification.dedupeKey === NOTIFICATION_DEFINITIONS.hfiCacheError.dedupeKey
+        )
     ).toHaveLength(1)
   })
 

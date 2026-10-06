@@ -9,8 +9,8 @@ import FireShapeActionsDrawer from '@/components/map/FireShapeActionsDrawer'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { useIsTablet } from '@/hooks/useIsTablet'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { createTestStore } from '@/testUtils'
-import { subscriptionUpdateErrorMessage } from '@/utils/constants'
 
 vi.mock('@/hooks/useDeviceId', () => ({
   useDeviceId: vi.fn().mockReturnValue('test-device-id')
@@ -403,7 +403,7 @@ describe('FireShapeActionsDrawer', () => {
 
     await waitFor(() => {
       expect(store.getState().notifications.notifications).toEqual([
-        expect.objectContaining({ message: subscriptionUpdateErrorMessage })
+        expect.objectContaining(NOTIFICATION_DEFINITIONS.subscriptionUpdateError)
       ])
     })
   })

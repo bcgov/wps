@@ -27,6 +27,7 @@ import { useDeviceId } from '@/hooks/useDeviceId'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { fetchAndCacheData } from '@/slices/dataSlice'
 import {
   resetDateOfInterestIfStale,
@@ -59,9 +60,6 @@ import { NavPanel, StatusEnum } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
 import { PMTilesCache } from '@/utils/pmtilesCache'
 import { clearStaleHFIPMTiles } from '@/utils/storage'
-
-const HFI_CACHE_ERROR_NOTIFICATION_KEY = 'hfi-cache-error'
-const HFI_CACHE_ERROR_MESSAGE = 'Unable to update HFI map data. Some map information may be unavailable.'
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY)
@@ -177,12 +175,7 @@ const App = () => {
       await clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
       const loadFailed = results.some(result => result.status === 'rejected' || result.value === undefined)
       if (!cancelled && loadFailed) {
-        dispatch(
-          enqueueNotification({
-            dedupeKey: HFI_CACHE_ERROR_NOTIFICATION_KEY,
-            message: HFI_CACHE_ERROR_MESSAGE
-          })
-        )
+        dispatch(enqueueNotification(NOTIFICATION_DEFINITIONS.hfiCacheError))
       }
     }
 

@@ -3,6 +3,7 @@ import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FireCentreInfo } from '@/api/fbaAPI'
 import SubscriptionAccordion from '@/components/settings/SubscriptionAccordion'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import settingsReducer from '@/slices/settingsSlice'
 import { createTestStore } from '@/testUtils'
 
@@ -21,7 +22,6 @@ vi.mock('@/utils/retryWithBackoff', () => ({
 }))
 
 import { getNotificationSettings, updateNotificationSettings } from 'api/pushNotificationsAPI'
-import { subscriptionUpdateErrorMessage } from '@/utils/constants'
 
 vi.mock('@capacitor/preferences', () => ({
   Preferences: {
@@ -270,7 +270,7 @@ describe('SubscriptionAccordion', () => {
 
     expect(updateNotificationSettings).toHaveBeenCalled()
     expect(store.getState().notifications.notifications).toEqual([
-      expect.objectContaining({ message: subscriptionUpdateErrorMessage })
+      expect.objectContaining(NOTIFICATION_DEFINITIONS.subscriptionUpdateError)
     ])
     expect(screen.queryAllByTestId('loading-switch-error')).toHaveLength(0)
   })
@@ -589,7 +589,7 @@ describe('SubscriptionAccordion', () => {
 
     await waitFor(() => {
       expect(store.getState().notifications.notifications).toEqual([
-        expect.objectContaining({ message: subscriptionUpdateErrorMessage })
+        expect.objectContaining(NOTIFICATION_DEFINITIONS.subscriptionUpdateError)
       ])
     })
   })

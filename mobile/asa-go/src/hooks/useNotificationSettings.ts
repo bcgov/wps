@@ -1,10 +1,10 @@
 import { updateNotificationSettings } from 'api/pushNotificationsAPI'
 import { useDispatch, useSelector } from 'react-redux'
 import { useDeviceId } from '@/hooks/useDeviceId'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { enqueueNotification } from '@/slices/notificationSlice'
 import { setSubscriptions } from '@/slices/settingsSlice'
 import { type AppDispatch, selectNetworkStatus, selectPushNotification, selectSettings } from '@/store'
-import { subscriptionUpdateErrorMessage } from '@/utils/constants'
 import { retryWithBackoff } from '@/utils/retryWithBackoff'
 import { getUpdatedSubscriptions } from '@/utils/subscriptionUtils'
 
@@ -29,13 +29,7 @@ export function useNotificationSettings() {
     } catch (e) {
       console.error(`Failed to update notification settings: ${e}`)
       dispatch(setSubscriptions(previousSubs))
-      dispatch(
-        enqueueNotification({
-          dedupeKey: 'subscription-update-error',
-          message: subscriptionUpdateErrorMessage,
-          severity: 'error'
-        })
-      )
+      dispatch(enqueueNotification(NOTIFICATION_DEFINITIONS.subscriptionUpdateError))
       return false
     }
   }

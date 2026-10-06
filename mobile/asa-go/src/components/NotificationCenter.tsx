@@ -2,11 +2,9 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import NotificationSnackbar from '@/components/NotificationSnackbar'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { dismissNotification, enqueueNotification, removeNotificationByKey } from '@/slices/notificationSlice'
 import { type AppDispatch, selectCurrentNotification, selectNetworkStatus, selectRegistrationFailed } from '@/store'
-
-const REGISTRATION_ERROR_NOTIFICATION_KEY = 'push-registration-error'
-const REGISTRATION_ERROR_MESSAGE = 'Unable to register this device for notifications. Retrying automatically.'
 
 const NotificationCenter = () => {
   const dispatch: AppDispatch = useDispatch()
@@ -19,17 +17,10 @@ const NotificationCenter = () => {
   useEffect(() => {
     if (shouldShowRegistrationError && !registrationFailureActive.current) {
       registrationFailureActive.current = true
-      dispatch(
-        enqueueNotification({
-          autoHideDuration: null,
-          dedupeKey: REGISTRATION_ERROR_NOTIFICATION_KEY,
-          message: REGISTRATION_ERROR_MESSAGE,
-          severity: 'warning'
-        })
-      )
+      dispatch(enqueueNotification(NOTIFICATION_DEFINITIONS.pushRegistrationError))
     } else if (!shouldShowRegistrationError && registrationFailureActive.current) {
       registrationFailureActive.current = false
-      dispatch(removeNotificationByKey(REGISTRATION_ERROR_NOTIFICATION_KEY))
+      dispatch(removeNotificationByKey(NOTIFICATION_DEFINITIONS.pushRegistrationError.dedupeKey))
     }
   }, [dispatch, shouldShowRegistrationError])
 

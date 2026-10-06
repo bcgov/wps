@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { describe, expect, it } from 'vitest'
 import NotificationCenter from '@/components/NotificationCenter'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { dismissNotification, enqueueNotification } from '@/slices/notificationSlice'
 import { initialState as pushNotificationInitialState, setRegistrationError } from '@/slices/pushNotificationSlice'
 import { createTestStore } from '@/testUtils'
@@ -78,15 +79,11 @@ describe('NotificationCenter', () => {
     })
     renderCenter(store)
 
-    expect(
-      await screen.findByText('Unable to register this device for notifications. Retrying automatically.')
-    ).toBeInTheDocument()
+    expect(await screen.findByText(NOTIFICATION_DEFINITIONS.pushRegistrationError.message)).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
     await waitFor(() =>
-      expect(
-        screen.queryByText('Unable to register this device for notifications. Retrying automatically.')
-      ).not.toBeInTheDocument()
+      expect(screen.queryByText(NOTIFICATION_DEFINITIONS.pushRegistrationError.message)).not.toBeInTheDocument()
     )
 
     act(() => {
@@ -96,8 +93,6 @@ describe('NotificationCenter', () => {
       store.dispatch(setRegistrationError(true))
     })
 
-    expect(
-      await screen.findByText('Unable to register this device for notifications. Retrying automatically.')
-    ).toBeInTheDocument()
+    expect(await screen.findByText(NOTIFICATION_DEFINITIONS.pushRegistrationError.message)).toBeInTheDocument()
   })
 })

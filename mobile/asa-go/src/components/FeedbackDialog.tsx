@@ -16,6 +16,7 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { type SyntheticEvent, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { resetFeedbackSubmission, setFeedbackError, submitFeedback } from '@/slices/feedbackSlice'
 import { enqueueNotification } from '@/slices/notificationSlice'
 import { type AppDispatch, selectFeedback } from '@/store'
@@ -57,14 +58,7 @@ export const FeedbackDialog = ({ defaultEmail, isOnline, onClose, open }: Feedba
     if (!submitted) {
       return
     }
-    dispatch(
-      enqueueNotification({
-        autoHideDuration: 4000,
-        dedupeKey: 'feedback-success',
-        message: 'Thank you for your feedback.',
-        severity: 'success'
-      })
-    )
+    dispatch(enqueueNotification(NOTIFICATION_DEFINITIONS.feedbackSuccess))
     dispatch(resetFeedbackSubmission())
     onClose()
   }, [dispatch, onClose, submitted])

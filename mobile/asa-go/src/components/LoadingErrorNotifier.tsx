@@ -1,21 +1,17 @@
 import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { enqueueNotification, removeNotificationByKey } from '@/slices/notificationSlice'
 import { type AppDispatch, type RootState, selectOperationalLoadState, selectSettingsLoadState } from '@/store'
-
-const OPERATIONAL_DATA_ERROR_MESSAGE = 'Unable to update operational data. Displayed data may be stale.'
-const SETTINGS_DATA_ERROR_MESSAGE = 'Unable to load notification settings. Check your connection and try again.'
-
-const LOADING_ERROR_NOTIFICATION_KEY = 'loading-error'
 
 interface LoadingErrorKeys {
   operational: string | null
   settings: string | null
 }
 
-const getErrorMessage = (operationalErrorPending: boolean, settingsErrorPending: boolean) => {
-  if (settingsErrorPending) return SETTINGS_DATA_ERROR_MESSAGE
-  if (operationalErrorPending) return OPERATIONAL_DATA_ERROR_MESSAGE
+const getErrorNotification = (operationalErrorPending: boolean, settingsErrorPending: boolean) => {
+  if (settingsErrorPending) return NOTIFICATION_DEFINITIONS.settingsDataError
+  if (operationalErrorPending) return NOTIFICATION_DEFINITIONS.operationalDataError
   return null
 }
 
@@ -36,7 +32,7 @@ const LoadingErrorNotifier = () => {
       connected && operationalError !== null && operationalError !== handledErrorKeys.current.operational
     const settingsErrorPending =
       connected && settingsError !== null && settingsError !== handledErrorKeys.current.settings
-    const message = getErrorMessage(operationalErrorPending, settingsErrorPending)
+    const notification = getErrorNotification(operationalErrorPending, settingsErrorPending)
 
     handledErrorKeys.current = {
       // offline API failures are handled by the persistent InfoBar instead of a notification
@@ -48,13 +44,9 @@ const LoadingErrorNotifier = () => {
       settings: getHandledErrorKey(settingsError, handledErrorKeys.current.settings, settingsErrorPending || !connected)
     }
 
-    const notificationAction = message
-      ? enqueueNotification({
-          dedupeKey: LOADING_ERROR_NOTIFICATION_KEY,
-          message,
-          severity: 'error'
-        })
-      : removeNotificationByKey(LOADING_ERROR_NOTIFICATION_KEY)
+    const notificationAction = notification
+      ? enqueueNotification(notification)
+      : removeNotificationByKey(NOTIFICATION_DEFINITIONS.operationalDataError.dedupeKey)
 
     dispatch(notificationAction)
   }, [connected, dispatch, operationalError, settingsError])

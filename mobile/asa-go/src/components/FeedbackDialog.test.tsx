@@ -6,6 +6,7 @@ import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 import { FeedbackDialog } from '@/components/FeedbackDialog'
 import NotificationCenter from '@/components/NotificationCenter'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { createTestStore } from '@/testUtils'
 
 vi.mock('@sentry/react', () => ({
@@ -74,7 +75,7 @@ describe('FeedbackDialog', () => {
       )
       expect(onClose).toHaveBeenCalled()
     })
-    expect(await screen.findByText('Thank you for your feedback.')).toBeInTheDocument()
+    expect(await screen.findByText(NOTIFICATION_DEFINITIONS.feedbackSuccess.message)).toBeInTheDocument()
   })
 
   it('keeps the form open and displays an error when submission fails', async () => {

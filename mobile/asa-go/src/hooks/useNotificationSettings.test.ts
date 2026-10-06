@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import React from 'react'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { createTestStore } from '@/testUtils'
 import { useNotificationSettings } from './useNotificationSettings'
 
@@ -246,10 +247,7 @@ describe('useNotificationSettings', () => {
     })
 
     expect(store.getState().notifications.notifications).toEqual([
-      expect.objectContaining({
-        dedupeKey: 'subscription-update-error',
-        message: 'Failed to update notification settings. Please try again later.'
-      })
+      expect.objectContaining(NOTIFICATION_DEFINITIONS.subscriptionUpdateError)
     ])
     consoleSpy.mockRestore()
   })

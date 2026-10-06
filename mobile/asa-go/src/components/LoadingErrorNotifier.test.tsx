@@ -4,14 +4,12 @@ import { Provider } from 'react-redux'
 import { describe, expect, it } from 'vitest'
 import LoadingErrorNotifier from '@/components/LoadingErrorNotifier'
 import NotificationCenter from '@/components/NotificationCenter'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { initialState as dataInitialState, getDataFailed, getDataStart } from '@/slices/dataSlice'
 import { updateNetworkStatus } from '@/slices/networkStatusSlice'
 import { initialState as settingsInitialState } from '@/slices/settingsSlice'
 import { createTestStore } from '@/testUtils'
 import { theme } from '@/theme'
-
-const OPERATIONAL_DATA_ERROR_MESSAGE = 'Unable to update operational data. Displayed data may be stale.'
-const SETTINGS_DATA_ERROR_MESSAGE = 'Unable to load notification settings. Check your connection and try again.'
 
 const renderSnackbar = ({
   connected = true,
@@ -48,7 +46,7 @@ describe('LoadingErrorNotifier', () => {
   it('shows one friendly operational data error', () => {
     renderSnackbar({ dataError: 'Error: API failed' })
 
-    expect(screen.getByText(OPERATIONAL_DATA_ERROR_MESSAGE)).toBeInTheDocument()
+    expect(screen.getByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).toBeInTheDocument()
     expect(screen.queryByText('Error: API failed')).not.toBeInTheDocument()
     expect(screen.getByTestId('CancelOutlinedIcon')).toHaveStyle({ color: '#E7000B' })
   })
@@ -56,14 +54,14 @@ describe('LoadingErrorNotifier', () => {
   it('shows a settings data error globally', () => {
     renderSnackbar({ settingsError: 'Error: settings failed' })
 
-    expect(screen.getByText(SETTINGS_DATA_ERROR_MESSAGE)).toBeInTheDocument()
+    expect(screen.getByText(NOTIFICATION_DEFINITIONS.settingsDataError.message)).toBeInTheDocument()
   })
 
   it('prioritizes settings errors when both sources fail', () => {
     renderSnackbar({ dataError: 'API failed', settingsError: 'Settings failed' })
 
-    expect(screen.getByText(SETTINGS_DATA_ERROR_MESSAGE)).toBeInTheDocument()
-    expect(screen.queryByText(OPERATIONAL_DATA_ERROR_MESSAGE)).not.toBeInTheDocument()
+    expect(screen.getByText(NOTIFICATION_DEFINITIONS.settingsDataError.message)).toBeInTheDocument()
+    expect(screen.queryByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).not.toBeInTheDocument()
   })
 
   it('does not show an API error encountered offline after reconnecting', () => {
@@ -73,14 +71,16 @@ describe('LoadingErrorNotifier', () => {
       store.dispatch(updateNetworkStatus({ connected: true, connectionType: 'wifi' }))
     })
 
-    expect(screen.queryByText(OPERATIONAL_DATA_ERROR_MESSAGE)).not.toBeInTheDocument()
+    expect(screen.queryByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).not.toBeInTheDocument()
   })
 
   it('does not reopen a dismissed error until it clears and occurs again', async () => {
     const { store } = renderSnackbar({ dataError: 'API failed' })
 
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
-    await waitFor(() => expect(screen.queryByText(OPERATIONAL_DATA_ERROR_MESSAGE)).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).not.toBeInTheDocument()
+    )
 
     act(() => {
       store.dispatch(getDataStart())
@@ -89,6 +89,6 @@ describe('LoadingErrorNotifier', () => {
       store.dispatch(getDataFailed('API failed'))
     })
 
-    expect(screen.getByText(OPERATIONAL_DATA_ERROR_MESSAGE)).toBeInTheDocument()
+    expect(screen.getByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).toBeInTheDocument()
   })
 })
