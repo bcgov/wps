@@ -40,6 +40,9 @@ jobs:
     name: Build ${{ matrix.name }} Image
     runs-on:
       group: Larger Runners - OpenShift Static-IP
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -77,6 +80,19 @@ jobs:
             ${{ matrix.docker_file && format('DOCKER_FILE={0}', matrix.docker_file) || '' }} \
             ${{ matrix.path_bc && format('PATH_BC={0}', matrix.path_bc) || '' }} \
             bash openshift/scripts/oc_build.sh ${SUFFIX} apply
+
+      # Copy of the OpenShift-built image for running outside OpenShift. OpenShift still pulls from
+      # its internal registry, so a GHCR outage must not block deploys. Set PUSH_GHCR=false to skip.
+      - name: Mirror wps-${{ matrix.module }} Image to GHCR
+        if: vars.PUSH_GHCR != 'false'
+        continue-on-error: true
+        shell: bash
+        run: |
+          oc registry login --registry=image-registry.apps.silver.devops.gov.bc.ca
+          oc registry login --registry=ghcr.io --auth-basic="${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}"
+          oc image mirror \
+            image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-${{ matrix.module }}-${SUFFIX}:${SUFFIX} \
+            ghcr.io/bcgov/wps/wps-${{ matrix.module }}:${SUFFIX}
 
   configure-nats-server-name:
     name: Configure nats server name
