@@ -114,8 +114,10 @@ def test_julian_nodata_never_switches(julian_name: str, base_value: int, unchang
 def test_rejects_unsupported_base_fuel_values(value: float):
     datasets = make_datasets(np.array([[value]]))
 
+    target_date = date(2026, 7, 1)
+
     with pytest.raises(ValueError, match="unsupported classifications"):
-        TemporalFuelGrid.build(datasets, date(2026, 7, 1))
+        TemporalFuelGrid.build(datasets, target_date)
 
 
 def test_fuel_codes_lookup_lists_present_grid_values_in_order():
@@ -244,17 +246,17 @@ async def test_publish_temporal_fuel_raster_rejects_misaligned_julian_raster(
         gdal.GDT_Int16,
         x_origin=2000.0,
     )
-    keys = {**vars(rasters), f"{julian_name}_key": shifted}
+    keys = {
+        **vars(rasters),
+        f"{julian_name}_key": shifted,
+        "output_key": "temporal/fbp.tif",
+        "fuel_codes_lookup_path": "temporal/fbp.json",
+    }
+    target_date = date(2026, 7, 1)
     publish = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
 
     with pytest.raises(ValueError, match=f"{julian_name} raster does not match the fuel grid"):
-        await publish_temporal_fuel_raster(
-            s3_client,
-            date(2026, 7, 1),
-            **keys,
-            output_key="temporal/fbp.tif",
-            fuel_codes_lookup_path="temporal/fbp.json",
-        )
+        await publish_temporal_fuel_raster(s3_client, target_date, **keys)
 
     publish.assert_not_called()
     s3_client.put_object.assert_not_awaited()
@@ -267,13 +269,14 @@ async def test_publish_temporal_fuel_raster_requires_all_inputs(
     s3_client.all_objects_exist = AsyncMock(return_value=False)
     publish = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
 
+    keys = {
+        **vars(rasters),
+        "output_key": "temporal/fbp.tif",
+        "fuel_codes_lookup_path": "temporal/fbp.json",
+    }
+    target_date = date(2026, 7, 1)
+
     with pytest.raises(RuntimeError, match="Missing raster dependencies"):
-        await publish_temporal_fuel_raster(
-            s3_client,
-            date(2026, 7, 1),
-            **vars(rasters),
-            output_key="temporal/fbp.tif",
-            fuel_codes_lookup_path="temporal/fbp.json",
-        )
+        await publish_temporal_fuel_raster(s3_client, target_date, **keys)
 
     publish.assert_not_called()

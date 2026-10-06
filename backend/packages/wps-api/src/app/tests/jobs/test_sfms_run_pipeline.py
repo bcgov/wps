@@ -272,9 +272,11 @@ async def test_resolve_temporal_fuel_raster_requires_julian_rasters(temporal_fue
     deps = temporal_fuel_deps
     deps.s3_client.all_objects_exist = AsyncMock(return_value=False)
 
+    target_date = date(2026, 6, 1)
+
     with pytest.raises(RuntimeError, match="Missing Julian date rasters"):
         await resolve_temporal_fuel_raster(
-            date(2026, 6, 1), deps.fuel_type_raster, deps.addresser, deps.s3_client
+            target_date, deps.fuel_type_raster, deps.addresser, deps.s3_client
         )
 
     deps.s3_client.all_objects_exist.assert_awaited_once_with(

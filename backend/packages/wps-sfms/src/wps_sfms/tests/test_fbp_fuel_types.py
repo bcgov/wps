@@ -43,16 +43,16 @@ def test_national_lookup_maps_to_cffdrs_fuel_types():
 
 @pytest.mark.parametrize("label", ["M-1/M-2", "M-1 (05 PC)", "Unknown"])
 def test_lookup_rejects_fuel_types_cffdrs_cannot_calculate(label: str):
-    with pytest.raises(ValueError, match="unsupported fuel type"):
-        CFFDRSFuelTypes.from_lookup(
-            FuelCodesLookup(
-                [
-                    TemporalFuelGrid.NATIONAL_FUEL_LOOKUP[40].model_copy(
-                        update={"grid_value": 60, "fuel_type": label}
-                    )
-                ]
+    lookup = FuelCodesLookup(
+        [
+            TemporalFuelGrid.NATIONAL_FUEL_LOOKUP[40].model_copy(
+                update={"grid_value": 60, "fuel_type": label}
             )
-        )
+        ]
+    )
+
+    with pytest.raises(ValueError, match="unsupported fuel type"):
+        CFFDRSFuelTypes.from_lookup(lookup)
 
 
 def test_cffdrs_codes_maps_combustible_non_fuel_and_nodata_cells():

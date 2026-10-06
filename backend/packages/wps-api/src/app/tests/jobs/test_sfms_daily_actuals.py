@@ -402,8 +402,10 @@ class TestRunSfmsDailyActuals:
     ):
         mock_dependencies.run_temporal_fuel.side_effect = RuntimeError("temporal fuel failed")
 
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+
         with pytest.raises(RuntimeError, match="temporal fuel failed"):
-            await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))
+            await run_sfms_daily_actuals(target_date)
 
         mock_dependencies.temp_processor.process.assert_called_once()
         mock_dependencies.interpolation_processor.process.assert_called_once()

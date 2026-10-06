@@ -260,8 +260,10 @@ class TestRunSfmsDailyForecasts:
     ):
         mock_dependencies.run_temporal_fuel.side_effect = RuntimeError("temporal fuel failed")
 
+        run_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
+
         with pytest.raises(RuntimeError, match="temporal fuel failed"):
-            await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
+            await run_sfms_daily_forecasts(run_datetime)
 
         assert mock_dependencies.temp_processor.process.call_count == 3
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 18
