@@ -83,16 +83,39 @@ jobs:
 
       # Copy of the OpenShift-built image for running outside OpenShift. OpenShift still pulls from
       # its internal registry, so a GHCR outage must not block deploys. Set PUSH_GHCR=false to skip.
+      # oc-login tokens expire after 10 minutes, which the build above can outlast
+      - uses: ./.github/actions/oc-login
+        if: vars.PUSH_GHCR != 'false'
+        continue-on-error: true
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_TOOL_TOKEN }}
+          oc-namespace: e1e498-tools
+
+      - name: Log in to GitHub Container Registry
+        if: vars.PUSH_GHCR != 'false'
+        continue-on-error: true
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Mirror wps-${{ matrix.module }} Image to GHCR
+        id: ghcr_mirror
         if: vars.PUSH_GHCR != 'false'
         continue-on-error: true
         shell: bash
         run: |
           oc registry login --registry=image-registry.apps.silver.devops.gov.bc.ca
-          oc registry login --registry=ghcr.io --auth-basic="${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}"
           oc image mirror \
             image-registry.apps.silver.devops.gov.bc.ca/e1e498-tools/wps-${{ matrix.module }}-${SUFFIX}:${SUFFIX} \
             ghcr.io/bcgov/wps/wps-${{ matrix.module }}:${SUFFIX}
+
+      # The mirror steps don't fail the job, so surface failures as a warning on the run and PR checks
+      - name: Warn on GHCR mirror failure
+        if: steps.ghcr_mirror.outcome == 'failure'
+        run: echo "::warning title=GHCR mirror failed::wps-${{ matrix.module }}:${SUFFIX} was not mirrored to GHCR. OpenShift deploy is unaffected."
 
   configure-nats-server-name:
     name: Configure nats server name
