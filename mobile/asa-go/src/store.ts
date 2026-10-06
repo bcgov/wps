@@ -54,7 +54,7 @@ export const selectOperationalLoadState = createSelector(
       data.provincialSummaries === null || data.tpiStats === null || data.hfiStats === null
     const errorKey = [data.error, fireCentres.error, runParameters.error].filter(Boolean).join('|') || null
 
-    // only expose run-parameter loading while the operational datasets are still being initialized
+    // run parameter refreshes are background checks. show loading only while operational data is still missing
     return {
       loading: fireCentres.loading || data.loading || (runParameters.loading && operationalDataUnavailable),
       errorKey
