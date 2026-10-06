@@ -74,9 +74,12 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
     - Its grass is standing when `grass_standing <= day of year < grass_matted`, which turns O1A
       into O1B.
     - Julian-date nodata pixels never switch.
+    - Day of year is counted as in a non-leap year (`152` is always Jun 1), so Julian-date rasters
+      should be numbered the same way; in leap years Feb 29 counts as Feb 28.
   - An existing grid is reused only when its base grid and all four Julian-date raster hashes
     match, and only after its stored file is downloaded and matched against its recorded content
-    hash. A missing or altered grid is rebuilt as the next version.
+    hash and its fuel codes lookup is found and parses. A missing or altered grid is rebuilt as
+    the next version.
   - Temporal grids use national FBP lookup codes, not BC base grid codes, and are stored at
     `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/` with a JSON fuel codes lookup that primary FBP
     reads its fuel types from.

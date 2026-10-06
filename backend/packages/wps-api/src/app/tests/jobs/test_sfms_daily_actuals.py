@@ -109,7 +109,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         new_callable=AsyncMock,
         side_effect=lambda datetime_to_process, *_: TemporalFuelPaths(
             raster_path=f"/vsis3/test-bucket/temporal/{datetime_to_process.date()}.tif",
-            fuel_codes_lookup_path=f"temporal/{datetime_to_process.date()}.json",
+            fuel_codes_lookup_key=f"temporal/{datetime_to_process.date()}.json",
         ),
     )
     mocker.patch(

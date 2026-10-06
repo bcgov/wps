@@ -32,8 +32,8 @@ from app.jobs.sfms_run_pipeline import (
     run_fbp_calculations,
     run_fwi_calculations,
     run_fwi_interpolation,
-    run_weather_interpolation,
     run_temporal_fuel,
+    run_weather_interpolation,
 )
 
 logger = logging.getLogger(__name__)

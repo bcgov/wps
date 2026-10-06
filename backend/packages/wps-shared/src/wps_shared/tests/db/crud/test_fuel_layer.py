@@ -8,7 +8,7 @@ from testcontainers.postgres import PostgresContainer
 
 from wps_shared.db.crud.fuel_layer import (
     get_latest_temporal_fuel_raster_version,
-    get_temporal_fuel_raster,
+    get_matching_temporal_fuel_raster,
     lock_temporal_fuel_raster_date,
 )
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
@@ -113,7 +113,7 @@ async def seeded_session(async_session: AsyncSession):
 async def test_get_temporal_fuel_raster_returns_latest_matching_version(
     seeded_session: AsyncSession,
 ):
-    result = await get_temporal_fuel_raster(seeded_session, FOR_DATE, 1, **JULIAN_HASHES)
+    result = await get_matching_temporal_fuel_raster(seeded_session, FOR_DATE, 1, **JULIAN_HASHES)
 
     assert result is not None
     assert (result.for_date, result.version) == (FOR_DATE, 2)
@@ -133,7 +133,7 @@ async def test_get_temporal_fuel_raster_returns_latest_matching_version(
 async def test_get_temporal_fuel_raster_requires_all_inputs_to_match(
     seeded_session: AsyncSession, fuel_type_raster_id: int, changed_hash: dict[str, str]
 ):
-    result = await get_temporal_fuel_raster(
+    result = await get_matching_temporal_fuel_raster(
         seeded_session, FOR_DATE, fuel_type_raster_id, **{**JULIAN_HASHES, **changed_hash}
     )
 

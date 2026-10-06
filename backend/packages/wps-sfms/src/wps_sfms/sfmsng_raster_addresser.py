@@ -156,7 +156,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             f"{target_date.day:02d}/{version}/fbp{date_str}_{version}.tif"
         )
 
-    def get_fuel_codes_lookup_path(self, target_date: date, version: int) -> S3Key:
+    def get_fuel_codes_lookup_key(self, target_date: date, version: int) -> S3Key:
         """S3 key for the JSON fuel codes lookup stored alongside a temporal fuel raster."""
         return S3Key(
             self.get_temporal_fuel_key(target_date, version).removesuffix(".tif") + ".json"
@@ -191,7 +191,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         datetime_to_process: datetime,
         run_type: RunType,
         fuel_key: GDALPath,
-        fuel_codes_lookup_path: S3Key,
+        fuel_codes_lookup_key: S3Key,
         percent_conifer_key: GDALPath,
         wind_speed_key: GDALPath,
         wind_direction_key: GDALPath,
@@ -203,7 +203,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_to_process)
         return PrimaryFireBehaviourInputs(
             fuel_key=fuel_key,
-            fuel_codes_lookup_path=fuel_codes_lookup_path,
+            fuel_codes_lookup_key=fuel_codes_lookup_key,
             ffmc_key=self.gdal_path(
                 self.get_index_key(datetime_to_process, FWIParameter.FFMC, run_type)
             ),

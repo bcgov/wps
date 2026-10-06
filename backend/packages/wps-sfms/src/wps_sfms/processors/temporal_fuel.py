@@ -384,7 +384,7 @@ async def publish_temporal_fuel_raster(
     grass_standing: WPSDataset,
     grass_matted: WPSDataset,
     output_key: S3Key,
-    fuel_codes_lookup_path: S3Key,
+    fuel_codes_lookup_key: S3Key,
 ) -> str:
     """Calculate, store and return the content hash of the temporal fuel raster for one date.
 
@@ -429,13 +429,13 @@ async def publish_temporal_fuel_raster(
                 )
 
     await s3_client.put_object(
-        key=fuel_codes_lookup_path, body=grid.fuel_codes_lookup().model_dump_json().encode()
+        key=fuel_codes_lookup_key, body=grid.fuel_codes_lookup().model_dump_json().encode()
     )
     logger.info(
         "Stored temporal fuel raster for %s: %s (COG: %s, fuel codes lookup: %s)",
         target_date,
         published.output_key,
         published.cog_key,
-        fuel_codes_lookup_path,
+        fuel_codes_lookup_key,
     )
     return published.content_hash

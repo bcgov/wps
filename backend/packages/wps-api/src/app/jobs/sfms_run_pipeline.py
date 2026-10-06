@@ -37,7 +37,7 @@ from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpo
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.db.crud.fuel_layer import (
     get_latest_temporal_fuel_raster_version,
-    get_temporal_fuel_raster,
+    get_matching_temporal_fuel_raster,
     lock_temporal_fuel_raster_date,
 )
 from wps_shared.db.crud.sfms_run import track_sfms_run
@@ -83,7 +83,7 @@ class TemporalFuelPaths:
     """
 
     raster_path: GDALPath
-    fuel_codes_lookup_path: S3Key
+    fuel_codes_lookup_key: S3Key
 
 
 async def _run_tracked_job(
@@ -186,7 +186,7 @@ async def resolve_temporal_fuel_raster(
     async with get_async_write_session_scope() as session:
         # held until commit so concurrent runs for the same date reuse rather than collide
         await lock_temporal_fuel_raster_date(session, target_date)
-        existing = await get_temporal_fuel_raster(
+        existing = await get_matching_temporal_fuel_raster(
             session,
             target_date,
             fuel_type_raster.id,
@@ -201,14 +201,14 @@ async def resolve_temporal_fuel_raster(
             )
             return TemporalFuelPaths(
                 raster_path=raster_addresser.gdal_path(existing.object_store_path),
-                fuel_codes_lookup_path=S3Key(existing.fuel_codes_lookup_path),
+                fuel_codes_lookup_key=S3Key(existing.fuel_codes_lookup_path),
             )
         # a grid is fully determined by its inputs, so a missing or altered one is rebuilt as the
         # next version, which the reuse query then prefers
 
         version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
         output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
-        fuel_codes_lookup_path = raster_addresser.get_fuel_codes_lookup_path(target_date, version)
+        fuel_codes_lookup_key = raster_addresser.get_fuel_codes_lookup_key(target_date, version)
         on_bytes, off_bytes, standing_bytes, matted_bytes = julian_bytes
         with (
             WPSDataset.from_bytes(on_bytes) as green_up_on,
@@ -225,7 +225,7 @@ async def resolve_temporal_fuel_raster(
                 grass_standing=grass_standing,
                 grass_matted=grass_matted,
                 output_key=output_key,
-                fuel_codes_lookup_path=fuel_codes_lookup_path,
+                fuel_codes_lookup_key=fuel_codes_lookup_key,
             )
         session.add(
             TemporalFuelRaster(
@@ -233,7 +233,7 @@ async def resolve_temporal_fuel_raster(
                 for_date=target_date,
                 version=version,
                 object_store_path=output_key,
-                fuel_codes_lookup_path=fuel_codes_lookup_path,
+                fuel_codes_lookup_path=fuel_codes_lookup_key,
                 content_hash=content_hash,
                 green_up_on_hash=green_up_on_hash,
                 green_up_off_hash=green_up_off_hash,
@@ -244,7 +244,7 @@ async def resolve_temporal_fuel_raster(
         )
     return TemporalFuelPaths(
         raster_path=raster_addresser.gdal_path(output_key),
-        fuel_codes_lookup_path=fuel_codes_lookup_path,
+        fuel_codes_lookup_key=fuel_codes_lookup_key,
     )
 
 
@@ -316,7 +316,7 @@ async def run_fbp_calculations(
         datetime_to_process,
         run_type,
         temporal_fuel.raster_path,
-        temporal_fuel.fuel_codes_lookup_path,
+        temporal_fuel.fuel_codes_lookup_key,
         percent_conifer_path,
         raster_addresser.gdal_path(
             raster_addresser.get_weather_key(

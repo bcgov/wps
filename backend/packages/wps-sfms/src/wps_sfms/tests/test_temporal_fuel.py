@@ -223,7 +223,7 @@ async def publish(
             grass_standing=grass_standing,
             grass_matted=grass_matted,
             output_key="temporal/fbp.tif",
-            fuel_codes_lookup_path="temporal/fbp.json",
+            fuel_codes_lookup_key="temporal/fbp.json",
         )
 
 

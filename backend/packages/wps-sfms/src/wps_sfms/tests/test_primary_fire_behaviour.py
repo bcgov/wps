@@ -56,7 +56,7 @@ def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehav
 def make_inputs() -> PrimaryFireBehaviourInputs:
     return PrimaryFireBehaviourInputs(
         fuel_key="/vsis3/test/fuel.tif",
-        fuel_codes_lookup_path="test/fuel.json",
+        fuel_codes_lookup_key="test/fuel.json",
         ffmc_key="/vsis3/test/ffmc.tif",
         bui_key="/vsis3/test/bui.tif",
         wind_speed_key="/vsis3/test/wind_speed.tif",
@@ -373,7 +373,7 @@ async def test_processor_publishes_five_outputs_with_values_and_metadata(
         s3_client, make_dataset_context(datasets), inputs
     )
 
-    s3_client.read_object.assert_awaited_once_with(inputs.fuel_codes_lookup_path)
+    s3_client.read_object.assert_awaited_once_with(inputs.fuel_codes_lookup_key)
     assert calculate.call_args.args[1] == FUEL_TYPES
     assert captured == [
         {
@@ -482,5 +482,5 @@ async def test_processor_rejects_missing_dependency():
         inputs.aspect_key,
         inputs.percent_conifer_key,
         inputs.fmc_key,
-        inputs.fuel_codes_lookup_path,
+        inputs.fuel_codes_lookup_key,
     )

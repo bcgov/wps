@@ -303,11 +303,11 @@ class PrimaryFireBehaviourProcessor:
         with gdal_s3_context():
             await self._raster_dependencies.assert_keys_exist(
                 s3_client,
-                (*self._dependency_keys(inputs), inputs.fuel_codes_lookup_path),
+                (*self._dependency_keys(inputs), inputs.fuel_codes_lookup_key),
             )
             fuel_types = CFFDRSFuelTypes.from_lookup(
                 FuelCodesLookup.model_validate_json(
-                    await s3_client.read_object(inputs.fuel_codes_lookup_path)
+                    await s3_client.read_object(inputs.fuel_codes_lookup_key)
                 )
             )
             logger.info(

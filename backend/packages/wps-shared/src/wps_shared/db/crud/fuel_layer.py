@@ -116,7 +116,7 @@ async def lock_temporal_fuel_raster_date(session: AsyncSession, for_date: date) 
     await session.execute(select(func.pg_advisory_xact_lock(func.hashtextextended(key, 0))))
 
 
-async def get_temporal_fuel_raster(
+async def get_matching_temporal_fuel_raster(
     session: AsyncSession,
     for_date: date,
     fuel_type_raster_id: int,

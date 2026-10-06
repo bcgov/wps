@@ -119,7 +119,7 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
         addresser,
         s3_client,
         TemporalFuelPaths(
-            raster_path="/vsis3/test/fuel.tif", fuel_codes_lookup_path="test/fuel.json"
+            raster_path="/vsis3/test/fuel.tif", fuel_codes_lookup_key="test/fuel.json"
         ),
         2025,
         42,
@@ -200,7 +200,7 @@ def temporal_fuel_deps(mocker: MockerFixture):
     addresser.get_grass_standing_key.return_value = "grass_standing"
     addresser.get_grass_matted_key.return_value = "grass_matted"
     addresser.get_temporal_fuel_key.side_effect = lambda _date, version: f"temporal/{version}.tif"
-    addresser.get_fuel_codes_lookup_path.side_effect = lambda _date, version: (
+    addresser.get_fuel_codes_lookup_key.side_effect = lambda _date, version: (
         f"temporal/{version}.json"
     )
 
@@ -234,7 +234,9 @@ def patch_db(mocker: MockerFixture, existing=None, latest_version: int = 0) -> A
         return_value=latest_version,
     )
     return mocker.patch(
-        f"{PIPELINE_PATH}.get_temporal_fuel_raster", new_callable=AsyncMock, return_value=existing
+        f"{PIPELINE_PATH}.get_matching_temporal_fuel_raster",
+        new_callable=AsyncMock,
+        return_value=existing,
     )
 
 
@@ -263,7 +265,7 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
     result = await resolve(deps)
 
     assert result == TemporalFuelPaths(
-        raster_path="/vsis3/bucket/temporal/2.tif", fuel_codes_lookup_path="temporal/2.json"
+        raster_path="/vsis3/bucket/temporal/2.tif", fuel_codes_lookup_key="temporal/2.json"
     )
     deps.lock.assert_awaited_once_with(deps.session, TARGET_DATE)
     get_existing.assert_awaited_once_with(deps.session, TARGET_DATE, 7, **JULIAN_HASHES)
@@ -282,7 +284,7 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
     result = await resolve(deps)
 
     assert result == TemporalFuelPaths(
-        raster_path="/vsis3/bucket/temporal/3.tif", fuel_codes_lookup_path="temporal/3.json"
+        raster_path="/vsis3/bucket/temporal/3.tif", fuel_codes_lookup_key="temporal/3.json"
     )
     publish_args = deps.publish.await_args.kwargs
     assert publish_args["base_fuel_key"] == "/vsis3/bucket/sfms/static/fuel/fbp2026_v1.tif"
@@ -341,7 +343,7 @@ async def test_resolve_temporal_fuel_raster_rebuilds_unverified_lookup(
 
     result = await resolve(deps)
 
-    assert result.fuel_codes_lookup_path == "temporal/3.json"
+    assert result.fuel_codes_lookup_key == "temporal/3.json"
     deps.publish.assert_awaited_once()
     assert deps.session.add.call_args.args[0].version == 3
 
@@ -378,7 +380,7 @@ async def test_resolve_temporal_fuel_raster_requires_julian_rasters(temporal_fue
 
 @pytest.mark.anyio
 async def test_run_temporal_fuel_is_a_tracked_job_for_the_date(mocker: MockerFixture):
-    temporal_fuel = TemporalFuelPaths(raster_path="/vsis3/t.tif", fuel_codes_lookup_path="t.json")
+    temporal_fuel = TemporalFuelPaths(raster_path="/vsis3/t.tif", fuel_codes_lookup_key="t.json")
     resolve = mocker.patch(
         f"{PIPELINE_PATH}.resolve_temporal_fuel_raster",
         new_callable=AsyncMock,
