@@ -283,10 +283,11 @@ async def test_publish_temporal_fuel_raster_rejects_misaligned_julian_raster(
         x_origin=2000.0,
     )
     keys = {**vars(rasters), f"{julian_name}_key": shifted}
+    target_date = date(2026, 7, 1)
     publish_dataset = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
 
     with pytest.raises(ValueError, match=f"{julian_name} raster does not match the fuel grid"):
-        await publish(s3_client, date(2026, 7, 1), **keys)
+        await publish(s3_client, target_date, **keys)
 
     publish_dataset.assert_not_called()
     s3_client.put_object.assert_not_awaited()
@@ -298,9 +299,11 @@ async def test_publish_temporal_fuel_raster_requires_all_inputs(
 ):
     s3_client.all_objects_exist = AsyncMock(return_value=False)
     publish_dataset = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
+    keys = vars(rasters)
+    target_date = date(2026, 7, 1)
 
     with pytest.raises(RuntimeError, match="Missing raster dependencies"):
-        await publish(s3_client, date(2026, 7, 1), **vars(rasters))
+        await publish(s3_client, target_date, **keys)
 
     publish_dataset.assert_not_called()
     # the Julian rasters arrive open, so only the base fuel raster is checked in object storage

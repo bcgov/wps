@@ -81,8 +81,12 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
     hash and its fuel codes lookup is found and parses. A missing or altered grid is rebuilt as
     the next version.
   - Temporal grids use national FBP lookup codes, not BC base grid codes, and are stored at
-    `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/` with a JSON fuel codes lookup that primary FBP
-    reads its fuel types from.
+    `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fbpYYYY_MM_DD_{version}.tif`, with the JSON fuel
+    codes lookup that primary FBP reads its fuel types from beside it at
+    `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fbpYYYY_MM_DD_{version}.json` (e.g.
+    `sfms_ng/fuel/temporal/2026/07/01/1/fbp2026_07_01_1.tif`). `{version}` counts the grids
+    stored for that date, starting at `1`; a new one is stored whenever no stored grid matches the
+    run's base grid and Julian-date rasters, or the matching one is missing or altered.
   - D2 is supported by `cffdrs_vec`. It applies BUI thresholding, so D2 produces almost no spread
     below BUI 80.
   - Seasonal variants apply to every primary FBP output, including SFC, following the
