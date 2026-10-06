@@ -52,6 +52,10 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
     }
   }
 
+  if (rasterType === 'cfb') {
+    return { value: `${Math.round(rawValue * 100)}%`, label: defaultLabel }
+  }
+
   const decimalPlaces = rasterType ? (RASTER_CONFIG[rasterType].tooltipDecimalPlaces ?? 0) : 0
 
   // Return valid data for numeric rasters

@@ -40,6 +40,10 @@ describe('RasterTypeDropdown', () => {
     // Check that BUI is disabled
     const buiOption = screen.getByRole('option', { name: 'BUI' })
     expect(buiOption).toHaveAttribute('aria-disabled', 'true')
+
+    for (const name of ['TFC', 'CFB', 'HFI']) {
+      expect(screen.getByRole('option', { name })).toHaveAttribute('aria-disabled', 'true')
+    }
   })
 
   it('enables all options when rasterDataAvailable is true', () => {
@@ -67,6 +71,9 @@ describe('RasterTypeDropdown', () => {
 
     expect(screen.getByRole('option', { name: 'SFC' })).not.toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByRole('option', { name: 'FMC' })).not.toHaveAttribute('aria-disabled', 'true')
+    for (const name of ['TFC', 'CFB', 'HFI']) {
+      expect(screen.getByRole('option', { name })).not.toHaveAttribute('aria-disabled', 'true')
+    }
   })
 
   it('defaults rasterDataAvailable to true when not provided', () => {
