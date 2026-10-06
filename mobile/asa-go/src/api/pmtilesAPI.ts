@@ -17,6 +17,9 @@ export const fetchHFIPMTiles = async (for_date: DateTime, run_type: RunType, run
   })}.pmtiles`
 
   const response = await fetch(PMTilesURL)
+  if (!response.ok) {
+    throw new Error(`HFI PMTiles request failed with status ${response.status}`)
+  }
   const blob = await response.blob()
 
   return blob

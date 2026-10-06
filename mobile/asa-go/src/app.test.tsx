@@ -1,3 +1,4 @@
+import { Network } from '@capacitor/network'
 import { useMediaQuery } from '@mui/material'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
@@ -8,9 +9,11 @@ import { RunType } from '@/api/fbaAPI'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import { updateNetworkStatus } from '@/slices/networkStatusSlice'
 import { enqueueNotification } from '@/slices/notificationSlice'
 import { initialState as pushNotificationInitialState } from '@/slices/pushNotificationSlice'
 import type { NavPanel } from '@/utils/constants'
+import { clearStaleHFIPMTiles } from '@/utils/storage'
 import App from './App'
 import { createTestStore } from './testUtils'
 
@@ -19,6 +22,7 @@ const mockUseAppIsActive = vi.hoisted(() => vi.fn())
 const mockFetchHFIStats = vi.hoisted(() => vi.fn())
 const mockFetchProvincialSummaries = vi.hoisted(() => vi.fn())
 const mockFetchTpiStats = vi.hoisted(() => vi.fn())
+const mockLoadHFIPMTiles = vi.hoisted(() => vi.fn())
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock('@mui/material', async () => {
@@ -61,7 +65,7 @@ vi.mock('@capacitor/filesystem', () => ({
 
 vi.mock('@/utils/pmtilesCache', () => ({
   PMTilesCache: class {
-    loadHFIPMTiles = vi.fn()
+    loadHFIPMTiles = mockLoadHFIPMTiles
     getHFICachedFileName = vi.fn(() => 'hfi.pmtiles')
   }
 }))
@@ -208,6 +212,9 @@ vi.mock('@/utils/dataSliceUtils', async () => {
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockLoadHFIPMTiles.mockReset()
+    mockLoadHFIPMTiles.mockResolvedValue({})
+    vi.mocked(Network.getStatus).mockResolvedValue({ connected: true, connectionType: 'wifi' })
     mockGetToday.mockReturnValue(DateTime.fromISO('2025-07-02'))
     mockUseAppIsActive.mockReturnValue(true)
     vi.mocked(useIsPortrait).mockReturnValue(true)
@@ -284,6 +291,118 @@ describe('App', () => {
     )
 
     expect(screen.getByTestId('tab-panel-Map')).toHaveAttribute('data-loading', 'true')
+  })
+
+  it('does not notify when the HFI cache preflight succeeds', async () => {
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      },
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          '2025-07-02': {
+            for_date: '2025-07-02',
+            run_datetime: '2025-07-02T12:00:00-07:00',
+            run_type: RunType.ACTUAL
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    await waitFor(() => expect(clearStaleHFIPMTiles).toHaveBeenCalled())
+    expect(
+      store.getState().notifications.notifications.find(notification => notification.dedupeKey === 'hfi-cache-error')
+    ).toBeUndefined()
+  })
+
+  it('shows one HFI cache error and retries the preflight after reconnecting', async () => {
+    mockLoadHFIPMTiles.mockResolvedValue(undefined)
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      },
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          '2025-07-02': {
+            for_date: '2025-07-02',
+            run_datetime: '2025-07-02T12:00:00-07:00',
+            run_type: RunType.ACTUAL
+          },
+          '2025-07-03': {
+            for_date: '2025-07-03',
+            run_datetime: '2025-07-02T18:00:00-07:00',
+            run_type: RunType.FORECAST
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    await waitFor(() => expect(mockLoadHFIPMTiles).toHaveBeenCalledTimes(2))
+    await waitFor(() => {
+      expect(
+        store.getState().notifications.notifications.find(notification => notification.dedupeKey === 'hfi-cache-error')
+      ).toEqual(
+        expect.objectContaining({
+          message: 'Unable to update HFI map data. Some map information may be unavailable.'
+        })
+      )
+    })
+
+    act(() => {
+      store.dispatch(updateNetworkStatus({ connected: false, connectionType: 'none' }))
+    })
+    await waitFor(() => expect(screen.getByTestId('info-bar')).toHaveAttribute('data-status', 'warning'))
+    act(() => {
+      store.dispatch(updateNetworkStatus({ connected: true, connectionType: 'wifi' }))
+    })
+
+    await waitFor(() => expect(mockLoadHFIPMTiles).toHaveBeenCalledTimes(4))
+    expect(
+      store.getState().notifications.notifications.filter(notification => notification.dedupeKey === 'hfi-cache-error')
+    ).toHaveLength(1)
+  })
+
+  it('waits for connectivity before running the HFI cache preflight', async () => {
+    vi.mocked(Network.getStatus).mockResolvedValue({ connected: false, connectionType: 'none' })
+    const store = createTestStore({
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          '2025-07-02': {
+            for_date: '2025-07-02',
+            run_datetime: '2025-07-02T12:00:00-07:00',
+            run_type: RunType.ACTUAL
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    await waitFor(() => expect(Network.getStatus).toHaveBeenCalled())
+    expect(mockLoadHFIPMTiles).not.toHaveBeenCalled()
+    expect(store.getState().notifications.notifications).toHaveLength(0)
   })
 
   it('renders App component with Redux store integration', () => {

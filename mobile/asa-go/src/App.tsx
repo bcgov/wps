@@ -37,6 +37,7 @@ import {
 import { fetchFireCentres } from '@/slices/fireCentresSlice'
 import { startWatchingLocation, stopWatchingLocation } from '@/slices/geolocationSlice'
 import { updateNetworkStatus } from '@/slices/networkStatusSlice'
+import { enqueueNotification } from '@/slices/notificationSlice'
 import { clearPendingNotificationData } from '@/slices/pushNotificationSlice'
 import { fetchSFMSRunParameters } from '@/slices/runParametersSlice'
 import { initSubscriptions } from '@/slices/settingsSlice'
@@ -58,6 +59,9 @@ import { NavPanel, StatusEnum } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
 import { PMTilesCache } from '@/utils/pmtilesCache'
 import { clearStaleHFIPMTiles } from '@/utils/storage'
+
+const HFI_CACHE_ERROR_NOTIFICATION_KEY = 'hfi-cache-error'
+const HFI_CACHE_ERROR_MESSAGE = 'Unable to update HFI map data. Some map information may be unavailable.'
 
 const App = () => {
   LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_LICENSE_KEY)
@@ -154,18 +158,40 @@ const App = () => {
   }, [dispatch])
 
   useEffect(() => {
-    if (!isNil(runParameters)) {
-      const hfiFilesToKeep: string[] = []
-      for (const value of Object.values(runParameters)) {
-        const pmtilesCache = new PMTilesCache(Filesystem)
-        const forDate = DateTime.fromISO(value.for_date)
-        const runDate = DateTime.fromISO(value.run_datetime)
-        pmtilesCache.loadHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles')
-        hfiFilesToKeep.push(pmtilesCache.getHFICachedFileName(forDate, value.run_type, runDate, 'hfi.pmtiles'))
+    if (isNil(runParameters) || !networkStatus.connected) return
+
+    let cancelled = false
+    const pmtilesCache = new PMTilesCache(Filesystem)
+    const hfiFilesToKeep: string[] = []
+    const loads = Object.values(runParameters).map(value => {
+      const forDate = DateTime.fromISO(value.for_date)
+      const runDate = DateTime.fromISO(value.run_datetime)
+      hfiFilesToKeep.push(pmtilesCache.getHFICachedFileName(forDate, value.run_type, runDate, 'hfi.pmtiles'))
+      return pmtilesCache.loadHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles')
+    })
+
+    const updateHFICache = async () => {
+      const results = await Promise.allSettled(loads)
+      if (cancelled) return
+
+      await clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
+      const loadFailed = results.some(result => result.status === 'rejected' || result.value === undefined)
+      if (!cancelled && loadFailed) {
+        dispatch(
+          enqueueNotification({
+            dedupeKey: HFI_CACHE_ERROR_NOTIFICATION_KEY,
+            message: HFI_CACHE_ERROR_MESSAGE
+          })
+        )
       }
-      clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
     }
-  }, [runParameters])
+
+    void updateHFICache()
+    return () => {
+      // ignore results from a superseded preflight so stale run parameters cannot notify or prune files
+      cancelled = true
+    }
+  }, [runParameters, networkStatus.connected, dispatch])
 
   useEffect(() => {
     if (!isNil(runParameter)) {

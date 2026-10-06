@@ -28,8 +28,19 @@ import type {
 } from '@capacitor/filesystem'
 import { DateTime, Settings } from 'luxon'
 import sinon from 'sinon'
+import { vi } from 'vitest'
 import { RunType } from '@/api/fbaAPI'
 import { PMTilesCache } from '@/utils/pmtilesCache'
+
+const mockFetchHFIPMTiles = vi.hoisted(() => vi.fn())
+
+vi.mock('@/api/pmtilesAPI', async () => {
+  const actual = await vi.importActual('@/api/pmtilesAPI')
+  return {
+    ...actual,
+    fetchHFIPMTiles: mockFetchHFIPMTiles
+  }
+})
 
 class MockFilesystem implements FilesystemPlugin {
   readFile(options: ReadFileOptions): Promise<ReadFileResult> {
@@ -108,6 +119,7 @@ describe('pmtilesCache', () => {
   let sandbox: sinon.SinonSandbox
   beforeEach(() => {
     sandbox = sinon.createSandbox()
+    mockFetchHFIPMTiles.mockReset()
   })
   afterEach(() => {
     sandbox.restore()
@@ -165,6 +177,23 @@ describe('pmtilesCache', () => {
     )
     sinon.assert.calledThrice(stubFetch)
     sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch)
+  })
+
+  it('retries failed hfi downloads from the default fetch callback', async () => {
+    const mockFs = new MockFilesystem()
+    sandbox.stub(mockFs, 'readFile').rejects(new Error('Read failed'))
+    mockFetchHFIPMTiles.mockRejectedValue(new Error('Fetch failed'))
+    const testCache = new PMTilesCache(mockFs)
+
+    const result = await testCache.loadHFIPMTiles(
+      DateTime.fromISO('2016-05-25T09:08:34.123'),
+      RunType.FORECAST,
+      DateTime.fromISO('2016-05-25T09:08:34.123'),
+      'test.pmtiles'
+    )
+
+    expect(result).toBeUndefined()
+    expect(mockFetchHFIPMTiles).toHaveBeenCalledTimes(3)
   })
 
   it('uses the ASA Go timezone for hfi run date filenames', async () => {

@@ -73,27 +73,23 @@ const fetchAndStoreHFIPMTiles = (
   fileSystem: FilesystemPlugin
 ) => {
   return async () => {
-    try {
-      const blob = await fetchHFIPMTiles(for_date, run_type, run_date)
-      const serialized = await serialize(blob)
+    const blob = await fetchHFIPMTiles(for_date, run_type, run_date)
+    const serialized = await serialize(blob)
 
-      await fileSystem.writeFile({
-        path: filename,
-        data: serialized,
-        directory: Directory.Data,
-        encoding: Encoding.UTF8
-      })
+    await fileSystem.writeFile({
+      path: filename,
+      data: serialized,
+      directory: Directory.Data,
+      encoding: Encoding.UTF8
+    })
 
-      const file = await fileSystem.readFile({
-        path: filename,
-        directory: Directory.Data,
-        encoding: Encoding.UTF8
-      })
+    const file = await fileSystem.readFile({
+      path: filename,
+      directory: Directory.Data,
+      encoding: Encoding.UTF8
+    })
 
-      return toPMTiles(file, filename)
-    } catch (error) {
-      console.error('Error storing PMTiles:', error)
-    }
+    return toPMTiles(file, filename)
   }
 }
 
