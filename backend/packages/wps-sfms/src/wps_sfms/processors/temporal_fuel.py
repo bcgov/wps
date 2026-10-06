@@ -379,37 +379,23 @@ async def publish_temporal_fuel_raster(
     target_date: date,
     *,
     base_fuel_key: GDALPath,
-    green_up_on_key: GDALPath,
-    green_up_off_key: GDALPath,
-    grass_standing_key: GDALPath,
-    grass_matted_key: GDALPath,
+    green_up_on: WPSDataset,
+    green_up_off: WPSDataset,
+    grass_standing: WPSDataset,
+    grass_matted: WPSDataset,
     output_key: S3Key,
     fuel_codes_lookup_path: S3Key,
 ) -> str:
     """Calculate, store and return the content hash of the temporal fuel raster for one date.
 
-    The raster keeps the base grid's geometry, data type and nodata value. Its COG uses
-    nearest-neighbour resampling so fuel classifications are not blended.
+    The Julian date rasters are passed in already open, so the caller can build them from the
+    same bytes it hashed. The raster keeps the base grid's geometry, data type and nodata value.
+    Its COG uses nearest-neighbour resampling so fuel classifications are not blended.
     """
     dependencies = GriddedRasterDependencies()
     with gdal_s3_context():
-        await dependencies.assert_keys_exist(
-            s3_client,
-            (
-                base_fuel_key,
-                green_up_on_key,
-                green_up_off_key,
-                grass_standing_key,
-                grass_matted_key,
-            ),
-        )
-        with (
-            WPSDataset(base_fuel_key) as base_fuel,
-            WPSDataset(green_up_on_key) as green_up_on,
-            WPSDataset(green_up_off_key) as green_up_off,
-            WPSDataset(grass_standing_key) as grass_standing,
-            WPSDataset(grass_matted_key) as grass_matted,
-        ):
+        await dependencies.assert_keys_exist(s3_client, (base_fuel_key,))
+        with WPSDataset(base_fuel_key) as base_fuel:
             dependencies.validate_grids(
                 base_fuel,
                 {

@@ -1,6 +1,7 @@
 """Shared SFMS weather interpolation and FWI calculation pipeline."""
 
 import asyncio
+import hashlib
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -44,7 +45,7 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
-from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
+from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import (
@@ -174,14 +175,13 @@ async def resolve_temporal_fuel_raster(
     julian_keys = (green_up_on_key, green_up_off_key, grass_standing_key, grass_matted_key)
     if not await s3_client.all_objects_exist(*julian_keys):
         raise RuntimeError(f"Missing Julian date rasters, expected: {', '.join(julian_keys)}")
-    # Rehashes the four ~1.4 MB Julian rasters per date (3x per forecast run); hash
-    # once per run and pass the hashes in if these grow or more Julian rasters are added
-    (
-        green_up_on_hash,
-        green_up_off_hash,
-        grass_standing_hash,
-        grass_matted_hash,
-    ) = await asyncio.gather(*(s3_client.get_content_hash(key) for key in julian_keys))
+    # Reads the four ~1.4 MB Julian rasters per date (3x per forecast run); read them once per
+    # run and pass them in if they grow or more are added. A rebuild opens these same bytes, so
+    # the recorded hashes always match the grid's inputs.
+    julian_bytes = await asyncio.gather(*(s3_client.read_object(key) for key in julian_keys))
+    green_up_on_hash, green_up_off_hash, grass_standing_hash, grass_matted_hash = (
+        hashlib.sha256(raster_bytes).hexdigest() for raster_bytes in julian_bytes
+    )
 
     async with get_async_write_session_scope() as session:
         # held until commit so concurrent runs for the same date reuse rather than collide
@@ -209,17 +209,24 @@ async def resolve_temporal_fuel_raster(
         version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
         output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
         fuel_codes_lookup_path = raster_addresser.get_fuel_codes_lookup_path(target_date, version)
-        content_hash = await publish_temporal_fuel_raster(
-            s3_client,
-            target_date,
-            base_fuel_key=raster_addresser.gdal_path(fuel_type_raster.object_store_path),
-            green_up_on_key=raster_addresser.gdal_path(green_up_on_key),
-            green_up_off_key=raster_addresser.gdal_path(green_up_off_key),
-            grass_standing_key=raster_addresser.gdal_path(grass_standing_key),
-            grass_matted_key=raster_addresser.gdal_path(grass_matted_key),
-            output_key=output_key,
-            fuel_codes_lookup_path=fuel_codes_lookup_path,
-        )
+        on_bytes, off_bytes, standing_bytes, matted_bytes = julian_bytes
+        with (
+            WPSDataset.from_bytes(on_bytes) as green_up_on,
+            WPSDataset.from_bytes(off_bytes) as green_up_off,
+            WPSDataset.from_bytes(standing_bytes) as grass_standing,
+            WPSDataset.from_bytes(matted_bytes) as grass_matted,
+        ):
+            content_hash = await publish_temporal_fuel_raster(
+                s3_client,
+                target_date,
+                base_fuel_key=raster_addresser.gdal_path(fuel_type_raster.object_store_path),
+                green_up_on=green_up_on,
+                green_up_off=green_up_off,
+                grass_standing=grass_standing,
+                grass_matted=grass_matted,
+                output_key=output_key,
+                fuel_codes_lookup_path=fuel_codes_lookup_path,
+            )
         session.add(
             TemporalFuelRaster(
                 fuel_type_raster_id=fuel_type_raster.id,

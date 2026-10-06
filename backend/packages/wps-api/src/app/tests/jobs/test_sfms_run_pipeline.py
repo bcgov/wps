@@ -1,3 +1,4 @@
+import hashlib
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timezone
 from types import SimpleNamespace
@@ -147,12 +148,38 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
 
 
 TARGET_DATE = date(2026, 6, 1)
-JULIAN_HASHES = {
-    "green_up_on_hash": "on-hash",
-    "green_up_off_hash": "off-hash",
-    "grass_standing_hash": "standing-hash",
-    "grass_matted_hash": "matted-hash",
+# each Julian key is named after its hash column, e.g. "green_up_on" -> "green_up_on_hash"
+JULIAN_BYTES = {
+    "green_up_on": b"on tif",
+    "green_up_off": b"off tif",
+    "grass_standing": b"standing tif",
+    "grass_matted": b"matted tif",
 }
+JULIAN_HASHES = {
+    f"{key}_hash": hashlib.sha256(raster_bytes).hexdigest()
+    for key, raster_bytes in JULIAN_BYTES.items()
+}
+STORED_LOOKUP = b'{"fuel_codes": []}'
+
+
+def read_stored_object(lookup: bytes | Exception = STORED_LOOKUP):
+    """A read_object stand-in serving the Julian rasters and ``lookup`` for any other key."""
+
+    async def _read_object(key: str) -> bytes:
+        if key in JULIAN_BYTES:
+            return JULIAN_BYTES[key]
+        if isinstance(lookup, Exception):
+            raise lookup
+        return lookup
+
+    return AsyncMock(side_effect=_read_object)
+
+
+def open_julian_dataset(raster_bytes: bytes) -> MagicMock:
+    """A WPSDataset.from_bytes stand-in, named for the bytes it was opened from."""
+    dataset = MagicMock(name=raster_bytes.decode())
+    dataset.__enter__.return_value = dataset
+    return dataset
 
 
 @pytest.fixture
@@ -168,7 +195,6 @@ def temporal_fuel_deps(mocker: MockerFixture):
 
     addresser = MagicMock()
     addresser.gdal_path.side_effect = lambda key: f"/vsis3/bucket/{key}"
-    # each Julian key is named after its hash column, e.g. "green_up_on" -> "green_up_on_hash"
     addresser.get_green_up_on_key.return_value = "green_up_on"
     addresser.get_green_up_off_key.return_value = "green_up_off"
     addresser.get_grass_standing_key.return_value = "grass_standing"
@@ -180,9 +206,9 @@ def temporal_fuel_deps(mocker: MockerFixture):
 
     s3_client = MagicMock()
     s3_client.all_objects_exist = AsyncMock(return_value=True)
-    s3_client.get_content_hash = AsyncMock(side_effect=lambda key: JULIAN_HASHES[f"{key}_hash"])
     s3_client.get_fuel_raster = AsyncMock(return_value=b"stored tif")
-    s3_client.read_object = AsyncMock(return_value=b'{"fuel_codes": []}')
+    s3_client.read_object = read_stored_object()
+    mocker.patch(f"{PIPELINE_PATH}.WPSDataset.from_bytes", side_effect=open_julian_dataset)
 
     return SimpleNamespace(
         session=session,
@@ -258,9 +284,13 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
     assert result == TemporalFuelPaths(
         raster_path="/vsis3/bucket/temporal/3.tif", fuel_codes_lookup_path="temporal/3.json"
     )
-    publish_keys = deps.publish.await_args.kwargs
-    assert publish_keys["grass_standing_key"] == "/vsis3/bucket/grass_standing"
-    assert publish_keys["grass_matted_key"] == "/vsis3/bucket/grass_matted"
+    publish_args = deps.publish.await_args.kwargs
+    assert publish_args["base_fuel_key"] == "/vsis3/bucket/sfms/static/fuel/fbp2026_v1.tif"
+    # the grid is built from the same bytes that were hashed, and each dataset is closed after
+    for name, raster_bytes in JULIAN_BYTES.items():
+        dataset = publish_args[name]
+        assert dataset._mock_name == raster_bytes.decode()
+        dataset.__exit__.assert_called_once()
 
     record: TemporalFuelRaster = deps.session.add.call_args.args[0]
     assert record.fuel_type_raster_id == 7
@@ -298,19 +328,16 @@ async def test_resolve_temporal_fuel_raster_rebuilds_unverified_raster(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "lookup_error",
-    [
-        {"side_effect": ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")},
-        {"return_value": b"not json"},
-    ],
+    "stored_lookup",
+    [ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject"), b"not json"],
     ids=["missing", "unparseable"],
 )
 async def test_resolve_temporal_fuel_raster_rebuilds_unverified_lookup(
-    mocker: MockerFixture, temporal_fuel_deps, lookup_error: dict
+    mocker: MockerFixture, temporal_fuel_deps, stored_lookup: bytes | Exception
 ):
     deps = temporal_fuel_deps
     patch_db(mocker, existing=stored_raster(version=2), latest_version=2)
-    deps.s3_client.read_object = AsyncMock(**lookup_error)
+    deps.s3_client.read_object = read_stored_object(stored_lookup)
 
     result = await resolve(deps)
 
@@ -346,7 +373,7 @@ async def test_resolve_temporal_fuel_raster_requires_julian_rasters(temporal_fue
     deps.s3_client.all_objects_exist.assert_awaited_once_with(
         "green_up_on", "green_up_off", "grass_standing", "grass_matted"
     )
-    deps.s3_client.get_content_hash.assert_not_awaited()
+    deps.s3_client.read_object.assert_not_awaited()
 
 
 @pytest.mark.anyio

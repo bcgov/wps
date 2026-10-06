@@ -8,6 +8,7 @@ import pytest
 from osgeo import gdal
 from pytest_mock import MockerFixture
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.schemas.sfms import FuelCodesLookup
 
 from wps_sfms.fbp_fuel_types import CFFDRSFuelTypes
@@ -192,6 +193,40 @@ def s3_client() -> SimpleNamespace:
     )
 
 
+def open_from_file(path: str) -> WPSDataset:
+    return WPSDataset.from_bytes(Path(path).read_bytes())
+
+
+async def publish(
+    s3_client,
+    target_date: date,
+    *,
+    base_fuel_key: str,
+    green_up_on_key: str,
+    green_up_off_key: str,
+    grass_standing_key: str,
+    grass_matted_key: str,
+) -> str:
+    """Publish with each Julian raster opened from its bytes, as resolve_temporal_fuel_raster does."""
+    with (
+        open_from_file(green_up_on_key) as green_up_on,
+        open_from_file(green_up_off_key) as green_up_off,
+        open_from_file(grass_standing_key) as grass_standing,
+        open_from_file(grass_matted_key) as grass_matted,
+    ):
+        return await publish_temporal_fuel_raster(
+            s3_client,
+            target_date,
+            base_fuel_key=base_fuel_key,
+            green_up_on=green_up_on,
+            green_up_off=green_up_off,
+            grass_standing=grass_standing,
+            grass_matted=grass_matted,
+            output_key="temporal/fbp.tif",
+            fuel_codes_lookup_path="temporal/fbp.json",
+        )
+
+
 @pytest.mark.anyio
 async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
     mocker: MockerFixture, rasters: SimpleNamespace, s3_client: SimpleNamespace
@@ -213,13 +248,7 @@ async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
 
     mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset", side_effect=capture_publish)
 
-    content_hash = await publish_temporal_fuel_raster(
-        s3_client,
-        date(2026, 7, 1),
-        **vars(rasters),
-        output_key="temporal/fbp.tif",
-        fuel_codes_lookup_path="temporal/fbp.json",
-    )
+    content_hash = await publish(s3_client, date(2026, 7, 1), **vars(rasters))
 
     assert content_hash == "temporal-hash"
     assert published["output_key"] == "temporal/fbp.tif"
@@ -253,19 +282,13 @@ async def test_publish_temporal_fuel_raster_rejects_misaligned_julian_raster(
         gdal.GDT_Int16,
         x_origin=2000.0,
     )
-    keys = {
-        **vars(rasters),
-        f"{julian_name}_key": shifted,
-        "output_key": "temporal/fbp.tif",
-        "fuel_codes_lookup_path": "temporal/fbp.json",
-    }
-    target_date = date(2026, 7, 1)
-    publish = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
+    keys = {**vars(rasters), f"{julian_name}_key": shifted}
+    publish_dataset = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
 
     with pytest.raises(ValueError, match=f"{julian_name} raster does not match the fuel grid"):
-        await publish_temporal_fuel_raster(s3_client, target_date, **keys)
+        await publish(s3_client, date(2026, 7, 1), **keys)
 
-    publish.assert_not_called()
+    publish_dataset.assert_not_called()
     s3_client.put_object.assert_not_awaited()
 
 
@@ -274,16 +297,11 @@ async def test_publish_temporal_fuel_raster_requires_all_inputs(
     mocker: MockerFixture, rasters: SimpleNamespace, s3_client: SimpleNamespace
 ):
     s3_client.all_objects_exist = AsyncMock(return_value=False)
-    publish = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
-
-    keys = {
-        **vars(rasters),
-        "output_key": "temporal/fbp.tif",
-        "fuel_codes_lookup_path": "temporal/fbp.json",
-    }
-    target_date = date(2026, 7, 1)
+    publish_dataset = mocker.patch("wps_sfms.processors.temporal_fuel.publish_dataset")
 
     with pytest.raises(RuntimeError, match="Missing raster dependencies"):
-        await publish_temporal_fuel_raster(s3_client, target_date, **keys)
+        await publish(s3_client, date(2026, 7, 1), **vars(rasters))
 
-    publish.assert_not_called()
+    publish_dataset.assert_not_called()
+    # the Julian rasters arrive open, so only the base fuel raster is checked in object storage
+    s3_client.all_objects_exist.assert_awaited_once_with(rasters.base_fuel_key)
