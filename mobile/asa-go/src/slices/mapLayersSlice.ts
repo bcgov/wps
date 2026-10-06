@@ -2,12 +2,10 @@ import { createSlice } from '@reduxjs/toolkit'
 
 export interface MapLayersState {
   pendingLoads: number
-  latestErrorVersion: number
 }
 
 export const initialState: MapLayersState = {
-  pendingLoads: 0,
-  latestErrorVersion: 0
+  pendingLoads: 0
 }
 
 const mapLayersSlice = createSlice({
@@ -19,14 +17,10 @@ const mapLayersSlice = createSlice({
     },
     mapLayerLoadFinished(state: MapLayersState) {
       state.pendingLoads = Math.max(0, state.pendingLoads - 1)
-    },
-    mapLayerLoadFailed(state: MapLayersState) {
-      // keep failures occurrence-based because another layer succeeding does not prove this one recovered
-      state.latestErrorVersion += 1
     }
   }
 })
 
-export const { mapLayerLoadFailed, mapLayerLoadFinished, mapLayerLoadStarted } = mapLayersSlice.actions
+export const { mapLayerLoadFinished, mapLayerLoadStarted } = mapLayersSlice.actions
 
 export default mapLayersSlice.reducer

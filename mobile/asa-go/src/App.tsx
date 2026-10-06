@@ -43,7 +43,7 @@ import { initSubscriptions } from '@/slices/settingsSlice'
 import {
   type AppDispatch,
   selectFireCentres,
-  selectMapLayersLoadState,
+  selectMapLayersLoading,
   selectNetworkStatus,
   selectOperationalDataLoading,
   selectPendingNotificationData,
@@ -78,7 +78,7 @@ const App = () => {
   const { registeredFcmToken } = useSelector(selectPushNotification)
   const { loading: settingsLoading, subscriptionsInitialized } = useSelector(selectSettings)
   const operationalDataLoading = useSelector(selectOperationalDataLoading)
-  const { loading: mapLayersLoading } = useSelector(selectMapLayersLoadState)
+  const mapLayersLoading = useSelector(selectMapLayersLoading)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
   const dateOfInterest = useSelector(selectDateOfInterest)
@@ -245,7 +245,7 @@ const App = () => {
       {/* Show AppHeader in portrait OR landscape with medium or larger screen */}
       {(isPortrait || !isSmallScreen) && <AppHeader />}
 
-      <LoadingErrorNotifier activeTab={tab} />
+      <LoadingErrorNotifier />
 
       <Box
         data-testid="app-content"

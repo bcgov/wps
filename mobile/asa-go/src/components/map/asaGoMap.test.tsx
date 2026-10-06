@@ -252,7 +252,7 @@ describe('ASAGoMap', () => {
     await waitFor(() => expect(hfiCheckbox).not.toBeChecked())
   })
 
-  it('does not report an online basemap failure when the local fallback is available', async () => {
+  it('settles layer loading when the online basemap is unavailable', async () => {
     vi.mocked(createBasemapLayer).mockRejectedValueOnce(new Error('Network unavailable'))
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const staticLayerSpy = vi
@@ -272,13 +272,12 @@ describe('ASAGoMap', () => {
       expect(createBasemapLayer).toHaveBeenCalled()
       expect(store.getState().mapLayers.pendingLoads).toBe(0)
     })
-    expect(store.getState().mapLayers.latestErrorVersion).toBe(0)
 
     staticLayerSpy.mockRestore()
     warnSpy.mockRestore()
   })
 
-  it('reports an error when neither basemap is available', async () => {
+  it('settles layer loading when neither basemap is available', async () => {
     vi.mocked(createBasemapLayer).mockRejectedValueOnce(new Error('Online basemap unavailable'))
     const failedLocalBasemap = createLayerMock('localBasemapLayer')
     failedLocalBasemap.getSource.mockReturnValue({ getState: vi.fn(() => 'error') })
@@ -295,13 +294,13 @@ describe('ASAGoMap', () => {
       </Provider>
     )
 
-    await waitFor(() => expect(store.getState().mapLayers.latestErrorVersion).toBeGreaterThan(0))
+    await waitFor(() => expect(store.getState().mapLayers.pendingLoads).toBe(0))
 
     staticLayerSpy.mockRestore()
     warnSpy.mockRestore()
   })
 
-  it('reports failed static PMTiles sources', async () => {
+  it('settles layer loading when static PMTiles sources fail', async () => {
     const staticLayerSpy = vi
       .spyOn(PMTilesFileVectorSource, 'createStaticLayer')
       .mockResolvedValue(createPMTilesSource('error'))
@@ -313,12 +312,12 @@ describe('ASAGoMap', () => {
       </Provider>
     )
 
-    await waitFor(() => expect(store.getState().mapLayers.latestErrorVersion).toBeGreaterThan(0))
+    await waitFor(() => expect(store.getState().mapLayers.pendingLoads).toBe(0))
 
     staticLayerSpy.mockRestore()
   })
 
-  it('reports a failed HFI source', async () => {
+  it('settles layer loading when the HFI source fails', async () => {
     const failedHFILayer = createLayerMock('HFILayer')
     failedHFILayer.getSource.mockReturnValue({ getState: vi.fn(() => 'error') })
     vi.mocked(createHFILayer).mockResolvedValueOnce(failedHFILayer as never)
@@ -347,7 +346,7 @@ describe('ASAGoMap', () => {
       </Provider>
     )
 
-    await waitFor(() => expect(store.getState().mapLayers.latestErrorVersion).toBeGreaterThan(0))
+    await waitFor(() => expect(store.getState().mapLayers.pendingLoads).toBe(0))
 
     staticLayerSpy.mockRestore()
   })

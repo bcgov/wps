@@ -68,12 +68,9 @@ export const selectSettingsLoadState = createSelector(
   ({ loading, error }): LoadSourceState => ({ loading, errorKey: error })
 )
 
-export const selectMapLayersLoadState = createSelector(
+export const selectMapLayersLoading = createSelector(
   (state: RootState) => state.mapLayers,
-  ({ pendingLoads, latestErrorVersion }): LoadSourceState => ({
-    loading: pendingLoads > 0,
-    errorKey: latestErrorVersion > 0 ? String(latestErrorVersion) : null
-  })
+  ({ pendingLoads }) => pendingLoads > 0
 )
 
 export type NotificationSetupState = 'permissionDenied' | 'unregistered' | 'registrationFailed' | 'ready'

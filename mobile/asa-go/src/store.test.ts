@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { RootState } from '@/store'
 import {
-  selectMapLayersLoadState,
+  selectMapLayersLoading,
   selectNotificationSettingsDisabled,
   selectNotificationSetupState,
   selectOperationalDataLoading,
@@ -165,7 +165,7 @@ describe('selectOperationalDataLoading', () => {
   })
 })
 
-describe('normalized load-state selectors', () => {
+describe('load-state selectors', () => {
   it('exposes settings loading and errors through the shared shape', () => {
     const state = {
       settings: { loading: true, error: 'settings failed' }
@@ -174,11 +174,11 @@ describe('normalized load-state selectors', () => {
     expect(selectSettingsLoadState(state)).toEqual({ loading: true, errorKey: 'settings failed' })
   })
 
-  it('exposes pending map loads and the latest layer failure', () => {
+  it('reports whether map layers are loading', () => {
     const state = {
-      mapLayers: { pendingLoads: 2, latestErrorVersion: 3 }
+      mapLayers: { pendingLoads: 2 }
     } as unknown as RootState
 
-    expect(selectMapLayersLoadState(state)).toEqual({ loading: true, errorKey: '3' })
+    expect(selectMapLayersLoading(state)).toBe(true)
   })
 })

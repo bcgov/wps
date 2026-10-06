@@ -8,7 +8,6 @@ import { RunType } from '@/api/fbaAPI'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
-import { mapLayerLoadFailed } from '@/slices/mapLayersSlice'
 import { enqueueNotification } from '@/slices/notificationSlice'
 import { initialState as pushNotificationInitialState } from '@/slices/pushNotificationSlice'
 import type { NavPanel } from '@/utils/constants'
@@ -275,7 +274,7 @@ describe('App', () => {
 
   it('marks the Map tab loading while map layers are loading', () => {
     const store = createTestStore({
-      mapLayers: { pendingLoads: 1, latestErrorVersion: 0 }
+      mapLayers: { pendingLoads: 1 }
     })
 
     render(
@@ -285,33 +284,6 @@ describe('App', () => {
     )
 
     expect(screen.getByTestId('tab-panel-Map')).toHaveAttribute('data-loading', 'true')
-  })
-
-  it('shows a loading error snackbar when map layer setup fails', async () => {
-    const store = createTestStore({
-      networkStatus: {
-        networkStatus: { connected: true, connectionType: 'wifi' }
-      }
-    })
-
-    render(
-      <Provider store={store}>
-        <App />
-      </Provider>
-    )
-
-    act(() => {
-      store.dispatch(mapLayerLoadFailed())
-    })
-
-    expect(
-      screen.getByText('Unable to load one or more map layers. Some map information may be unavailable.')
-    ).toBeInTheDocument()
-    const appContent = screen.getByTestId('app-content')
-    const notification = screen.getByTestId('notification-center')
-    expect(notification.parentElement).toBe(appContent)
-    expect(screen.getByTestId('info-bar').parentElement).toBe(appContent)
-    expect(notification).toHaveStyle({ position: 'absolute', top: 0, left: 0, right: 0 })
   })
 
   it('renders App component with Redux store integration', () => {

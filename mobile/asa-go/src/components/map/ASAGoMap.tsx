@@ -52,7 +52,7 @@ import {
 } from '@/layerDefinitions'
 import { selectDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { startWatchingLocation } from '@/slices/geolocationSlice'
-import { mapLayerLoadFailed, mapLayerLoadFinished, mapLayerLoadStarted } from '@/slices/mapLayersSlice'
+import { mapLayerLoadFinished, mapLayerLoadStarted } from '@/slices/mapLayersSlice'
 import { type AppDispatch, selectGeolocation, selectNetworkStatus } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel } from '@/utils/constants'
@@ -381,7 +381,6 @@ const ASAGoMap = ({
     setMap(mapObject)
 
     const loadPMTiles = async () => {
-      let layerUnavailable = false
       const fireCentresSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
         filename: 'fireCentres.pmtiles'
       })
@@ -397,9 +396,7 @@ const ASAGoMap = ({
         filename: 'fireZoneUnits.pmtiles'
       })
 
-      if (fireZoneSource.getState() === 'error') {
-        layerUnavailable = true
-      } else {
+      if (fireZoneSource.getState() !== 'error') {
         fireZoneFileLayer.setSource(fireZoneSource)
         fireZoneHighlightFileLayer.setSource(fireZoneSource)
       }
@@ -409,10 +406,7 @@ const ASAGoMap = ({
       })
 
       const addStaticLayerIfAvailable = (source: PMTilesFileVectorSource, layer: VectorTileLayer) => {
-        if (source.getState() === 'error') {
-          layerUnavailable = true
-          return
-        }
+        if (source.getState() === 'error') return
         mapObject.addLayer(layer)
       }
 
@@ -446,23 +440,19 @@ const ASAGoMap = ({
         })
       )
 
-      let localBasemapAvailable = false
       try {
         const loadedLocalBasemapLayer = await createLocalBasemapVectorLayer()
         if (loadedLocalBasemapLayer.getSource()?.getState() === 'error') {
           Sentry.captureMessage('Local basemap source failed to initialize')
         } else {
-          localBasemapAvailable = true
           setLocalBasemapVectorLayer(loadedLocalBasemapLayer)
         }
       } catch (error) {
         Sentry.captureException(error)
       }
 
-      let onlineBasemapAvailable = false
       try {
         const loadedBasemapLayer = await createBasemapLayer()
-        onlineBasemapAvailable = true
         setBasemapLayer(loadedBasemapLayer)
         mapObject.addLayer(loadedBasemapLayer)
       } catch (e) {
@@ -470,24 +460,12 @@ const ASAGoMap = ({
         console.warn(e)
       }
 
-      if (!localBasemapAvailable && !onlineBasemapAvailable) {
-        layerUnavailable = true
-      }
       if (fireZoneSource.getState() !== 'error') {
         mapObject.addLayer(fireZoneFileLayer)
         mapObject.addLayer(fireZoneHighlightFileLayer)
       }
-
-      if (layerUnavailable) {
-        dispatch(mapLayerLoadFailed())
-      }
     }
-    loadPMTiles()
-      .catch(error => {
-        Sentry.captureException(error)
-        dispatch(mapLayerLoadFailed())
-      })
-      .finally(finishLayerLoad)
+    loadPMTiles().catch(Sentry.captureException).finally(finishLayerLoad)
 
     return () => {
       finishLayerLoad()
@@ -550,7 +528,6 @@ const ASAGoMap = ({
       }
       if (hfiLayer?.getSource()?.getState() === 'error') {
         replaceMapLayer(HFI_LAYER_NAME, null)
-        dispatch(mapLayerLoadFailed())
       } else {
         replaceMapLayer(HFI_LAYER_NAME, hfiLayer)
       }
@@ -558,7 +535,6 @@ const ASAGoMap = ({
       .catch(error => {
         replaceMapLayer(HFI_LAYER_NAME, null)
         Sentry.captureException(error)
-        dispatch(mapLayerLoadFailed())
       })
       .finally(finishLayerLoad)
 
