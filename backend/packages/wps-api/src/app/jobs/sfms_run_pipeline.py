@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Awaitable, Callable
 
+from botocore.exceptions import ClientError
+
 from wps_sfms.interpolation.field import (
     build_dc_field,
     build_dewpoint_field,
@@ -130,6 +132,21 @@ async def get_missing_fwi_seed_keys(
     return missing_keys
 
 
+async def _stored_raster_matches(s3_client: S3Client, key: str, content_hash: str) -> bool:
+    """Return whether the stored raster still exists and matches its recorded content hash."""
+    try:
+        await s3_client.get_fuel_raster(key, content_hash)
+    except ValueError:
+        logger.warning("Stored raster no longer matches its recorded content hash: %s", key)
+        return False
+    except ClientError as e:
+        if e.response["Error"]["Code"] not in ("404", "NoSuchKey"):
+            raise
+        logger.warning("Stored raster is missing: %s", key)
+        return False
+    return True
+
+
 async def resolve_temporal_fuel_raster(
     target_date: date,
     fuel_type_raster: FuelTypeRaster,
@@ -167,7 +184,9 @@ async def resolve_temporal_fuel_raster(
             grass_standing_hash=grass_standing_hash,
             grass_matted_hash=grass_matted_hash,
         )
-        if existing is not None:
+        if existing is not None and await _stored_raster_matches(
+            s3_client, existing.object_store_path, existing.content_hash
+        ):
             logger.info(
                 "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
             )
@@ -175,6 +194,8 @@ async def resolve_temporal_fuel_raster(
                 raster_path=raster_addresser.gdal_path(existing.object_store_path),
                 fuel_codes_lookup_path=S3Key(existing.fuel_codes_lookup_path),
             )
+        # a grid is fully determined by its inputs, so a missing or altered one is rebuilt as the
+        # next version, which the reuse query then prefers
 
         version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
         output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
