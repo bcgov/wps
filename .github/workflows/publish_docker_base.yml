@@ -1,9 +1,6 @@
 name: Publish Base Docker Images to GHCR
 
-permissions:
-  contents: read
-  packages: write
-  pull-requests: read
+permissions: {}
 
 on:
   push:
@@ -16,6 +13,9 @@ jobs:
   build:
     name: Build ${{ matrix.image }} ${{ matrix.platform.arch }}
     runs-on: ${{ matrix.platform.runner }}
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         image: [wps-api-base, wps-jobs-base]
@@ -44,6 +44,9 @@ jobs:
     name: Publish ${{ matrix.image }} Multi-arch Image
     needs: build
     runs-on: ubuntu-24.04
+    permissions:
+      packages: write
+      pull-requests: read
     strategy:
       matrix:
         image: [wps-api-base, wps-jobs-base]
