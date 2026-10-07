@@ -136,7 +136,9 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                     RunType.ACTUAL,
                 )
 
-            if fwi_calculated:
+        # weather and FWI commit first, so a fuel failure can't roll back their run and logs
+        if fwi_calculated:
+            async with get_async_write_session_scope() as session:
                 temporal_fuel = await run_temporal_fuel(
                     datetime_to_process,
                     fuel_type_raster,

@@ -4,10 +4,11 @@ import os
 import tempfile
 from pathlib import Path
 
+import numpy as np
 import pytest
-from osgeo import gdal
+from osgeo import gdal, osr
 
-from wps_shared.geospatial.cog import generate_web_optimized_cog
+from wps_shared.geospatial.cog import generate_and_store_cog, generate_web_optimized_cog
 from wps_shared.geospatial.geospatial import GDALResamplingMethod, SpatialReferenceSystem
 
 
@@ -231,3 +232,28 @@ class TestGenerateWebOptimizedCOG:
         assert band.GetOverviewCount() >= 0
 
         ds = None
+
+
+def test_nearest_neighbour_cog_overviews_keep_categorical_values(temp_output_path):
+    """Overviews must not blend fuel codes into values that aren't in the source."""
+    size = 1024
+    codes = np.array([1, 2, 12, 101], dtype=np.uint8)
+    rng = np.random.default_rng(0)
+    values = codes[rng.integers(0, len(codes), (size, size))]
+
+    src_ds = gdal.GetDriverByName("MEM").Create("", size, size, 1, gdal.GDT_Byte)
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(3005)
+    src_ds.SetProjection(srs.ExportToWkt())
+    src_ds.SetGeoTransform((1_000_000, 100, 0, 1_000_000, 0, -100))
+    src_ds.GetRasterBand(1).WriteArray(values)
+
+    generate_and_store_cog(
+        src_ds, temp_output_path, resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR
+    )
+
+    cog_ds = gdal.Open(temp_output_path)
+    band = cog_ds.GetRasterBand(1)
+    assert band.GetOverviewCount() > 0
+    for i in range(band.GetOverviewCount()):
+        assert set(np.unique(band.GetOverview(i).ReadAsArray())) <= set(codes) | {0}

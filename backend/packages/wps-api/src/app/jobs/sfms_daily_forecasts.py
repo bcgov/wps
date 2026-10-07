@@ -130,10 +130,10 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                     fmc_inputs,
                 )
 
+                # weather and FWI for every date commit first, so a fuel failure can't roll back
+                # their runs and logs
+                sfms_run_ids = {}
                 async with get_async_write_session_scope() as write_session:
-                    # weather and FWI for every date first, so a fuel failure can't stop their
-                    # rasters from being written
-                    sfms_run_ids = {}
                     for index, datetime_to_process in enumerate(datetimes_to_process):
                         sfms_forecasts = await wfwx_api.get_sfms_daily_weather_all_stations(
                             datetime_to_process
@@ -176,6 +176,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                         )
                         sfms_run_ids[datetime_to_process] = sfms_run_id
 
+                async with get_async_write_session_scope() as write_session:
                     for datetime_to_process, sfms_run_id in sfms_run_ids.items():
                         temporal_fuel = await run_temporal_fuel(
                             datetime_to_process,

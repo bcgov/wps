@@ -13,6 +13,13 @@ from wps_shared.geospatial.geospatial import GDALResamplingMethod, SpatialRefere
 
 logger = logging.getLogger(__name__)
 
+# COG driver overview names; without this overviews default to CUBIC, which blends categorical values
+OVERVIEW_RESAMPLING = {
+    GDALResamplingMethod.NEAREST_NEIGHBOUR: "NEAREST",
+    GDALResamplingMethod.BILINEAR: "BILINEAR",
+    GDALResamplingMethod.CUBIC: "CUBIC",
+}
+
 
 def generate_web_optimized_cog(
     input_path: str,
@@ -67,7 +74,7 @@ def generate_and_store_cog(
     :param output_path: Path for output COG (local or /vsis3/)
     :param target_srs: Target spatial reference system (default: Web Mercator EPSG:3857)
     :param compression: Compression algorithm (default: LZW)
-    :param resample_alg: Resampling algorithm for reprojection (default: Bilinear)
+    :param resample_alg: Resampling algorithm for reprojection and overviews (default: Bilinear)
     :return: Path to output COG
     """
     # Warp to target SRS in memory (no intermediate file)
@@ -91,6 +98,7 @@ def generate_and_store_cog(
             f"COMPRESS={compression}",
             "BIGTIFF=IF_SAFER",
             "OVERVIEWS=IGNORE_EXISTING",  # Always create new overviews
+            f"OVERVIEW_RESAMPLING={OVERVIEW_RESAMPLING[resample_alg]}",
         ],
     )
 

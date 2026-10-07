@@ -157,10 +157,12 @@ def mock_dependencies(
     db_execute_result.scalar = MagicMock(return_value=1)
     db_session.execute = AsyncMock(return_value=db_execute_result)
     db_session.get = AsyncMock(return_value=MagicMock())
+    db_session.commit = AsyncMock()
 
     @asynccontextmanager
     async def _write_scope():
         yield db_session
+        await db_session.commit()
 
     mocker.patch(f"{MODULE_PATH}.get_async_write_session_scope", _write_scope)
 
@@ -268,6 +270,8 @@ class TestRunSfmsDailyForecasts:
         assert mock_dependencies.temp_processor.process.call_count == 3
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 18
         mock_dependencies.primary_fbp_processor.process.assert_not_called()
+        # weather and FWI committed before fuel failed
+        mock_dependencies.db_session.commit.assert_awaited_once()
 
     @pytest.mark.anyio
     async def test_fbp_uses_temporal_fuel_raster_per_forecast_date(

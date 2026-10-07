@@ -193,10 +193,12 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     db_execute_result.scalar = MagicMock(return_value=1)
     db_session.execute = AsyncMock(return_value=db_execute_result)
     db_session.get = AsyncMock(return_value=MagicMock())
+    db_session.commit = AsyncMock()
 
     @asynccontextmanager
     async def _scope():
         yield db_session
+        await db_session.commit()
 
     mocker.patch(f"{MODULE_PATH}.get_async_write_session_scope", _scope)
 
@@ -411,6 +413,8 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.interpolation_processor.process.assert_called_once()
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 6
         mock_dependencies.primary_fbp_processor.process.assert_not_called()
+        # weather and FWI committed before fuel failed
+        mock_dependencies.db_session.commit.assert_awaited_once()
 
     @pytest.mark.anyio
     async def test_precipitation_failure_logs_failed_and_raises(
