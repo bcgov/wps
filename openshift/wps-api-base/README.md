@@ -9,7 +9,7 @@ The image is published to GHCR by GitHub Actions from [`.github/workflows/publis
 
 - Triggered on pushes to `main`
 - Can also be run manually with `workflow_dispatch`
-  - `gh workflow run "Publish Base Docker Image to GHCR" --ref <branch-name>`
+  - `gh workflow run publish_docker_base.yml --ref <branch-name>`
 - Publishes `ghcr.io/bcgov/wps/wps-api-base:<mm-dd-yyyy>`
 - Also updates `ghcr.io/bcgov/wps/wps-api-base:latest`
 
