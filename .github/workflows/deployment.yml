@@ -184,20 +184,24 @@ jobs:
 
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      # Publish whichever halves were built, so one failed architecture doesn't lose the other
+      # amd64 is the image OpenShift runs, so it's required: without it, keep the previous tag rather
+      # than publish arm64 only. arm64 is optional and is left out with a warning if it failed.
       - name: Create Multi-arch Manifest
         env:
           IMAGE: ghcr.io/bcgov/wps/wps-${{ matrix.module }}
         run: |
-          sources=()
-          for arch in amd64 arm64; do
-            if docker buildx imagetools inspect "${IMAGE}:${SUFFIX}-run${{ github.run_id }}-${arch}" >/dev/null 2>&1; then
-              sources+=("${IMAGE}:${SUFFIX}-run${{ github.run_id }}-${arch}")
-            else
-              echo "::warning title=GHCR image incomplete::wps-${{ matrix.module }}:${SUFFIX} has no ${arch} build. OpenShift deploy is unaffected."
-            fi
-          done
-          [ ${#sources[@]} -gt 0 ] || { echo "::warning title=GHCR publish failed::no wps-${{ matrix.module }} images to publish"; exit 1; }
+          amd64="${IMAGE}:${SUFFIX}-run${{ github.run_id }}-amd64"
+          arm64="${IMAGE}:${SUFFIX}-run${{ github.run_id }}-arm64"
+          if ! docker buildx imagetools inspect "${amd64}" >/dev/null 2>&1; then
+            echo "::warning title=GHCR publish skipped::wps-${{ matrix.module }}:${SUFFIX} has no amd64 build, so the previous tag was kept. OpenShift deploy is unaffected."
+            exit 1
+          fi
+          sources=("${amd64}")
+          if docker buildx imagetools inspect "${arm64}" >/dev/null 2>&1; then
+            sources+=("${arm64}")
+          else
+            echo "::warning title=GHCR image incomplete::wps-${{ matrix.module }}:${SUFFIX} has no arm64 build. OpenShift deploy is unaffected."
+          fi
           docker buildx imagetools create --tag "${IMAGE}:${SUFFIX}" "${sources[@]}"
 
   configure-nats-server-name:

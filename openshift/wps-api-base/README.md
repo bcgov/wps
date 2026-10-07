@@ -5,13 +5,13 @@ The Docker image and template in this folder are used to create the base image u
 Using this base image can save some time, as it installs some various packages that take a long time
 to install and don't change often, such as GDAL, `wkhtmltopdf`, and `tippecanoe`.
 
-The image is published to GHCR by GitHub Actions from [`.github/workflows/publish_docker_base.yml`](../../.github/workflows/publish_docker_base.yml).
+The image is published to GHCR by GitHub Actions from [`.github/workflows/publish_docker_base.yml`](../../.github/workflows/publish_docker_base.yml), which also publishes `wps-jobs-base` (see [`openshift/wps-jobs-base`](../wps-jobs-base)). Both are multi-arch (`linux/amd64` and `linux/arm64`), each built natively on its own runner.
 
-- Triggered on pushes to `main`
-- Can also be run manually with `workflow_dispatch`
+- On pushes to `main`, publishes `ghcr.io/bcgov/wps/wps-api-base:<mm-dd-yyyy>` and updates `:latest`
+- Can also be run manually from a branch to test base image changes before merging:
   - `gh workflow run publish_docker_base.yml --ref <branch-name>`
-- Publishes `ghcr.io/bcgov/wps/wps-api-base:<mm-dd-yyyy>`
-- Also updates `ghcr.io/bcgov/wps/wps-api-base:latest`
+  - The branch needs an open PR. It publishes only `ghcr.io/bcgov/wps/wps-api-base:pr-<number>-<mm-dd-yyyy>`, so the shared date and `latest` tags aren't touched
+- Each run also leaves per-architecture `run-<run_id>-amd64` / `run-<run_id>-arm64` tags, which the multi-arch tags are built from
 
 ## Local Build
 

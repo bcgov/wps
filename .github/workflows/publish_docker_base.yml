@@ -9,9 +9,35 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Resolved before building so a branch run without an open PR fails before any image is built
+  tags:
+    name: Resolve Tags
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: read
+    outputs:
+      tags: ${{ steps.tags.outputs.tags }}
+    steps:
+      - name: Resolve Tags
+        id: tags
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Only main moves the shared date and latest tags; branch runs (workflow_dispatch) get a
+          # PR-scoped tag so nothing else picks up an unmerged base image
+          DATE_TAG=$(date +%m-%d-%Y)
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            echo "tags=${DATE_TAG} latest" >> "${GITHUB_OUTPUT}"
+          else
+            pr=$(gh pr list --repo "${GITHUB_REPOSITORY}" --head "${GITHUB_REF_NAME}" --state open --json number --jq '.[0].number')
+            [ -n "${pr}" ] || { echo "::error::No open PR for branch ${GITHUB_REF_NAME}; branch runs are tagged by PR number"; exit 1; }
+            echo "tags=pr-${pr}-${DATE_TAG}" >> "${GITHUB_OUTPUT}"
+          fi
+
   # Each architecture builds natively on its own runner, then merge combines them into one multi-arch tag
   build:
     name: Build ${{ matrix.image }} ${{ matrix.platform.arch }}
+    needs: tags
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
@@ -42,11 +68,10 @@ jobs:
 
   merge:
     name: Publish ${{ matrix.image }} Multi-arch Image
-    needs: build
+    needs: [tags, build]
     runs-on: ubuntu-24.04
     permissions:
       packages: write
-      pull-requests: read
     strategy:
       matrix:
         image: [wps-api-base, wps-jobs-base]
@@ -61,18 +86,11 @@ jobs:
       - name: Create Multi-arch Manifest
         env:
           IMAGE: ghcr.io/bcgov/wps/${{ matrix.image }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Only main moves the shared date and latest tags; branch runs (workflow_dispatch) get a
-          # PR-scoped tag so nothing else picks up an unmerged base image
-          DATE_TAG=$(date +%m-%d-%Y)
-          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            tags="--tag ${IMAGE}:${DATE_TAG} --tag ${IMAGE}:latest"
-          else
-            pr=$(gh pr list --repo "${GITHUB_REPOSITORY}" --head "${GITHUB_REF_NAME}" --state open --json number --jq '.[0].number')
-            [ -n "${pr}" ] || { echo "::error::No open PR for branch ${GITHUB_REF_NAME}; branch runs are tagged by PR number"; exit 1; }
-            tags="--tag ${IMAGE}:pr-${pr}-${DATE_TAG}"
-          fi
-          docker buildx imagetools create ${tags} \
+          tags=()
+          for tag in ${{ needs.tags.outputs.tags }}; do
+            tags+=(--tag "${IMAGE}:${tag}")
+          done
+          docker buildx imagetools create "${tags[@]}" \
             ${IMAGE}:run-${{ github.run_id }}-amd64 \
             ${IMAGE}:run-${{ github.run_id }}-arm64

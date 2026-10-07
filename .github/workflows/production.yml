@@ -56,18 +56,19 @@ jobs:
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" PROJ_TARGET=e1e498-prod bash openshift/scripts/oc_deploy_to_production.sh ${SUFFIX} apply
 
       # Tag the GHCR mirrors as prod. OpenShift doesn't pull these, so failure must not block the deploy.
+      # Try every package so one failure doesn't leave the others' prod tags stale
       - name: Promote GHCR mirror images to prod
-        id: ghcr_promote
         if: vars.PUSH_GHCR != 'false'
         continue-on-error: true
         run: |
+          failed=""
           for package in wps-api wps-web wps-jobs; do
-            PACKAGE=${package} bash openshift/scripts/oc_promote_gh.sh ${SUFFIX} apply
+            PACKAGE=${package} bash openshift/scripts/oc_promote_gh.sh ${SUFFIX} apply || failed="${failed} ${package}"
           done
-
-      - name: Warn on GHCR promotion failure
-        if: steps.ghcr_promote.outcome == 'failure'
-        run: echo "::warning title=GHCR promotion failed::GHCR prod tags were not updated. OpenShift prod deploy is unaffected."
+          if [ -n "${failed}" ]; then
+            echo "::warning title=GHCR promotion failed::Could not promote${failed} to prod on GHCR. OpenShift prod deploy is unaffected."
+            exit 1
+          fi
 
       - uses: ./.github/actions/gwa-setup
 
