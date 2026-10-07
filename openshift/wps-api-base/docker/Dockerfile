@@ -18,7 +18,7 @@ RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip pytho
 
 # - wkhtmltopdf (for making pdf's), matching the build platform's architecture (amd64 or arm64)
 RUN ARCH=$(dpkg --print-architecture) && \
-    curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_${ARCH}.deb > /tmp/wkhtmltox.deb && \
+    curl -sSL --proto "=https" --proto-redir "=https" https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_${ARCH}.deb > /tmp/wkhtmltox.deb && \
     dpkg -i /tmp/wkhtmltox.deb
 
 # Install tippecanoe for pmtiles

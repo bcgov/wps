@@ -145,7 +145,7 @@ jobs:
             docker_file: Dockerfile.jobs
             base_image: ghcr.io/bcgov/wps/wps-jobs-base:latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
@@ -182,7 +182,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       # Publish whichever halves were built, so one failed architecture doesn't lose the other
       - name: Create Multi-arch Manifest
