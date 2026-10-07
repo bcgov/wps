@@ -7,6 +7,10 @@ assignees: ''
 
 ---
 
+<!-- Start the title with a product prefix so the issue is categorized on the project board:
+SFMS, SFMS Insights, ASA, ASA Go, MoreCast, FireWatch, HFI Calculator, FBP Go, FireCalc, FireBAT, Innovation, Dev
+e.g. "MoreCast: Add grass curing tab" -->
+
 TODO: The intention is for new UX practitioner to review this template prior to use.
 
 **Describe the task**
