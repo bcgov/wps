@@ -139,11 +139,11 @@ jobs:
           - name: API
             module: api
             docker_file: Dockerfile
-            base_image: ghcr.io/bcgov/wps/wps-api-base:latest
+            base_image: ghcr.io/bcgov/wps/wps-api-base:pr-5899-10-07-2026@sha256:ead22e60df1e0d638bc534d7ff5a308d4cd02520ece2b6f7b6d5b87fd0bf9d0a
           - name: WPS Jobs
             module: jobs
             docker_file: Dockerfile.jobs
-            base_image: ghcr.io/bcgov/wps/wps-jobs-base:latest
+            base_image: ghcr.io/bcgov/wps/wps-jobs-base:pr-5899-10-07-2026@sha256:ae9f5d50dd2c37bd82567d418f95ddebbabd7a5b694d782574b3d006559dbe84
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
