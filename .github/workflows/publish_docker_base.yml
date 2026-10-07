@@ -10,26 +10,53 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  IMAGE: ghcr.io/bcgov/wps/wps-api-base
+
 jobs:
-  build-and-publish:
-    name: Build and Publish Docker Image
-    runs-on: ubuntu-24.04
+  # Each architecture builds natively on its own runner, then merge combines them into one multi-arch tag
+  build:
+    name: Build ${{ matrix.arch }} Image
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
       - name: Login to GitHub Container Registry
-        # this step requires a GH_TOKEN with read:packages write:packages and delete:packages
-        # tested with a classic token with the above permissions
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
-      - name: Build and Publish Base Image
+      - name: Build and Push ${{ matrix.arch }} Image
         run: |
           cd openshift/wps-api-base/docker
+          docker build . --tag ${IMAGE}:run-${{ github.run_id }}-${{ matrix.arch }}
+          docker push ${IMAGE}:run-${{ github.run_id }}-${{ matrix.arch }}
+
+  merge:
+    name: Publish Multi-arch Image
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+      - uses: docker/setup-buildx-action@v4
+      - name: Create Multi-arch Manifest
+        run: |
           DATE_TAG=$(date +%m-%d-%Y)
-          docker build . --tag ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG}
-          docker tag ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG} ghcr.io/bcgov/wps/wps-api-base:latest
-          docker push ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG}
-          docker push ghcr.io/bcgov/wps/wps-api-base:latest
+          docker buildx imagetools create \
+            --tag ${IMAGE}:${DATE_TAG} \
+            --tag ${IMAGE}:latest \
+            ${IMAGE}:run-${{ github.run_id }}-amd64 \
+            ${IMAGE}:run-${{ github.run_id }}-arm64

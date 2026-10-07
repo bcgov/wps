@@ -16,16 +16,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 # - tippecanoe for generating pmtiles
 RUN apt-get update --fix-missing && apt-get -y install python3 python3-pip python3-dev python-is-python3 libudunits2-dev xfonts-base xfonts-75dpi curl git build-essential libproj-dev libgeos-dev libsqlite3-dev libpq-dev libtirpc-dev libssl-dev libcurl4-openssl-dev libxml2-dev cmake libabsl-dev
 
-RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-# Enable for mac M1
-# RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_arm64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-
-
-# - wkhtmltopdf (for making pdf's)
-
-# Enable for mac M1
-# RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_arm64.deb
-RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+# - wkhtmltopdf (for making pdf's), matching the build platform's architecture (amd64 or arm64)
+RUN ARCH=$(dpkg --print-architecture) && \
+    curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_${ARCH}.deb > /tmp/wkhtmltox.deb && \
+    dpkg -i /tmp/wkhtmltox.deb
 
 # Install tippecanoe for pmtiles
 RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippecanoe && make -j && make install && cd ..
