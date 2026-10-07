@@ -3,6 +3,7 @@ name: Publish Base Docker Images to GHCR
 permissions:
   contents: read
   packages: write
+  pull-requests: read
 
 on:
   push:
@@ -57,10 +58,18 @@ jobs:
       - name: Create Multi-arch Manifest
         env:
           IMAGE: ghcr.io/bcgov/wps/${{ matrix.image }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Only main moves the shared date and latest tags; branch runs (workflow_dispatch) get a
+          # PR-scoped tag so nothing else picks up an unmerged base image
           DATE_TAG=$(date +%m-%d-%Y)
-          docker buildx imagetools create \
-            --tag ${IMAGE}:${DATE_TAG} \
-            --tag ${IMAGE}:latest \
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            tags="--tag ${IMAGE}:${DATE_TAG} --tag ${IMAGE}:latest"
+          else
+            pr=$(gh pr list --repo "${GITHUB_REPOSITORY}" --head "${GITHUB_REF_NAME}" --state open --json number --jq '.[0].number')
+            [ -n "${pr}" ] || { echo "::error::No open PR for branch ${GITHUB_REF_NAME}; branch runs are tagged by PR number"; exit 1; }
+            tags="--tag ${IMAGE}:pr-${pr}-${DATE_TAG}"
+          fi
+          docker buildx imagetools create ${tags} \
             ${IMAGE}:run-${{ github.run_id }}-amd64 \
             ${IMAGE}:run-${{ github.run_id }}-arm64
