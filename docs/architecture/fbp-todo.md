@@ -87,6 +87,11 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
     `sfms_ng/fuel/temporal/2026/07/01/1/fbp2026_07_01_1.tif`). `{version}` counts the grids
     stored for that date, starting at `1`; a new one is stored whenever no stored grid matches the
     run's base grid and Julian-date rasters, or the matching one is missing or altered.
+  - The fuel codes lookup is the grid's metadata: one national FBP lookup row per grid value
+    present, with its fuel type, descriptive name and colour (`red`/`green`/`blue` and
+    `hue`/`saturation`/`lightness`). Primary FBP only reads `grid_value` and `fuel_type`; the
+    names and colours are there so the frontend can label and colour the fuel layer from the
+    lookup rather than hardcoding a legend.
   - D2 is supported by `cffdrs_vec`. It applies BUI thresholding, so D2 produces almost no spread
     below BUI 80.
   - Seasonal variants apply to every primary FBP output, including SFC, following the
