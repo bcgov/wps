@@ -149,7 +149,9 @@ def calculate_primary_fire_behaviour(
     aspect_rad = np.where(slope_percent == 0, 0.0, aspect_rad)
 
     fuel_type_codes = fuel_types.cffdrs_codes(fuel)
-    validate_percent_conifer(percent_conifer, fuel_types.mixedwood_mask(fuel))
+    validate_percent_conifer(
+        percent_conifer=percent_conifer, mixedwood_mask=fuel_types.mixedwood_mask(fuel)
+    )
 
     non_combustible_mask = fuel_types.non_combustible_mask(fuel)
     calculation_mask = (
