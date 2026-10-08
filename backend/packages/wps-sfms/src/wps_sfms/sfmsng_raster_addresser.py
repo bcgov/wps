@@ -128,21 +128,9 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         """S3 key for the BC aspect raster used in primary FBP calculations."""
         return self.get_static_key("bc_aspect.tif")
 
-    def get_green_up_on_key(self) -> S3Key:
-        """S3 key for the raster of per-pixel Julian days that green-up starts."""
-        return self.get_static_key("julian/green_up_on.tif")
-
-    def get_green_up_off_key(self) -> S3Key:
-        """S3 key for the raster of per-pixel Julian days that green-up ends."""
-        return self.get_static_key("julian/green_up_off.tif")
-
-    def get_grass_standing_key(self) -> S3Key:
-        """S3 key for the raster of per-pixel Julian days that grass becomes standing."""
-        return self.get_static_key("julian/grass_standing.tif")
-
-    def get_grass_matted_key(self) -> S3Key:
-        """S3 key for the raster of per-pixel Julian days that grass becomes matted."""
-        return self.get_static_key("julian/grass_matted.tif")
+    def get_julian_key(self, name: str) -> S3Key:
+        """S3 key for the current Julian date raster ``name``, e.g. ``green_up_on``."""
+        return self.get_static_key(f"julian/{name}.tif")
 
     def get_julian_archive_key(self, name: str, content_hash: str) -> S3Key:
         """S3 key for an archived copy of a Julian date raster, addressed by its SHA-256 hash."""

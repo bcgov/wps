@@ -18,6 +18,7 @@ from wps_sfms.interpolation.field import (
     build_wind_speed_field,
     build_wind_vector_field,
 )
+from wps_sfms.julian_rasters import ensure_julian_archives, read_julian_rasters
 from wps_sfms.processors.fwi import (
     BUICalculator,
     DCCalculator,
@@ -157,33 +158,6 @@ async def _stored_outputs_match(s3_client: S3Client, existing: TemporalFuelRaste
     return True
 
 
-JULIAN_RASTER_NAMES = ("green_up_on", "green_up_off", "grass_standing", "grass_matted")
-
-
-async def _ensure_julian_archives(
-    s3_client: S3Client,
-    raster_addresser: SFMSNGRasterAddresser,
-    julian_hashes: list[str],
-    julian_bytes: list[bytes],
-) -> list[S3Key]:
-    """Archive the exact Julian rasters by content hash, since the live keys get replaced over
-    time, and return the archive keys. Only missing archives are written; an existing one already
-    holds the same bytes."""
-    archive_keys = [
-        raster_addresser.get_julian_archive_key(name, julian_hash)
-        for name, julian_hash in zip(JULIAN_RASTER_NAMES, julian_hashes)
-    ]
-    archived = await asyncio.gather(*(s3_client.object_exists(key) for key in archive_keys))
-    await asyncio.gather(
-        *(
-            s3_client.put_object(key, raster_bytes)
-            for key, raster_bytes, exists in zip(archive_keys, julian_bytes, archived)
-            if not exists
-        )
-    )
-    return archive_keys
-
-
 async def resolve_temporal_fuel_raster(
     target_date: date,
     fuel_type_raster: FuelTypeRaster,
@@ -195,38 +169,15 @@ async def resolve_temporal_fuel_raster(
     An existing raster is reused only when it was built from the same base fuel raster and the
     same green-up and grass curing Julian date rasters.
     """
-    green_up_on_key = raster_addresser.get_green_up_on_key()
-    green_up_off_key = raster_addresser.get_green_up_off_key()
-    grass_standing_key = raster_addresser.get_grass_standing_key()
-    grass_matted_key = raster_addresser.get_grass_matted_key()
-    julian_keys = (green_up_on_key, green_up_off_key, grass_standing_key, grass_matted_key)
-    if not await s3_client.all_objects_exist(*julian_keys):
-        raise RuntimeError(f"Missing Julian date rasters, expected: {', '.join(julian_keys)}")
-    # Reads the four ~1.4 MB Julian rasters per date (3x per forecast run); read them once per
-    # run and pass them in if they grow or more are added. A rebuild opens these same bytes, so
-    # the recorded hashes always match the grid's inputs.
-    julian_bytes = await asyncio.gather(*(s3_client.read_object(key) for key in julian_keys))
-    julian_hashes = [hashlib.sha256(raster_bytes).hexdigest() for raster_bytes in julian_bytes]
-    green_up_on_hash, green_up_off_hash, grass_standing_hash, grass_matted_hash = julian_hashes
+    julian = await read_julian_rasters(s3_client, raster_addresser)
     # outside the date lock: concurrent runs would write identical bytes to the same keys
-    (
-        green_up_on_archive_key,
-        green_up_off_archive_key,
-        grass_standing_archive_key,
-        grass_matted_archive_key,
-    ) = await _ensure_julian_archives(s3_client, raster_addresser, julian_hashes, julian_bytes)
+    await ensure_julian_archives(s3_client, julian)
 
     async with get_async_write_session_scope() as session:
         # held until commit so concurrent runs for the same date reuse rather than collide
         await lock_temporal_fuel_raster_date(session, target_date)
         existing = await get_matching_temporal_fuel_raster(
-            session,
-            target_date,
-            fuel_type_raster.id,
-            green_up_on_hash=green_up_on_hash,
-            green_up_off_hash=green_up_off_hash,
-            grass_standing_hash=grass_standing_hash,
-            grass_matted_hash=grass_matted_hash,
+            session, target_date, fuel_type_raster.id, **julian.hash_columns()
         )
         if existing is not None and await _stored_outputs_match(s3_client, existing):
             logger.info(
@@ -242,22 +193,20 @@ async def resolve_temporal_fuel_raster(
         version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
         output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
         fuel_codes_lookup_key = raster_addresser.get_fuel_codes_lookup_key(target_date, version)
-        on_bytes, off_bytes, standing_bytes, matted_bytes = julian_bytes
-        with (
-            WPSDataset.from_bytes(on_bytes) as green_up_on,
-            WPSDataset.from_bytes(off_bytes) as green_up_off,
-            WPSDataset.from_bytes(standing_bytes) as grass_standing,
-            WPSDataset.from_bytes(matted_bytes) as grass_matted,
-        ):
+        logger.info(
+            "Generating temporal fuel raster for %s, version %s, base raster %s: %s",
+            target_date,
+            version,
+            fuel_type_raster.id,
+            output_key,
+        )
+        with julian.as_datasets() as julian_datasets:
             content_hash = await publish_temporal_fuel_raster(
                 s3_client,
                 target_date,
                 base_fuel_key=raster_addresser.gdal_path(fuel_type_raster.object_store_path),
-                green_up_on=green_up_on,
-                green_up_off=green_up_off,
-                grass_standing=grass_standing,
-                grass_matted=grass_matted,
                 output_key=output_key,
+                julian=julian_datasets,
                 fuel_codes_lookup_key=fuel_codes_lookup_key,
             )
         session.add(
@@ -268,14 +217,8 @@ async def resolve_temporal_fuel_raster(
                 object_store_path=output_key,
                 fuel_codes_lookup_path=fuel_codes_lookup_key,
                 content_hash=content_hash,
-                green_up_on_hash=green_up_on_hash,
-                green_up_off_hash=green_up_off_hash,
-                grass_standing_hash=grass_standing_hash,
-                grass_matted_hash=grass_matted_hash,
-                green_up_on_archive_path=green_up_on_archive_key,
-                green_up_off_archive_path=green_up_off_archive_key,
-                grass_standing_archive_path=grass_standing_archive_key,
-                grass_matted_archive_path=grass_matted_archive_key,
+                **julian.hash_columns(),
+                **julian.archive_path_columns(),
                 create_timestamp=get_utc_now(),
             )
         )

@@ -21,6 +21,7 @@ from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
+from wps_sfms.julian_rasters import JulianDatasets
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies
 
@@ -30,10 +31,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class TemporalFuelInputDatasets:
     base_fuel: WPSDataset
-    green_up_on: WPSDataset
-    green_up_off: WPSDataset
-    grass_standing: WPSDataset
-    grass_matted: WPSDataset
+    julian: JulianDatasets
 
 
 @dataclass(frozen=True, eq=False)
@@ -336,10 +334,10 @@ class TemporalFuelGrid:
         never switch. A ``ValueError`` is raised for unrecognized base fuel values.
         """
         base_fuel, _ = datasets.base_fuel.replace_nodata_with(np.nan)
-        green_up_on, _ = datasets.green_up_on.replace_nodata_with(np.nan)
-        green_up_off, _ = datasets.green_up_off.replace_nodata_with(np.nan)
-        grass_standing, _ = datasets.grass_standing.replace_nodata_with(np.nan)
-        grass_matted, _ = datasets.grass_matted.replace_nodata_with(np.nan)
+        green_up_on, _ = datasets.julian.green_up_on.replace_nodata_with(np.nan)
+        green_up_off, _ = datasets.julian.green_up_off.replace_nodata_with(np.nan)
+        grass_standing, _ = datasets.julian.grass_standing.replace_nodata_with(np.nan)
+        grass_matted, _ = datasets.julian.grass_matted.replace_nodata_with(np.nan)
 
         values = np.full(base_fuel.shape, np.nan, dtype=np.float32)
         for bc_value, national_value in cls.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE.items():
@@ -379,10 +377,7 @@ async def publish_temporal_fuel_raster(
     target_date: date,
     *,
     base_fuel_key: GDALPath,
-    green_up_on: WPSDataset,
-    green_up_off: WPSDataset,
-    grass_standing: WPSDataset,
-    grass_matted: WPSDataset,
+    julian: JulianDatasets,
     output_key: S3Key,
     fuel_codes_lookup_key: S3Key,
 ) -> str:
@@ -396,20 +391,9 @@ async def publish_temporal_fuel_raster(
     with gdal_s3_context():
         await dependencies.assert_keys_exist(s3_client, (base_fuel_key,))
         with WPSDataset(base_fuel_key) as base_fuel:
-            dependencies.validate_grids(
-                base_fuel,
-                {
-                    "green_up_on": green_up_on,
-                    "green_up_off": green_up_off,
-                    "grass_standing": grass_standing,
-                    "grass_matted": grass_matted,
-                },
-            )
+            dependencies.validate_grids(base_fuel, julian.by_name())
             grid = TemporalFuelGrid.build(
-                TemporalFuelInputDatasets(
-                    base_fuel, green_up_on, green_up_off, grass_standing, grass_matted
-                ),
-                target_date,
+                TemporalFuelInputDatasets(base_fuel=base_fuel, julian=julian), target_date
             )
 
             nodata_value = base_fuel.require_nodata_value()

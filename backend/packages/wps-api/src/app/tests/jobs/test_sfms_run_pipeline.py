@@ -195,10 +195,7 @@ def temporal_fuel_deps(mocker: MockerFixture):
 
     addresser = MagicMock()
     addresser.gdal_path.side_effect = lambda key: f"/vsis3/bucket/{key}"
-    addresser.get_green_up_on_key.return_value = "green_up_on"
-    addresser.get_green_up_off_key.return_value = "green_up_off"
-    addresser.get_grass_standing_key.return_value = "grass_standing"
-    addresser.get_grass_matted_key.return_value = "grass_matted"
+    addresser.get_julian_key.side_effect = lambda name: name
     addresser.get_temporal_fuel_key.side_effect = lambda _date, version: f"temporal/{version}.tif"
     addresser.get_fuel_codes_lookup_key.side_effect = lambda _date, version: (
         f"temporal/{version}.json"
@@ -214,7 +211,7 @@ def temporal_fuel_deps(mocker: MockerFixture):
     # no Julian archives yet
     s3_client.object_exists = AsyncMock(return_value=False)
     s3_client.put_object = AsyncMock()
-    mocker.patch(f"{PIPELINE_PATH}.WPSDataset.from_bytes", side_effect=open_julian_dataset)
+    mocker.patch("wps_sfms.julian_rasters.WPSDataset.from_bytes", side_effect=open_julian_dataset)
 
     return SimpleNamespace(
         session=session,
@@ -314,7 +311,7 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
     assert publish_args["base_fuel_key"] == "/vsis3/bucket/sfms/static/fuel/fbp2026_v1.tif"
     # the grid is built from the same bytes that were hashed, and each dataset is closed after
     for name, raster_bytes in JULIAN_BYTES.items():
-        dataset = publish_args[name]
+        dataset = getattr(publish_args["julian"], name)
         assert dataset._mock_name == raster_bytes.decode()
         dataset.__exit__.assert_called_once()
 

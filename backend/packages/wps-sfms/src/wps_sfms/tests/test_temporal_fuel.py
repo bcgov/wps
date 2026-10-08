@@ -12,6 +12,7 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.schemas.sfms import FuelCodesLookup
 
 from wps_sfms.fbp_fuel_types import CFFDRSFuelTypes
+from wps_sfms.julian_rasters import JulianDatasets
 from wps_sfms.processors.temporal_fuel import (
     TemporalFuelInputDatasets,
     TemporalFuelGrid,
@@ -66,10 +67,12 @@ def make_datasets(base_fuel: np.ndarray, **julian: np.ndarray) -> TemporalFuelIn
     }
     return TemporalFuelInputDatasets(
         base_fuel=create_test_wps_dataset("base_fuel.tif", base_fuel),
-        **{
-            name: create_test_wps_dataset(f"{name}.tif", values)
-            for name, values in julian_values.items()
-        },
+        julian=JulianDatasets(
+            **{
+                name: create_test_wps_dataset(f"{name}.tif", values)
+                for name, values in julian_values.items()
+            }
+        ),
     )
 
 
@@ -218,10 +221,12 @@ async def publish(
             s3_client,
             target_date,
             base_fuel_key=base_fuel_key,
-            green_up_on=green_up_on,
-            green_up_off=green_up_off,
-            grass_standing=grass_standing,
-            grass_matted=grass_matted,
+            julian=JulianDatasets(
+                green_up_on=green_up_on,
+                green_up_off=green_up_off,
+                grass_standing=grass_standing,
+                grass_matted=grass_matted,
+            ),
             output_key="temporal/fbp.tif",
             fuel_codes_lookup_key="temporal/fbp.json",
         )
