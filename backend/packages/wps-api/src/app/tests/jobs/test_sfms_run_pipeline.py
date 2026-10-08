@@ -236,9 +236,10 @@ def patch_db(mocker: MockerFixture, existing=None, latest_version: int = 0) -> A
         new_callable=AsyncMock,
         return_value=latest_version,
     )
+    # autospec so the reuse query's hash kwargs must match the real function's parameters
     return mocker.patch(
         f"{PIPELINE_PATH}.get_matching_temporal_fuel_raster",
-        new_callable=AsyncMock,
+        autospec=True,
         return_value=existing,
     )
 
