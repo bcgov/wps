@@ -46,13 +46,15 @@ class JulianRasters:
     """The four Julian date rasters a temporal fuel grid is built from, by name rather than by
     position so each raster's bytes, hash and archive key can't be paired with another's."""
 
+    # field names are the S3 object names under julian/ and julian/archive/, so renaming one
+    # changes where its raster is read from and archived to
     green_up_on: JulianRaster  # per-pixel Julian day green-up starts
     green_up_off: JulianRaster  # per-pixel Julian day green-up ends
     grass_standing: JulianRaster  # per-pixel Julian day grass becomes standing
     grass_matted: JulianRaster  # per-pixel Julian day grass becomes matted
 
     def __iter__(self) -> Iterator[JulianRaster]:
-        return iter((self.green_up_on, self.green_up_off, self.grass_standing, self.grass_matted))
+        return (getattr(self, field.name) for field in fields(self))
 
     @contextmanager
     def as_datasets(self) -> Generator[JulianDatasets, None, None]:
