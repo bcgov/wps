@@ -139,12 +139,12 @@ def test_fuel_codes_lookup_lists_present_grid_values_in_order():
         "export_value": 12,
         "descriptive_name": "Green Aspen (with BUI Thresholding)",
         "fuel_type": "D-2",
-        "r": 137,
-        "g": 112,
-        "b": 68,
-        "h": 27,
-        "s": 86,
-        "l": 103,
+        "red": 137,
+        "green": 112,
+        "blue": 68,
+        "hue": 27,
+        "saturation": 86,
+        "lightness": 103,
     }
 
 

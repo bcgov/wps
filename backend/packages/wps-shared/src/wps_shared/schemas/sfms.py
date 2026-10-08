@@ -50,18 +50,21 @@ class SFMSRunBounds(BaseModel):
 
 
 class FuelCode(BaseModel):
-    """One row of the national FBP fuel lookup table, describing a fuel grid value."""
+    """One row of the national FBP fuel lookup table, describing a fuel grid value.
+
+    The colour fields are the national table's r, g, b, h, s and l columns.
+    """
 
     grid_value: int
     export_value: int
     descriptive_name: str
     fuel_type: str
-    r: int
-    g: int
-    b: int
-    h: int
-    s: int
-    l: int  # noqa: E741  # lightness, named to match the national lookup table column
+    red: int
+    green: int
+    blue: int
+    hue: int
+    saturation: int
+    lightness: int
 
 
 class FuelCodesLookup(BaseModel):
