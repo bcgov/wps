@@ -413,7 +413,7 @@ async def publish_temporal_fuel_raster(
                 )
 
     await s3_client.put_object(
-        key=fuel_codes_lookup_key, body=grid.fuel_codes_lookup().model_dump_json().encode()
+        key=fuel_codes_lookup_key, body=grid.fuel_codes_lookup().model_dump_json(indent=2).encode()
     )
     logger.info(
         "Stored temporal fuel raster for %s: %s (COG: %s, fuel codes lookup: %s)",
