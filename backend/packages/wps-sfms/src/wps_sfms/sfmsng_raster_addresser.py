@@ -144,6 +144,10 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         """S3 key for the raster of per-pixel Julian days that grass becomes matted."""
         return self.get_static_key("julian/grass_matted.tif")
 
+    def get_julian_archive_key(self, name: str, content_hash: str) -> S3Key:
+        """S3 key for an archived copy of a Julian date raster, addressed by its SHA-256 hash."""
+        return self.get_static_key(f"julian/archive/{name}/{content_hash}.tif")
+
     def get_temporal_fuel_key(self, target_date: date, version: int) -> S3Key:
         """
         S3 key for a versioned temporal fuel raster for one calendar date.

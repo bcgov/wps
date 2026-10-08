@@ -85,6 +85,10 @@ def temporal_fuel_raster(
         object_store_path=f"temporal/{for_date}/{version}.tif",
         fuel_codes_lookup_path=f"temporal/{for_date}/{version}.json",
         content_hash=f"temporal-{version}",
+        green_up_on_archive_path="archive/on.tif",
+        green_up_off_archive_path="archive/off.tif",
+        grass_standing_archive_path="archive/standing.tif",
+        grass_matted_archive_path="archive/matted.tif",
         create_timestamp=CREATED,
         **{**JULIAN_HASHES, **julian_hashes},
     )

@@ -203,11 +203,15 @@ def temporal_fuel_deps(mocker: MockerFixture):
     addresser.get_fuel_codes_lookup_key.side_effect = lambda _date, version: (
         f"temporal/{version}.json"
     )
+    addresser.get_julian_archive_key.side_effect = lambda name, julian_hash: (
+        f"archive/{name}/{julian_hash}.tif"
+    )
 
     s3_client = MagicMock()
     s3_client.all_objects_exist = AsyncMock(return_value=True)
     s3_client.get_fuel_raster = AsyncMock(return_value=b"stored tif")
     s3_client.read_object = read_stored_object()
+    s3_client.put_object = AsyncMock()
     mocker.patch(f"{PIPELINE_PATH}.WPSDataset.from_bytes", side_effect=open_julian_dataset)
 
     return SimpleNamespace(
@@ -271,6 +275,7 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
     get_existing.assert_awaited_once_with(deps.session, TARGET_DATE, 7, **JULIAN_HASHES)
     deps.s3_client.get_fuel_raster.assert_awaited_once_with("temporal/2.tif", "stored-hash")
     deps.publish.assert_not_awaited()
+    deps.s3_client.put_object.assert_not_awaited()
     deps.session.add.assert_not_called()
 
 
@@ -303,6 +308,13 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
     assert record.content_hash == "temporal-hash"
     for column, julian_hash in JULIAN_HASHES.items():
         assert getattr(record, column) == julian_hash
+
+    # the exact Julian bytes that were hashed are archived under their hash and recorded
+    archived = {call.args[0]: call.args[1] for call in deps.s3_client.put_object.await_args_list}
+    for name, raster_bytes in JULIAN_BYTES.items():
+        archive_key = f"archive/{name}/{JULIAN_HASHES[f'{name}_hash']}.tif"
+        assert archived[archive_key] == raster_bytes
+        assert getattr(record, f"{name}_archive_path") == archive_key
 
 
 @pytest.mark.anyio

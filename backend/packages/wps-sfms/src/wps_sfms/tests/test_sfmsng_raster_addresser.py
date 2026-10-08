@@ -29,6 +29,12 @@ class TestTemporalFuelKeys:
         assert addresser.get_grass_standing_key() == "sfms_ng/static/julian/grass_standing.tif"
         assert addresser.get_grass_matted_key() == "sfms_ng/static/julian/grass_matted.tif"
 
+    def test_julian_archive_key_is_addressed_by_hash(self, addresser: SFMSNGRasterAddresser):
+        assert (
+            addresser.get_julian_archive_key("green_up_on", "abc123")
+            == "sfms_ng/static/julian/archive/green_up_on/abc123.tif"
+        )
+
     def test_temporal_fuel_keys_are_dated_and_versioned(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_temporal_fuel_key(date(2026, 6, 1), 2) == (
             "sfms_ng/fuel/temporal/2026/06/01/2/fbp2026_06_01_2.tif"

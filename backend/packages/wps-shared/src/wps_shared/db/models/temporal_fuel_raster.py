@@ -23,6 +23,10 @@ class TemporalFuelRaster(Base):
     green_up_off_hash = Column(String, nullable=False)
     grass_standing_hash = Column(String, nullable=False)
     grass_matted_hash = Column(String, nullable=False)
+    green_up_on_archive_path = Column(String, nullable=False)
+    green_up_off_archive_path = Column(String, nullable=False)
+    grass_standing_archive_path = Column(String, nullable=False)
+    grass_matted_archive_path = Column(String, nullable=False)
     create_timestamp = Column(TZTimeStamp, nullable=False)
 
     __table_args__ = (

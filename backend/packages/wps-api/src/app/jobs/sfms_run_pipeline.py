@@ -157,6 +157,9 @@ async def _stored_outputs_match(s3_client: S3Client, existing: TemporalFuelRaste
     return True
 
 
+JULIAN_RASTER_NAMES = ("green_up_on", "green_up_off", "grass_standing", "grass_matted")
+
+
 async def resolve_temporal_fuel_raster(
     target_date: date,
     fuel_type_raster: FuelTypeRaster,
@@ -179,9 +182,8 @@ async def resolve_temporal_fuel_raster(
     # run and pass them in if they grow or more are added. A rebuild opens these same bytes, so
     # the recorded hashes always match the grid's inputs.
     julian_bytes = await asyncio.gather(*(s3_client.read_object(key) for key in julian_keys))
-    green_up_on_hash, green_up_off_hash, grass_standing_hash, grass_matted_hash = (
-        hashlib.sha256(raster_bytes).hexdigest() for raster_bytes in julian_bytes
-    )
+    julian_hashes = [hashlib.sha256(raster_bytes).hexdigest() for raster_bytes in julian_bytes]
+    green_up_on_hash, green_up_off_hash, grass_standing_hash, grass_matted_hash = julian_hashes
 
     async with get_async_write_session_scope() as session:
         # held until commit so concurrent runs for the same date reuse rather than collide
@@ -209,6 +211,23 @@ async def resolve_temporal_fuel_raster(
         version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
         output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
         fuel_codes_lookup_key = raster_addresser.get_fuel_codes_lookup_key(target_date, version)
+        # the Julian keys get replaced over time, so keep the exact rasters this grid was built from
+        archive_keys = [
+            raster_addresser.get_julian_archive_key(name, julian_hash)
+            for name, julian_hash in zip(JULIAN_RASTER_NAMES, julian_hashes)
+        ]
+        await asyncio.gather(
+            *(
+                s3_client.put_object(key, raster_bytes)
+                for key, raster_bytes in zip(archive_keys, julian_bytes)
+            )
+        )
+        (
+            green_up_on_archive_key,
+            green_up_off_archive_key,
+            grass_standing_archive_key,
+            grass_matted_archive_key,
+        ) = archive_keys
         on_bytes, off_bytes, standing_bytes, matted_bytes = julian_bytes
         with (
             WPSDataset.from_bytes(on_bytes) as green_up_on,
@@ -239,6 +258,10 @@ async def resolve_temporal_fuel_raster(
                 green_up_off_hash=green_up_off_hash,
                 grass_standing_hash=grass_standing_hash,
                 grass_matted_hash=grass_matted_hash,
+                green_up_on_archive_path=green_up_on_archive_key,
+                green_up_off_archive_path=green_up_off_archive_key,
+                grass_standing_archive_path=grass_standing_archive_key,
+                grass_matted_archive_path=grass_matted_archive_key,
                 create_timestamp=get_utc_now(),
             )
         )
