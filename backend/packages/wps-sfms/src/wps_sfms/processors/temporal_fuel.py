@@ -333,19 +333,19 @@ class TemporalFuelGrid:
         standing when ``grass_standing <= day of year < grass_matted``. Julian date nodata pixels
         never switch. A ``ValueError`` is raised for unrecognized base fuel values.
         """
-        base_fuel, _ = datasets.base_fuel.replace_nodata_with(np.nan)
+        bc_values, _ = datasets.base_fuel.replace_nodata_with(np.nan)
         green_up_on, _ = datasets.julian.green_up_on.replace_nodata_with(np.nan)
         green_up_off, _ = datasets.julian.green_up_off.replace_nodata_with(np.nan)
         grass_standing, _ = datasets.julian.grass_standing.replace_nodata_with(np.nan)
         grass_matted, _ = datasets.julian.grass_matted.replace_nodata_with(np.nan)
 
-        values = np.full(base_fuel.shape, np.nan, dtype=np.float32)
+        temporal_fuel_values = np.full(bc_values.shape, np.nan, dtype=np.float32)
         for bc_value, national_value in cls.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE.items():
-            values[base_fuel == bc_value] = national_value
+            temporal_fuel_values[bc_values == bc_value] = national_value
 
-        unrecognized = np.isfinite(base_fuel) & np.isnan(values)
+        unrecognized = np.isfinite(bc_values) & np.isnan(temporal_fuel_values)
         if np.any(unrecognized):
-            unsupported = sorted(np.unique(base_fuel[unrecognized]).tolist())
+            unsupported = sorted(np.unique(bc_values[unrecognized]).tolist())
             raise ValueError(
                 f"Base fuel raster contains unsupported classifications: {unsupported}"
             )
@@ -357,12 +357,12 @@ class TemporalFuelGrid:
             day_of_year -= 1
         green = (green_up_on <= day_of_year) & (day_of_year < green_up_off)
         for leafless_value, green_value in cls.GREEN_UP_GRID_VALUES.items():
-            values[green & (values == leafless_value)] = green_value
+            temporal_fuel_values[green & (temporal_fuel_values == leafless_value)] = green_value
 
         standing = (grass_standing <= day_of_year) & (day_of_year < grass_matted)
         for matted_value, standing_value in cls.GRASS_STANDING_GRID_VALUES.items():
-            values[standing & (values == matted_value)] = standing_value
-        return cls(values)
+            temporal_fuel_values[standing & (temporal_fuel_values == matted_value)] = standing_value
+        return cls(temporal_fuel_values)
 
     def fuel_codes_lookup(self) -> FuelCodesLookup:
         """Return the national fuel lookup rows for the grid values present in this grid."""
