@@ -3,7 +3,7 @@
 import os
 import sys
 from contextlib import asynccontextmanager
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock

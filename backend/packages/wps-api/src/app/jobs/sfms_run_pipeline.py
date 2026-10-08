@@ -1,7 +1,5 @@
 """Shared SFMS weather interpolation and FWI calculation pipeline."""
 
-import asyncio
-import hashlib
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -46,7 +44,7 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
-from wps_shared.geospatial.wps_dataset import WPSDataset, multi_wps_dataset_context
+from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import (
