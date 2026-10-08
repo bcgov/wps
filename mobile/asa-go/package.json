@@ -67,7 +67,7 @@
     "vitest": "^5.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.5.15",
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "8.5.2",
     "@testing-library/dom": "^10.4.0",
