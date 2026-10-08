@@ -3,6 +3,7 @@
 The Docker image and template in this directory are used to create the base image used in the wps_jobs build.
 
 - Using this base image can save some time, as it installs some various packages that take a long time to install and don't change often, such as GDAL.
+- The `publish_docker_base.yml` workflow publishes it to `ghcr.io/bcgov/wps/wps-jobs-base:<mm-dd-yyyy>` on every push to main, or on demand with `gh workflow run publish_docker_base.yml --ref <branch>`.
 
 ## working in dev
 
