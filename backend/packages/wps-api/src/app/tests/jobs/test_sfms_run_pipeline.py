@@ -211,6 +211,8 @@ def temporal_fuel_deps(mocker: MockerFixture):
     s3_client.all_objects_exist = AsyncMock(return_value=True)
     s3_client.get_fuel_raster = AsyncMock(return_value=b"stored tif")
     s3_client.read_object = read_stored_object()
+    # no Julian archives yet
+    s3_client.object_exists = AsyncMock(return_value=False)
     s3_client.put_object = AsyncMock()
     mocker.patch(f"{PIPELINE_PATH}.WPSDataset.from_bytes", side_effect=open_julian_dataset)
 
@@ -265,6 +267,7 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
 ):
     deps = temporal_fuel_deps
     get_existing = patch_db(mocker, existing=stored_raster(version=2))
+    deps.s3_client.object_exists.return_value = True
 
     result = await resolve(deps)
 
@@ -277,6 +280,22 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
     deps.publish.assert_not_awaited()
     deps.s3_client.put_object.assert_not_awaited()
     deps.session.add.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_resolve_temporal_fuel_raster_restores_only_missing_archives(
+    mocker: MockerFixture, temporal_fuel_deps
+):
+    deps = temporal_fuel_deps
+    patch_db(mocker, existing=stored_raster(version=2))
+    missing_key = f"archive/grass_matted/{JULIAN_HASHES['grass_matted_hash']}.tif"
+    deps.s3_client.object_exists.side_effect = lambda key: key != missing_key
+
+    await resolve(deps)
+
+    # a reused grid still gets its missing archive back, and existing archives aren't rewritten
+    deps.publish.assert_not_awaited()
+    deps.s3_client.put_object.assert_awaited_once_with(missing_key, JULIAN_BYTES["grass_matted"])
 
 
 @pytest.mark.anyio
