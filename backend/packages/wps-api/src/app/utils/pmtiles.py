@@ -59,6 +59,8 @@ def write_geojson(polygons: ogr.Layer, output_dir: str) -> str:
     driver = ogr.GetDriverByName("GPKG")
     temp_data_source = driver.CreateDataSource(temp_gpkg)
     temp_data_source.CopyLayer(polygons, "poly_layer")
+    # Close to flush the geopackage to disk before VectorTranslate reopens it by path
+    temp_data_source = None
 
     # We need a geojson file to pass to tippecanoe
     temp_geojson = os.path.join(output_dir, "temp_polys.geojson")
@@ -71,7 +73,5 @@ def write_geojson(polygons: ogr.Layer, output_dir: str) -> str:
         dstSRS="EPSG:4326",
         reproject=True,
     )
-
-    del temp_gpkg
 
     return temp_geojson
