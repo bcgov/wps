@@ -316,7 +316,9 @@ describe('App', () => {
   })
 
   it('shows one HFI cache error and retries the preflight after reconnecting', async () => {
-    mockLoadHFIPMTiles.mockResolvedValue(undefined)
+    mockLoadHFIPMTiles.mockRejectedValue(
+      Object.assign(new Error('HFI request failed'), { isAxiosError: true, response: { status: 503 } })
+    )
     const store = createTestStore({
       networkStatus: {
         networkStatus: { connected: true, connectionType: 'wifi' }
@@ -353,7 +355,12 @@ describe('App', () => {
           .notifications.notifications.find(
             notification => notification.dedupeKey === NOTIFICATION_DEFINITIONS.hfiCacheError.dedupeKey
           )
-      ).toEqual(expect.objectContaining(NOTIFICATION_DEFINITIONS.hfiCacheError))
+      ).toEqual(
+        expect.objectContaining({
+          ...NOTIFICATION_DEFINITIONS.hfiCacheError,
+          message: `503 Error - ${NOTIFICATION_DEFINITIONS.hfiCacheError.message}`
+        })
+      )
     })
 
     act(() => {

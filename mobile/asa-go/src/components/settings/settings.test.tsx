@@ -10,6 +10,7 @@ import networkStatusReducer from '@/slices/networkStatusSlice'
 import pushNotificationReducer, { initialState as pushNotificationInitialState } from '@/slices/pushNotificationSlice'
 import settingsReducer from '@/slices/settingsSlice'
 import { NavPanel } from '@/utils/constants'
+import { createLoadError } from '@/utils/loadError'
 import * as Storage from '@/utils/storage'
 import Settings from './Settings'
 
@@ -322,7 +323,7 @@ describe('Settings', () => {
       settings: {
         ...settingsReducer(undefined, { type: 'unknown' }),
         loading: false,
-        error: 'Failed to fetch fire centre info',
+        error: createLoadError('Failed to fetch fire centre info'),
         fireCentreInfos: []
       },
       networkStatus: {

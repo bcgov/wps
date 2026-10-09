@@ -7,9 +7,10 @@ import NotificationCenter from '@/components/NotificationCenter'
 import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { initialState as dataInitialState, getDataFailed, getDataStart } from '@/slices/dataSlice'
 import { updateNetworkStatus } from '@/slices/networkStatusSlice'
-import { initialState as settingsInitialState } from '@/slices/settingsSlice'
+import { getFireCentreInfoStart, initialState as settingsInitialState } from '@/slices/settingsSlice'
 import { createTestStore } from '@/testUtils'
 import { theme } from '@/theme'
+import { createLoadError, type LoadError } from '@/utils/loadError'
 
 const renderSnackbar = ({
   connected = true,
@@ -17,8 +18,8 @@ const renderSnackbar = ({
   settingsError = null
 }: {
   connected?: boolean
-  dataError?: string | null
-  settingsError?: string | null
+  dataError?: LoadError | null
+  settingsError?: LoadError | null
 } = {}) => {
   const store = createTestStore({
     data: { ...dataInitialState, error: dataError },
@@ -44,7 +45,7 @@ const renderSnackbar = ({
 
 describe('LoadingErrorNotifier', () => {
   it('shows one friendly operational data error', () => {
-    renderSnackbar({ dataError: 'Error: API failed' })
+    renderSnackbar({ dataError: createLoadError('Error: API failed') })
 
     expect(screen.getByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).toBeInTheDocument()
     expect(screen.queryByText('Error: API failed')).not.toBeInTheDocument()
@@ -52,20 +53,33 @@ describe('LoadingErrorNotifier', () => {
   })
 
   it('shows a settings data error globally', () => {
-    renderSnackbar({ settingsError: 'Error: settings failed' })
+    renderSnackbar({ settingsError: createLoadError('Error: settings failed') })
 
     expect(screen.getByText(NOTIFICATION_DEFINITIONS.settingsDataError.message)).toBeInTheDocument()
   })
 
   it('prioritizes settings errors when both sources fail', () => {
-    renderSnackbar({ dataError: 'API failed', settingsError: 'Settings failed' })
+    renderSnackbar({ dataError: createLoadError('API failed'), settingsError: createLoadError('Settings failed') })
 
     expect(screen.getByText(NOTIFICATION_DEFINITIONS.settingsDataError.message)).toBeInTheDocument()
     expect(screen.queryByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).not.toBeInTheDocument()
   })
 
+  it('shows a remaining operational error after a settings error clears', () => {
+    const { store } = renderSnackbar({
+      dataError: createLoadError('API failed'),
+      settingsError: createLoadError('Settings failed')
+    })
+
+    act(() => {
+      store.dispatch(getFireCentreInfoStart())
+    })
+
+    expect(screen.getByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).toBeInTheDocument()
+  })
+
   it('does not show an API error encountered offline after reconnecting', () => {
-    const { store } = renderSnackbar({ connected: false, dataError: 'offline' })
+    const { store } = renderSnackbar({ connected: false, dataError: createLoadError('offline') })
 
     act(() => {
       store.dispatch(updateNetworkStatus({ connected: true, connectionType: 'wifi' }))
@@ -75,7 +89,7 @@ describe('LoadingErrorNotifier', () => {
   })
 
   it('does not reopen a dismissed error until it clears and occurs again', async () => {
-    const { store } = renderSnackbar({ dataError: 'API failed' })
+    const { store } = renderSnackbar({ dataError: createLoadError('API failed') })
 
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
     await waitFor(() =>
@@ -86,9 +100,15 @@ describe('LoadingErrorNotifier', () => {
       store.dispatch(getDataStart())
     })
     act(() => {
-      store.dispatch(getDataFailed('API failed'))
+      store.dispatch(getDataFailed(createLoadError('API failed')))
     })
 
     expect(screen.getByText(NOTIFICATION_DEFINITIONS.operationalDataError.message)).toBeInTheDocument()
+  })
+
+  it('prefixes an available status code', () => {
+    renderSnackbar({ dataError: { key: 'API failed', status: 503 } })
+
+    expect(screen.getByText(`503 Error - ${NOTIFICATION_DEFINITIONS.operationalDataError.message}`)).toBeInTheDocument()
   })
 })

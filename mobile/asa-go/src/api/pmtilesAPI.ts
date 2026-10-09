@@ -1,7 +1,13 @@
+import axios from 'axios'
 import type { DateTime } from 'luxon'
 import type { RunType } from '@/api/fbaAPI'
 import { PMTILES_BUCKET } from '@/utils/env'
 import { getHFIRunDateKey } from '@/utils/pmtilesUtils'
+
+const fetchPMTilesBlob = async (url: string) => {
+  const { data } = await axios.get<Blob>(url, { responseType: 'blob' })
+  return data
+}
 
 /**
  *
@@ -16,20 +22,11 @@ export const fetchHFIPMTiles = async (for_date: DateTime, run_type: RunType, run
     format: 'basic'
   })}.pmtiles`
 
-  const response = await fetch(PMTilesURL)
-  if (!response.ok) {
-    throw new Error(`HFI PMTiles request failed with status ${response.status}`)
-  }
-  const blob = await response.blob()
-
-  return blob
+  return fetchPMTilesBlob(PMTilesURL)
 }
 
 export const fetchStaticPMTiles = async (filename: string): Promise<Blob> => {
   const PMTilesURL = `${PMTILES_BUCKET}${filename}`
 
-  const response = await fetch(PMTilesURL)
-  const blob = await response.blob()
-
-  return blob
+  return fetchPMTilesBlob(PMTilesURL)
 }

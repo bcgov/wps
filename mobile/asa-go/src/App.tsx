@@ -27,7 +27,7 @@ import { useDeviceId } from '@/hooks/useDeviceId'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
-import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
+import { NOTIFICATION_DEFINITIONS, withHttpStatus } from '@/notificationDefinitions'
 import { fetchAndCacheData } from '@/slices/dataSlice'
 import {
   resetDateOfInterestIfStale,
@@ -57,6 +57,7 @@ import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel, StatusEnum } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
+import { getHttpStatus } from '@/utils/loadError'
 import { PMTilesCache } from '@/utils/pmtilesCache'
 import { clearStaleHFIPMTiles } from '@/utils/storage'
 
@@ -171,10 +172,11 @@ const App = () => {
       if (cancelled) return
 
       await clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
-      const loadFailed = results.some(result => result.status === 'rejected' || result.value === undefined)
-      if (!cancelled && loadFailed) {
-        dispatch(enqueueNotification(NOTIFICATION_DEFINITIONS.hfiCacheError))
-      }
+      const failedResults = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      if (cancelled || failedResults.length === 0) return
+
+      const errorStatus = failedResults.map(result => getHttpStatus(result.reason)).find(status => status !== undefined)
+      dispatch(enqueueNotification(withHttpStatus(NOTIFICATION_DEFINITIONS.hfiCacheError, errorStatus)))
     }
 
     void updateHFICache()

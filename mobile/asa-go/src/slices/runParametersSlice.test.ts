@@ -29,6 +29,7 @@ vi.mock('@/utils/storage', () => ({
 import { getMostRecentRunParameters, type RunParameter, RunType } from 'api/fbaAPI'
 import type { RootState } from '@/store'
 import { getTodayKey, getTomorrowKey } from '@/utils/dataSliceUtils'
+import { createLoadError } from '@/utils/loadError'
 import { readFromFilesystem, writeToFileSystem } from '@/utils/storage'
 
 const todayKey = getTodayKey()
@@ -66,7 +67,7 @@ describe('runParameters reducer', () => {
   })
 
   it('should handle getRunParametersFailed', () => {
-    const error = 'Failed to fetch'
+    const error = createLoadError('Failed to fetch')
     const nextState = reducer({ ...initialState, loading: true }, getRunParametersFailed(error))
     expect(nextState.error).toBe(error)
     expect(nextState.loading).toBe(false)
@@ -188,7 +189,7 @@ describe('fetchSFMSRunParameters thunk', () => {
       }
     })
     await store.dispatch(fetchSFMSRunParameters())
-    expect(store.getState().runParameters.error).toBe('Unable to update runParameters from the API.')
+    expect(store.getState().runParameters.error?.key).toBe('Unable to update runParameters from the API.')
     expect(writeToFileSystem).not.toBeCalled()
   })
 
@@ -202,7 +203,7 @@ describe('fetchSFMSRunParameters thunk', () => {
       }
     })
     await store.dispatch(fetchSFMSRunParameters())
-    expect(store.getState().runParameters.error).toContain(errorMessage)
+    expect(store.getState().runParameters.error?.key).toContain(errorMessage)
   })
 
   it('dispatches success from cache when offline', async () => {
@@ -254,7 +255,7 @@ describe('fetchSFMSRunParameters thunk', () => {
       }
     })
     await store.dispatch(fetchSFMSRunParameters())
-    expect(store.getState().runParameters.error).toBe('No run parameters available.')
+    expect(store.getState().runParameters.error?.key).toBe('No run parameters available.')
   })
 })
 

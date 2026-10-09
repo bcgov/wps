@@ -6,11 +6,12 @@ import { DateTime } from 'luxon'
 import type { AppThunk } from '@/store'
 import type { FireCentre } from '@/types/fireCentre'
 import { getToday } from '@/utils/dataSliceUtils'
+import { createLoadError, type LoadError, toLoadError } from '@/utils/loadError'
 import { FIRE_CENTRES_CACHE_EXPIRATION, FIRE_CENTRES_KEY, readFromFilesystem, writeToFileSystem } from '@/utils/storage'
 
 export interface FireCentresState {
   loading: boolean
-  error: string | null
+  error: LoadError | null
   fireCentres: FireCentre[]
 }
 
@@ -29,7 +30,7 @@ const fireCentresSlice = createSlice({
       state.loading = true
       state.fireCentres = []
     },
-    getFireCentresFailed(state: FireCentresState, action: PayloadAction<string>) {
+    getFireCentresFailed(state: FireCentresState, action: PayloadAction<LoadError>) {
       state.error = action.payload
       state.loading = false
     },
@@ -66,11 +67,11 @@ export const fetchFireCentres = (): AppThunk => async (dispatch, getState) => {
       await writeToFileSystem(Filesystem, FIRE_CENTRES_KEY, fireCentres.fire_centres, today)
       dispatch(getFireCentresSuccess(fireCentres.fire_centres))
     } catch (err) {
-      dispatch(getFireCentresFailed((err as Error).toString()))
+      dispatch(getFireCentresFailed(toLoadError(err)))
       console.log(err)
     }
   } else {
     // We're offline so there is nothing to do but set the error state.
-    dispatch(getFireCentresFailed('Unable to refresh fire centre data. Data may be stale.'))
+    dispatch(getFireCentresFailed(createLoadError('Unable to refresh fire centre data. Data may be stale.')))
   }
 }

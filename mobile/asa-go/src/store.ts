@@ -1,6 +1,7 @@
 import { type Action, configureStore, createSelector, type ThunkAction } from '@reduxjs/toolkit'
 import { rootReducer } from '@/rootReducer'
 import { getNotificationPriority } from '@/slices/notificationSlice'
+import type { LoadError } from '@/utils/loadError'
 
 export const store = configureStore({
   reducer: rootReducer
@@ -38,35 +39,41 @@ export const selectPushNotification = (state: RootState) => state.pushNotificati
 export const selectPendingNotificationData = (state: RootState) => state.pushNotification.pendingNotificationData
 export const selectLastUpdated = (state: RootState) => state.data.lastUpdated
 
-export interface LoadSourceState {
-  loading: boolean
-  errorKey: string | null
+export interface ActiveLoadError {
+  error: LoadError
+  source: 'operational' | 'settings'
 }
 
-export const selectOperationalLoadState = createSelector(
+export const selectOperationalDataLoading = createSelector(
   [
     (state: RootState) => state.fireCentres,
     (state: RootState) => state.runParameters,
     (state: RootState) => state.data
   ],
-  (fireCentres, runParameters, data): LoadSourceState => {
+  (fireCentres, runParameters, data) => {
     const operationalDataUnavailable =
       data.provincialSummaries === null || data.tpiStats === null || data.hfiStats === null
-    const errorKey = [data.error, fireCentres.error, runParameters.error].filter(Boolean).join('|') || null
 
     // run parameter refreshes are background checks. show loading only while operational data is still missing
-    return {
-      loading: fireCentres.loading || data.loading || (runParameters.loading && operationalDataUnavailable),
-      errorKey
-    }
+    return fireCentres.loading || data.loading || (runParameters.loading && operationalDataUnavailable)
   }
 )
 
-export const selectOperationalDataLoading = createSelector(selectOperationalLoadState, ({ loading }) => loading)
+export const selectActiveLoadError = createSelector(
+  [
+    (state: RootState) => state.settings.error,
+    (state: RootState) => state.data.error,
+    (state: RootState) => state.fireCentres.error,
+    (state: RootState) => state.runParameters.error
+  ],
+  (settingsError, dataError, fireCentresError, runParametersError): ActiveLoadError | null => {
+    if (settingsError) return { error: settingsError, source: 'settings' }
 
-export const selectSettingsLoadState = createSelector(
-  selectSettings,
-  ({ loading, error }): LoadSourceState => ({ loading, errorKey: error })
+    const operationalError = dataError ?? fireCentresError ?? runParametersError
+    if (!operationalError) return null
+
+    return { error: operationalError, source: 'operational' }
+  }
 )
 
 export type NotificationSetupState = 'permissionDenied' | 'unregistered' | 'registrationFailed' | 'ready'

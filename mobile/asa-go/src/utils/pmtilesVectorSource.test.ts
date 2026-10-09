@@ -80,12 +80,9 @@ describe('pmTilesVectorSource', () => {
     sandbox.restore()
   })
 
-  const buildPMTilesTestCache = (pmtiles?: PMTiles) => {
+  const buildPMTilesTestCache = (pmtiles: PMTiles) => {
     return {
-      loadPMTiles: (
-        filename: string,
-        fetchAndStoreCallback?: () => Promise<PMTiles | undefined>
-      ): Promise<PMTiles | undefined> => {
+      loadPMTiles: (filename: string, fetchAndStoreCallback?: () => Promise<PMTiles>): Promise<PMTiles> => {
         console.log('loadPMTiles called', filename, fetchAndStoreCallback)
         return Promise.resolve(pmtiles)
       },
@@ -94,7 +91,7 @@ describe('pmTilesVectorSource', () => {
         run_type: RunType,
         run_date: DateTime,
         filename: string
-      ): Promise<PMTiles | undefined> => {
+      ): Promise<PMTiles> => {
         console.log('loadPMTiles called', for_date, run_type, run_date, filename)
         return Promise.resolve(pmtiles)
       }

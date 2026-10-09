@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { RootState } from '@/store'
 import {
+  selectActiveLoadError,
   selectNotificationSettingsDisabled,
   selectNotificationSetupState,
-  selectOperationalDataLoading,
-  selectOperationalLoadState,
-  selectSettingsLoadState
+  selectOperationalDataLoading
 } from '@/store'
+import { createLoadError } from '@/utils/loadError'
 
 const base: {
   pushNotificationPermission: 'granted' | 'denied'
@@ -93,9 +93,6 @@ describe('selectOperationalDataLoading', () => {
     fireCentresLoading = false,
     runParametersLoading = false,
     dataLoading = false,
-    dataError = null,
-    fireCentresError = null,
-    runParametersError = null,
     provincialSummaries = {},
     tpiStats = {},
     hfiStats = {}
@@ -103,19 +100,15 @@ describe('selectOperationalDataLoading', () => {
     fireCentresLoading?: boolean
     runParametersLoading?: boolean
     dataLoading?: boolean
-    dataError?: string | null
-    fireCentresError?: string | null
-    runParametersError?: string | null
     provincialSummaries?: object | null
     tpiStats?: object | null
     hfiStats?: object | null
   } = {}) =>
     ({
-      fireCentres: { loading: fireCentresLoading, error: fireCentresError },
-      runParameters: { loading: runParametersLoading, error: runParametersError },
+      fireCentres: { loading: fireCentresLoading },
+      runParameters: { loading: runParametersLoading },
       data: {
         loading: dataLoading,
-        error: dataError,
         provincialSummaries,
         tpiStats,
         hfiStats
@@ -156,20 +149,30 @@ describe('selectOperationalDataLoading', () => {
 
     expect(selectOperationalDataLoading(state)).toBe(false)
   })
-
-  it('combines operational errors into one stable error key', () => {
-    const state = makeOperationalState({ dataError: 'data', fireCentresError: 'centres' })
-
-    expect(selectOperationalLoadState(state).errorKey).toBe('data|centres')
-  })
 })
 
-describe('load-state selectors', () => {
-  it('exposes settings loading and errors through the shared shape', () => {
+describe('selectActiveLoadError', () => {
+  it('prioritizes settings errors', () => {
+    const settingsError = createLoadError('settings')
     const state = {
-      settings: { loading: true, error: 'settings failed' }
+      settings: { error: settingsError },
+      data: { error: createLoadError('data') },
+      fireCentres: { error: null },
+      runParameters: { error: null }
     } as unknown as RootState
 
-    expect(selectSettingsLoadState(state)).toEqual({ loading: true, errorKey: 'settings failed' })
+    expect(selectActiveLoadError(state)).toEqual({ error: settingsError, source: 'settings' })
+  })
+
+  it('selects the first operational error', () => {
+    const fireCentresError = { key: 'centres', status: 503 }
+    const state = {
+      settings: { error: null },
+      data: { error: null },
+      fireCentres: { error: fireCentresError },
+      runParameters: { error: createLoadError('run parameters') }
+    } as unknown as RootState
+
+    expect(selectActiveLoadError(state)).toEqual({ error: fireCentresError, source: 'operational' })
   })
 })

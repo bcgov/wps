@@ -36,3 +36,8 @@ export const NOTIFICATION_DEFINITIONS = {
     severity: 'error'
   }
 } as const satisfies Record<string, EnqueueNotificationPayload>
+
+export const withHttpStatus = (notification: EnqueueNotificationPayload, status?: number) => ({
+  ...notification,
+  message: status === undefined ? notification.message : `${status} Error - ${notification.message}`
+})

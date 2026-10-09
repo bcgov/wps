@@ -130,7 +130,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: `data:application/octet-stream;base64,${btoa('mocked file content')}` })
     const testCache = new PMTilesCache(mockFs)
     await testCache.loadPMTiles('test.pmtiles')
     sinon.assert.calledOnce(stubRead)
@@ -142,7 +142,7 @@ describe('pmtilesCache', () => {
 
     const stubFetch = sandbox.stub().rejects(new Error('Fetch failed'))
     const testCache = new PMTilesCache(mockFs)
-    await testCache.loadPMTiles('test.pmtiles', stubFetch)
+    await expect(testCache.loadPMTiles('test.pmtiles', stubFetch)).rejects.toThrow('Fetch failed')
     sinon.assert.calledThrice(stubFetch)
     sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch)
   })
@@ -151,7 +151,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: `data:application/octet-stream;base64,${btoa('mocked file content')}` })
     const testCache = new PMTilesCache(mockFs)
     await testCache.loadHFIPMTiles(
       DateTime.fromISO('2016-05-25T09:08:34.123'),
@@ -168,13 +168,15 @@ describe('pmtilesCache', () => {
 
     const stubFetch = sandbox.stub().rejects(new Error('Fetch failed'))
     const testCache = new PMTilesCache(mockFs)
-    await testCache.loadHFIPMTiles(
-      DateTime.fromISO('2016-05-25T09:08:34.123'),
-      RunType.FORECAST,
-      DateTime.fromISO('2016-05-25T09:08:34.123'),
-      'test.pmtiles',
-      stubFetch
-    )
+    await expect(
+      testCache.loadHFIPMTiles(
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        RunType.FORECAST,
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        'test.pmtiles',
+        stubFetch
+      )
+    ).rejects.toThrow('Fetch failed')
     sinon.assert.calledThrice(stubFetch)
     sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch)
   })
@@ -185,14 +187,14 @@ describe('pmtilesCache', () => {
     mockFetchHFIPMTiles.mockRejectedValue(new Error('Fetch failed'))
     const testCache = new PMTilesCache(mockFs)
 
-    const result = await testCache.loadHFIPMTiles(
-      DateTime.fromISO('2016-05-25T09:08:34.123'),
-      RunType.FORECAST,
-      DateTime.fromISO('2016-05-25T09:08:34.123'),
-      'test.pmtiles'
-    )
-
-    expect(result).toBeUndefined()
+    await expect(
+      testCache.loadHFIPMTiles(
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        RunType.FORECAST,
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        'test.pmtiles'
+      )
+    ).rejects.toThrow('Fetch failed')
     expect(mockFetchHFIPMTiles).toHaveBeenCalledTimes(3)
   })
 
@@ -201,7 +203,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: `data:application/octet-stream;base64,${btoa('mocked file content')}` })
     const testCache = new PMTilesCache(mockFs)
 
     await testCache.loadHFIPMTiles(
