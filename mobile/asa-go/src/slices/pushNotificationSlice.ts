@@ -91,7 +91,6 @@ export const retryPushNotificationRegistration = (): AppThunk<Promise<void>> => 
 
   try {
     const { token } = await FirebaseMessaging.getToken()
-    // wait so retry completion reflects the final registration state
     if (token) await dispatch(registerDevice(token, registeredFcmToken))
   } catch (e) {
     console.error('Failed to get token for retry:', e)
