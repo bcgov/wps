@@ -68,3 +68,14 @@ def test_write_empty_pmtiles(tmp_path):
     metadata = json.loads(data[metadata_offset : metadata_offset + metadata_length])
     assert metadata["vector_layers"][0]["id"] == "hfi"
     assert tile_data_offset + tile_data_length == len(data)
+
+
+def test_empty_pmtiles_is_readable_as_pmtiles(tmp_path):
+    path = str(tmp_path / "empty.pmtiles")
+    write_empty_pmtiles(path)
+
+    data_source = gdal.OpenEx(path, gdal.OF_VECTOR)
+
+    assert data_source.GetDriver().ShortName == "PMTiles"
+    layer = data_source.GetLayerByName("hfi")
+    assert layer.GetFeatureCount() == 0
