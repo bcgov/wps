@@ -624,7 +624,6 @@ const ASAGoMap = ({
             handleDrawerClose()
           }}
         />
-        {/* keep the overlay map-scoped so surrounding status and navigation remain visible */}
         <LoadingOverlay loading={mapLoading} />
       </Box>
     </MapContext.Provider>
