@@ -128,6 +128,30 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         """S3 key for the BC aspect raster used in primary FBP calculations."""
         return self.get_static_key("bc_aspect.tif")
 
+    def get_julian_key(self, name: str) -> S3Key:
+        """S3 key for the current Julian date raster ``name``, e.g. ``green_up_on``."""
+        return self.get_static_key(f"julian/{name}.tif")
+
+    def get_julian_archive_key(self, name: str, content_hash: str) -> S3Key:
+        """S3 key for an archived copy of a Julian date raster, addressed by its SHA-256 hash."""
+        return self.get_static_key(f"julian/archive/{name}/{content_hash}.tif")
+
+    def get_temporal_fuel_key(self, target_date: date, version: int) -> S3Key:
+        """
+        S3 key for a versioned temporal fuel raster for one calendar date.
+
+        Format: sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fbpYYYY_MM_DD_{version}.tif
+        """
+        date_str = target_date.strftime("%Y_%m_%d")
+        return S3Key(
+            f"{self.root}/fuel/temporal/{target_date.year:04d}/{target_date.month:02d}/"
+            f"{target_date.day:02d}/{version}/fbp{date_str}_{version}.tif"
+        )
+
+    def get_national_fuel_codes_key(self) -> S3Key:
+        """S3 key for the JSON national fuel lookup that describes every temporal fuel raster."""
+        return S3Key(f"{self.root}/fuel/temporal/fuel_codes_lookup.json")
+
     def get_fmc_key(self, target_date: date) -> S3Key:
         """S3 key for the shared Foliar Moisture Content raster for one calendar date."""
         date_str = target_date.strftime("%Y%m%d")

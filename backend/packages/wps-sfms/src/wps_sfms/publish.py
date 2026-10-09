@@ -1,5 +1,6 @@
 """Shared helpers for publishing raster outputs and their derived COGs."""
 
+import hashlib
 import logging
 import os
 import tempfile
@@ -9,6 +10,7 @@ import aiofiles
 
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.geospatial.cog import generate_web_optimized_cog
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -23,6 +25,8 @@ class PublishedRaster:
 
     output_key: S3Key
     cog_key: GDALPath | None
+    content_hash: str
+    """sha256 of the uploaded GeoTIFF, as ``S3Client.get_content_hash`` would compute it."""
 
 
 async def publish_dataset(
@@ -30,6 +34,7 @@ async def publish_dataset(
     dataset: WPSDataset,
     output_key: S3Key | str,
     generate_cog: bool = True,
+    cog_resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
 ) -> PublishedRaster:
     """Upload a GeoTIFF to object storage and optionally generate a matching web COG."""
 
@@ -45,9 +50,16 @@ async def publish_dataset(
 
         logger.info("Writing raster to S3: %s", s3_output_key)
         async with aiofiles.open(tmp_path, "rb") as f:
-            await s3_client.put_object(key=s3_output_key, body=await f.read())
+            body = await f.read()
+        await s3_client.put_object(key=s3_output_key, body=body)
 
         if cog_key is not None:
-            generate_web_optimized_cog(input_path=tmp_path, output_path=cog_key)
+            generate_web_optimized_cog(
+                input_path=tmp_path, output_path=cog_key, resample_alg=cog_resample_alg
+            )
 
-    return PublishedRaster(output_key=s3_output_key, cog_key=cog_key)
+    return PublishedRaster(
+        output_key=s3_output_key,
+        cog_key=cog_key,
+        content_hash=hashlib.sha256(body).hexdigest(),
+    )

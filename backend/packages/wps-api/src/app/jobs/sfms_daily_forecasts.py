@@ -35,6 +35,7 @@ from app.jobs.sfms_run_pipeline import (
     get_missing_fwi_seed_keys,
     run_fbp_calculations,
     run_fwi_calculations,
+    run_temporal_fuel,
     run_weather_interpolation,
 )
 
@@ -129,6 +130,9 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                     fmc_inputs,
                 )
 
+                # weather and FWI for every date commit first, so a fuel failure can't roll back
+                # their runs and logs
+                sfms_run_ids = {}
                 async with get_async_write_session_scope() as write_session:
                     for index, datetime_to_process in enumerate(datetimes_to_process):
                         sfms_forecasts = await wfwx_api.get_sfms_daily_weather_all_stations(
@@ -170,11 +174,23 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                             previous_base_run_type=previous_base_run_type,
                             raise_on_missing_seed_keys=True,
                         )
+                        sfms_run_ids[datetime_to_process] = sfms_run_id
+
+                async with get_async_write_session_scope() as write_session:
+                    for datetime_to_process, sfms_run_id in sfms_run_ids.items():
+                        temporal_fuel_path = await run_temporal_fuel(
+                            datetime_to_process,
+                            fuel_type_raster,
+                            raster_addresser,
+                            s3_client,
+                            sfms_run_id,
+                            write_session,
+                        )
                         await run_fbp_calculations(
                             datetime_to_process,
                             raster_addresser,
                             s3_client,
-                            fuel_raster_path,
+                            temporal_fuel_path,
                             fuel_type_raster.year,
                             sfms_run_id,
                             write_session,

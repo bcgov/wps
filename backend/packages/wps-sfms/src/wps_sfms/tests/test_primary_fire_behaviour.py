@@ -13,6 +13,7 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FBPParameter
 
+from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.processors.primary_fire_behaviour import (
     PrimaryFireBehaviourDatasets,
@@ -98,7 +99,7 @@ def test_calculation_matches_cffdrs_reference_and_derives_isi():
         wind_direction=np.array([[225.0]]),
     )
 
-    result = calculate_primary_fire_behaviour(datasets)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = cffdrs.fire_behaviour_prediction.fire_behaviour_prediction(
         cffdrs.models.FBPInput(
@@ -137,7 +138,7 @@ def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
         ),
     )
 
-    calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])))
+    calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), NATIONAL_FUEL_TYPES)
 
     np.testing.assert_array_equal(primary_fbp.call_args.args[14], np.array([0.0]))
 
@@ -152,13 +153,17 @@ def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
         (5, "C5", 0.0),
         (6, "C6", 0.0),
         (7, "C7", 0.0),
-        (8, "D1", 0.0),
-        (9, "S1", 0.0),
-        (10, "S2", 0.0),
-        (11, "S3", 0.0),
-        (12, "O1A", 0.0),
-        (13, "M3", 0.0),
-        (14, "M1", 40.0),
+        (11, "D1", 0.0),
+        (12, "D2", 0.0),
+        (21, "S1", 0.0),
+        (22, "S2", 0.0),
+        (23, "S3", 0.0),
+        (31, "O1A", 0.0),
+        (32, "O1B", 0.0),
+        (40, "M1", 40.0),
+        (50, "M2", 40.0),
+        (70, "M3", 0.0),
+        (80, "M4", 0.0),
     ],
 )
 def test_sfc_matches_standalone_reference(grid_value: int, fuel_type: str, percent_conifer: float):
@@ -167,7 +172,7 @@ def test_sfc_matches_standalone_reference(grid_value: int, fuel_type: str, perce
         percent_conifer=np.array([[percent_conifer]]),
     )
 
-    result = calculate_primary_fire_behaviour(datasets)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = cffdrs.surface_fuel_consumption.surface_fuel_consumption(
         fuel_type, 90.0, 60.0, percent_conifer, 0.35
@@ -193,7 +198,8 @@ def test_normalizes_directions_and_clamps_slope_before_primary_fbp(mocker: Mocke
             wind_direction=np.array([[450.0]]),
             slope=np.array([[300.0]]),
             aspect=np.array([[410.0]]),
-        )
+        ),
+        NATIONAL_FUEL_TYPES,
     )
 
     call_args = primary_fbp.call_args.args
@@ -208,8 +214,8 @@ def test_aspect_is_irrelevant_when_negative_slope_is_clamped_to_zero():
     )
     flat = make_datasets(np.array([[6.0]]), slope=np.array([[0.0]]), aspect=np.array([[0.0]]))
 
-    negative_result = calculate_primary_fire_behaviour(negative_slope)
-    flat_result = calculate_primary_fire_behaviour(flat)
+    negative_result = calculate_primary_fire_behaviour(negative_slope, NATIONAL_FUEL_TYPES)
+    flat_result = calculate_primary_fire_behaviour(flat, NATIONAL_FUEL_TYPES)
 
     np.testing.assert_allclose(negative_result.ros, flat_result.ros)
     np.testing.assert_allclose(negative_result.hfi, flat_result.hfi)
@@ -222,7 +228,7 @@ def test_aspect_nodata_is_preserved_when_slope_is_clamped_to_zero():
         aspect=np.full((1, 2), TEST_INPUT_NODATA),
     )
 
-    result = calculate_primary_fire_behaviour(datasets)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = np.full((1, 2), SFMS_NO_DATA, dtype=np.float32)
     np.testing.assert_array_equal(result.sfc, expected)
@@ -233,9 +239,9 @@ def test_aspect_nodata_is_preserved_when_slope_is_clamped_to_zero():
 
 
 def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
-    datasets = make_datasets(np.array([[99, 102, TEST_INPUT_NODATA]]))
+    datasets = make_datasets(np.array([[101, 102, TEST_INPUT_NODATA]]))
 
-    result = calculate_primary_fire_behaviour(datasets)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = np.array([[0, 0, SFMS_NO_DATA]], dtype=np.float32)
     np.testing.assert_array_equal(result.sfc, expected)
@@ -247,12 +253,12 @@ def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
 
 def test_non_fuel_becomes_zero_when_other_inputs_are_nodata():
     datasets = make_datasets(
-        np.array([[99, 102]]),
+        np.array([[101, 102]]),
         ffmc=np.full((1, 2), TEST_INPUT_NODATA),
         fmc=np.full((1, 2), TEST_INPUT_NODATA),
     )
 
-    result = calculate_primary_fire_behaviour(datasets)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     np.testing.assert_array_equal(result.sfc, np.zeros((1, 2), dtype=np.float32))
     np.testing.assert_array_equal(result.ros, np.zeros((1, 2), dtype=np.float32))
@@ -271,7 +277,7 @@ def test_required_input_nodata_becomes_sfms_nodata(input_name: str):
         **{input_name: np.array([[TEST_INPUT_NODATA]])},
     )
 
-    result = calculate_primary_fire_behaviour(datasets)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     assert result.sfc[0, 0] == SFMS_NO_DATA
     assert result.ros[0, 0] == SFMS_NO_DATA
@@ -284,7 +290,7 @@ def test_required_input_nodata_becomes_sfms_nodata(input_name: str):
 def test_invalid_fmc_becomes_sfms_nodata(fmc: float):
     datasets = make_datasets(np.array([[6.0]]), fmc=np.array([[fmc]]))
 
-    result = calculate_primary_fire_behaviour(datasets)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     assert result.sfc[0, 0] == SFMS_NO_DATA
     assert result.ros[0, 0] == SFMS_NO_DATA
@@ -297,7 +303,7 @@ def test_invalid_fmc_becomes_sfms_nodata(fmc: float):
 def test_valid_fmc_boundaries_are_calculated(fmc: float):
     datasets = make_datasets(np.array([[6.0]]), fmc=np.array([[fmc]]))
 
-    result = calculate_primary_fire_behaviour(datasets)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     assert np.isfinite(result.hfi[0, 0])
     assert result.hfi[0, 0] != SFMS_NO_DATA
@@ -337,13 +343,15 @@ async def test_processor_publishes_five_outputs_with_values_and_metadata(
         )
         return SimpleNamespace(output_key=output_key, cog_key=f"{output_key}.cog")
 
-    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    s3_client = SimpleNamespace(
+        all_objects_exist=AsyncMock(return_value=True),
+    )
     clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
     mocker.patch(
         "wps_sfms.processors.primary_fire_behaviour.publish_dataset",
         side_effect=capture_publish,
     )
-    mocker.patch(
+    calculate = mocker.patch(
         "wps_sfms.processors.primary_fire_behaviour.calculate_primary_fire_behaviour",
         return_value=PrimaryFireBehaviourResult(
             sfc=np.array([[1.0]], dtype=np.float32),
@@ -359,6 +367,7 @@ async def test_processor_publishes_five_outputs_with_values_and_metadata(
         s3_client, make_dataset_context(datasets), inputs
     )
 
+    assert calculate.call_args.args[1] == NATIONAL_FUEL_TYPES
     assert captured == [
         {
             "output_key": inputs.output_keys[FBPParameter.SFC],
@@ -406,7 +415,9 @@ async def test_processor_publish_failure_propagates_and_clears_cache(
 ):
     datasets = make_datasets(np.array([[1]]))
     inputs = make_inputs()
-    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    s3_client = SimpleNamespace(
+        all_objects_exist=AsyncMock(return_value=True),
+    )
     processor = PrimaryFireBehaviourProcessor(TEST_DATETIME)
     input_context = make_dataset_context(datasets)
     mocker.patch(
@@ -425,7 +436,9 @@ async def test_processor_publish_failure_propagates_and_clears_cache(
 async def test_processor_rejects_mismatched_grid(mocker: MockerFixture):
     datasets = make_datasets(np.array([[1]]))
     inputs = make_inputs()
-    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+    s3_client = SimpleNamespace(
+        all_objects_exist=AsyncMock(return_value=True),
+    )
     processor = PrimaryFireBehaviourProcessor(TEST_DATETIME)
     input_context = make_dataset_context(datasets)
     mocker.patch("wps_sfms.raster_dependencies.rasters_match", return_value=False)

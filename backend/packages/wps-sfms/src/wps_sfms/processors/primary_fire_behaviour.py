@@ -18,11 +18,7 @@ from wps_shared.sfms.raster_addresser import FBPParameter, GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
-from wps_sfms.fbp_fuel_types import (
-    NODATA_FUEL_TYPE_CODE,
-    NON_COMBUSTIBLE_FUEL_VALUES,
-    fuel_type_codes_from_grid,
-)
+from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES, NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
 from wps_sfms.fbp_input_validation import validate_percent_conifer
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
@@ -115,6 +111,7 @@ def _result_values(
 
 def calculate_primary_fire_behaviour(
     datasets: PrimaryFireBehaviourDatasets,
+    fuel_types: CFFDRSFuelTypes,
 ) -> PrimaryFireBehaviourResult:
     """Calculate SFC, equilibrium head ROS, HFI, TFC, and CFB on the shared raster grid.
 
@@ -126,6 +123,9 @@ def calculate_primary_fire_behaviour(
 
     Pixels missing a required input produce ``SFMS_NO_DATA`` in every output. Recognized
     non-combustible fuel pixels produce zero regardless of other missing inputs.
+
+    ``fuel_types`` gives the CFFDRS fuel type of each fuel grid value; the pipeline passes the
+    national fuel lookup's, since temporal fuel grids store national grid values.
     """
     fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
     ffmc, _ = datasets.ffmc.replace_nodata_with(np.nan)
@@ -147,10 +147,12 @@ def calculate_primary_fire_behaviour(
     # keep valid flat pixels deterministic even though aspect cannot affect their result
     aspect_rad = np.where(slope_percent == 0, 0.0, aspect_rad)
 
-    fuel_type_codes = fuel_type_codes_from_grid(fuel)
-    validate_percent_conifer(fuel, percent_conifer)
+    fuel_type_codes = fuel_types.cffdrs_codes(fuel)
+    validate_percent_conifer(
+        percent_conifer=percent_conifer, mixedwood_mask=fuel_types.mixedwood_mask(fuel)
+    )
 
-    non_combustible_mask = np.isin(fuel, tuple(NON_COMBUSTIBLE_FUEL_VALUES))
+    non_combustible_mask = fuel_types.non_combustible_mask(fuel)
     calculation_mask = (
         ~non_combustible_mask
         & (fuel_type_codes != NODATA_FUEL_TYPE_CODE)
@@ -312,7 +314,7 @@ class PrimaryFireBehaviourProcessor:
 
             with self._open_datasets(input_dataset_context, inputs) as datasets:
                 self._validate_grids(datasets)
-                result = calculate_primary_fire_behaviour(datasets)
+                result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
                 with open_bc_mask_dataset() as mask:
                     for output in result.raster_outputs():
