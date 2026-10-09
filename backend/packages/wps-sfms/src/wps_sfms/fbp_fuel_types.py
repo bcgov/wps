@@ -31,7 +31,7 @@ class CFFDRSFuelTypes:
 
     @classmethod
     def from_lookup(cls, lookup: FuelCodesLookup) -> "CFFDRSFuelTypes":
-        """Read the CFFDRS fuel types from a fuel grid's fuel codes lookup.
+        """Read the CFFDRS fuel types from a fuel lookup table.
 
         National lookup labels such as ``"O-1a"`` become CFFDRS fuel types such as ``"O1A"``, and
         every ``"Non-fuel"`` row (including water) becomes ``"NF"``. A ``ValueError`` is raised for

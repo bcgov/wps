@@ -83,7 +83,6 @@ def temporal_fuel_raster(
         for_date=for_date,
         version=version,
         object_store_path=f"temporal/{for_date}/{version}.tif",
-        fuel_codes_lookup_path=f"temporal/{for_date}/{version}.json",
         content_hash=f"temporal-{version}",
         green_up_on_archive_path="archive/on.tif",
         green_up_off_archive_path="archive/off.tif",

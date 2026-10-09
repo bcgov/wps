@@ -9,10 +9,9 @@ from osgeo import gdal
 from pytest_mock import MockerFixture
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.schemas.sfms import FuelCodesLookup
 
-from wps_sfms.fbp_fuel_types import CFFDRSFuelTypes
 from wps_sfms.julian_rasters import JulianDatasets
+from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_CODES, NATIONAL_FUEL_TYPES
 from wps_sfms.processors.temporal_fuel import (
     TemporalFuelInputDatasets,
     TemporalFuelGrid,
@@ -33,18 +32,16 @@ BASE_FUEL = np.array([[8, 14, 3, 12, 99, TEST_INPUT_NODATA]])
 
 
 def test_bc_grid_values_translate_to_national_lookup_values():
-    assert set(TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE.values()) <= set(
-        TemporalFuelGrid.NATIONAL_FUEL_LOOKUP
-    )
+    assert set(TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE.values()) <= {
+        row.grid_value for row in NATIONAL_FUEL_CODES.fuel_codes
+    }
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[8] == 11  # D-1
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[12] == 31  # O-1a
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[14] == 40  # M-1
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[99] == 101  # Non-fuel
 
 
-NATIONAL_FUEL_TYPES = CFFDRSFuelTypes.from_lookup(
-    FuelCodesLookup(fuel_codes=list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
-).by_grid_value
+CFFDRS_FUEL_TYPES = NATIONAL_FUEL_TYPES.by_grid_value
 
 
 @pytest.mark.parametrize(
@@ -56,7 +53,7 @@ NATIONAL_FUEL_TYPES = CFFDRSFuelTypes.from_lookup(
 )
 def test_seasonal_swaps_map_to_their_cffdrs_fuel_types(swaps, expected):
     assert {
-        NATIONAL_FUEL_TYPES[before]: NATIONAL_FUEL_TYPES[after] for before, after in swaps.items()
+        CFFDRS_FUEL_TYPES[before]: CFFDRS_FUEL_TYPES[after] for before, after in swaps.items()
     } == expected
 
 
@@ -131,26 +128,6 @@ def test_rejects_unsupported_base_fuel_values(value: float):
         TemporalFuelGrid.build(datasets, target_date)
 
 
-def test_fuel_codes_lookup_lists_present_grid_values_in_order():
-    temporal = np.array([[50, 12, 101, 12, np.nan]], dtype=np.float32)
-
-    result = TemporalFuelGrid(temporal).fuel_codes_lookup()
-
-    assert [row.grid_value for row in result.fuel_codes] == [12, 50, 101]
-    assert result.fuel_codes[0].model_dump() == {
-        "grid_value": 12,
-        "export_value": 12,
-        "descriptive_name": "Green Aspen (with BUI Thresholding)",
-        "fuel_type": "D-2",
-        "red": 137,
-        "green": 112,
-        "blue": 68,
-        "hue": 27,
-        "saturation": 86,
-        "lightness": 103,
-    }
-
-
 BASE_NODATA = -10000.0
 
 
@@ -192,7 +169,6 @@ def rasters(tmp_path: Path) -> SimpleNamespace:
 def s3_client() -> SimpleNamespace:
     return SimpleNamespace(
         all_objects_exist=AsyncMock(return_value=True),
-        put_object=AsyncMock(),
     )
 
 
@@ -228,12 +204,11 @@ async def publish(
                 grass_matted=grass_matted,
             ),
             output_key="temporal/fbp.tif",
-            fuel_codes_lookup_key="temporal/fbp.json",
         )
 
 
 @pytest.mark.anyio
-async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
+async def test_publish_temporal_fuel_raster_stores_grid(
     mocker: MockerFixture, rasters: SimpleNamespace, s3_client: SimpleNamespace
 ):
     published = {}
@@ -265,12 +240,6 @@ async def test_publish_temporal_fuel_raster_stores_grid_and_fuel_codes_lookup(
     assert published["nodata"] == BASE_NODATA
     assert published["cog_resample_alg"] == GDALResamplingMethod.NEAREST_NEIGHBOUR
 
-    s3_client.put_object.assert_awaited_once()
-    put_kwargs = s3_client.put_object.await_args.kwargs
-    assert put_kwargs["key"] == "temporal/fbp.json"
-    lookup = FuelCodesLookup.model_validate_json(put_kwargs["body"])
-    assert [row.grid_value for row in lookup.fuel_codes] == [3, 12, 32, 50]
-
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("julian_name", ["green_up_on", "grass_matted"])
@@ -295,7 +264,6 @@ async def test_publish_temporal_fuel_raster_rejects_misaligned_julian_raster(
         await publish(s3_client, target_date, **keys)
 
     publish_dataset.assert_not_called()
-    s3_client.put_object.assert_not_awaited()
 
 
 @pytest.mark.anyio

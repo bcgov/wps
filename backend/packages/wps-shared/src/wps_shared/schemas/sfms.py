@@ -68,6 +68,6 @@ class FuelCode(BaseModel):
 
 
 class FuelCodesLookup(BaseModel):
-    """The fuel codes lookup stored alongside a fuel grid, one row per grid value it contains."""
+    """A fuel lookup table, one row per fuel grid value."""
 
     fuel_codes: list[FuelCode]

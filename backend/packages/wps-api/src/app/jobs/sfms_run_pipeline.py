@@ -46,11 +46,9 @@ from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
-from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import (
     FWIParameter,
     GDALPath,
-    S3Key,
     SFMSInterpolatedWeatherParameter,
 )
 from wps_shared.utils.s3_client import S3Client
@@ -71,18 +69,6 @@ class RasterInterpolationJob:
 class FWICalculationJob:
     job_name: SFMSRunLogJobName
     calculator: FWICalculator
-
-
-@dataclass(frozen=True)
-class TemporalFuelPaths:
-    """Where a day's temporal fuel raster and its fuel codes lookup are stored.
-
-    A plain copy of the stored paths rather than the ``TemporalFuelRaster`` row, which can't be
-    read once the session that created it has committed and closed.
-    """
-
-    raster_path: GDALPath
-    fuel_codes_lookup_key: S3Key
 
 
 async def _run_tracked_job(
@@ -133,25 +119,20 @@ async def get_missing_fwi_seed_keys(
     return missing_keys
 
 
-async def _stored_outputs_match(s3_client: S3Client, existing: TemporalFuelRaster) -> bool:
-    """Return whether the stored raster still matches its recorded content hash and its fuel codes
-    lookup still exists and parses."""
+async def _stored_raster_matches(s3_client: S3Client, existing: TemporalFuelRaster) -> bool:
+    """Return whether the stored raster still exists and matches its recorded content hash."""
     try:
         await s3_client.get_fuel_raster(existing.object_store_path, existing.content_hash)
-        FuelCodesLookup.model_validate_json(
-            await s3_client.read_object(existing.fuel_codes_lookup_path)
-        )
     except ValueError:
-        # pydantic's ValidationError is a ValueError, so an unparseable lookup lands here too
         logger.warning(
-            "Stored temporal fuel output no longer matches what was recorded: %s",
+            "Stored temporal fuel raster no longer matches its recorded hash: %s",
             existing.object_store_path,
         )
         return False
     except ClientError as e:
         if e.response["Error"]["Code"] not in ("404", "NoSuchKey"):
             raise
-        logger.warning("Stored temporal fuel output is missing: %s", existing.object_store_path)
+        logger.warning("Stored temporal fuel raster is missing: %s", existing.object_store_path)
         return False
     return True
 
@@ -161,7 +142,7 @@ async def resolve_temporal_fuel_raster(
     fuel_type_raster: FuelTypeRaster,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-) -> TemporalFuelPaths:
+) -> GDALPath:
     """Return the temporal fuel raster for a date, creating a new version when needed.
 
     An existing raster is reused only when it was built from the same base fuel raster and the
@@ -177,20 +158,16 @@ async def resolve_temporal_fuel_raster(
         existing = await get_matching_temporal_fuel_raster(
             session, target_date, fuel_type_raster.id, **julian.hash_columns()
         )
-        if existing is not None and await _stored_outputs_match(s3_client, existing):
+        if existing is not None and await _stored_raster_matches(s3_client, existing):
             logger.info(
                 "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
             )
-            return TemporalFuelPaths(
-                raster_path=raster_addresser.gdal_path(existing.object_store_path),
-                fuel_codes_lookup_key=S3Key(existing.fuel_codes_lookup_path),
-            )
+            return raster_addresser.gdal_path(existing.object_store_path)
         # a grid is fully determined by its inputs, so a missing or altered one is rebuilt as the
         # next version, which the reuse query then prefers
 
         version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
         output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
-        fuel_codes_lookup_key = raster_addresser.get_fuel_codes_lookup_key(target_date, version)
         logger.info(
             "Generating temporal fuel raster for %s, version %s, base raster %s: %s",
             target_date,
@@ -205,7 +182,6 @@ async def resolve_temporal_fuel_raster(
                 base_fuel_key=raster_addresser.gdal_path(fuel_type_raster.object_store_path),
                 output_key=output_key,
                 julian=julian_datasets,
-                fuel_codes_lookup_key=fuel_codes_lookup_key,
             )
         session.add(
             TemporalFuelRaster(
@@ -213,17 +189,13 @@ async def resolve_temporal_fuel_raster(
                 for_date=target_date,
                 version=version,
                 object_store_path=output_key,
-                fuel_codes_lookup_path=fuel_codes_lookup_key,
                 content_hash=content_hash,
                 **julian.hash_columns(),
                 **julian.archive_path_columns(),
                 create_timestamp=get_utc_now(),
             )
         )
-    return TemporalFuelPaths(
-        raster_path=raster_addresser.gdal_path(output_key),
-        fuel_codes_lookup_key=fuel_codes_lookup_key,
-    )
+    return raster_addresser.gdal_path(output_key)
 
 
 async def run_temporal_fuel(
@@ -233,10 +205,10 @@ async def run_temporal_fuel(
     s3_client: S3Client,
     sfms_run_id: int,
     session,
-) -> TemporalFuelPaths:
+) -> GDALPath:
     """Resolve the date's temporal fuel raster as a tracked job of the SFMS run."""
 
-    async def _resolve() -> TemporalFuelPaths:
+    async def _resolve() -> GDALPath:
         return await resolve_temporal_fuel_raster(
             datetime_to_process.date(), fuel_type_raster, raster_addresser, s3_client
         )
@@ -280,7 +252,7 @@ async def run_fbp_calculations(
     datetime_to_process: datetime,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-    temporal_fuel: TemporalFuelPaths,
+    fuel_raster_path: GDALPath,
     fuel_raster_year: int,
     sfms_run_id: int,
     session,
@@ -293,8 +265,7 @@ async def run_fbp_calculations(
     inputs = raster_addresser.get_primary_fire_behaviour_inputs(
         datetime_to_process,
         run_type,
-        temporal_fuel.raster_path,
-        temporal_fuel.fuel_codes_lookup_key,
+        fuel_raster_path,
         percent_conifer_path,
         raster_addresser.gdal_path(
             raster_addresser.get_weather_key(

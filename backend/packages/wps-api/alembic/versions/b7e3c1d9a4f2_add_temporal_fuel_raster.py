@@ -25,7 +25,6 @@ def upgrade():
         sa.Column("for_date", sa.Date(), nullable=False),
         sa.Column("version", sa.Integer(), nullable=False),
         sa.Column("object_store_path", sa.String(), nullable=False),
-        sa.Column("fuel_codes_lookup_path", sa.String(), nullable=False),
         sa.Column("content_hash", sa.String(), nullable=False),
         sa.Column("green_up_on_hash", sa.String(), nullable=False),
         sa.Column("green_up_off_hash", sa.String(), nullable=False),

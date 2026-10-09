@@ -78,20 +78,26 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
       should be numbered the same way; in leap years Feb 29 counts as Feb 28.
   - An existing grid is reused only when its base grid and all four Julian-date raster hashes
     match, and only after its stored file is downloaded and matched against its recorded content
-    hash and its fuel codes lookup is found and parses. A missing or altered grid is rebuilt as
-    the next version.
+    hash. A missing or altered grid is rebuilt as the next version.
   - Temporal grids use national FBP lookup codes, not BC base grid codes, and are stored at
-    `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fbpYYYY_MM_DD_{version}.tif`, with the JSON fuel
-    codes lookup that primary FBP reads its fuel types from beside it at
-    `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fbpYYYY_MM_DD_{version}.json` (e.g.
+    `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fbpYYYY_MM_DD_{version}.tif` (e.g.
     `sfms_ng/fuel/temporal/2026/07/01/1/fbp2026_07_01_1.tif`). `{version}` counts the grids
     stored for that date, starting at `1`; a new one is stored whenever no stored grid matches the
     run's base grid and Julian-date rasters, or the matching one is missing or altered.
-  - The fuel codes lookup is the grid's metadata: one national FBP lookup row per grid value
-    present, with its fuel type, descriptive name and colour (`red`/`green`/`blue` and
-    `hue`/`saturation`/`lightness`). Primary FBP only reads `grid_value` and `fuel_type`; the
-    names and colours are there so the frontend can label and colour the fuel layer from the
-    lookup rather than hardcoding a legend.
+  - The national fuel lookup (`wps_sfms/national_fuel_lookup.py`) describes every temporal fuel
+    grid: one row per grid value, with its fuel type, descriptive name and colour
+    (`red`/`green`/`blue` and `hue`/`saturation`/`lightness`). Primary FBP reads its CFFDRS fuel
+    types from it in code. The table is append-only: add rows for new grid values, but never
+    change what an existing grid value means, since every stored grid is read with the current
+    table.
+  - The names and colours are for the frontend, which labels and colours fuel grids from a copy
+    of the table uploaded manually to `sfms_ng/fuel/temporal/fuel_codes_lookup.json`. Regenerate
+    and re-upload it whenever the table changes:
+
+    ```bash
+    cd backend
+    uv run python -c "from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_CODES; print(NATIONAL_FUEL_CODES.model_dump_json(indent=2))" > fuel_codes_lookup.json
+    ```
   - D2 is supported by `cffdrs_vec`. It applies BUI thresholding, so D2 produces almost no spread
     below BUI 80.
   - Seasonal variants apply to every primary FBP output, including SFC, following the

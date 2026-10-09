@@ -36,9 +36,6 @@ class TestTemporalFuelKeys:
         assert addresser.get_temporal_fuel_key(date(2026, 6, 1), 2) == (
             "sfms_ng/fuel/temporal/2026/06/01/2/fbp2026_06_01_2.tif"
         )
-        assert addresser.get_fuel_codes_lookup_key(date(2026, 6, 1), 2) == (
-            "sfms_ng/fuel/temporal/2026/06/01/2/fbp2026_06_01_2.json"
-        )
 
 
 class TestGetFoliarMoistureContentInputs:
@@ -263,7 +260,6 @@ class TestPrimaryFireBehaviourInputs:
             TEST_DATETIME,
             run_type,
             fuel_key,
-            "sfms_ng/fuel/temporal/fbp.json",
             percent_conifer_key,
             wind_speed_key,
             wind_direction_key,
@@ -273,7 +269,6 @@ class TestPrimaryFireBehaviourInputs:
         )
 
         assert result.fuel_key == fuel_key
-        assert result.fuel_codes_lookup_key == "sfms_ng/fuel/temporal/fbp.json"
         assert result.ffmc_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/ffmc_20240415.tif")
         assert result.bui_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/bui_20240415.tif")
         assert result.wind_speed_key == wind_speed_key
@@ -300,7 +295,6 @@ class TestPrimaryFireBehaviourInputs:
                 NON_UTC,
                 RunType.ACTUAL,
                 fuel_key,
-                "fuel-lookup",
                 percent_conifer_key,
                 "wind-speed",
                 "wind-direction",

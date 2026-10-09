@@ -14,7 +14,6 @@ from typing import Generator
 import numpy as np
 from cffdrs_vec.fbp import vectorized_primary_fire_behaviour_prediction
 from wps_shared.geospatial.wps_dataset import WPSDataset
-from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import FBPParameter, GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
@@ -22,6 +21,7 @@ from wps_shared.utils.s3_client import S3Client
 from wps_sfms.fbp_fuel_types import NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
 from wps_sfms.fbp_input_validation import validate_percent_conifer
 from wps_sfms.interpolation.common import SFMS_NO_DATA
+from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_TYPES
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
@@ -125,8 +125,8 @@ def calculate_primary_fire_behaviour(
     Pixels missing a required input produce ``SFMS_NO_DATA`` in every output. Recognized
     non-combustible fuel pixels produce zero regardless of other missing inputs.
 
-    ``fuel_types`` gives the CFFDRS fuel type of each fuel grid value, read from the fuel grid's
-    fuel codes lookup.
+    ``fuel_types`` gives the CFFDRS fuel type of each fuel grid value; the pipeline passes the
+    national fuel lookup's, since temporal fuel grids store national grid values.
     """
     fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
     ffmc, _ = datasets.ffmc.replace_nodata_with(np.nan)
@@ -305,12 +305,7 @@ class PrimaryFireBehaviourProcessor:
         with gdal_s3_context():
             await self._raster_dependencies.assert_keys_exist(
                 s3_client,
-                (*self._dependency_keys(inputs), inputs.fuel_codes_lookup_key),
-            )
-            fuel_types = CFFDRSFuelTypes.from_lookup(
-                FuelCodesLookup.model_validate_json(
-                    await s3_client.read_object(inputs.fuel_codes_lookup_key)
-                )
+                self._dependency_keys(inputs),
             )
             logger.info(
                 "Calculating primary FBP %s for %s",
@@ -320,7 +315,7 @@ class PrimaryFireBehaviourProcessor:
 
             with self._open_datasets(input_dataset_context, inputs) as datasets:
                 self._validate_grids(datasets)
-                result = calculate_primary_fire_behaviour(datasets, fuel_types)
+                result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
                 with open_bc_mask_dataset() as mask:
                     for output in result.raster_outputs():

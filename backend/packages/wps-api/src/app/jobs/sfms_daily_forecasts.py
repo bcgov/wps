@@ -178,7 +178,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
 
                 async with get_async_write_session_scope() as write_session:
                     for datetime_to_process, sfms_run_id in sfms_run_ids.items():
-                        temporal_fuel = await run_temporal_fuel(
+                        temporal_fuel_path = await run_temporal_fuel(
                             datetime_to_process,
                             fuel_type_raster,
                             raster_addresser,
@@ -190,7 +190,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                             datetime_to_process,
                             raster_addresser,
                             s3_client,
-                            temporal_fuel,
+                            temporal_fuel_path,
                             fuel_type_raster.year,
                             sfms_run_id,
                             write_session,

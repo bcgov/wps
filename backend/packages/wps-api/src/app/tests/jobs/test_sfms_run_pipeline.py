@@ -14,7 +14,6 @@ from wps_shared.run_type import RunType
 from app.jobs.sfms_run_pipeline import (
     _resolve_percent_conifer_path,
     _resolve_percent_dead_conifer_path,
-    TemporalFuelPaths,
     resolve_temporal_fuel_raster,
     run_temporal_fuel,
     run_fbp_calculations,
@@ -118,9 +117,7 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
         datetime_to_process,
         addresser,
         s3_client,
-        TemporalFuelPaths(
-            raster_path="/vsis3/test/fuel.tif", fuel_codes_lookup_key="test/fuel.json"
-        ),
+        "/vsis3/test/fuel.tif",
         2025,
         42,
         session,
@@ -132,7 +129,6 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
         datetime_to_process,
         RunType.ACTUAL,
         "/vsis3/test/fuel.tif",
-        "test/fuel.json",
         "/vsis3/test/sfms/static/m12_2025.tif",
         addresser.gdal_path.return_value,
         addresser.gdal_path.return_value,
@@ -159,20 +155,6 @@ JULIAN_HASHES = {
     f"{key}_hash": hashlib.sha256(raster_bytes).hexdigest()
     for key, raster_bytes in JULIAN_BYTES.items()
 }
-STORED_LOOKUP = b'{"fuel_codes": []}'
-
-
-def read_stored_object(lookup: bytes | Exception = STORED_LOOKUP):
-    """A read_object stand-in serving the Julian rasters and ``lookup`` for any other key."""
-
-    async def _read_object(key: str) -> bytes:
-        if key in JULIAN_BYTES:
-            return JULIAN_BYTES[key]
-        if isinstance(lookup, Exception):
-            raise lookup
-        return lookup
-
-    return AsyncMock(side_effect=_read_object)
 
 
 def open_julian_dataset(raster_bytes: bytes) -> MagicMock:
@@ -197,9 +179,6 @@ def temporal_fuel_deps(mocker: MockerFixture):
     addresser.gdal_path.side_effect = lambda key: f"/vsis3/bucket/{key}"
     addresser.get_julian_key.side_effect = lambda name: name
     addresser.get_temporal_fuel_key.side_effect = lambda _date, version: f"temporal/{version}.tif"
-    addresser.get_fuel_codes_lookup_key.side_effect = lambda _date, version: (
-        f"temporal/{version}.json"
-    )
     addresser.get_julian_archive_key.side_effect = lambda name, julian_hash: (
         f"archive/{name}/{julian_hash}.tif"
     )
@@ -207,7 +186,7 @@ def temporal_fuel_deps(mocker: MockerFixture):
     s3_client = MagicMock()
     s3_client.all_objects_exist = AsyncMock(return_value=True)
     s3_client.get_fuel_raster = AsyncMock(return_value=b"stored tif")
-    s3_client.read_object = read_stored_object()
+    s3_client.read_object = AsyncMock(side_effect=lambda key: JULIAN_BYTES[key])
     # no Julian archives yet
     s3_client.object_exists = AsyncMock(return_value=False)
     s3_client.put_object = AsyncMock()
@@ -248,12 +227,11 @@ def stored_raster(version: int) -> MagicMock:
     """A temporal_fuel_raster row for ``version`` with a recorded content hash."""
     return MagicMock(
         object_store_path=f"temporal/{version}.tif",
-        fuel_codes_lookup_path=f"temporal/{version}.json",
         content_hash="stored-hash",
     )
 
 
-async def resolve(deps) -> TemporalFuelPaths:
+async def resolve(deps) -> str:
     return await resolve_temporal_fuel_raster(
         TARGET_DATE, deps.fuel_type_raster, deps.addresser, deps.s3_client
     )
@@ -269,9 +247,7 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
 
     result = await resolve(deps)
 
-    assert result == TemporalFuelPaths(
-        raster_path="/vsis3/bucket/temporal/2.tif", fuel_codes_lookup_key="temporal/2.json"
-    )
+    assert result == "/vsis3/bucket/temporal/2.tif"
     deps.lock.assert_awaited_once_with(deps.session, TARGET_DATE)
     get_existing.assert_awaited_once_with(deps.session, TARGET_DATE, 7, **JULIAN_HASHES)
     deps.s3_client.get_fuel_raster.assert_awaited_once_with("temporal/2.tif", "stored-hash")
@@ -305,9 +281,7 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
 
     result = await resolve(deps)
 
-    assert result == TemporalFuelPaths(
-        raster_path="/vsis3/bucket/temporal/3.tif", fuel_codes_lookup_key="temporal/3.json"
-    )
+    assert result == "/vsis3/bucket/temporal/3.tif"
     publish_args = deps.publish.await_args.kwargs
     assert publish_args["base_fuel_key"] == "/vsis3/bucket/sfms/static/fuel/fbp2026_v1.tif"
     # the grid is built from the same bytes that were hashed, and each dataset is closed after
@@ -321,7 +295,6 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
     assert record.for_date == TARGET_DATE
     assert record.version == 3
     assert record.object_store_path == "temporal/3.tif"
-    assert record.fuel_codes_lookup_path == "temporal/3.json"
     assert record.content_hash == "temporal-hash"
     for column, julian_hash in JULIAN_HASHES.items():
         assert getattr(record, column) == julian_hash
@@ -352,27 +325,7 @@ async def test_resolve_temporal_fuel_raster_rebuilds_unverified_raster(
 
     result = await resolve(deps)
 
-    assert result.raster_path == "/vsis3/bucket/temporal/3.tif"
-    deps.publish.assert_awaited_once()
-    assert deps.session.add.call_args.args[0].version == 3
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "stored_lookup",
-    [ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject"), b"not json"],
-    ids=["missing", "unparseable"],
-)
-async def test_resolve_temporal_fuel_raster_rebuilds_unverified_lookup(
-    mocker: MockerFixture, temporal_fuel_deps, stored_lookup: bytes | Exception
-):
-    deps = temporal_fuel_deps
-    patch_db(mocker, existing=stored_raster(version=2), latest_version=2)
-    deps.s3_client.read_object = read_stored_object(stored_lookup)
-
-    result = await resolve(deps)
-
-    assert result.fuel_codes_lookup_key == "temporal/3.json"
+    assert result == "/vsis3/bucket/temporal/3.tif"
     deps.publish.assert_awaited_once()
     assert deps.session.add.call_args.args[0].version == 3
 
@@ -409,7 +362,7 @@ async def test_resolve_temporal_fuel_raster_requires_julian_rasters(temporal_fue
 
 @pytest.mark.anyio
 async def test_run_temporal_fuel_is_a_tracked_job_for_the_date(mocker: MockerFixture):
-    temporal_fuel = TemporalFuelPaths(raster_path="/vsis3/t.tif", fuel_codes_lookup_key="t.json")
+    temporal_fuel = "/vsis3/t.tif"
     resolve = mocker.patch(
         f"{PIPELINE_PATH}.resolve_temporal_fuel_raster",
         new_callable=AsyncMock,

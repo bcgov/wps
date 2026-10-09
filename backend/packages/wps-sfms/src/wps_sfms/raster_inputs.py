@@ -33,7 +33,6 @@ class PrimaryFireBehaviourInputs:
     """Raster locations and metadata needed for one primary FBP calculation."""
 
     fuel_key: GDALPath
-    fuel_codes_lookup_key: S3Key
     ffmc_key: GDALPath
     bui_key: GDALPath
     wind_speed_key: GDALPath

@@ -4,20 +4,22 @@ from cffdrs_vec.fbp import FUEL_TYPE_CODES
 from wps_shared.schemas.sfms import FuelCodesLookup
 
 from wps_sfms.fbp_fuel_types import NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
-from wps_sfms.processors.temporal_fuel import TemporalFuelGrid
-
-FUEL_CODES_LOOKUP = FuelCodesLookup(fuel_codes=list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
-FUEL_TYPES = CFFDRSFuelTypes.from_lookup(FUEL_CODES_LOOKUP)
+from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_CODES, NATIONAL_FUEL_TYPES
 
 
-def test_fuel_codes_lookup_round_trips_through_json():
-    assert FuelCodesLookup.model_validate_json(FUEL_CODES_LOOKUP.model_dump_json()) == (
-        FUEL_CODES_LOOKUP
+def test_national_fuel_codes_round_trip_through_json():
+    assert FuelCodesLookup.model_validate_json(NATIONAL_FUEL_CODES.model_dump_json()) == (
+        NATIONAL_FUEL_CODES
     )
 
 
+def test_national_fuel_codes_have_one_row_per_grid_value():
+    grid_values = [row.grid_value for row in NATIONAL_FUEL_CODES.fuel_codes]
+    assert len(grid_values) == len(set(grid_values))
+
+
 def test_national_lookup_maps_to_cffdrs_fuel_types():
-    assert FUEL_TYPES.by_grid_value == {
+    assert NATIONAL_FUEL_TYPES.by_grid_value == {
         1: "C1",
         2: "C2",
         3: "C3",
@@ -45,7 +47,7 @@ def test_national_lookup_maps_to_cffdrs_fuel_types():
 def test_lookup_rejects_fuel_types_cffdrs_cannot_calculate(label: str):
     lookup = FuelCodesLookup(
         fuel_codes=[
-            TemporalFuelGrid.NATIONAL_FUEL_LOOKUP[40].model_copy(
+            NATIONAL_FUEL_CODES.fuel_codes[0].model_copy(
                 update={"grid_value": 60, "fuel_type": label}
             )
         ]
@@ -58,7 +60,7 @@ def test_lookup_rejects_fuel_types_cffdrs_cannot_calculate(label: str):
 def test_cffdrs_codes_maps_combustible_non_fuel_and_nodata_cells():
     fuel = np.array([[1, 11, 40, 101, 102, np.nan]], dtype=np.float32)
 
-    result = FUEL_TYPES.cffdrs_codes(fuel)
+    result = NATIONAL_FUEL_TYPES.cffdrs_codes(fuel)
 
     expected = np.array(
         [
@@ -87,15 +89,16 @@ def test_cffdrs_codes_maps_combustible_non_fuel_and_nodata_cells():
 )
 def test_cffdrs_codes_rejects_unexpected_values(fuel: np.ndarray, match: str):
     with pytest.raises(ValueError, match=match):
-        FUEL_TYPES.cffdrs_codes(fuel)
+        NATIONAL_FUEL_TYPES.cffdrs_codes(fuel)
 
 
 def test_masks_select_non_fuel_and_mixedwood_grid_values():
     fuel = np.array([[1, 40, 50, 70, 101, 102, np.nan]], dtype=np.float32)
 
     np.testing.assert_array_equal(
-        FUEL_TYPES.non_combustible_mask(fuel), [[False, False, False, False, True, True, False]]
+        NATIONAL_FUEL_TYPES.non_combustible_mask(fuel),
+        [[False, False, False, False, True, True, False]],
     )
     np.testing.assert_array_equal(
-        FUEL_TYPES.mixedwood_mask(fuel), [[False, True, True, False, False, False, False]]
+        NATIONAL_FUEL_TYPES.mixedwood_mask(fuel), [[False, True, True, False, False, False, False]]
     )

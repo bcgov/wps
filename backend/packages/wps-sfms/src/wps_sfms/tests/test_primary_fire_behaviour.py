@@ -11,12 +11,10 @@ import pytest
 from pytest_mock import MockerFixture
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
-from wps_shared.schemas.sfms import FuelCodesLookup
 from wps_shared.sfms.raster_addresser import FBPParameter
 
-from wps_sfms.fbp_fuel_types import CFFDRSFuelTypes
 from wps_sfms.interpolation.common import SFMS_NO_DATA
-from wps_sfms.processors.temporal_fuel import TemporalFuelGrid
+from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_TYPES
 from wps_sfms.processors.primary_fire_behaviour import (
     PrimaryFireBehaviourDatasets,
     PrimaryFireBehaviourProcessor,
@@ -27,8 +25,6 @@ from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 TEST_DATETIME = datetime(2024, 7, 4, 20, tzinfo=timezone.utc)
-FUEL_CODES_LOOKUP = FuelCodesLookup(fuel_codes=list(TemporalFuelGrid.NATIONAL_FUEL_LOOKUP.values()))
-FUEL_TYPES = CFFDRSFuelTypes.from_lookup(FUEL_CODES_LOOKUP)
 
 
 def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehaviourDatasets:
@@ -56,7 +52,6 @@ def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehav
 def make_inputs() -> PrimaryFireBehaviourInputs:
     return PrimaryFireBehaviourInputs(
         fuel_key="/vsis3/test/fuel.tif",
-        fuel_codes_lookup_key="test/fuel.json",
         ffmc_key="/vsis3/test/ffmc.tif",
         bui_key="/vsis3/test/bui.tif",
         wind_speed_key="/vsis3/test/wind_speed.tif",
@@ -104,7 +99,7 @@ def test_calculation_matches_cffdrs_reference_and_derives_isi():
         wind_direction=np.array([[225.0]]),
     )
 
-    result = calculate_primary_fire_behaviour(datasets, FUEL_TYPES)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = cffdrs.fire_behaviour_prediction.fire_behaviour_prediction(
         cffdrs.models.FBPInput(
@@ -143,7 +138,7 @@ def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
         ),
     )
 
-    calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), FUEL_TYPES)
+    calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), NATIONAL_FUEL_TYPES)
 
     np.testing.assert_array_equal(primary_fbp.call_args.args[14], np.array([0.0]))
 
@@ -177,7 +172,7 @@ def test_sfc_matches_standalone_reference(grid_value: int, fuel_type: str, perce
         percent_conifer=np.array([[percent_conifer]]),
     )
 
-    result = calculate_primary_fire_behaviour(datasets, FUEL_TYPES)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = cffdrs.surface_fuel_consumption.surface_fuel_consumption(
         fuel_type, 90.0, 60.0, percent_conifer, 0.35
@@ -204,7 +199,7 @@ def test_normalizes_directions_and_clamps_slope_before_primary_fbp(mocker: Mocke
             slope=np.array([[300.0]]),
             aspect=np.array([[410.0]]),
         ),
-        FUEL_TYPES,
+        NATIONAL_FUEL_TYPES,
     )
 
     call_args = primary_fbp.call_args.args
@@ -219,8 +214,8 @@ def test_aspect_is_irrelevant_when_negative_slope_is_clamped_to_zero():
     )
     flat = make_datasets(np.array([[6.0]]), slope=np.array([[0.0]]), aspect=np.array([[0.0]]))
 
-    negative_result = calculate_primary_fire_behaviour(negative_slope, FUEL_TYPES)
-    flat_result = calculate_primary_fire_behaviour(flat, FUEL_TYPES)
+    negative_result = calculate_primary_fire_behaviour(negative_slope, NATIONAL_FUEL_TYPES)
+    flat_result = calculate_primary_fire_behaviour(flat, NATIONAL_FUEL_TYPES)
 
     np.testing.assert_allclose(negative_result.ros, flat_result.ros)
     np.testing.assert_allclose(negative_result.hfi, flat_result.hfi)
@@ -233,7 +228,7 @@ def test_aspect_nodata_is_preserved_when_slope_is_clamped_to_zero():
         aspect=np.full((1, 2), TEST_INPUT_NODATA),
     )
 
-    result = calculate_primary_fire_behaviour(datasets, FUEL_TYPES)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = np.full((1, 2), SFMS_NO_DATA, dtype=np.float32)
     np.testing.assert_array_equal(result.sfc, expected)
@@ -246,7 +241,7 @@ def test_aspect_nodata_is_preserved_when_slope_is_clamped_to_zero():
 def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
     datasets = make_datasets(np.array([[101, 102, TEST_INPUT_NODATA]]))
 
-    result = calculate_primary_fire_behaviour(datasets, FUEL_TYPES)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = np.array([[0, 0, SFMS_NO_DATA]], dtype=np.float32)
     np.testing.assert_array_equal(result.sfc, expected)
@@ -263,7 +258,7 @@ def test_non_fuel_becomes_zero_when_other_inputs_are_nodata():
         fmc=np.full((1, 2), TEST_INPUT_NODATA),
     )
 
-    result = calculate_primary_fire_behaviour(datasets, FUEL_TYPES)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     np.testing.assert_array_equal(result.sfc, np.zeros((1, 2), dtype=np.float32))
     np.testing.assert_array_equal(result.ros, np.zeros((1, 2), dtype=np.float32))
@@ -282,7 +277,7 @@ def test_required_input_nodata_becomes_sfms_nodata(input_name: str):
         **{input_name: np.array([[TEST_INPUT_NODATA]])},
     )
 
-    result = calculate_primary_fire_behaviour(datasets, FUEL_TYPES)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     assert result.sfc[0, 0] == SFMS_NO_DATA
     assert result.ros[0, 0] == SFMS_NO_DATA
@@ -295,7 +290,7 @@ def test_required_input_nodata_becomes_sfms_nodata(input_name: str):
 def test_invalid_fmc_becomes_sfms_nodata(fmc: float):
     datasets = make_datasets(np.array([[6.0]]), fmc=np.array([[fmc]]))
 
-    result = calculate_primary_fire_behaviour(datasets, FUEL_TYPES)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     assert result.sfc[0, 0] == SFMS_NO_DATA
     assert result.ros[0, 0] == SFMS_NO_DATA
@@ -308,7 +303,7 @@ def test_invalid_fmc_becomes_sfms_nodata(fmc: float):
 def test_valid_fmc_boundaries_are_calculated(fmc: float):
     datasets = make_datasets(np.array([[6.0]]), fmc=np.array([[fmc]]))
 
-    result = calculate_primary_fire_behaviour(datasets, FUEL_TYPES)
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     assert np.isfinite(result.hfi[0, 0])
     assert result.hfi[0, 0] != SFMS_NO_DATA
@@ -350,7 +345,6 @@ async def test_processor_publishes_five_outputs_with_values_and_metadata(
 
     s3_client = SimpleNamespace(
         all_objects_exist=AsyncMock(return_value=True),
-        read_object=AsyncMock(return_value=FUEL_CODES_LOOKUP.model_dump_json().encode()),
     )
     clear_cache = mocker.patch("wps_shared.utils.s3.gdal.VSICurlClearCache")
     mocker.patch(
@@ -373,8 +367,7 @@ async def test_processor_publishes_five_outputs_with_values_and_metadata(
         s3_client, make_dataset_context(datasets), inputs
     )
 
-    s3_client.read_object.assert_awaited_once_with(inputs.fuel_codes_lookup_key)
-    assert calculate.call_args.args[1] == FUEL_TYPES
+    assert calculate.call_args.args[1] == NATIONAL_FUEL_TYPES
     assert captured == [
         {
             "output_key": inputs.output_keys[FBPParameter.SFC],
@@ -424,7 +417,6 @@ async def test_processor_publish_failure_propagates_and_clears_cache(
     inputs = make_inputs()
     s3_client = SimpleNamespace(
         all_objects_exist=AsyncMock(return_value=True),
-        read_object=AsyncMock(return_value=FUEL_CODES_LOOKUP.model_dump_json().encode()),
     )
     processor = PrimaryFireBehaviourProcessor(TEST_DATETIME)
     input_context = make_dataset_context(datasets)
@@ -446,7 +438,6 @@ async def test_processor_rejects_mismatched_grid(mocker: MockerFixture):
     inputs = make_inputs()
     s3_client = SimpleNamespace(
         all_objects_exist=AsyncMock(return_value=True),
-        read_object=AsyncMock(return_value=FUEL_CODES_LOOKUP.model_dump_json().encode()),
     )
     processor = PrimaryFireBehaviourProcessor(TEST_DATETIME)
     input_context = make_dataset_context(datasets)
@@ -482,5 +473,4 @@ async def test_processor_rejects_missing_dependency():
         inputs.aspect_key,
         inputs.percent_conifer_key,
         inputs.fmc_key,
-        inputs.fuel_codes_lookup_key,
     )

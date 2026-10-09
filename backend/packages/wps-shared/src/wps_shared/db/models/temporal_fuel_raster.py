@@ -17,7 +17,6 @@ class TemporalFuelRaster(Base):
     for_date = Column(Date, nullable=False, index=True)
     version = Column(Integer, nullable=False)
     object_store_path = Column(String, nullable=False)
-    fuel_codes_lookup_path = Column(String, nullable=False)
     content_hash = Column(String, nullable=False)
     green_up_on_hash = Column(String, nullable=False)
     green_up_off_hash = Column(String, nullable=False)
