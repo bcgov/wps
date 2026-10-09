@@ -6,14 +6,17 @@ import { DateTime } from 'luxon'
 import { setLastUpdated } from '@/slices/dataSlice'
 import type { AppDispatch, AppThunk, RootState } from '@/store'
 import { getTodayKey, getTomorrowKey } from '@/utils/dataSliceUtils'
+import { createLoadError, type LoadError, toLoadError } from '@/utils/loadError'
 import { RUN_PARAMETERS_CACHE_KEY, readFromFilesystem, writeToFileSystem } from '@/utils/storage'
 
 export interface RunParametersState {
-  error: string | null
+  loading: boolean
+  error: LoadError | null
   runParameters: { [key: string]: RunParameter } | null
 }
 
 export const initialState: RunParametersState = {
+  loading: false,
   error: null,
   runParameters: null
 }
@@ -24,9 +27,11 @@ const runParameterSlice = createSlice({
   reducers: {
     getRunParametersStart(state: RunParametersState) {
       state.error = null
+      state.loading = true
     },
-    getRunParametersFailed(state: RunParametersState, action: PayloadAction<string>) {
+    getRunParametersFailed(state: RunParametersState, action: PayloadAction<LoadError>) {
       state.error = action.payload
+      state.loading = false
     },
     getRunParametersSuccess(
       state: RunParametersState,
@@ -35,12 +40,17 @@ const runParameterSlice = createSlice({
       }>
     ) {
       state.error = null
+      state.loading = false
       state.runParameters = action.payload.runParameters
+    },
+    getRunParametersFinished(state: RunParametersState) {
+      state.loading = false
     }
   }
 })
 
-export const { getRunParametersStart, getRunParametersFailed, getRunParametersSuccess } = runParameterSlice.actions
+export const { getRunParametersStart, getRunParametersFailed, getRunParametersSuccess, getRunParametersFinished } =
+  runParameterSlice.actions
 
 export default runParameterSlice.reducer
 
@@ -51,12 +61,12 @@ const handleOnlineRunParameters = async (
   reduxRunParameters: { [key: string]: RunParameter } | null
 ) => {
   const now = DateTime.now()
+  dispatch(getRunParametersStart())
   try {
-    dispatch(getRunParametersStart())
     const latestRunParameters: { [key: string]: RunParameter } = await getMostRecentRunParameters(todayKey, tomorrowKey)
 
     if (isNil(latestRunParameters) || Object.keys(latestRunParameters).length === 0) {
-      dispatch(getRunParametersFailed('Unable to update runParameters from the API.'))
+      dispatch(getRunParametersFailed(createLoadError('Unable to update runParameters from the API.')))
       return
     }
 
@@ -71,8 +81,10 @@ const handleOnlineRunParameters = async (
       dispatch(setLastUpdated({ lastUpdated: now.toISO() }))
     }
   } catch (err) {
-    dispatch(getRunParametersFailed((err as Error).toString()))
+    dispatch(getRunParametersFailed(toLoadError(err)))
     console.log(err)
+  } finally {
+    dispatch(getRunParametersFinished())
   }
 }
 
@@ -88,7 +100,7 @@ const handleOfflineRunParameters = async (
     : (cachedData.data as { [key: string]: RunParameter })
 
   if (isNil(cachedRunParameters)) {
-    dispatch(getRunParametersFailed('No run parameters available.'))
+    dispatch(getRunParametersFailed(createLoadError('No run parameters available.')))
     return
   }
 

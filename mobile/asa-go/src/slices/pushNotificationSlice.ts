@@ -7,14 +7,11 @@ import type { AppThunk } from '@/store'
 import type { PushNotificationData } from '@/types/asaGoTypes'
 import { retryWithBackoff } from '@/utils/retryWithBackoff'
 
-export const MAX_REGISTRATION_ATTEMPTS = 5
-
 export interface PushNotificationState {
   pushNotificationPermission: PermissionState | 'unknown'
   registeredFcmToken: string | null
   deviceIdError: boolean
   registrationError: boolean
-  registrationAttempts: number
   pendingNotificationData: PushNotificationData | null
 }
 
@@ -23,7 +20,6 @@ export const initialState: PushNotificationState = {
   registeredFcmToken: null,
   deviceIdError: false,
   registrationError: false,
-  registrationAttempts: 0,
   pendingNotificationData: null
 }
 
@@ -43,12 +39,6 @@ const pushNotificationSlice = createSlice({
     setRegistrationError(state: PushNotificationState, action: PayloadAction<boolean>) {
       state.registrationError = action.payload
     },
-    incrementRegistrationAttempts(state: PushNotificationState) {
-      state.registrationAttempts += 1
-    },
-    resetRegistrationAttempts(state: PushNotificationState) {
-      state.registrationAttempts = 0
-    },
     setPendingNotificationData(state: PushNotificationState, action: PayloadAction<PushNotificationData>) {
       state.pendingNotificationData = action.payload
     },
@@ -63,15 +53,13 @@ export const {
   setRegistrationError,
   setPushNotificationPermission,
   setRegisteredFcmToken,
-  incrementRegistrationAttempts,
-  resetRegistrationAttempts,
   setPendingNotificationData,
   clearPendingNotificationData
 } = pushNotificationSlice.actions
 
 export default pushNotificationSlice.reducer
 
-export const checkPushNotificationPermission = (): AppThunk => async dispatch => {
+export const checkPushNotificationPermission = (): AppThunk<Promise<void>> => async dispatch => {
   try {
     const permissions = await FirebaseMessaging.checkPermissions()
     dispatch(setPushNotificationPermission(permissions.receive ?? 'unknown'))
@@ -82,7 +70,7 @@ export const checkPushNotificationPermission = (): AppThunk => async dispatch =>
 }
 
 export const registerDevice =
-  (token: string, registeredFcmToken: string | null): AppThunk =>
+  (token: string, registeredFcmToken: string | null): AppThunk<Promise<void>> =>
   async (dispatch, getState) => {
     if (token === registeredFcmToken) return
     try {
@@ -90,11 +78,22 @@ export const registerDevice =
       const { identifier } = await Device.getId()
       await retryWithBackoff(() => registerToken(Capacitor.getPlatform() as Platform, token, identifier, idir || null))
       dispatch(setRegistrationError(false))
-      dispatch(resetRegistrationAttempts())
       dispatch(setRegisteredFcmToken(token))
     } catch (e) {
       console.error('Failed to register device:', e)
-      dispatch(incrementRegistrationAttempts())
       dispatch(setRegistrationError(true))
     }
   }
+
+export const retryPushNotificationRegistration = (): AppThunk<Promise<void>> => async (dispatch, getState) => {
+  const { registeredFcmToken, registrationError } = getState().pushNotification
+  if (!registrationError) return
+
+  try {
+    const { token } = await FirebaseMessaging.getToken()
+    if (token) await dispatch(registerDevice(token, registeredFcmToken))
+  } catch (e) {
+    console.error('Failed to get token for retry:', e)
+    dispatch(setRegistrationError(true))
+  }
+}

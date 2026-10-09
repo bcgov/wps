@@ -3,6 +3,7 @@ import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FireCentreInfo } from '@/api/fbaAPI'
 import SubscriptionAccordion from '@/components/settings/SubscriptionAccordion'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import settingsReducer from '@/slices/settingsSlice'
 import { createTestStore } from '@/testUtils'
 
@@ -21,7 +22,6 @@ vi.mock('@/utils/retryWithBackoff', () => ({
 }))
 
 import { getNotificationSettings, updateNotificationSettings } from 'api/pushNotificationsAPI'
-import { subscriptionUpdateErrorMessage } from '@/utils/constants'
 
 vi.mock('@capacitor/preferences', () => ({
   Preferences: {
@@ -158,7 +158,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -243,7 +242,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       settings: {
@@ -269,7 +267,9 @@ describe('SubscriptionAccordion', () => {
     })
 
     expect(updateNotificationSettings).toHaveBeenCalled()
-    expect(screen.getByText(subscriptionUpdateErrorMessage)).toBeInTheDocument()
+    expect(store.getState().notifications.notifications).toEqual([
+      expect.objectContaining(NOTIFICATION_DEFINITIONS.subscriptionUpdateError)
+    ])
     expect(screen.queryAllByTestId('loading-switch-error')).toHaveLength(0)
   })
 
@@ -360,7 +360,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -399,7 +398,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -504,7 +502,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -548,7 +545,7 @@ describe('SubscriptionAccordion', () => {
     expect(subs4).not.toContain(mockFireCentreInfo.fire_zone_units[1].id)
   })
 
-  it('shows error snackbar when subscription update fails', async () => {
+  it('queues an error notification when subscription update fails', async () => {
     vi.mocked(updateNotificationSettings).mockRejectedValue(new Error('server error'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -567,7 +564,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {
@@ -586,7 +582,9 @@ describe('SubscriptionAccordion', () => {
     fireEvent.click(screen.getByLabelText('Toggle subscription for K4-Vernon Zone (Vernon)'))
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to update/i)).toBeInTheDocument()
+      expect(store.getState().notifications.notifications).toEqual([
+        expect.objectContaining(NOTIFICATION_DEFINITIONS.subscriptionUpdateError)
+      ])
     })
   })
 
@@ -606,7 +604,6 @@ describe('SubscriptionAccordion', () => {
         registeredFcmToken: 'test-token',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       },
       networkStatus: {

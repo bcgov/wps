@@ -13,6 +13,7 @@ import {
   getTomorrowKey,
   runParametersMatch
 } from '@/utils/dataSliceUtils'
+import { createLoadError, type LoadError, toLoadError } from '@/utils/loadError'
 import {
   type CacheableData,
   type CachedData,
@@ -25,7 +26,7 @@ import {
 
 export interface DataState {
   loading: boolean
-  error: string | null
+  error: LoadError | null
   lastUpdated: string | null
   provincialSummaries: CacheableData<FireShapeStatusDetail[]> | null
   tpiStats: CacheableData<FireZoneTPIStats[]> | null
@@ -49,7 +50,7 @@ const dataSlice = createSlice({
       state.error = null
       state.loading = true
     },
-    getDataFailed(state: DataState, action: PayloadAction<string>) {
+    getDataFailed(state: DataState, action: PayloadAction<LoadError>) {
       state.error = action.payload
       state.loading = false
     },
@@ -91,7 +92,7 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
   const runParameters = state.runParameters.runParameters
   let isCurrent = true // A flag indicating if the cached data and state are current
   if (isNil(runParameters)) {
-    dispatch(getDataFailed("Unable to fetch and cache data; runParameters can't be null."))
+    dispatch(getDataFailed(createLoadError("Unable to fetch and cache data; runParameters can't be null.")))
     return
   }
   // Grab cached data and check if we have cached data for the run parameters in state, if so, set
@@ -169,10 +170,10 @@ export const fetchAndCacheData = (): AppThunk => async (dispatch, getState) => {
         })
       )
     } catch (err) {
-      dispatch(getDataFailed((err as Error).toString()))
+      dispatch(getDataFailed(toLoadError(err)))
       console.error(err)
     }
   } else {
-    dispatch(getDataFailed('Unable to update data. Data may be stale.'))
+    dispatch(getDataFailed(createLoadError('Unable to update data. Data may be stale.')))
   }
 }

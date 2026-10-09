@@ -28,8 +28,19 @@ import type {
 } from '@capacitor/filesystem'
 import { DateTime, Settings } from 'luxon'
 import sinon from 'sinon'
+import { vi } from 'vitest'
 import { RunType } from '@/api/fbaAPI'
 import { PMTilesCache } from '@/utils/pmtilesCache'
+
+const mockFetchHFIPMTiles = vi.hoisted(() => vi.fn())
+
+vi.mock('@/api/pmtilesAPI', async () => {
+  const actual = await vi.importActual('@/api/pmtilesAPI')
+  return {
+    ...actual,
+    fetchHFIPMTiles: mockFetchHFIPMTiles
+  }
+})
 
 class MockFilesystem implements FilesystemPlugin {
   readFile(options: ReadFileOptions): Promise<ReadFileResult> {
@@ -108,6 +119,7 @@ describe('pmtilesCache', () => {
   let sandbox: sinon.SinonSandbox
   beforeEach(() => {
     sandbox = sinon.createSandbox()
+    mockFetchHFIPMTiles.mockReset()
   })
   afterEach(() => {
     sandbox.restore()
@@ -118,7 +130,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: `data:application/octet-stream;base64,${btoa('mocked file content')}` })
     const testCache = new PMTilesCache(mockFs)
     await testCache.loadPMTiles('test.pmtiles')
     sinon.assert.calledOnce(stubRead)
@@ -130,7 +142,7 @@ describe('pmtilesCache', () => {
 
     const stubFetch = sandbox.stub().rejects(new Error('Fetch failed'))
     const testCache = new PMTilesCache(mockFs)
-    await testCache.loadPMTiles('test.pmtiles', stubFetch)
+    await expect(testCache.loadPMTiles('test.pmtiles', stubFetch)).rejects.toThrow('Fetch failed')
     sinon.assert.calledThrice(stubFetch)
     sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch)
   })
@@ -139,7 +151,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: `data:application/octet-stream;base64,${btoa('mocked file content')}` })
     const testCache = new PMTilesCache(mockFs)
     await testCache.loadHFIPMTiles(
       DateTime.fromISO('2016-05-25T09:08:34.123'),
@@ -156,15 +168,34 @@ describe('pmtilesCache', () => {
 
     const stubFetch = sandbox.stub().rejects(new Error('Fetch failed'))
     const testCache = new PMTilesCache(mockFs)
-    await testCache.loadHFIPMTiles(
-      DateTime.fromISO('2016-05-25T09:08:34.123'),
-      RunType.FORECAST,
-      DateTime.fromISO('2016-05-25T09:08:34.123'),
-      'test.pmtiles',
-      stubFetch
-    )
+    await expect(
+      testCache.loadHFIPMTiles(
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        RunType.FORECAST,
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        'test.pmtiles',
+        stubFetch
+      )
+    ).rejects.toThrow('Fetch failed')
     sinon.assert.calledThrice(stubFetch)
     sinon.assert.callOrder(stubRead, stubFetch, stubFetch, stubFetch)
+  })
+
+  it('retries failed hfi downloads from the default fetch callback', async () => {
+    const mockFs = new MockFilesystem()
+    sandbox.stub(mockFs, 'readFile').rejects(new Error('Read failed'))
+    mockFetchHFIPMTiles.mockRejectedValue(new Error('Fetch failed'))
+    const testCache = new PMTilesCache(mockFs)
+
+    await expect(
+      testCache.loadHFIPMTiles(
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        RunType.FORECAST,
+        DateTime.fromISO('2016-05-25T09:08:34.123'),
+        'test.pmtiles'
+      )
+    ).rejects.toThrow('Fetch failed')
+    expect(mockFetchHFIPMTiles).toHaveBeenCalledTimes(3)
   })
 
   it('uses the ASA Go timezone for hfi run date filenames', async () => {
@@ -172,7 +203,7 @@ describe('pmtilesCache', () => {
     const mockFs = new MockFilesystem()
 
     const stubRead = sandbox.stub(mockFs, 'readFile')
-    stubRead.resolves({ data: btoa('mocked file content') })
+    stubRead.resolves({ data: `data:application/octet-stream;base64,${btoa('mocked file content')}` })
     const testCache = new PMTilesCache(mockFs)
 
     await testCache.loadHFIPMTiles(

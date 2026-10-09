@@ -6,6 +6,7 @@ import feedbackSlice from '@/slices/feedbackSlice'
 import fireCentresSlice from '@/slices/fireCentresSlice'
 import geolocationSlice from '@/slices/geolocationSlice'
 import networkStatusSlice from '@/slices/networkStatusSlice'
+import notificationSlice from '@/slices/notificationSlice'
 import pushNotificationSlice from '@/slices/pushNotificationSlice'
 import runParametersSlice from '@/slices/runParametersSlice'
 import settingsSlice from '@/slices/settingsSlice'
@@ -13,6 +14,7 @@ import settingsSlice from '@/slices/settingsSlice'
 export const rootReducer = combineReducers({
   fireCentres: fireCentresSlice,
   networkStatus: networkStatusSlice,
+  notifications: notificationSlice,
   geolocation: geolocationSlice,
   runParameters: runParametersSlice,
   authentication: authenticateSlice,

@@ -53,7 +53,6 @@ export enum StatusEnum {
   WARNING = 'warning'
 }
 
-export const subscriptionUpdateErrorMessage = 'Failed to update notification settings. Please try again later.'
-
 export const BORDER_RADIUS = 8
 export const BUTTON_HEIGHT = 42
+export const APP_HEADER_HEIGHT = 100

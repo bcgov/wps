@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 import { HamburgerMenu } from '@/components/HamburgerMenu'
+import NotificationCenter from '@/components/NotificationCenter'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { type AuthState, initialState as authenticationInitialState } from '@/slices/authenticationSlice'
 import { createTestStore } from '@/testUtils'
 
@@ -35,7 +37,10 @@ describe('HamburgerMenu', () => {
           }
         })}
       >
-        <HamburgerMenu {...defaultProps} />
+        <div style={{ position: 'relative' }}>
+          <HamburgerMenu {...defaultProps} />
+          <NotificationCenter />
+        </div>
       </Provider>
     )
 
@@ -114,7 +119,7 @@ describe('HamburgerMenu', () => {
         { includeReplay: true }
       )
     })
-    expect(await screen.findByText('Thank you for your feedback.')).toBeInTheDocument()
+    expect(await screen.findByText(NOTIFICATION_DEFINITIONS.feedbackSuccess.message)).toBeInTheDocument()
   })
 
   it('opens external links in a new tab', async () => {
