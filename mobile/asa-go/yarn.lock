@@ -258,10 +258,10 @@
   resolved "https://registry.yarnpkg.com/@capacitor/android/-/android-8.5.2.tgz#e774465cd42c321f643bb365ffe50b89697ef2bb"
   integrity sha512-rtiaz78egCcS+vs29wkWCL3C+RhazKMSygXcjutwWP8NmO6r5UBxOvGf3Wjz5+ahobyQ723tn9gCePwRwcNDZQ==
 
-"@capacitor/app@8.1.1":
-  version "8.1.1"
-  resolved "https://registry.yarnpkg.com/@capacitor/app/-/app-8.1.1.tgz#af00649d0c7799ec83469b1c4ada921f9933a77e"
-  integrity sha512-xM2ZTX5jK60tFtmjsmJv+Cdj1Qsb6NcavkqmdEnCPQBeya9oKhamZJxYOnQNj1ZvcJM7sWfG6BEtSLx42pisbA==
+"@capacitor/app@8.1.2":
+  version "8.1.2"
+  resolved "https://registry.yarnpkg.com/@capacitor/app/-/app-8.1.2.tgz#3f39b7b02d2277b3ef6f659747d0d6e56b60a1cc"
+  integrity sha512-uKBlsrXH0IdvUn69e/KKYbZ32A06pcrUdG8LWuZ/6y33YMXZXLEEdNSwl+jKS/SrsTWqnePs8EqSWaiQM3mUGA==
 
 "@capacitor/assets@^3.0.5":
   version "3.0.5"
@@ -364,10 +364,10 @@
   resolved "https://registry.yarnpkg.com/@capacitor/ios/-/ios-8.5.2.tgz#05f805fc6e4b0478156212f06a30862abae67a67"
   integrity sha512-eOT2S67AfTFG7KN0T3oxwAajrJz4rSye+ODfvChiwrk0F/+kWufFM1qU6cDjGJUOfwdAoeuEpZyWHSwZlu4GFg==
 
-"@capacitor/keyboard@8.0.5":
-  version "8.0.5"
-  resolved "https://registry.yarnpkg.com/@capacitor/keyboard/-/keyboard-8.0.5.tgz#7ec60f27749b04aeba16f7ec232e7947f4e59f94"
-  integrity sha512-oFXygC4eKYA5l2MdpTR06L2M/4x6e2SLD5yS1T9+UBDKTkzyvhWKEhbYLUaTIBPpLKqlfGudJw1X73S1H9eUzQ==
+"@capacitor/keyboard@8.0.6":
+  version "8.0.6"
+  resolved "https://registry.yarnpkg.com/@capacitor/keyboard/-/keyboard-8.0.6.tgz#361304068b7319ead091a83b846861deb2fb3639"
+  integrity sha512-Bbe+9V0qaT6dzEFJEK7BUWR01l2+vZE8FM5ITF/WgKtx+G6eGZ6d5+YiSMRJBAK0VGjdO59v8yiQ10Doa5KyvQ==
 
 "@capacitor/local-notifications@^8.0.2":
   version "8.2.0"
@@ -394,10 +394,10 @@
   resolved "https://registry.yarnpkg.com/@capacitor/splash-screen/-/splash-screen-8.0.2.tgz#52b5fac8a1178167f344f1330b6f607426a56b39"
   integrity sha512-0C6rYScr13WfAE9nPl4ScOQynmjFv9NT3Th+RZkD4ezYHmER6mcl1/lDYsv7jg3Rj3FOvLrlTlmNkUrr83kZzQ==
 
-"@capacitor/status-bar@8.0.3":
-  version "8.0.3"
-  resolved "https://registry.yarnpkg.com/@capacitor/status-bar/-/status-bar-8.0.3.tgz#b638524f021cb3147e6f36ad55e7e5171aee4fd6"
-  integrity sha512-csSpfNeN49Hx9JaQBSJEIiEbOLtXg3kcc2IpScq2fu5L520h3AWEvsxoH8Srk1jxfRKepaJ4S4sqSC3foI4AgA==
+"@capacitor/status-bar@8.0.4":
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/@capacitor/status-bar/-/status-bar-8.0.4.tgz#ce93e52c2feba9ef218c7bd3e839aa447c183269"
+  integrity sha512-ZMzBUyHBzwDUxcHadEhvOvmoPmMQGMZgaMRJu8ohELeI6IaxoVH9ZhdF/OHnY3/yykv3Glev8Tnbh4aZY/0B0w==
 
 "@capacitor/synapse@^1.0.4":
   version "1.0.4"
