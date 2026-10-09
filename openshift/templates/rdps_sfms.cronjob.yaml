@@ -194,6 +194,11 @@ objects:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
                           key: env.redis-cache-env-canada
+                    - name: REDIS_ENV_CANADA_CACHE_EXPIRY
+                      valueFrom:
+                        configMapKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: env.redis-env-canada-cache-expiry
                   resources:
                     limits:
                       memory: 1024Mi

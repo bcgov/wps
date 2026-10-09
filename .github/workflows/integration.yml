@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     # https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases
     container: &api-base-image
-      image: ghcr.io/bcgov/wps/wps-api-base:06-16-2026
+      image: ghcr.io/bcgov/wps/wps-api-base:10-08-2026
       options: --user 0
     steps:
       - uses: actions/checkout@v7
@@ -220,7 +220,7 @@ jobs:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v8
       - name: Upload test coverage to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true

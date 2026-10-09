@@ -12,7 +12,7 @@ import asyncio
 import logging
 from typing import Optional, TypeVar
 
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 from redis import StrictRedis
 from wps_shared import config
 from wps_shared.schemas.fba import (
@@ -94,10 +94,24 @@ class ASARedisCache:
             cached_json = None
             logger.error(error, exc_info=error)
         if cached_json:
+            try:
+                value = adapter.validate_json(cached_json)
+            except ValidationError as error:
+                logger.warning("invalid redis cache value for %s", key, exc_info=error)
+                await self._delete(key)
+                return None
             logger.info("redis cache hit %s", key)
-            return adapter.validate_json(cached_json)
+            return value
         logger.info("redis cache miss %s", key)
         return None
+
+    async def _delete(self, key: str):
+        try:
+            await asyncio.wait_for(
+                asyncio.to_thread(self.client().delete, key), timeout=self._timeout_seconds
+            )
+        except Exception as error:
+            logger.error(error, exc_info=error)
 
     async def _put(self, key: str, value: T, adapter: TypeAdapter):
         if not self._enabled:

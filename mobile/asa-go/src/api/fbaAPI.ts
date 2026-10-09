@@ -139,12 +139,6 @@ export async function getProvincialSummary(
   return data
 }
 
-export async function getMostRecentRunParameter(forDate: string): Promise<RunParameter> {
-  const url = `fba/latest-sfms-run-datetime/${forDate}`
-  const { data } = await axios.get(url)
-  return data.run_parameter
-}
-
 export async function getMostRecentRunParameters(startDate: string, endDate: string): Promise<RunParametersResponse> {
   const url = `fba/latest-sfms-run-parameters/${startDate}/${endDate}`
   const { data } = await axios.get(url)

@@ -427,6 +427,7 @@ async def get_sfms_bounds(session: AsyncSession):
             func.min(RunParameters.for_date).label("minDate"),
             func.max(RunParameters.for_date).label("maxDate"),
         )
+        .where(RunParameters.complete.is_(True))
         .group_by(extract("YEAR", RunParameters.for_date), RunParameters.run_type)
         .order_by("year")
     )
@@ -559,9 +560,9 @@ async def mark_run_parameter_complete(
 
 
 async def save_advisory_elevation_tpi_stats(
-    session: AsyncSession, advisory_elevation_stats: List[AdvisoryTPIStats]
+    session: AsyncSession, advisory_tpi_stats: List[AdvisoryTPIStats]
 ):
-    session.add_all(advisory_elevation_stats)
+    session.add_all(advisory_tpi_stats)
 
 
 async def get_centre_tpi_stats(

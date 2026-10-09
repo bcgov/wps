@@ -7,8 +7,10 @@ from datetime import date, datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 from wps_shared.db.models.auto_spatial_advisory import (
     AdvisoryHFIWindSpeed,
+    RunParameters,
     SFMSFuelType,
     TPIClassEnum,
 )
@@ -29,6 +31,7 @@ from app.auto_spatial_advisory.advisory_run_stats import (
     get_provincial_summary,
     get_tpi_stats,
 )
+from app.auto_spatial_advisory.advisory_run_stats.cache import asa_stats_cache
 from app.auto_spatial_advisory.process_hfi import RunType
 
 FIRE_CENTRE_NAME = "Kamloops Fire Centre"
@@ -71,6 +74,24 @@ SAMPLE_ROW = (9.0, 11.0, 1, 1, 50, 100, 1)
 
 def make_session():
     return MagicMock()
+
+
+def make_run_parameters(complete: bool) -> RunParameters:
+    return RunParameters(
+        run_type=RunType.FORECAST.value,
+        run_datetime=RUN_DATETIME,
+        for_date=FOR_DATE,
+        complete=complete,
+    )
+
+
+@pytest.fixture(autouse=True)
+def completed_run(mocker):
+    return mocker.patch(
+        "app.auto_spatial_advisory.advisory_run_stats.stats.get_run_parameters",
+        new_callable=AsyncMock,
+        return_value=make_run_parameters(complete=True),
+    )
 
 
 def patch_common_deps(mocker):
@@ -345,7 +366,62 @@ TpiStatsRow = namedtuple(
 
 
 @pytest.mark.anyio
-async def test_get_provincial_summary_cache_hit_skips_db(mocker):
+@pytest.mark.parametrize("run_parameters", [None, make_run_parameters(complete=False)])
+@pytest.mark.parametrize(
+    ("fetch_stats", "args", "downstream_dependency"),
+    [
+        (
+            get_provincial_summary,
+            (RunType.FORECAST, RUN_DATETIME, FOR_DATE),
+            "get_provincial_rollup",
+        ),
+        (
+            get_hfi_stats,
+            (RunType.FORECAST, RUN_DATETIME, FOR_DATE),
+            "get_all_zone_source_ids",
+        ),
+        (
+            get_fire_centre_hfi_stats,
+            (FIRE_CENTRE_NAME, RunType.FORECAST, RUN_DATETIME, FOR_DATE),
+            "get_zone_source_ids_in_centre",
+        ),
+        (
+            get_tpi_stats,
+            (RunType.FORECAST, RUN_DATETIME, FOR_DATE),
+            "fetch_tpi_stats_rows",
+        ),
+        (
+            get_fire_centre_tpi_stats,
+            (FIRE_CENTRE_NAME, RunType.FORECAST, RUN_DATETIME, FOR_DATE),
+            "get_centre_tpi_stats",
+        ),
+    ],
+)
+async def test_unavailable_run_is_not_queried_or_cached(
+    mocker,
+    completed_run,
+    run_parameters,
+    fetch_stats,
+    args,
+    downstream_dependency,
+):
+    completed_run.return_value = run_parameters
+    downstream = mocker.patch(
+        f"app.auto_spatial_advisory.advisory_run_stats.stats.{downstream_dependency}",
+        new_callable=AsyncMock,
+    )
+    cache_put = mocker.patch.object(asa_stats_cache, "_put", new_callable=AsyncMock)
+
+    with pytest.raises(HTTPException) as error:
+        await fetch_stats(*args)
+
+    assert error.value.status_code == 404
+    downstream.assert_not_awaited()
+    cache_put.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_get_provincial_summary_cache_hit_skips_db(mocker, completed_run):
     cached_response = ProvincialSummaryResponse(provincial_summary=[])
     mocker.patch(
         "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_provincial_summary",
@@ -360,6 +436,7 @@ async def test_get_provincial_summary_cache_hit_skips_db(mocker):
     result = await get_provincial_summary(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
 
     assert result is cached_response
+    completed_run.assert_not_awaited()
     mock_rollup.assert_not_called()
 
 
@@ -388,7 +465,7 @@ async def test_get_provincial_summary_cache_miss_fetches_and_caches(mocker):
 
 
 @pytest.mark.anyio
-async def test_get_hfi_stats_cache_hit_skips_db(mocker):
+async def test_get_hfi_stats_cache_hit_skips_db(mocker, completed_run):
     cached_response = HFIStatsResponse(zone_data={})
     mocker.patch(
         "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_hfi_stats",
@@ -403,11 +480,12 @@ async def test_get_hfi_stats_cache_hit_skips_db(mocker):
     result = await get_hfi_stats(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
 
     assert result is cached_response
+    completed_run.assert_not_awaited()
     mock_zone_data.assert_not_called()
 
 
 @pytest.mark.anyio
-async def test_get_tpi_stats_cache_hit_skips_db(mocker):
+async def test_get_tpi_stats_cache_hit_skips_db(mocker, completed_run):
     cached_response = TPIResponse(firezone_tpi_stats=[])
     mocker.patch(
         "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_tpi_stats",
@@ -422,6 +500,7 @@ async def test_get_tpi_stats_cache_hit_skips_db(mocker):
     result = await get_tpi_stats(RunType.FORECAST, RUN_DATETIME, FOR_DATE)
 
     assert result is cached_response
+    completed_run.assert_not_awaited()
     mock_fetch.assert_not_called()
 
 
@@ -476,7 +555,7 @@ async def test_get_tpi_stats_cache_miss_builds_all_tpi_classes(mocker):
 
 
 @pytest.mark.anyio
-async def test_get_fire_centre_hfi_stats_cache_hit_skips_db(mocker):
+async def test_get_fire_centre_hfi_stats_cache_hit_skips_db(mocker, completed_run):
     cached_response = {}
     mocker.patch(
         "app.auto_spatial_advisory.advisory_run_stats.stats.asa_stats_cache.get_cached_fire_centre_hfi_stats",
@@ -493,11 +572,12 @@ async def test_get_fire_centre_hfi_stats_cache_hit_skips_db(mocker):
     )
 
     assert result is cached_response
+    completed_run.assert_not_awaited()
     mock_zone_data.assert_not_called()
 
 
 @pytest.mark.anyio
-async def test_get_fire_centre_tpi_stats_cache_hit_skips_db(mocker):
+async def test_get_fire_centre_tpi_stats_cache_hit_skips_db(mocker, completed_run):
     cached_response = FireCentreTPIResponse(
         fire_centre_name=FIRE_CENTRE_NAME, firezone_tpi_stats=[]
     )
@@ -516,4 +596,5 @@ async def test_get_fire_centre_tpi_stats_cache_hit_skips_db(mocker):
     )
 
     assert result is cached_response
+    completed_run.assert_not_awaited()
     mock_centre_tpi_stats.assert_not_called()

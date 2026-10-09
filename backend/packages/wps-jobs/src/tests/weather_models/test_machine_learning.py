@@ -1,7 +1,7 @@
 from datetime import datetime
 import pytest
 from wps_shared.db.models.observations import HourlyActual
-from weather_model_jobs import machine_learning
+from weather_model_jobs import bias_adjusted_variable
 from tests.weather_models.crud import (
     get_actuals_left_outer_join_with_predictions,
     get_accumulated_precip_by_24h_interval,
@@ -16,7 +16,7 @@ import math
 def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
     """Mock out call to DB returning actuals macthed with predictions"""
     monkeypatch.setattr(
-        machine_learning,
+        bias_adjusted_variable,
         "get_actuals_left_outer_join_with_predictions",
         get_actuals_left_outer_join_with_predictions,
     )
@@ -26,7 +26,7 @@ def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
 def mock_get_accumulated_precip_by_24h_interval(monkeypatch):
     """Mock out call to DB returning actual 24 hour precipitation data"""
     monkeypatch.setattr(
-        machine_learning,
+        bias_adjusted_variable,
         "get_accumulated_precip_by_24h_interval",
         get_accumulated_precip_by_24h_interval,
     )
@@ -35,7 +35,9 @@ def mock_get_accumulated_precip_by_24h_interval(monkeypatch):
 @pytest.fixture()
 def mock_get_predicted_daily_precip(monkeypatch):
     """Mock out call to DB returning modelled/predicted 24 hour precipitation data"""
-    monkeypatch.setattr(machine_learning, "get_predicted_daily_precip", get_predicted_daily_precip)
+    monkeypatch.setattr(
+        bias_adjusted_variable, "get_predicted_daily_precip", get_predicted_daily_precip
+    )
 
 
 def test_bias_adjustment_with_samples(
@@ -62,6 +64,9 @@ def test_bias_adjustment_with_samples(
     assert rh_result == 100
     assert math.isclose(wdir_result, 115.51556685719027)
     assert precip_result == 3
+    # missing model wind returns None instead of raising in sklearn
+    assert machine_learner.predict_wind_direction(None, 120, predict_date_with_samples) is None
+    assert machine_learner.predict_wind_direction(10, None, predict_date_with_samples) is None
 
 
 def test_bias_adjustment_of_rh_above_100(
@@ -111,7 +116,7 @@ def test_bias_adjustment_of_rh_above_100(
         ]
 
     monkeypatch.setattr(
-        machine_learning,
+        bias_adjusted_variable,
         "get_actuals_left_outer_join_with_predictions",
         get_actuals_and_predictions_with_high_rh,
     )
@@ -155,3 +160,55 @@ def test_bias_adjustment_without_samples(
     assert rh_result is None
     assert wdir_result is None
     assert precip_result is None
+
+
+def test_bias_adjustment_with_missing_model_values(
+    mock_get_actuals_left_outer_join_with_predictions,
+    mock_get_accumulated_precip_by_24h_interval,
+    mock_get_predicted_daily_precip,
+):
+    predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
+
+    machine_learner = StationMachineLearning(
+        session=None,
+        model=PredictionModel(id=1),
+        target_coordinate=[-120.4816667, 50.6733333],
+        station_code=None,
+        max_learn_date=datetime.now(),
+    )
+    machine_learner.learn()
+
+    # hour 21 is trained, so a missing input must return None rather than raise in sklearn
+    assert machine_learner.predict_temperature(None, predict_date_with_samples) is None
+    assert machine_learner.predict_rh(math.nan, predict_date_with_samples) is None
+    assert machine_learner.predict_wind_speed(None, predict_date_with_samples) is None
+    assert machine_learner.predict_wind_direction(None, 120, predict_date_with_samples) is None
+    assert machine_learner.predict_wind_direction(10, None, predict_date_with_samples) is None
+    assert machine_learner.predict_precipitation(math.nan, datetime(2023, 10, 26, 20)) is None
+
+
+def test_each_learn_queries_hourly_data_again(
+    monkeypatch, mock_get_accumulated_precip_by_24h_interval, mock_get_predicted_daily_precip
+):
+    """hourly_pairs is cached per LearningContext, so a second learn() must not reuse the first's data."""
+    calls = []
+
+    def query(*args):
+        calls.append(args)
+        return get_actuals_left_outer_join_with_predictions(*args)
+
+    monkeypatch.setattr(
+        bias_adjusted_variable, "get_actuals_left_outer_join_with_predictions", query
+    )
+    machine_learner = StationMachineLearning(
+        session=None,
+        model=PredictionModel(id=1),
+        target_coordinate=[-120.4816667, 50.6733333],
+        station_code=None,
+        max_learn_date=datetime.now(),
+    )
+
+    machine_learner.learn()
+    machine_learner.learn()
+
+    assert len(calls) == 2

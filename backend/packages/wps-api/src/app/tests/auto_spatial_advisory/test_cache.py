@@ -111,6 +111,32 @@ async def test_get_cached_hfi_stats_redis_error_treated_as_miss(mocker):
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize("cached_json", [b'{"not_zone_data": true}', b"not json"])
+async def test_invalid_cached_value_is_deleted_and_treated_as_miss(mocker, cached_json):
+    mock_redis = MagicMock()
+    mock_redis.get.return_value = cached_json
+    mocker.patch.object(asa_stats_cache, "client", return_value=mock_redis)
+
+    result = await asa_stats_cache.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE)
+
+    assert result is None
+    expected_key = f"hfi_stats_{RUN_TYPE}_{RUN_DATETIME}_{FOR_DATE}"
+    mock_redis.delete.assert_called_once_with(expected_key)
+
+
+@pytest.mark.anyio
+async def test_invalid_cached_value_is_a_miss_when_delete_fails(mocker):
+    mock_redis = MagicMock()
+    mock_redis.get.return_value = b'{"not_zone_data": true}'
+    mock_redis.delete.side_effect = ConnectionError("redis unavailable")
+    mocker.patch.object(asa_stats_cache, "client", return_value=mock_redis)
+
+    result = await asa_stats_cache.get_cached_hfi_stats(RUN_TYPE, RUN_DATETIME, FOR_DATE)
+
+    assert result is None
+
+
+@pytest.mark.anyio
 async def test_put_cached_hfi_stats_redis_error_does_not_raise(mocker):
     """A Redis error on write must not break the request -- the response was already fetched
     and is about to be returned regardless of whether caching it succeeds."""

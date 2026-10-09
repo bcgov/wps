@@ -1,4 +1,4 @@
-name: Publish Base Docker Image to GHCR
+name: Publish Base Docker Images to GHCR
 
 permissions:
   contents: read
@@ -33,3 +33,11 @@ jobs:
           docker tag ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG} ghcr.io/bcgov/wps/wps-api-base:latest
           docker push ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG}
           docker push ghcr.io/bcgov/wps/wps-api-base:latest
+      - name: Build and Publish Jobs Base Image
+        run: |
+          cd openshift/wps-jobs-base/docker
+          DATE_TAG=$(date +%m-%d-%Y)
+          docker build . --tag ghcr.io/bcgov/wps/wps-jobs-base:${DATE_TAG}
+          docker tag ghcr.io/bcgov/wps/wps-jobs-base:${DATE_TAG} ghcr.io/bcgov/wps/wps-jobs-base:latest
+          docker push ghcr.io/bcgov/wps/wps-jobs-base:${DATE_TAG}
+          docker push ghcr.io/bcgov/wps/wps-jobs-base:latest

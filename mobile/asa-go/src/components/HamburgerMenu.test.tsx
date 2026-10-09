@@ -14,6 +14,7 @@ vi.mock('@sentry/react', () => ({
 }))
 
 vi.mock('@sentry/capacitor', () => ({}))
+vi.mock('@mui/icons-material', () => ({ Close: () => null, Menu: () => null }))
 
 describe('HamburgerMenu', () => {
   const defaultProps = { drawerTop: 60, drawerHeight: 740 }
@@ -50,6 +51,35 @@ describe('HamburgerMenu', () => {
   it('renders the menu button', () => {
     renderMenu()
     expect(screen.getByRole('button', { name: /open menu/i })).toBeInTheDocument()
+  })
+
+  it('shows About This Data and returns to the menu', async () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'About This Data' }))
+
+    expect(screen.getByRole('heading', { name: 'About This Data', level: 2 })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Submit Feedback' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'back to menu' }))
+
+    expect(screen.getByRole('button', { name: 'About This Data' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'About This Data', level: 2 })).not.toBeInTheDocument()
+  })
+
+  it('returns to the menu when About This Data is closed and reopened', async () => {
+    renderMenu()
+    fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'About This Data' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'close about this data' }))
+    await vi.waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'About This Data', level: 2 })).not.toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
+
+    expect(await screen.findByRole('button', { name: 'About This Data' })).toBeInTheDocument()
   })
 
   it('opens the feedback dialog when Submit Feedback is clicked', async () => {

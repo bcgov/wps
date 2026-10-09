@@ -45,45 +45,44 @@ export const createLayerMock = (name: string) => {
   }
 }
 
-export const setupOpenLayersMocks = () => {
-  vi.mock('ol/Map', () => {
-    const layers: unknown[] = []
-    return {
-      default: vi.fn().mockImplementation(() => ({
-        setTarget: vi.fn(),
-        getView: vi.fn(() => ({
-          animate: vi.fn()
-        })),
-        addLayer: vi.fn(),
-        getLayers: vi.fn(() => ({
-          getArray: vi.fn(() => layers)
-        })),
-        on: vi.fn(),
-        un: vi.fn(),
-        once: vi.fn(),
-        removeLayer: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn()
-      }))
-    }
-  })
-
-  vi.mock('ol/layer/VectorTile', () => ({
-    default: vi.fn().mockImplementation(() => ({ ...baseLayerMock }))
-  }))
-
-  vi.mock('ol/layer/Tile', () => ({
-    default: vi.fn().mockImplementation(() => ({ ...baseLayerMock }))
-  }))
-
-  vi.mock('ol/Overlay', () => ({
+// Top-level so vitest hoists them; applies to every test that imports this file
+vi.mock('ol/Map', () => {
+  const layers: unknown[] = []
+  return {
     default: vi.fn().mockImplementation(() => ({
-      setPosition: vi.fn(),
-      getElement: vi.fn()
+      setTarget: vi.fn(),
+      getView: vi.fn(() => ({
+        animate: vi.fn()
+      })),
+      addLayer: vi.fn(),
+      getLayers: vi.fn(() => ({
+        getArray: vi.fn(() => layers)
+      })),
+      on: vi.fn(),
+      un: vi.fn(),
+      once: vi.fn(),
+      removeLayer: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
     }))
-  }))
+  }
+})
 
-  vi.mock('ol-mapbox-style', () => ({
-    applyStyle: vi.fn()
+vi.mock('ol/layer/VectorTile', () => ({
+  default: vi.fn().mockImplementation(() => ({ ...baseLayerMock }))
+}))
+
+vi.mock('ol/layer/Tile', () => ({
+  default: vi.fn().mockImplementation(() => ({ ...baseLayerMock }))
+}))
+
+vi.mock('ol/Overlay', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    setPosition: vi.fn(),
+    getElement: vi.fn()
   }))
-}
+}))
+
+vi.mock('ol-mapbox-style', () => ({
+  applyStyle: vi.fn()
+}))

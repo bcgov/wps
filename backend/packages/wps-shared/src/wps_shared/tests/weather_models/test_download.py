@@ -1,4 +1,5 @@
 """Tests for wps_shared.weather_models.download"""
+
 import tempfile
 from unittest.mock import MagicMock
 
@@ -96,25 +97,48 @@ class TestDownloadCacheEnabled:
         assert result is not None
         mock_redis.get.assert_called_once_with(URL)
 
-    def test_downloads_and_caches_on_cache_miss(self, monkeypatch, mock_200_response, redis_up_empty):
+    def test_downloads_and_caches_on_cache_miss(
+        self, monkeypatch, mock_200_response, redis_up_empty
+    ):
         monkeypatch.setenv(CACHE_VAR, "True")
+        monkeypatch.setenv(EXPIRY_VAR, "10800")
         monkeypatch.setattr("wps_shared.utils.redis._create_redis", lambda: redis_up_empty)
         monkeypatch.setattr(requests, "get", lambda *_, **__: mock_200_response)
         with tempfile.TemporaryDirectory() as tmp:
             result = download(URL, tmp, CACHE_VAR, "RDPS", EXPIRY_VAR)
         assert result is not None
-        redis_up_empty.set.assert_called_once()
+        redis_up_empty.set.assert_called_once_with(URL, b"grib data", ex="10800")
 
-    def test_redis_get_failure_falls_through_to_download(self, monkeypatch, mock_200_response, redis_down, caplog):  # noqa: F811
+    def test_uses_three_hour_expiry_when_cache_expiry_unset(
+        self, monkeypatch, mock_200_response, redis_up_empty
+    ):
+        monkeypatch.setattr(
+            "wps_shared.weather_models.config.get",
+            lambda key, default=None: "True" if key == CACHE_VAR else default,
+        )
+        monkeypatch.setattr("wps_shared.utils.redis._create_redis", lambda: redis_up_empty)
+        monkeypatch.setattr(requests, "get", lambda *_, **__: mock_200_response)
+        with tempfile.TemporaryDirectory() as tmp:
+            result = download(URL, tmp, CACHE_VAR, "RDPS", EXPIRY_VAR)
+        assert result is not None
+        redis_up_empty.set.assert_called_once_with(URL, b"grib data", ex=10800)
+
+    def test_redis_get_failure_falls_through_to_download(
+        self, monkeypatch, mock_200_response, redis_down, caplog
+    ):  # noqa: F811
         monkeypatch.setenv(CACHE_VAR, "True")
         monkeypatch.setattr("wps_shared.utils.redis._create_redis", lambda: redis_down)
         monkeypatch.setattr(requests, "get", lambda *_, **__: mock_200_response)
         with tempfile.TemporaryDirectory() as tmp:
             result = download(URL, tmp, CACHE_VAR, "RDPS")
         assert result is not None
-        assert any("Connection refused" in r.message for r in caplog.records if r.levelname == "ERROR")
+        assert any(
+            "Connection refused" in r.message for r in caplog.records if r.levelname == "ERROR"
+        )
 
-    def test_redis_set_failure_does_not_raise(self, monkeypatch, mock_200_response, redis_up_empty, caplog):
+    def test_redis_set_failure_does_not_raise(
+        self, monkeypatch, mock_200_response, redis_up_empty, caplog
+    ):
         """Redis being down during cache.set() must not propagate — this was the prod bug."""
         redis_up_empty.set.side_effect = redis.exceptions.ConnectionError("Connection refused")
         monkeypatch.setenv(CACHE_VAR, "True")
@@ -123,4 +147,6 @@ class TestDownloadCacheEnabled:
         with tempfile.TemporaryDirectory() as tmp:
             result = download(URL, tmp, CACHE_VAR, "RDPS", EXPIRY_VAR)
         assert result is not None
-        assert any("Connection refused" in r.message for r in caplog.records if r.levelname == "ERROR")
+        assert any(
+            "Connection refused" in r.message for r in caplog.records if r.levelname == "ERROR"
+        )
