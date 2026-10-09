@@ -27,7 +27,7 @@ from app.auto_spatial_advisory.hfi_filepath import (
     get_snow_masked_hfi_filepath,
 )
 from app.auto_spatial_advisory.snow import apply_snow_mask
-from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
+from app.utils.pmtiles import tippecanoe_wrapper, write_empty_pmtiles, write_geojson
 
 logger = logging.getLogger(__name__)
 
@@ -99,18 +99,27 @@ async def process_hfi(run_type: RunType, run_datetime: datetime, for_date: date)
             )
             logger.info("Done uploading %s", raster_key)
             with polygonize_in_memory(working_hfi_path, "hfi", "hfi") as layer:
-                # We need a geojson file to pass to tippecanoe
-                temp_geojson = write_geojson(layer, temp_dir)
-
                 pmtiles_filename = get_pmtiles_filename(for_date)
                 temp_pmtiles_filepath = os.path.join(temp_dir, pmtiles_filename)
                 logger.info(f"Writing pmtiles -- {pmtiles_filename}")
-                tippecanoe_wrapper(
-                    temp_geojson,
-                    temp_pmtiles_filepath,
-                    min_zoom=HFI_PMTILES_MIN_ZOOM,
-                    max_zoom=HFI_PMTILES_MAX_ZOOM,
-                )
+                if layer.GetFeatureCount() == 0:
+                    # No cells reached advisory level (e.g. late season), and tippecanoe
+                    # fails on empty input, but clients still expect a pmtiles file per run
+                    logger.info("No advisory or warning HFI polygons, writing empty pmtiles")
+                    write_empty_pmtiles(
+                        temp_pmtiles_filepath,
+                        min_zoom=HFI_PMTILES_MIN_ZOOM,
+                        max_zoom=HFI_PMTILES_MAX_ZOOM,
+                    )
+                else:
+                    # We need a geojson file to pass to tippecanoe
+                    temp_geojson = write_geojson(layer, temp_dir)
+                    tippecanoe_wrapper(
+                        temp_geojson,
+                        temp_pmtiles_filepath,
+                        min_zoom=HFI_PMTILES_MIN_ZOOM,
+                        max_zoom=HFI_PMTILES_MAX_ZOOM,
+                    )
 
                 key = get_pmtiles_filepath(run_datetime, run_type, pmtiles_filename)
                 logger.info(f"Uploading file {pmtiles_filename} to {key}")
