@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from cffdrs_vec.fbp import FUEL_TYPE_CODES
 from wps_shared.schemas.sfms import FuelCodesLookup
+from wps_shared.sfms.national_fuel_lookup import NATIONAL_FUEL_CODES
 
-from wps_sfms.fbp_fuel_types import NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
-from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_CODES, NATIONAL_FUEL_TYPES
+from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES, NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
 
 
 def test_national_fuel_codes_round_trip_through_json():

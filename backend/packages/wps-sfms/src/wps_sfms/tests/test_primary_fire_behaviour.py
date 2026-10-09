@@ -13,8 +13,8 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FBPParameter
 
+from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES
 from wps_sfms.interpolation.common import SFMS_NO_DATA
-from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_TYPES
 from wps_sfms.processors.primary_fire_behaviour import (
     PrimaryFireBehaviourDatasets,
     PrimaryFireBehaviourProcessor,

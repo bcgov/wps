@@ -18,10 +18,9 @@ from wps_shared.sfms.raster_addresser import FBPParameter, GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
-from wps_sfms.fbp_fuel_types import NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
+from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES, NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
 from wps_sfms.fbp_input_validation import validate_percent_conifer
 from wps_sfms.interpolation.common import SFMS_NO_DATA
-from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_TYPES
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs

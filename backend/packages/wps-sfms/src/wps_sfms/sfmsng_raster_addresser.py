@@ -148,6 +148,10 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             f"{target_date.day:02d}/{version}/fbp{date_str}_{version}.tif"
         )
 
+    def get_national_fuel_codes_key(self) -> S3Key:
+        """S3 key for the JSON national fuel lookup that describes every temporal fuel raster."""
+        return S3Key(f"{self.root}/fuel/temporal/fuel_codes_lookup.json")
+
     def get_fmc_key(self, target_date: date) -> S3Key:
         """S3 key for the shared Foliar Moisture Content raster for one calendar date."""
         date_str = target_date.strftime("%Y%m%d")

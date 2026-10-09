@@ -36,6 +36,9 @@ class TestTemporalFuelKeys:
         assert addresser.get_temporal_fuel_key(date(2026, 6, 1), 2) == (
             "sfms_ng/fuel/temporal/2026/06/01/2/fbp2026_06_01_2.tif"
         )
+        assert addresser.get_national_fuel_codes_key() == (
+            "sfms_ng/fuel/temporal/fuel_codes_lookup.json"
+        )
 
 
 class TestGetFoliarMoistureContentInputs:

@@ -43,7 +43,7 @@ class TemporalFuelGrid:
     """
 
     # BC base fuel grid values (fuel_type_raster) translated to the national FBP fuel lookup grid
-    # values (national_fuel_lookup.NATIONAL_FUEL_CODES) used by temporal fuel grids.
+    # values (wps_shared.sfms.national_fuel_lookup) used by temporal fuel grids.
     # Leafless/matted variants are the off-season defaults.
     NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE: ClassVar[Mapping[int, int]] = MappingProxyType(
         {

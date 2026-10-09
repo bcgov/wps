@@ -1,15 +1,14 @@
 """The national FBP fuel lookup table that temporal fuel grid values refer to.
 
 Temporal fuel grids store national lookup grid values, and primary FBP reads each value's CFFDRS
-fuel type from this table. The table is append-only: add rows for new grid values, but never
+fuel type from this table (``wps_sfms.fbp_fuel_types.NATIONAL_FUEL_TYPES``). The table is
+append-only: add rows for new grid values, but never
 change what an existing grid value means, since every stored temporal fuel grid is read with
 the current table. A copy is uploaded manually for the frontend to label and colour fuel grids
-(see ``docs/architecture/fbp-todo.md``).
+(``wps_tools.upload_national_fuel_codes``).
 """
 
 from wps_shared.schemas.sfms import FuelCode, FuelCodesLookup
-
-from wps_sfms.fbp_fuel_types import CFFDRSFuelTypes
 
 NATIONAL_FUEL_CODES = FuelCodesLookup(
     fuel_codes=[
@@ -255,5 +254,3 @@ NATIONAL_FUEL_CODES = FuelCodesLookup(
         ),
     ]
 )
-
-NATIONAL_FUEL_TYPES = CFFDRSFuelTypes.from_lookup(NATIONAL_FUEL_CODES)

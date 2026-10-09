@@ -7,6 +7,7 @@ from types import MappingProxyType
 import numpy as np
 from cffdrs_vec.fbp import FUEL_TYPE_CODES
 from wps_shared.schemas.sfms import FuelCodesLookup
+from wps_shared.sfms.national_fuel_lookup import NATIONAL_FUEL_CODES
 
 NODATA_FUEL_TYPE_CODE = -1
 NON_FUEL_TYPE = "NF"
@@ -80,3 +81,7 @@ class CFFDRSFuelTypes:
     def _mask(self, fuel: np.ndarray, fuel_types: Set[str]) -> np.ndarray:
         grid_values = [value for value, ft in self.by_grid_value.items() if ft in fuel_types]
         return np.isin(fuel, grid_values)
+
+
+# CFFDRS fuel types for the national grid values that temporal fuel rasters store
+NATIONAL_FUEL_TYPES = CFFDRSFuelTypes.from_lookup(NATIONAL_FUEL_CODES)

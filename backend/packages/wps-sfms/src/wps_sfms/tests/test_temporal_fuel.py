@@ -9,9 +9,10 @@ from osgeo import gdal
 from pytest_mock import MockerFixture
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.sfms.national_fuel_lookup import NATIONAL_FUEL_CODES
 
 from wps_sfms.julian_rasters import JulianDatasets
-from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_CODES, NATIONAL_FUEL_TYPES
+from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES
 from wps_sfms.processors.temporal_fuel import (
     TemporalFuelInputDatasets,
     TemporalFuelGrid,

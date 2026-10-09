@@ -84,19 +84,20 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
     `sfms_ng/fuel/temporal/2026/07/01/1/fbp2026_07_01_1.tif`). `{version}` counts the grids
     stored for that date, starting at `1`; a new one is stored whenever no stored grid matches the
     run's base grid and Julian-date rasters, or the matching one is missing or altered.
-  - The national fuel lookup (`wps_sfms/national_fuel_lookup.py`) describes every temporal fuel
-    grid: one row per grid value, with its fuel type, descriptive name and colour
+  - The national fuel lookup (`wps_shared/sfms/national_fuel_lookup.py`) describes every temporal
+    fuel grid: one row per grid value, with its fuel type, descriptive name and colour
     (`red`/`green`/`blue` and `hue`/`saturation`/`lightness`). Primary FBP reads its CFFDRS fuel
-    types from it in code. The table is append-only: add rows for new grid values, but never
-    change what an existing grid value means, since every stored grid is read with the current
-    table.
+    types from it in code (`wps_sfms.fbp_fuel_types.NATIONAL_FUEL_TYPES`). The table is
+    append-only: add rows for new grid values, but never change what an existing grid value
+    means, since every stored grid is read with the current table.
   - The names and colours are for the frontend, which labels and colours fuel grids from a copy
-    of the table uploaded manually to `sfms_ng/fuel/temporal/fuel_codes_lookup.json`. Regenerate
-    and re-upload it whenever the table changes:
+    of the table uploaded with `wps_tools.upload_national_fuel_codes` to
+    `sfms_ng/fuel/temporal/fuel_codes_lookup.json`. Re-upload it to every environment whenever
+    the table changes (`--dry-run` prints it instead):
 
     ```bash
     cd backend
-    uv run python -c "from wps_sfms.national_fuel_lookup import NATIONAL_FUEL_CODES; print(NATIONAL_FUEL_CODES.model_dump_json(indent=2))" > fuel_codes_lookup.json
+    uv run python -m wps_tools.upload_national_fuel_codes
     ```
   - D2 is supported by `cffdrs_vec`. It applies BUI thresholding, so D2 produces almost no spread
     below BUI 80.
