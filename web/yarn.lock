@@ -3990,7 +3990,7 @@ __metadata:
     axios: "npm:1.20.0"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.0.2"
-    ol: "npm:10.10.0"
+    ol: "npm:10.11.0"
     ol-mapbox-style: "npm:^13.1.1"
   languageName: unknown
   linkType: soft
@@ -4049,7 +4049,7 @@ __metadata:
     luxon: "npm:^3.0.2"
     match-sorter: "npm:^8.0.0"
     nyc: "npm:^18.0.0"
-    ol: "npm:10.10.0"
+    ol: "npm:10.11.0"
     ol-mapbox-style: "npm:^13.1.1"
     ol-pmtiles: "npm:^2.0.0"
     react: "npm:^19.2.7"
@@ -6521,9 +6521,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ol@npm:10.10.0":
-  version: 10.10.0
-  resolution: "ol@npm:10.10.0"
+"ol@npm:10.11.0":
+  version: 10.11.0
+  resolution: "ol@npm:10.11.0"
   dependencies:
     "@types/rbush": "npm:4.0.0"
     earcut: "npm:^3.0.0"
@@ -6531,7 +6531,7 @@ __metadata:
     pbf: "npm:5.1.2"
     rbush: "npm:^4.0.0"
     zarrita: "npm:^0.7.1"
-  checksum: 10c0/831e7764e5b887b03fdbb090f8f2ec054cae6b836b442422846ace5a2a06c1351b38652519a3cb3aabf04c1d6ce661bf270b6e646136adb81b3a3b6b4ce18d2a
+  checksum: 10c0/5ef8669260e16aafa66fa3e4455bdca711087360964ab4c431e02f45c9dac15a16b9c3ff976a76fd4bbc6e62f2bfdfe2fb2884ea3624964913411aa3a6a61d17
   languageName: node
   linkType: hard
 
