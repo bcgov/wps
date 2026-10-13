@@ -32,6 +32,7 @@ from app.jobs.sfms_run_pipeline import (
     run_fbp_calculations,
     run_fwi_calculations,
     run_fwi_interpolation,
+    run_temporal_fuel,
     run_weather_interpolation,
 )
 
@@ -135,12 +136,22 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                     RunType.ACTUAL,
                 )
 
-            if fwi_calculated:
+        # weather and FWI commit first, so a fuel failure can't roll back their run and logs
+        if fwi_calculated:
+            async with get_async_write_session_scope() as session:
+                temporal_fuel_path = await run_temporal_fuel(
+                    datetime_to_process,
+                    fuel_type_raster,
+                    raster_addresser,
+                    s3_client,
+                    sfms_run_id,
+                    session,
+                )
                 await run_fbp_calculations(
                     datetime_to_process,
                     raster_addresser,
                     s3_client,
-                    fuel_raster_path,
+                    temporal_fuel_path,
                     fuel_type_raster.year,
                     sfms_run_id,
                     session,
