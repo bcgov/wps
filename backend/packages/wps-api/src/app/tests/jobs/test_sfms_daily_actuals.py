@@ -1,5 +1,6 @@
 """Unit tests for SFMS daily actuals job."""
 
+import json
 import os
 import sys
 from contextlib import asynccontextmanager
@@ -18,9 +19,10 @@ from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProce
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
+from wps_sfms.raster_inputs import FWIInputs
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName, SFMSRunLogStatus
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
-from wps_shared.sfms.raster_addresser import FWIParameter
+from wps_shared.sfms.raster_addresser import FBPParameter, FWIParameter
 
 from app.jobs.sfms_daily_actuals import (
     is_fwi_interpolation_day,
@@ -32,6 +34,29 @@ from app.tests.conftest import create_mock_sfms_actuals
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
 PIPELINE_PATH = "app.jobs.sfms_run_pipeline"
+
+
+def _raster_key(datetime_utc, parameter, run_type):
+    """A realistic raster key for a weather, FWI or FBP parameter."""
+    return (
+        f"sfms_ng/{run_type.value}/{datetime_utc:%Y/%m/%d}/"
+        f"{parameter.value}_{datetime_utc:%Y%m%d}.tif"
+    )
+
+
+def _fmc_key(target_date):
+    """A realistic FMC output key for a target date."""
+    return f"sfms_ng/static/fmc/{target_date:%Y/%m/%d}/fmc_{target_date:%Y%m%d}.tif"
+
+
+def _fwi_inputs(datetime_to_process, fwi_param, run_type, previous_base_run_type=None):
+    """Realistic FWI inputs whose output key names the parameter and date."""
+    return FWIInputs(
+        weather_keys={},
+        index_keys={},
+        output_key=_raster_key(datetime_to_process, fwi_param, run_type),
+        run_type=run_type,
+    )
 
 
 @pytest.mark.parametrize(
@@ -76,8 +101,12 @@ class MockDailyActualsDeps(NamedTuple):
 
 
 @pytest.fixture
-def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> MockDailyActualsDeps:
+def mock_dependencies(
+    mocker: MockerFixture, monkeypatch, mock_s3_client, mock_wfwx_api
+) -> MockDailyActualsDeps:
     """Mock all external dependencies for run_sfms_daily_actuals."""
+    # the mocked addresser builds GDAL paths under this bucket, which the manifest strips
+    monkeypatch.setenv("OBJECT_STORE_BUCKET", "test-bucket")
     # Mock S3Client
     mocker.patch(f"{MODULE_PATH}.S3Client", return_value=mock_s3_client)
     mock_s3_client.all_objects_exist = AsyncMock(return_value=True)
@@ -107,8 +136,8 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_run_temporal_fuel = mocker.patch(
         f"{MODULE_PATH}.run_temporal_fuel",
         new_callable=AsyncMock,
-        side_effect=lambda datetime_to_process, *_: (
-            f"/vsis3/test-bucket/temporal/{datetime_to_process.date()}.tif"
+        side_effect=lambda run, *_: (
+            f"/vsis3/test-bucket/temporal/{run.datetime_to_process.date()}.tif"
         ),
     )
     mocker.patch(
@@ -133,7 +162,21 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mock_addresser = MagicMock()
     mock_addresser.s3_prefix = "/vsis3/test-bucket"
     mocker.patch(f"{MODULE_PATH}.SFMSNGRasterAddresser", return_value=mock_addresser)
+    mock_addresser.get_percent_conifer_key.side_effect = lambda year: f"sfms/static/m12_{year}.tif"
+    mock_addresser.get_slope_key.side_effect = lambda: "sfms_ng/static/bc_slope.tif"
+    mock_addresser.get_aspect_key.side_effect = lambda: "sfms_ng/static/bc_aspect.tif"
+    mock_addresser.get_dem_key.side_effect = lambda: "/vsis3/test-bucket/sfms/static/bc_elevation.tif"
+    mock_addresser.get_mask_key.side_effect = lambda: "/vsis3/test-bucket/sfms/static/bc_mask.tif"
+    mock_addresser.get_weather_key.side_effect = _raster_key
+    mock_addresser.get_index_key.side_effect = _raster_key
+    mock_addresser.get_fbp_key.side_effect = _raster_key
+    mock_addresser.get_fwi_inputs.side_effect = _fwi_inputs
+    mock_addresser.gdal_path.side_effect = lambda key: f"/vsis3/test-bucket/{key}"
     mock_fmc_inputs = MagicMock()
+    mock_fmc_inputs.output_keys.__getitem__.side_effect = _fmc_key
+    mock_fmc_inputs.elevation_key = "/vsis3/test-bucket/sfms_ng/static/bc_elevation.tif"
+    mock_fmc_inputs.latitude_key = "/vsis3/test-bucket/sfms_ng/static/latitude.tif"
+    mock_fmc_inputs.longitude_key = "/vsis3/test-bucket/sfms_ng/static/longitude.tif"
     mock_addresser.get_fmc_inputs.return_value = mock_fmc_inputs
     mock_fmc_processor = MagicMock(spec=FoliarMoistureContentProcessor)
     mock_fmc_processor.process = AsyncMock()
@@ -176,6 +219,10 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
 
     mock_primary_fbp_inputs = MagicMock()
+    mock_primary_fbp_inputs.output_keys = {
+        parameter: f"sfms_ng/actual/2024/07/04/{parameter.value}_20240704.tif"
+        for parameter in FBPParameter
+    }
     mock_addresser.get_primary_fire_behaviour_inputs.return_value = mock_primary_fbp_inputs
     mock_primary_fbp_processor = MagicMock(spec=PrimaryFireBehaviourProcessor)
     mock_primary_fbp_processor.process = AsyncMock(return_value=None)
@@ -262,7 +309,7 @@ class TestRunSfmsDailyActuals:
         await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))
 
         mock_dependencies.run_temporal_fuel.assert_awaited_once()
-        assert mock_dependencies.run_temporal_fuel.call_args.args[0] == datetime(
+        assert mock_dependencies.run_temporal_fuel.call_args.args[0].datetime_to_process == datetime(
             2024, 7, 4, 20, tzinfo=timezone.utc
         )
         fbp_call = mock_dependencies.addresser.get_primary_fire_behaviour_inputs.call_args
@@ -278,7 +325,7 @@ class TestRunSfmsDailyActuals:
 
         mock_dependencies.addresser.get_fmc_inputs.assert_called_once_with(
             [target_date.date()],
-            mock_dependencies.addresser.gdal_path.return_value,
+            "/vsis3/test-bucket/sfms/fuel/2024/fuel.tif",
         )
         mock_dependencies.fmc_processor_class.assert_called_once_with(
             mock_dependencies.addresser,
@@ -430,6 +477,73 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.rh_processor.process.assert_called_once()
         mock_dependencies.wind_speed_processor.process.assert_called_once()
         mock_dependencies.wind_direction_processor.process.assert_called_once()
+
+
+    @pytest.mark.anyio
+    async def test_writes_run_manifest(self, mock_dependencies: MockDailyActualsDeps):
+        """Test that the run's inputs and outputs are traced in a version 1 manifest."""
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+
+        await run_sfms_daily_actuals(target_date)
+
+        # the manifest is the only object the job writes once every processor is mocked
+        mock_dependencies.s3_client.put_object.assert_awaited_once()
+        key = mock_dependencies.s3_client.put_object.await_args.kwargs["key"]
+        payload = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
+
+        # the run datetime is the mocked "now", 2020-05-21T15:50:13Z
+        assert key == "sfms_ng/runs/2020/05/21/actual/2024-07-04_20200521T155013Z_run.json"
+        assert payload["version"] == 1
+        assert payload["run_type"] == "actual"
+        assert payload["for_date"] == "2024-07-04"
+        assert payload["run_datetime"] == "2020-05-21T15:50:13.962000Z"
+        assert payload["input"]["station_codes"] == [100, 101]
+        # the temporal fuel raster is recorded by run_temporal_fuel, which is mocked here
+        assert payload["input"]["fuel_raster"] == {
+            "base": "sfms/fuel/2024/fuel.tif",
+            "pc": "sfms/static/m12_2024.tif",
+        }
+        assert payload["input"]["seed_rasters"] == {
+            "ffmc": "sfms_ng/actual/2024/07/03/ffmc_20240703.tif",
+            "dmc": "sfms_ng/actual/2024/07/03/dmc_20240703.tif",
+            "dc": "sfms_ng/actual/2024/07/03/dc_20240703.tif",
+        }
+        assert payload["input"]["static_rasters"] == {
+            "dem": "sfms/static/bc_elevation.tif",
+            "mask": "sfms/static/bc_mask.tif",
+            "slope": "sfms_ng/static/bc_slope.tif",
+            "aspect": "sfms_ng/static/bc_aspect.tif",
+            "elevation": "sfms_ng/static/bc_elevation.tif",
+            "latitude": "sfms_ng/static/latitude.tif",
+            "longitude": "sfms_ng/static/longitude.tif",
+        }
+        assert payload["input"]["fmc_raster"] == "sfms_ng/static/fmc/2024/07/04/fmc_20240704.tif"
+        assert payload["output"]["weather"]["temperature"] == (
+            "sfms_ng/actual/2024/07/04/temperature_20240704.tif"
+        )
+        assert payload["output"]["fwi"]["fwi"] == "sfms_ng/actual/2024/07/04/fwi_20240704.tif"
+        assert payload["output"]["fbp"]["hfi"] == "sfms_ng/actual/2024/07/04/hfi_20240704.tif"
+        assert payload["output"]["fmc_raster"] == "sfms_ng/static/fmc/2024/07/04/fmc_20240704.tif"
+
+    @pytest.mark.anyio
+    async def test_writes_run_manifest_without_fuel_when_fwi_is_skipped(
+        self, mock_dependencies: MockDailyActualsDeps
+    ):
+        """A run that stops after weather traces no fuel, FWI or FBP outputs."""
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+        mock_dependencies.s3_client.all_objects_exist = AsyncMock(return_value=False)
+
+        await run_sfms_daily_actuals(target_date)
+
+        payload = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
+        assert payload["output"]["weather"]["temperature"] == (
+            "sfms_ng/actual/2024/07/04/temperature_20240704.tif"
+        )
+        assert payload["output"]["fwi"] == {}
+        assert payload["output"]["fbp"] == {}
+        assert "fuel_raster" not in payload["output"]
+        assert payload["input"]["seed_rasters"] == {}
+        mock_dependencies.run_temporal_fuel.assert_not_awaited()
 
 
 class TestMondayFWIInterpolation:

@@ -31,6 +31,6 @@ oc -n ${PROJ_TARGET} apply -f /tmp/${JOB_NAME}.yaml
 oc -n ${PROJ_TARGET} logs -f job/${JOB_NAME}
 ```
 
-Backfills overwrite the same SFMS raster keys for each target date and create new `sfms_run` / `sfms_run_log` rows for auditability.
+Backfills overwrite the same SFMS raster keys for each target date and create new `sfms_run` / `sfms_run_log` rows for auditability. Each run also writes an input/output manifest under `sfms_ng/runs/` keyed by its run datetime, so the exact rasters a run used survive those overwrites — see [SFMS_RUN_TRACING.md](SFMS_RUN_TRACING.md).
 
 For FWI regeneration, the first date in the range needs the previous day's actual FFMC/DMC/DC rasters to exist unless the first date is one of the April/May Monday re-interpolation days. If those seed rasters are missing, the actual weather rasters are still regenerated but FWI calculation is skipped.

@@ -79,6 +79,32 @@ class TestGetFoliarMoistureContentInputs:
         assert getattr(addresser, method_name)() == expected_key
 
 
+class TestRunManifestKeys:
+    def test_manifest_key_uses_the_run_datetime_folder(self, addresser: SFMSNGRasterAddresser):
+        assert addresser.get_run_manifest_key(
+            RunType.ACTUAL, date(2026, 10, 13), datetime(2026, 10, 13, 20, 45, 0, tzinfo=timezone.utc)
+        ) == "sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500Z_run.json"
+
+    def test_manifest_key_uses_the_for_date_in_the_file_name(
+        self, addresser: SFMSNGRasterAddresser
+    ):
+        # forecast runs process dates after the run datetime; the folder stays the run date
+        assert addresser.get_run_manifest_key(
+            RunType.FORECAST,
+            date(2026, 10, 14),
+            datetime(2026, 10, 13, 20, 45, 0, tzinfo=timezone.utc),
+        ) == "sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T204500Z_run.json"
+
+    def test_manifest_key_zero_pads_the_run_datetime_parts(self, addresser: SFMSNGRasterAddresser):
+        assert addresser.get_run_manifest_key(
+            RunType.ACTUAL, date(2026, 1, 2), datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
+        ) == "sfms_ng/runs/2026/01/02/actual/2026-01-02_20260102T030405Z_run.json"
+
+    def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
+        with pytest.raises(AssertionError, match="is not in UTC"):
+            addresser.get_run_manifest_key(RunType.ACTUAL, date(2026, 10, 13), NON_UTC)
+
+
 class TestGetActualWeatherKey:
     @pytest.mark.parametrize(
         "weather_param,expected_key",
