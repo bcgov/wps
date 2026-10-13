@@ -1,5 +1,5 @@
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import NotificationSnackbar from '@/components/NotificationSnackbar'
 import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
@@ -12,6 +12,11 @@ const NotificationCenter = () => {
   const isRegistrationFailed = useSelector(selectRegistrationFailed)
   const { networkStatus } = useSelector(selectNetworkStatus)
   const shouldShowRegistrationError = isRegistrationFailed && networkStatus.connected
+  const notificationId = notification?.id
+
+  const handleClose = useCallback(() => {
+    if (notificationId) dispatch(dismissNotification(notificationId))
+  }, [dispatch, notificationId])
 
   useEffect(() => {
     const action = shouldShowRegistrationError
@@ -28,7 +33,7 @@ const NotificationCenter = () => {
       autoHideDuration={notification.autoHideDuration}
       icon={notification.severity === 'error' ? <CancelOutlinedIcon sx={{ color: 'error.dark' }} /> : undefined}
       message={notification.message}
-      onClose={() => dispatch(dismissNotification(notification.id))}
+      onClose={handleClose}
       open
       severity={notification.severity}
       testId="notification-center"

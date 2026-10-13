@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import { Map as OlMap } from 'ol'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RunType } from '@/api/fbaAPI'
@@ -46,7 +47,13 @@ vi.mock('@/layerDefinitions', async () => {
   }
 })
 
-import { createBasemapLayer, createHFILayer, createLocalBasemapVectorLayer, HFI_LAYER_NAME } from '@/layerDefinitions'
+import {
+  createBasemapLayer,
+  createHFILayer,
+  createLocalBasemapVectorLayer,
+  HFI_LAYER_NAME,
+  ZONE_STATUS_LAYER_NAME
+} from '@/layerDefinitions'
 import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
 
 const createPMTilesSource = (state: 'ready' | 'error') => {
@@ -136,6 +143,7 @@ describe('ASAGoMap', () => {
   })
 
   it('stays loading until overlapping layer loads settle', async () => {
+    const addLayerSpy = vi.spyOn(OlMap.prototype, 'addLayer')
     let resolveBasemap: (layer: ReturnType<typeof createLayerMock>) => void = () => {}
     let resolveHFI: (layer: ReturnType<typeof createLayerMock>) => void = () => {}
     const basemapPromise = new Promise<ReturnType<typeof createLayerMock>>(resolve => {
@@ -182,6 +190,11 @@ describe('ASAGoMap', () => {
     await act(async () => resolveBasemap(createLayerMock('vectorBasemapLayer')))
     await waitFor(() => expect(map).toHaveAttribute('aria-busy', 'false'))
 
+    const addedLayerNames = addLayerSpy.mock.calls.map(([layer]) => layer.getProperties?.().name)
+    expect(addedLayerNames).toContain(ZONE_STATUS_LAYER_NAME)
+    expect(addedLayerNames).toContain('fireZoneHighlightVector')
+
+    addLayerSpy.mockRestore()
     staticLayerSpy.mockRestore()
   })
 
@@ -371,6 +384,7 @@ describe('ASAGoMap', () => {
   })
 
   it('settles layer loading when static PMTiles sources fail', async () => {
+    const addLayerSpy = vi.spyOn(OlMap.prototype, 'addLayer')
     const staticLayerSpy = vi
       .spyOn(PMTilesFileVectorSource, 'createStaticLayer')
       .mockResolvedValue(createPMTilesSource('error'))
@@ -384,6 +398,11 @@ describe('ASAGoMap', () => {
 
     await waitFor(() => expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false'))
 
+    const addedLayerNames = addLayerSpy.mock.calls.map(([layer]) => layer.getProperties?.().name)
+    expect(addedLayerNames).not.toContain(ZONE_STATUS_LAYER_NAME)
+    expect(addedLayerNames).not.toContain('fireZoneHighlightVector')
+
+    addLayerSpy.mockRestore()
     staticLayerSpy.mockRestore()
   })
 

@@ -290,13 +290,13 @@ const ASAGoMap = ({
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only re-run when network status changes
   useEffect(() => {
     // Toggle basemap visibility based on network connection status.
-    if (isNil(map)) {
+    if (isNull(map)) {
       return
     }
     removeLayerByName(map, BASEMAP_LAYER_NAME)
     if (networkStatus.connected === true) {
-      localBasemapVectorLayer?.setVisible(isNil(basemapLayer))
-      if (!isNil(basemapLayer)) {
+      localBasemapVectorLayer?.setVisible(isNull(basemapLayer))
+      if (!isNull(basemapLayer)) {
         map.addLayer(basemapLayer)
       }
     } else {
@@ -403,49 +403,49 @@ const ASAGoMap = ({
         filename: 'fireZoneUnits.pmtiles'
       })
 
-      if (fireZoneSource.getState() !== 'error') {
-        fireZoneFileLayer.setSource(fireZoneSource)
-        fireZoneHighlightFileLayer.setSource(fireZoneSource)
-      }
-
       const fireZoneLabelVectorSource = await PMTilesFileVectorSource.createStaticLayer(new PMTilesCache(Filesystem), {
         filename: 'fireZoneUnitLabels.pmtiles'
       })
 
-      const addStaticLayerIfAvailable = (source: PMTilesFileVectorSource, layer: VectorTileLayer) => {
-        if (source.getState() === 'error') return
-        mapObject.addLayer(layer)
+      if (fireCentresSource.getState() !== 'error') {
+        mapObject.addLayer(
+          new VectorTileLayer({
+            source: fireCentresSource,
+            style: fireCentreLineStyler(undefined),
+            zIndex: 52
+          })
+        )
       }
 
-      addStaticLayerIfAvailable(
-        fireCentresSource,
-        new VectorTileLayer({
-          source: fireCentresSource,
-          style: fireCentreLineStyler(undefined),
-          zIndex: 52
-        })
-      )
+      if (fireCentreLabelVectorSource.getState() !== 'error') {
+        mapObject.addLayer(
+          new VectorTileLayer({
+            source: fireCentreLabelVectorSource,
+            style: fireCentreLabelStyler,
+            zIndex: 100,
+            maxZoom: 6
+          })
+        )
+      }
 
-      addStaticLayerIfAvailable(
-        fireCentreLabelVectorSource,
-        new VectorTileLayer({
-          source: fireCentreLabelVectorSource,
-          style: fireCentreLabelStyler,
-          zIndex: 100,
-          maxZoom: 6
-        })
-      )
+      if (fireZoneLabelVectorSource.getState() !== 'error') {
+        mapObject.addLayer(
+          new VectorTileLayer({
+            source: fireZoneLabelVectorSource,
+            declutter: true,
+            style: fireShapeLabelStyler(selectedFireShape),
+            zIndex: 99,
+            minZoom: 6
+          })
+        )
+      }
 
-      addStaticLayerIfAvailable(
-        fireZoneLabelVectorSource,
-        new VectorTileLayer({
-          source: fireZoneLabelVectorSource,
-          declutter: true,
-          style: fireShapeLabelStyler(selectedFireShape),
-          zIndex: 99,
-          minZoom: 6
-        })
-      )
+      if (fireZoneSource.getState() !== 'error') {
+        fireZoneFileLayer.setSource(fireZoneSource)
+        fireZoneHighlightFileLayer.setSource(fireZoneSource)
+        mapObject.addLayer(fireZoneFileLayer)
+        mapObject.addLayer(fireZoneHighlightFileLayer)
+      }
 
       try {
         const loadedLocalBasemapLayer = await createLocalBasemapVectorLayer()
@@ -465,11 +465,6 @@ const ASAGoMap = ({
       } catch (e) {
         // offline or endpoint unreachable — local basemap will be used
         console.warn(e)
-      }
-
-      if (fireZoneSource.getState() !== 'error') {
-        mapObject.addLayer(fireZoneFileLayer)
-        mapObject.addLayer(fireZoneHighlightFileLayer)
       }
     }
     void loadPMTiles().catch(Sentry.captureException).finally(finishLayerLoad)

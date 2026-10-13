@@ -1,7 +1,7 @@
 import { ThemeProvider } from '@mui/material'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Provider } from 'react-redux'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import NotificationCenter from '@/components/NotificationCenter'
 import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { updateNetworkStatus } from '@/slices/networkStatusSlice'
@@ -22,6 +22,8 @@ const renderCenter = (store = createTestStore()) =>
   )
 
 describe('NotificationCenter', () => {
+  afterEach(() => vi.useRealTimers())
+
   it('preempts and then resumes a persistent notification', async () => {
     const store = createTestStore()
     store.dispatch(
@@ -67,6 +69,30 @@ describe('NotificationCenter', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /close/i }))
     await waitFor(() => expect(screen.queryByText('Error')).not.toBeInTheDocument())
+  })
+
+  it('does not restart the timeout when its parent rerenders', () => {
+    vi.useFakeTimers()
+    const store = createTestStore()
+    store.dispatch(enqueueNotification({ message: 'Error' }))
+
+    const TestApp = ({ renderCount }: { renderCount: number }) => (
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <div data-render-count={renderCount} style={{ position: 'relative' }}>
+            <NotificationCenter />
+          </div>
+        </ThemeProvider>
+      </Provider>
+    )
+
+    const view = render(<TestApp renderCount={0} />)
+    act(() => vi.advanceTimersByTime(3000))
+
+    view.rerender(<TestApp renderCount={1} />)
+    act(() => vi.advanceTimersByTime(3000))
+
+    expect(screen.queryByText('Error')).not.toBeInTheDocument()
   })
 
   it('keeps a dismissed registration warning hidden until a new failure cycle', async () => {
