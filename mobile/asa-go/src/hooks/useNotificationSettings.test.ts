@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import React from 'react'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { createTestStore } from '@/testUtils'
 import { useNotificationSettings } from './useNotificationSettings'
 
@@ -50,7 +51,6 @@ const onlineState = {
     registeredFcmToken: 'test-token',
     deviceIdError: false,
     registrationError: false,
-    registrationAttempts: 0,
     pendingNotificationData: null
   }
 }
@@ -127,7 +127,6 @@ describe('useNotificationSettings', () => {
         registeredFcmToken: 'tok',
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       }
     })
@@ -200,7 +199,6 @@ describe('useNotificationSettings', () => {
         registeredFcmToken: null,
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       }
     })
@@ -235,35 +233,35 @@ describe('useNotificationSettings', () => {
     consoleSpy.mockRestore()
   })
 
-  it('sets updateError to true when update fails', async () => {
+  it('queues an error notification when update fails', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     ;(updateNotificationSettings as Mock).mockRejectedValue(new Error('server error'))
 
-    const { result } = await act(async () => renderWithStore())
+    const { result, store } = await act(async () => renderWithStore())
 
     await act(async () => {
       await result.current.updateSubscriptions([1]).catch(() => {})
     })
 
-    expect(result.current.updateError).toBe(true)
+    expect(store.getState().notifications.notifications).toEqual([
+      expect.objectContaining(NOTIFICATION_DEFINITIONS.subscriptionUpdateError)
+    ])
     consoleSpy.mockRestore()
   })
 
-  it('clears updateError after a successful update', async () => {
+  it('deduplicates repeated update errors', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    ;(updateNotificationSettings as Mock).mockRejectedValueOnce(new Error('server error')).mockResolvedValueOnce(['1'])
+    ;(updateNotificationSettings as Mock).mockRejectedValue(new Error('server error'))
 
-    const { result } = await act(async () => renderWithStore())
+    const { result, store } = await act(async () => renderWithStore())
 
     await act(async () => {
       await result.current.updateSubscriptions([1]).catch(() => {})
     })
-    expect(result.current.updateError).toBe(true)
-
     await act(async () => {
       await result.current.updateSubscriptions([1])
     })
-    expect(result.current.updateError).toBe(false)
+    expect(store.getState().notifications.notifications).toHaveLength(1)
     consoleSpy.mockRestore()
   })
 })

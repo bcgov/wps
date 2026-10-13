@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { type FireCentreInfo, getFireCentreInfo } from '@/api/fbaAPI'
 import { createTestStore } from '@/testUtils'
+import { createLoadError } from '@/utils/loadError'
 import { FIRE_CENTRE_INFO_KEY, readFromFilesystem } from '@/utils/storage'
 import { getUpdatedSubscriptions } from '@/utils/subscriptionUtils'
 import settingsSlice, {
@@ -82,7 +83,7 @@ describe('settingsSlice', () => {
     it('should handle getFireCentreInfoStart', () => {
       const previousState = createSettingsState({
         loading: false,
-        error: 'Previous error',
+        error: createLoadError('Previous error'),
         fireCentreInfos: [{ fire_centre_name: 'Old Fire Centre', fire_zone_units: [] }]
       })
 
@@ -99,20 +100,20 @@ describe('settingsSlice', () => {
       const previousState = createSettingsState({
         loading: true
       })
-      const errorMessage = 'Failed to load fire centre info'
+      const error = createLoadError('Failed to load fire centre info')
 
-      const nextState = settingsSlice(previousState, getFireCentreInfoFailed(errorMessage))
+      const nextState = settingsSlice(previousState, getFireCentreInfoFailed(error))
 
       expectSettingsState(nextState, {
         loading: false,
-        error: errorMessage
+        error
       })
     })
 
     it('should handle getFireCentreInfoSuccess', () => {
       const previousState = createSettingsState({
         loading: true,
-        error: 'Previous error'
+        error: createLoadError('Previous error')
       })
       const fireCentreInfos = [
         createFireCentreInfo({ fire_centre_name: 'Fire Centre 1' }),
@@ -401,7 +402,7 @@ describe('settingsSlice', () => {
         await store.dispatch(fetchFireCentreInfo())
         const state = store.getState().settings
         expect(state.loading).toBe(false)
-        expect(state.error).toMatch(/Unable to refresh fire centre info data/)
+        expect(state.error?.key).toMatch(/Unable to refresh fire centre info data/)
       })
 
       it('should dispatch success when cache is stale and app is offline', async () => {
@@ -431,7 +432,7 @@ describe('settingsSlice', () => {
         await store.dispatch(fetchFireCentreInfo())
         const state = store.getState().settings
         expect(state.loading).toBe(false)
-        expect(state.error).toMatch(/Error: server error/)
+        expect(state.error?.key).toMatch(/Error: server error/)
         expect(state.fireCentreInfos).toEqual([])
       })
     })

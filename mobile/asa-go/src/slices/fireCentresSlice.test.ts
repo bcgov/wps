@@ -14,6 +14,7 @@ import { DateTime } from 'luxon'
 import { describe, expect, it, type Mock, vi } from 'vitest'
 import { createTestStore } from '@/testUtils'
 import type { FireCentre } from '@/types/fireCentre'
+import { createLoadError } from '@/utils/loadError'
 import { FIRE_CENTRES_KEY, readFromFilesystem } from '@/utils/storage'
 import reducer, {
   fetchFireCentres,
@@ -32,10 +33,10 @@ describe('fireCentersSlice reducers', () => {
   })
 
   it('should handle getFireCentresFailed', () => {
-    const errorMsg = 'Network error'
-    const nextState = reducer(initialState, getFireCentresFailed(errorMsg))
+    const error = createLoadError('Network error')
+    const nextState = reducer(initialState, getFireCentresFailed(error))
     expect(nextState.loading).toBe(false)
-    expect(nextState.error).toBe(errorMsg)
+    expect(nextState.error).toBe(error)
   })
 
   it('should handle getFireCentresSuccess', () => {
@@ -142,7 +143,7 @@ describe('fetchFireCentres thunk', () => {
     await store.dispatch(fetchFireCentres())
     const state = store.getState().fireCentres
     expect(state.loading).toBe(false)
-    expect(state.error).toMatch(/Unable to refresh fire centre data/)
+    expect(state.error?.key).toMatch(/Unable to refresh fire centre data/)
   })
 
   it('should dispatch success when cache is stale and app is offline', async () => {

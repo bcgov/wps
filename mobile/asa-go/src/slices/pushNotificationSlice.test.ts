@@ -2,12 +2,10 @@ import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { createTestStore } from '@/testUtils'
 import pushNotificationReducer, {
   checkPushNotificationPermission,
-  incrementRegistrationAttempts,
   initialState,
-  MAX_REGISTRATION_ATTEMPTS,
   type PushNotificationState,
   registerDevice,
-  resetRegistrationAttempts,
+  retryPushNotificationRegistration,
   setDeviceIdError,
   setPushNotificationPermission,
   setRegisteredFcmToken
@@ -82,16 +80,6 @@ describe('pushNotificationSlice', () => {
     it('handles setDeviceIdError to false', () => {
       const next = pushNotificationReducer(makeState({ deviceIdError: true }), setDeviceIdError(false))
       expect(next.deviceIdError).toBe(false)
-    })
-
-    it('handles incrementRegistrationAttempts', () => {
-      const next = pushNotificationReducer(makeState(), incrementRegistrationAttempts())
-      expect(next.registrationAttempts).toBe(1)
-    })
-
-    it('handles resetRegistrationAttempts', () => {
-      const next = pushNotificationReducer(makeState({ registrationAttempts: 3 }), resetRegistrationAttempts())
-      expect(next.registrationAttempts).toBe(0)
     })
   })
 
@@ -238,52 +226,74 @@ describe('pushNotificationSlice', () => {
         await store.dispatch(registerDevice('fcm-token', null))
 
         expect(store.getState().pushNotification.registeredFcmToken).toBeNull()
+        expect(store.getState().pushNotification.registrationError).toBe(true)
         expect(consoleSpy).toHaveBeenCalled()
         consoleSpy.mockRestore()
       })
 
-      it('increments registrationAttempts on each failure to MAX_REGISTRATION_ATTEMPTS', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-        const { Device } = await import('@capacitor/device')
-        const { Capacitor } = await import('@capacitor/core')
-        const { retryWithBackoff } = await import('@/utils/retryWithBackoff')
-        ;(Device.getId as Mock).mockResolvedValue({ identifier: 'device-id' })
-        ;(Capacitor.getPlatform as Mock).mockReturnValue('ios')
-        ;(retryWithBackoff as Mock).mockRejectedValue(new Error('persistent error'))
-
-        const store = createTestStore()
-        for (let i = 0; i < MAX_REGISTRATION_ATTEMPTS; i++) {
-          await store.dispatch(registerDevice('fcm-token', null))
-        }
-
-        expect(store.getState().pushNotification.registrationAttempts).toBe(MAX_REGISTRATION_ATTEMPTS)
-        expect(store.getState().pushNotification.registrationError).toBe(true)
-        consoleSpy.mockRestore()
-      })
-
-      it('resets registrationAttempts on successful registration', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      it('clears a previous registration error on success', async () => {
         const { Device } = await import('@capacitor/device')
         const { Capacitor } = await import('@capacitor/core')
         const { registerToken } = await import('api/pushNotificationsAPI')
         const { retryWithBackoff } = await import('@/utils/retryWithBackoff')
         ;(Device.getId as Mock).mockResolvedValue({ identifier: 'device-id' })
         ;(Capacitor.getPlatform as Mock).mockReturnValue('ios')
-
-        // Fail up to max, then succeed
-        ;(retryWithBackoff as Mock)
-          .mockRejectedValueOnce(new Error('error'))
-          .mockRejectedValueOnce(new Error('error'))
-          .mockResolvedValueOnce(undefined)
+        ;(retryWithBackoff as Mock).mockResolvedValue(undefined)
         ;(registerToken as Mock).mockResolvedValue(undefined)
 
-        const store = createTestStore()
+        const store = createTestStore({
+          pushNotification: { ...initialState, registrationError: true }
+        })
         await store.dispatch(registerDevice('fcm-token', null))
-        await store.dispatch(registerDevice('fcm-token', null))
-        expect(store.getState().pushNotification.registrationAttempts).toBe(2)
 
-        await store.dispatch(registerDevice('fcm-token', 'different-token'))
-        expect(store.getState().pushNotification.registrationAttempts).toBe(0)
+        expect(store.getState().pushNotification.registrationError).toBe(false)
+      })
+    })
+
+    describe('retryPushNotificationRegistration', () => {
+      it('is a no-op when registration has not failed', async () => {
+        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging')
+        const store = createTestStore()
+
+        await store.dispatch(retryPushNotificationRegistration())
+
+        expect(FirebaseMessaging.getToken).not.toHaveBeenCalled()
+      })
+
+      it('retries registration and clears the failure only after success', async () => {
+        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging')
+        const { Device } = await import('@capacitor/device')
+        const { retryWithBackoff } = await import('@/utils/retryWithBackoff')
+        ;(FirebaseMessaging.getToken as Mock).mockResolvedValue({ token: 'retry-token' })
+        ;(Device.getId as Mock).mockResolvedValue({ identifier: 'device-id' })
+        ;(retryWithBackoff as Mock).mockResolvedValue(undefined)
+        const store = createTestStore({
+          pushNotification: {
+            ...initialState,
+            registrationError: true
+          }
+        })
+
+        await store.dispatch(retryPushNotificationRegistration())
+
+        expect(store.getState().pushNotification.registeredFcmToken).toBe('retry-token')
+        expect(store.getState().pushNotification.registrationError).toBe(false)
+      })
+
+      it('keeps the failure active when token lookup fails', async () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging')
+        ;(FirebaseMessaging.getToken as Mock).mockRejectedValue(new Error('token error'))
+        const store = createTestStore({
+          pushNotification: {
+            ...initialState,
+            registrationError: true
+          }
+        })
+
+        await store.dispatch(retryPushNotificationRegistration())
+
+        expect(store.getState().pushNotification.registrationError).toBe(true)
         consoleSpy.mockRestore()
       })
     })

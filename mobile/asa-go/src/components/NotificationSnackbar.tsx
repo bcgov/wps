@@ -1,48 +1,59 @@
-import { Alert, type AlertColor, Snackbar } from '@mui/material'
-import type { SnackbarOrigin } from '@mui/material/Snackbar'
+import { Alert, type AlertColor, Box } from '@mui/material'
+import { type ReactNode, useEffect } from 'react'
 
 interface NotificationSnackbarProps {
   open: boolean
   onClose: () => void
   message: string
-  anchorOrigin?: SnackbarOrigin
   severity?: AlertColor
   autoHideDuration?: number | null
+  icon?: ReactNode
+  testId?: string
 }
 
 const NotificationSnackbar = ({
   open,
   onClose,
   message,
-  anchorOrigin = { vertical: 'top', horizontal: 'center' },
   severity = 'error',
-  autoHideDuration = 6000
-}: NotificationSnackbarProps) => (
-  <Snackbar
-    open={open}
-    autoHideDuration={autoHideDuration}
-    onClose={onClose}
-    anchorOrigin={anchorOrigin}
-    sx={{
-      ...(anchorOrigin.vertical === 'top'
-        ? {
-            top: {
-              xs: 'calc(env(safe-area-inset-top) + 8px)',
-              sm: 'calc(env(safe-area-inset-top) + 24px)'
-            }
-          }
-        : {}),
-      width: {
-        xs: 'calc(100% - 16px)',
-        sm: 'min(420px, calc(100% - 48px))'
-      },
-      maxWidth: '100%'
-    }}
-  >
-    <Alert onClose={onClose} severity={severity} variant="filled">
-      {message}
-    </Alert>
-  </Snackbar>
-)
+  autoHideDuration = 6000,
+  icon,
+  testId
+}: NotificationSnackbarProps) => {
+  useEffect(() => {
+    if (!open || autoHideDuration === null) return
+
+    const timeout = window.setTimeout(onClose, autoHideDuration)
+    return () => window.clearTimeout(timeout)
+  }, [autoHideDuration, onClose, open])
+
+  if (!open) return null
+
+  return (
+    <Box
+      data-testid={testId}
+      sx={theme => ({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: theme.zIndex.snackbar,
+        [`${theme.breakpoints.down('lg')} and (orientation: landscape)`]: {
+          top: 'env(safe-area-inset-top)'
+        }
+      })}
+    >
+      <Alert
+        icon={icon}
+        onClose={onClose}
+        severity={severity}
+        variant="filled"
+        sx={{ borderRadius: 0, boxSizing: 'border-box', width: '100%' }}
+      >
+        {message}
+      </Alert>
+    </Box>
+  )
+}
 
 export default NotificationSnackbar

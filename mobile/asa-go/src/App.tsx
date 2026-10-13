@@ -14,7 +14,9 @@ import { AppHeader } from '@/components/AppHeader'
 import BottomNavigationBar from '@/components/BottomNavigationBar'
 import GuestDisclaimerBanner from '@/components/GuestDisclaimerBanner'
 import InfoBar from '@/components/InfoBar'
+import LoadingErrorNotifier from '@/components/LoadingErrorNotifier'
 import ASAGoMap from '@/components/map/ASAGoMap'
+import NotificationCenter from '@/components/NotificationCenter'
 import Profile from '@/components/profile/Profile'
 import Advisory from '@/components/report/Advisory'
 import SideNavigation from '@/components/SideNavigation'
@@ -25,6 +27,7 @@ import { useDeviceId } from '@/hooks/useDeviceId'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useRunParameterForDate } from '@/hooks/useRunParameterForDate'
+import { NOTIFICATION_DEFINITIONS, withHttpStatus } from '@/notificationDefinitions'
 import { fetchAndCacheData } from '@/slices/dataSlice'
 import {
   resetDateOfInterestIfStale,
@@ -35,6 +38,7 @@ import {
 import { fetchFireCentres } from '@/slices/fireCentresSlice'
 import { startWatchingLocation, stopWatchingLocation } from '@/slices/geolocationSlice'
 import { updateNetworkStatus } from '@/slices/networkStatusSlice'
+import { enqueueNotification } from '@/slices/notificationSlice'
 import { clearPendingNotificationData } from '@/slices/pushNotificationSlice'
 import { fetchSFMSRunParameters } from '@/slices/runParametersSlice'
 import { initSubscriptions } from '@/slices/settingsSlice'
@@ -42,6 +46,7 @@ import {
   type AppDispatch,
   selectFireCentres,
   selectNetworkStatus,
+  selectOperationalDataLoading,
   selectPendingNotificationData,
   selectProvincialSummaries,
   selectPushNotification,
@@ -52,6 +57,7 @@ import { theme } from '@/theme'
 import type { FireCentre } from '@/types/fireCentre'
 import { NavPanel, StatusEnum } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
+import { getHttpStatus } from '@/utils/loadError'
 import { PMTilesCache } from '@/utils/pmtilesCache'
 import { clearStaleHFIPMTiles } from '@/utils/storage'
 
@@ -72,7 +78,8 @@ const App = () => {
   const { networkStatus } = useSelector(selectNetworkStatus)
   const runParameters = useSelector(selectRunParameters)
   const { registeredFcmToken } = useSelector(selectPushNotification)
-  const { subscriptionsInitialized } = useSelector(selectSettings)
+  const { loading: settingsLoading, subscriptionsInitialized } = useSelector(selectSettings)
+  const operationalDataLoading = useSelector(selectOperationalDataLoading)
   const provincialSummaries = useSelector(selectProvincialSummaries)
   const pendingNotificationData = useSelector(selectPendingNotificationData)
   const dateOfInterest = useSelector(selectDateOfInterest)
@@ -148,18 +155,36 @@ const App = () => {
   }, [dispatch])
 
   useEffect(() => {
-    if (!isNil(runParameters)) {
-      const hfiFilesToKeep: string[] = []
-      for (const value of Object.values(runParameters)) {
-        const pmtilesCache = new PMTilesCache(Filesystem)
-        const forDate = DateTime.fromISO(value.for_date)
-        const runDate = DateTime.fromISO(value.run_datetime)
-        pmtilesCache.loadHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles')
-        hfiFilesToKeep.push(pmtilesCache.getHFICachedFileName(forDate, value.run_type, runDate, 'hfi.pmtiles'))
-      }
-      clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
+    if (isNil(runParameters) || !networkStatus.connected) return
+
+    let cancelled = false
+    const pmtilesCache = new PMTilesCache(Filesystem)
+    const hfiFilesToKeep: string[] = []
+    const loads = Object.values(runParameters).map(value => {
+      const forDate = DateTime.fromISO(value.for_date)
+      const runDate = DateTime.fromISO(value.run_datetime)
+      hfiFilesToKeep.push(pmtilesCache.getHFICachedFileName(forDate, value.run_type, runDate, 'hfi.pmtiles'))
+      return pmtilesCache.loadHFIPMTiles(forDate, value.run_type, runDate, 'hfi.pmtiles')
+    })
+
+    const updateHFICache = async () => {
+      const results = await Promise.allSettled(loads)
+      if (cancelled) return
+
+      await clearStaleHFIPMTiles(Filesystem, hfiFilesToKeep)
+      const failedResults = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+      if (cancelled || failedResults.length === 0) return
+
+      const errorStatus = failedResults.map(result => getHttpStatus(result.reason)).find(status => status !== undefined)
+      dispatch(enqueueNotification(withHttpStatus(NOTIFICATION_DEFINITIONS.hfiCacheError, errorStatus)))
     }
-  }, [runParameters])
+
+    void updateHFICache()
+    return () => {
+      // ignore results from a superseded preflight so stale run parameters cannot notify or prune files
+      cancelled = true
+    }
+  }, [runParameters, networkStatus.connected, dispatch])
 
   useEffect(() => {
     if (!isNil(runParameter)) {
@@ -239,14 +264,20 @@ const App = () => {
       {/* Show AppHeader in portrait OR landscape with medium or larger screen */}
       {(isPortrait || !isSmallScreen) && <AppHeader />}
 
+      <LoadingErrorNotifier />
+
       <Box
+        data-testid="app-content"
         sx={{
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          minWidth: 0,
+          overflow: 'hidden',
+          position: 'relative'
         }}
       >
+        <NotificationCenter />
         <InfoBar
           status={networkStatus.connected ? StatusEnum.INFO : StatusEnum.WARNING}
           statusText={networkStatus.connected ? '' : 'Offline.'}
@@ -257,6 +288,7 @@ const App = () => {
         <GuestDisclaimerBanner />
         <TabPanel value={tab} panel={NavPanel.MAP}>
           <ASAGoMap
+            operationalDataLoading={operationalDataLoading}
             selectedFireShape={selectedFireShape}
             setSelectedFireShape={setSelectedFireShape}
             setSelectedFireCentre={setFireCentre}
@@ -264,7 +296,7 @@ const App = () => {
             testId="asa-go-map"
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.PROFILE}>
+        <TabPanel value={tab} panel={NavPanel.PROFILE} loading={operationalDataLoading}>
           <Profile
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
@@ -272,7 +304,7 @@ const App = () => {
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.ADVISORY}>
+        <TabPanel value={tab} panel={NavPanel.ADVISORY} loading={operationalDataLoading}>
           <Advisory
             selectedFireCentre={selectedFireCentre}
             setSelectedFireCentre={setFireCentre}
@@ -280,7 +312,7 @@ const App = () => {
             setSelectedFireZoneUnit={setSelectedFireShape}
           />
         </TabPanel>
-        <TabPanel value={tab} panel={NavPanel.SETTINGS}>
+        <TabPanel value={tab} panel={NavPanel.SETTINGS} loading={settingsLoading}>
           <Settings activeTab={tab} />
         </TabPanel>
       </Box>

@@ -12,10 +12,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useAppIsActive } from '@/hooks/useAppIsActive'
 import {
-  MAX_REGISTRATION_ATTEMPTS,
   registerDevice,
-  resetRegistrationAttempts,
+  retryPushNotificationRegistration,
   setPendingNotificationData,
+  setPushNotificationPermission,
   setRegistrationError
 } from '@/slices/pushNotificationSlice'
 import { type AppDispatch, selectNetworkStatus, selectPushNotification } from '@/store'
@@ -34,7 +34,7 @@ export function usePushNotifications() {
   const handles = useRef<PluginListenerHandle[]>([])
   const initialized = useRef(false)
   const dispatch = useDispatch<AppDispatch>()
-  const { registrationError, registeredFcmToken, registrationAttempts } = useSelector(selectPushNotification)
+  const { registeredFcmToken } = useSelector(selectPushNotification)
   const { networkStatus } = useSelector(selectNetworkStatus)
   const isActive = useAppIsActive()
 
@@ -42,8 +42,10 @@ export function usePushNotifications() {
     if (initialized.current) return
     try {
       const check: PermissionStatus = await FirebaseMessaging.checkPermissions()
+      dispatch(setPushNotificationPermission(check.receive ?? 'unknown'))
       if (check.receive !== 'granted') {
         const req = await FirebaseMessaging.requestPermissions()
+        dispatch(setPushNotificationPermission(req.receive ?? 'unknown'))
         if (req.receive !== 'granted') return
       }
 
@@ -112,28 +114,16 @@ export function usePushNotifications() {
     }
   }, [dispatch])
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — registerDevice is a stable action creator
   useEffect(() => {
-    if (networkStatus.connected && currentFcmToken) {
+    if (!isActive || !networkStatus.connected) return
+
+    if (currentFcmToken) {
       dispatch(registerDevice(currentFcmToken, registeredFcmToken))
+    } else {
+      // retry token lookup after reconnect or resume when initialization did not produce a token
+      dispatch(retryPushNotificationRegistration())
     }
   }, [currentFcmToken, registeredFcmToken, networkStatus.connected, isActive, dispatch])
-
-  const retryRegistration = useCallback(async () => {
-    if (!registrationError) return
-    if (registrationAttempts >= MAX_REGISTRATION_ATTEMPTS) {
-      // Caller is deliberately retrying, e.g. in settings and context drawer menu
-      dispatch(resetRegistrationAttempts())
-    }
-    dispatch(setRegistrationError(false))
-    try {
-      const { token } = await FirebaseMessaging.getToken()
-      if (token) dispatch(registerDevice(token, registeredFcmToken))
-    } catch (e) {
-      console.error('Failed to get token for retry:', e)
-      dispatch(setRegistrationError(true))
-    }
-  }, [registrationError, registrationAttempts, registeredFcmToken, dispatch])
 
   useEffect(() => {
     return () => {
@@ -146,5 +136,5 @@ export function usePushNotifications() {
     }
   }, [])
 
-  return { initPushNotifications, retryRegistration }
+  return { initPushNotifications }
 }

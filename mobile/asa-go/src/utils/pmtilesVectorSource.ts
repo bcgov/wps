@@ -1,4 +1,3 @@
-import { isUndefined } from 'lodash'
 import type { DateTime } from 'luxon'
 import type { Tile } from 'ol'
 import { MVT } from 'ol/format'
@@ -103,12 +102,8 @@ export class PMTilesFileVectorSource extends VectorTileSource<RenderFeature> {
     }
   }
 
-  async initTileGrid(pmtiles?: PMTiles) {
-    if (!isUndefined(pmtiles)) {
-      this.pmtiles_ = pmtiles
-    } else {
-      throw new Error('Unable to initialize pmtiles')
-    }
+  async initTileGrid(pmtiles: PMTiles) {
+    this.pmtiles_ = pmtiles
     const header = await this.pmtiles_.getHeader()
 
     this.tileGrid = createXYZ({

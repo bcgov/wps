@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import reducer, {
   fetchSFMSRunParameters,
   getRunParametersFailed,
+  getRunParametersFinished,
   getRunParametersStart,
   getRunParametersSuccess,
   initialState,
@@ -28,6 +29,7 @@ vi.mock('@/utils/storage', () => ({
 import { getMostRecentRunParameters, type RunParameter, RunType } from 'api/fbaAPI'
 import type { RootState } from '@/store'
 import { getTodayKey, getTomorrowKey } from '@/utils/dataSliceUtils'
+import { createLoadError } from '@/utils/loadError'
 import { readFromFilesystem, writeToFileSystem } from '@/utils/storage'
 
 const todayKey = getTodayKey()
@@ -61,18 +63,29 @@ describe('runParameters reducer', () => {
   it('should handle getRunParametersStart', () => {
     const nextState = reducer(initialState, getRunParametersStart())
     expect(nextState.error).toBeNull()
+    expect(nextState.loading).toBe(true)
   })
 
   it('should handle getRunParametersFailed', () => {
-    const error = 'Failed to fetch'
-    const nextState = reducer(initialState, getRunParametersFailed(error))
+    const error = createLoadError('Failed to fetch')
+    const nextState = reducer({ ...initialState, loading: true }, getRunParametersFailed(error))
     expect(nextState.error).toBe(error)
+    expect(nextState.loading).toBe(false)
   })
 
   it('should handle getRunParametersSuccess', () => {
-    const nextState = reducer(initialState, getRunParametersSuccess({ runParameters: mockRunParameters }))
+    const nextState = reducer(
+      { ...initialState, loading: true },
+      getRunParametersSuccess({ runParameters: mockRunParameters })
+    )
     expect(nextState.error).toBeNull()
+    expect(nextState.loading).toBe(false)
     expect(nextState.runParameters).toEqual(mockRunParameters)
+  })
+
+  it('should handle getRunParametersFinished', () => {
+    const nextState = reducer({ ...initialState, loading: true }, getRunParametersFinished())
+    expect(nextState.loading).toBe(false)
   })
 })
 
@@ -91,6 +104,30 @@ describe('fetchSFMSRunParameters thunk', () => {
     expect(writeToFileSystem).toBeCalled()
   })
 
+  it('sets loading while awaiting an online API response', async () => {
+    let resolveRequest: (runParameters: { [key: string]: RunParameter }) => void = () => {}
+    ;(getMostRecentRunParameters as Mock).mockReturnValue(
+      new Promise(resolve => {
+        resolveRequest = resolve
+      })
+    )
+    ;(writeToFileSystem as Mock).mockResolvedValue(undefined)
+    const store = createTestStore({
+      runParameters: { ...initialState },
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      }
+    })
+
+    const request = store.dispatch(fetchSFMSRunParameters())
+    expect(store.getState().runParameters.loading).toBe(true)
+
+    resolveRequest(mockRunParameters)
+    await request
+
+    expect(store.getState().runParameters.loading).toBe(false)
+  })
+
   it('does not dispatch success when online and API returns data if current state matches API response', async () => {
     ;(getMostRecentRunParameters as Mock).mockResolvedValue(mockRunParameters)
     ;(writeToFileSystem as Mock).mockResolvedValue(undefined)
@@ -103,6 +140,7 @@ describe('fetchSFMSRunParameters thunk', () => {
     await store.dispatch(fetchSFMSRunParameters())
     expect(store.getState().runParameters.runParameters).toBe(mockRunParameters)
     expect(store.getState().runParameters.error).toBeNull()
+    expect(store.getState().runParameters.loading).toBe(false)
     expect(writeToFileSystem).toBeCalled()
     // setLastUpdated should be dispatched to keep data.lastUpdated current
     expect(store.getState().data.lastUpdated).not.toBeNull()
@@ -151,7 +189,7 @@ describe('fetchSFMSRunParameters thunk', () => {
       }
     })
     await store.dispatch(fetchSFMSRunParameters())
-    expect(store.getState().runParameters.error).toBe('Unable to update runParameters from the API.')
+    expect(store.getState().runParameters.error?.key).toBe('Unable to update runParameters from the API.')
     expect(writeToFileSystem).not.toBeCalled()
   })
 
@@ -165,7 +203,7 @@ describe('fetchSFMSRunParameters thunk', () => {
       }
     })
     await store.dispatch(fetchSFMSRunParameters())
-    expect(store.getState().runParameters.error).toContain(errorMessage)
+    expect(store.getState().runParameters.error?.key).toContain(errorMessage)
   })
 
   it('dispatches success from cache when offline', async () => {
@@ -217,7 +255,7 @@ describe('fetchSFMSRunParameters thunk', () => {
       }
     })
     await store.dispatch(fetchSFMSRunParameters())
-    expect(store.getState().runParameters.error).toBe('No run parameters available.')
+    expect(store.getState().runParameters.error?.key).toBe('No run parameters available.')
   })
 })
 

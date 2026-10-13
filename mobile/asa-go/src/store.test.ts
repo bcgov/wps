@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { RootState } from '@/store'
-import { selectNotificationSettingsDisabled, selectNotificationSetupState } from '@/store'
+import {
+  selectActiveLoadError,
+  selectNotificationSettingsDisabled,
+  selectNotificationSetupState,
+  selectOperationalDataLoading
+} from '@/store'
+import { createLoadError } from '@/utils/loadError'
 
 const base: {
   pushNotificationPermission: 'granted' | 'denied'
@@ -79,5 +85,94 @@ describe('selectNotificationSettingsDisabled', () => {
   it('returns true when subscriptions are not yet initialized', () => {
     const state = { ...makeState({}), settings: { ...makeState({}).settings, subscriptionsInitialized: false } }
     expect(selectNotificationSettingsDisabled(state as RootState)).toBe(true)
+  })
+})
+
+describe('selectOperationalDataLoading', () => {
+  const makeOperationalState = ({
+    fireCentresLoading = false,
+    runParametersLoading = false,
+    dataLoading = false,
+    provincialSummaries = {},
+    tpiStats = {},
+    hfiStats = {}
+  }: {
+    fireCentresLoading?: boolean
+    runParametersLoading?: boolean
+    dataLoading?: boolean
+    provincialSummaries?: object | null
+    tpiStats?: object | null
+    hfiStats?: object | null
+  } = {}) =>
+    ({
+      fireCentres: { loading: fireCentresLoading },
+      runParameters: { loading: runParametersLoading },
+      data: {
+        loading: dataLoading,
+        provincialSummaries,
+        tpiStats,
+        hfiStats
+      }
+    }) as unknown as RootState
+
+  it.each([
+    ['fire centres', { fireCentresLoading: true }],
+    ['operational data', { dataLoading: true }]
+  ])('returns true while %s are loading', (_label, loading) =>
+    expect(selectOperationalDataLoading(makeOperationalState(loading))).toBe(true)
+  )
+
+  it.each(['provincialSummaries', 'tpiStats', 'hfiStats'] as const)(
+    'returns true while run parameters load before %s are available',
+    missingDataKey => {
+      const state = makeOperationalState({
+        runParametersLoading: true,
+        [missingDataKey]: null
+      })
+
+      expect(selectOperationalDataLoading(state)).toBe(true)
+    }
+  )
+
+  it('returns false during a run-parameter freshness check when operational data is available', () => {
+    const state = makeOperationalState({ runParametersLoading: true })
+
+    expect(selectOperationalDataLoading(state)).toBe(false)
+  })
+
+  it('returns false when operational data is idle', () => {
+    const state = makeOperationalState({
+      provincialSummaries: null,
+      tpiStats: null,
+      hfiStats: null
+    })
+
+    expect(selectOperationalDataLoading(state)).toBe(false)
+  })
+})
+
+describe('selectActiveLoadError', () => {
+  it('prioritizes settings errors', () => {
+    const settingsError = createLoadError('settings')
+    const state = {
+      settings: { error: settingsError },
+      data: { error: createLoadError('data') },
+      fireCentres: { error: null },
+      runParameters: { error: null }
+    } as unknown as RootState
+
+    expect(selectActiveLoadError(state)).toEqual({ error: settingsError, source: 'settings' })
+  })
+
+  it('selects the first operational error', () => {
+    const fireCentresError = { key: 'centres', status: 503 }
+    const state = {
+      settings: { error: null },
+      data: { error: null },
+      fireCentres: { error: fireCentresError },
+      runParameters: { error: createLoadError('run parameters') }
+    } as unknown as RootState
+
+    expect(selectActiveLoadError(state)).toEqual({ error: fireCentresError, source: 'operational' })
   })
 })

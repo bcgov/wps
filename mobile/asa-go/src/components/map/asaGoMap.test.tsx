@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import { Map as OlMap } from 'ol'
 import { Provider } from 'react-redux'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RunType } from '@/api/fbaAPI'
@@ -39,11 +40,27 @@ vi.mock('@/layerDefinitions', async () => {
   return {
     ...actual,
     createHFILayer: vi.fn().mockImplementation(() => Promise.resolve(createLayerMock('HFILayer'))),
-    createBasemapLayer: vi.fn().mockImplementation(() => Promise.resolve(createLayerMock('vectorBasemapLayer')))
+    createBasemapLayer: vi.fn().mockImplementation(() => Promise.resolve(createLayerMock('vectorBasemapLayer'))),
+    createLocalBasemapVectorLayer: vi
+      .fn()
+      .mockImplementation(() => Promise.resolve(createLayerMock('localBasemapLayer')))
   }
 })
 
-import { createBasemapLayer, HFI_LAYER_NAME } from '@/layerDefinitions'
+import {
+  createBasemapLayer,
+  createHFILayer,
+  createLocalBasemapVectorLayer,
+  HFI_LAYER_NAME,
+  ZONE_STATUS_LAYER_NAME
+} from '@/layerDefinitions'
+import { PMTilesFileVectorSource } from '@/utils/pmtilesVectorSource'
+
+const createPMTilesSource = (state: 'ready' | 'error') => {
+  const source = new PMTilesFileVectorSource({})
+  source.setState(state)
+  return source
+}
 
 describe('ASAGoMap', () => {
   beforeAll(() => {
@@ -52,6 +69,7 @@ describe('ASAGoMap', () => {
 
   const defaultProps: ASAGoMapProps = {
     testId: 'asa-go-map',
+    operationalDataLoading: false,
     selectedFireShape: undefined,
     setSelectedFireShape: vi.fn(),
     setSelectedFireCentre: vi.fn(),
@@ -66,7 +84,11 @@ describe('ASAGoMap', () => {
       altitude: null,
       altitudeAccuracy: null,
       heading: null,
-      speed: null
+      speed: null,
+      magneticHeading: null,
+      trueHeading: null,
+      headingAccuracy: null,
+      course: null
     },
     timestamp: Date.now()
   }
@@ -85,6 +107,95 @@ describe('ASAGoMap', () => {
 
     const mobileMap = getByTestId(defaultProps.testId)
     expect(mobileMap).toBeVisible()
+  })
+
+  it('reports layer setup loading until initial layers settle', async () => {
+    const store = createTestStore()
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+
+    const map = screen.getByTestId(defaultProps.testId)
+    expect(map).toHaveAttribute('aria-busy', 'true')
+    await waitFor(() => expect(map).toHaveAttribute('aria-busy', 'false'))
+  })
+
+  it('reports operational data loading after layer setup settles', async () => {
+    const store = createTestStore()
+    const { rerender } = render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+    const map = screen.getByTestId(defaultProps.testId)
+    await waitFor(() => expect(map).toHaveAttribute('aria-busy', 'false'))
+
+    rerender(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} operationalDataLoading />
+      </Provider>
+    )
+
+    expect(map).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('stays loading until overlapping layer loads settle', async () => {
+    const addLayerSpy = vi.spyOn(OlMap.prototype, 'addLayer')
+    let resolveBasemap: (layer: ReturnType<typeof createLayerMock>) => void = () => {}
+    let resolveHFI: (layer: ReturnType<typeof createLayerMock>) => void = () => {}
+    const basemapPromise = new Promise<ReturnType<typeof createLayerMock>>(resolve => {
+      resolveBasemap = resolve
+    })
+    const hfiPromise = new Promise<ReturnType<typeof createLayerMock>>(resolve => {
+      resolveHFI = resolve
+    })
+    vi.mocked(createBasemapLayer).mockReturnValueOnce(basemapPromise as never)
+    vi.mocked(createHFILayer).mockReturnValueOnce(hfiPromise as never)
+    const staticLayerSpy = vi
+      .spyOn(PMTilesFileVectorSource, 'createStaticLayer')
+      .mockResolvedValue(createPMTilesSource('ready'))
+    const dateKey = '2025-08-01'
+    const store = createTestStore({
+      dateOfInterest: { dateKey },
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          [dateKey]: {
+            for_date: dateKey,
+            run_datetime: '2025-08-01T00:00:00Z',
+            run_type: RunType.FORECAST
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+    const map = screen.getByTestId(defaultProps.testId)
+    await waitFor(() => {
+      expect(createBasemapLayer).toHaveBeenCalled()
+      expect(createHFILayer).toHaveBeenCalled()
+    })
+
+    await act(async () => resolveHFI(createLayerMock('HFILayer')))
+    expect(map).toHaveAttribute('aria-busy', 'true')
+
+    await act(async () => resolveBasemap(createLayerMock('vectorBasemapLayer')))
+    await waitFor(() => expect(map).toHaveAttribute('aria-busy', 'false'))
+
+    const addedLayerNames = addLayerSpy.mock.calls.map(([layer]) => layer.getProperties?.().name)
+    expect(addedLayerNames).toContain(ZONE_STATUS_LAYER_NAME)
+    expect(addedLayerNames).toContain('fireZoneHighlightVector')
+
+    addLayerSpy.mockRestore()
+    staticLayerSpy.mockRestore()
   })
 
   it('renders the location button and location indicator', () => {
@@ -224,10 +335,12 @@ describe('ASAGoMap', () => {
     await waitFor(() => expect(hfiCheckbox).not.toBeChecked())
   })
 
-  it('handles createBasemapLayer failure gracefully when offline', async () => {
-    const error = new Error('Network unavailable')
-    vi.mocked(createBasemapLayer).mockRejectedValueOnce(error)
+  it('settles layer loading when the online basemap is unavailable', async () => {
+    vi.mocked(createBasemapLayer).mockRejectedValueOnce(new Error('Network unavailable'))
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const staticLayerSpy = vi
+      .spyOn(PMTilesFileVectorSource, 'createStaticLayer')
+      .mockResolvedValue(createPMTilesSource('ready'))
 
     const store = createTestStore()
     render(
@@ -239,10 +352,92 @@ describe('ASAGoMap', () => {
     expect(screen.getByTestId(defaultProps.testId)).toBeVisible()
 
     await waitFor(() => {
-      expect(warnSpy).toHaveBeenCalledWith(error)
+      expect(createBasemapLayer).toHaveBeenCalled()
+      expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false')
     })
 
+    staticLayerSpy.mockRestore()
     warnSpy.mockRestore()
+  })
+
+  it('settles layer loading when neither basemap is available', async () => {
+    vi.mocked(createBasemapLayer).mockRejectedValueOnce(new Error('Online basemap unavailable'))
+    const failedLocalBasemap = createLayerMock('localBasemapLayer')
+    failedLocalBasemap.getSource.mockReturnValue({ getState: vi.fn(() => 'error') })
+    vi.mocked(createLocalBasemapVectorLayer).mockResolvedValueOnce(failedLocalBasemap as never)
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const staticLayerSpy = vi
+      .spyOn(PMTilesFileVectorSource, 'createStaticLayer')
+      .mockResolvedValue(createPMTilesSource('ready'))
+    const store = createTestStore()
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+
+    await waitFor(() => expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false'))
+
+    staticLayerSpy.mockRestore()
+    warnSpy.mockRestore()
+  })
+
+  it('settles layer loading when static PMTiles sources fail', async () => {
+    const addLayerSpy = vi.spyOn(OlMap.prototype, 'addLayer')
+    const staticLayerSpy = vi
+      .spyOn(PMTilesFileVectorSource, 'createStaticLayer')
+      .mockResolvedValue(createPMTilesSource('error'))
+    const store = createTestStore()
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+
+    await waitFor(() => expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false'))
+
+    const addedLayerNames = addLayerSpy.mock.calls.map(([layer]) => layer.getProperties?.().name)
+    expect(addedLayerNames).not.toContain(ZONE_STATUS_LAYER_NAME)
+    expect(addedLayerNames).not.toContain('fireZoneHighlightVector')
+
+    addLayerSpy.mockRestore()
+    staticLayerSpy.mockRestore()
+  })
+
+  it('settles layer loading when the HFI source fails', async () => {
+    const failedHFILayer = createLayerMock('HFILayer')
+    failedHFILayer.getSource.mockReturnValue({ getState: vi.fn(() => 'error') })
+    vi.mocked(createHFILayer).mockResolvedValueOnce(failedHFILayer as never)
+    const staticLayerSpy = vi
+      .spyOn(PMTilesFileVectorSource, 'createStaticLayer')
+      .mockResolvedValue(createPMTilesSource('ready'))
+    const dateKey = '2025-08-01'
+    const store = createTestStore({
+      dateOfInterest: { dateKey },
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          [dateKey]: {
+            for_date: dateKey,
+            run_datetime: '2025-08-01T00:00:00Z',
+            run_type: RunType.FORECAST
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <ASAGoMap {...defaultProps} />
+      </Provider>
+    )
+
+    await waitFor(() => expect(screen.getByTestId(defaultProps.testId)).toHaveAttribute('aria-busy', 'false'))
+
+    staticLayerSpy.mockRestore()
   })
 
   it('calls save and load map view state', async () => {

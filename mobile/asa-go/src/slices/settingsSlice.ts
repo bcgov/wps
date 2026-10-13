@@ -7,6 +7,7 @@ import { isNil, isNull } from 'lodash'
 import { DateTime } from 'luxon'
 import type { AppThunk } from '@/store'
 import { getToday } from '@/utils/dataSliceUtils'
+import { createLoadError, type LoadError, toLoadError } from '@/utils/loadError'
 import { retryWithBackoff } from '@/utils/retryWithBackoff'
 import {
   FIRE_CENTRE_INFO_CACHE_EXPIRATION,
@@ -17,7 +18,7 @@ import {
 
 export interface SettingsState {
   loading: boolean
-  error: string | null
+  error: LoadError | null
   fireCentreInfos: FireCentreInfo[]
   pinnedFireCentre: string | null
   subscriptions: number[]
@@ -44,7 +45,7 @@ const settingsSlice = createSlice({
       state.loading = true
       state.fireCentreInfos = []
     },
-    getFireCentreInfoFailed(state: SettingsState, action: PayloadAction<string>) {
+    getFireCentreInfoFailed(state: SettingsState, action: PayloadAction<LoadError>) {
       state.error = action.payload
       state.loading = false
     },
@@ -133,11 +134,11 @@ export const fetchFireCentreInfo = (): AppThunk => async (dispatch, getState) =>
       await writeToFileSystem(Filesystem, FIRE_CENTRE_INFO_KEY, fireCentreInfo.fire_centre_info, today)
       dispatch(getFireCentreInfoSuccess(fireCentreInfo.fire_centre_info))
     } catch (err) {
-      dispatch(getFireCentreInfoFailed((err as Error).toString()))
+      dispatch(getFireCentreInfoFailed(toLoadError(err)))
       console.error(err)
     }
   } else {
     // We're offline so there is nothing to do but set the error state.
-    dispatch(getFireCentreInfoFailed('Unable to refresh fire centre info data. Data may be stale.'))
+    dispatch(getFireCentreInfoFailed(createLoadError('Unable to refresh fire centre info data. Data may be stale.')))
   }
 }

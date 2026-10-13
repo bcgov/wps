@@ -1,3 +1,4 @@
+import { FirebaseMessaging } from '@capacitor-firebase/messaging'
 import { useMediaQuery } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -9,6 +10,7 @@ import FireShapeActionsDrawer from '@/components/map/FireShapeActionsDrawer'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { useIsTablet } from '@/hooks/useIsTablet'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { createTestStore } from '@/testUtils'
 
 vi.mock('@/hooks/useDeviceId', () => ({
@@ -71,13 +73,15 @@ const renderWithProviders = ({
   pushNotificationPermission = 'granted',
   connected = true,
   registeredFcmToken = 'test-token',
-  deviceIdError = false
+  deviceIdError = false,
+  registrationError = false
 }: {
   subscriptions?: number[]
   pushNotificationPermission?: 'granted' | 'denied' | 'prompt' | 'unknown'
   connected?: boolean
   registeredFcmToken?: string | null
   deviceIdError?: boolean
+  registrationError?: boolean
 } = {}) => {
   const store = createTestStore({
     networkStatus: {
@@ -98,17 +102,16 @@ const renderWithProviders = ({
       pushNotificationPermission,
       registeredFcmToken,
       deviceIdError,
-      registrationError: false,
-      registrationAttempts: 0,
+      registrationError,
       pendingNotificationData: null
     }
   })
 
-  render(
+  const drawer = (open: boolean) => (
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <FireShapeActionsDrawer
-          open
+          open={open}
           selectedFireShape={mockFireShape}
           onClose={vi.fn()}
           onSelectProfile={vi.fn()}
@@ -117,7 +120,8 @@ const renderWithProviders = ({
       </ThemeProvider>
     </Provider>
   )
-  return { store }
+  const view = render(drawer(true))
+  return { store, ...view, rerenderDrawer: (open: boolean) => view.rerender(drawer(open)) }
 }
 
 describe('FireShapeActionsDrawer', () => {
@@ -129,6 +133,8 @@ describe('FireShapeActionsDrawer', () => {
     vi.mocked(useIsPortrait).mockReturnValue(true)
     vi.mocked(useIsTablet).mockReturnValue(false)
     vi.mocked(useMediaQuery).mockReturnValue(false)
+    vi.mocked(FirebaseMessaging.checkPermissions).mockResolvedValue({ receive: 'granted' })
+    vi.mocked(FirebaseMessaging.getToken).mockResolvedValue({ token: 'test-token' })
   })
 
   it('renders the selected fire shape name and action buttons', () => {
@@ -143,6 +149,20 @@ describe('FireShapeActionsDrawer', () => {
     expect(screen.getByText('Subscribe')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Profile' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Advisory' })).toBeInTheDocument()
+  })
+
+  it('retries failed registration each time the drawer opens', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    ;(FirebaseMessaging.getToken as Mock).mockRejectedValue(new Error('token error'))
+
+    const { rerenderDrawer } = renderWithProviders({ registrationError: true })
+    await waitFor(() => expect(FirebaseMessaging.getToken).toHaveBeenCalledTimes(1))
+
+    rerenderDrawer(false)
+    rerenderDrawer(true)
+
+    await waitFor(() => expect(FirebaseMessaging.getToken).toHaveBeenCalledTimes(2))
+    consoleSpy.mockRestore()
   })
 
   it('calls onClose from the close button', () => {
@@ -167,7 +187,6 @@ describe('FireShapeActionsDrawer', () => {
         registeredFcmToken: null,
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       }
     })
@@ -215,7 +234,6 @@ describe('FireShapeActionsDrawer', () => {
         registeredFcmToken: null,
         deviceIdError: false,
         registrationError: false,
-        registrationAttempts: 0,
         pendingNotificationData: null
       }
     })
@@ -389,11 +407,11 @@ describe('FireShapeActionsDrawer', () => {
     })
   })
 
-  it('shows error snackbar when subscription toggle fails', async () => {
+  it('queues an error notification when subscription toggle fails', async () => {
     vi.mocked(updateNotificationSettings).mockRejectedValue(new Error('server error'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    renderWithProviders()
+    const { store } = renderWithProviders()
     fireEvent.click(
       screen.getByRole('button', {
         name: /Toggle subscription for Test Fire Zone/i
@@ -401,7 +419,9 @@ describe('FireShapeActionsDrawer', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to update/i)).toBeInTheDocument()
+      expect(store.getState().notifications.notifications).toEqual([
+        expect.objectContaining(NOTIFICATION_DEFINITIONS.subscriptionUpdateError)
+      ])
     })
   })
 

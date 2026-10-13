@@ -1,3 +1,4 @@
+import { Network } from '@capacitor/network'
 import { useMediaQuery } from '@mui/material'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { DateTime } from 'luxon'
@@ -7,9 +8,13 @@ import axios from '@/api/axios'
 import { RunType } from '@/api/fbaAPI'
 import { useIsPortrait } from '@/hooks/useIsPortrait'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { NOTIFICATION_DEFINITIONS } from '@/notificationDefinitions'
 import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
+import { updateNetworkStatus } from '@/slices/networkStatusSlice'
+import { enqueueNotification } from '@/slices/notificationSlice'
 import { initialState as pushNotificationInitialState } from '@/slices/pushNotificationSlice'
 import type { NavPanel } from '@/utils/constants'
+import { clearStaleHFIPMTiles } from '@/utils/storage'
 import App from './App'
 import { createTestStore } from './testUtils'
 
@@ -18,6 +23,7 @@ const mockUseAppIsActive = vi.hoisted(() => vi.fn())
 const mockFetchHFIStats = vi.hoisted(() => vi.fn())
 const mockFetchProvincialSummaries = vi.hoisted(() => vi.fn())
 const mockFetchTpiStats = vi.hoisted(() => vi.fn())
+const mockLoadHFIPMTiles = vi.hoisted(() => vi.fn())
 
 // Mock MUI useMediaQuery to control screen size detection
 vi.mock('@mui/material', async () => {
@@ -60,7 +66,7 @@ vi.mock('@capacitor/filesystem', () => ({
 
 vi.mock('@/utils/pmtilesCache', () => ({
   PMTilesCache: class {
-    loadHFIPMTiles = vi.fn()
+    loadHFIPMTiles = mockLoadHFIPMTiles
     getHFICachedFileName = vi.fn(() => 'hfi.pmtiles')
   }
 }))
@@ -87,7 +93,11 @@ vi.mock('@/components/BottomNavigationBar', () => ({
 }))
 
 vi.mock('@/components/map/ASAGoMap', () => ({
-  default: () => <div data-testid="asa-go-map">ASA Go Map</div>
+  default: ({ operationalDataLoading }: { operationalDataLoading: boolean }) => (
+    <div data-testid="asa-go-map" data-loading={operationalDataLoading}>
+      ASA Go Map
+    </div>
+  )
 }))
 
 vi.mock('@/components/profile/Profile', () => ({
@@ -99,8 +109,22 @@ vi.mock('@/components/report/Advisory', () => ({
 }))
 
 vi.mock('@/components/TabPanel', () => ({
-  default: ({ value, panel, children }: { value: NavPanel; panel: NavPanel; children: React.ReactNode }) =>
-    value === panel ? <div data-testid={`tab-panel-${panel}`}>{children}</div> : null
+  default: ({
+    value,
+    panel,
+    loading,
+    children
+  }: {
+    value: NavPanel
+    panel: NavPanel
+    loading?: boolean
+    children: React.ReactNode
+  }) =>
+    value === panel ? (
+      <div data-testid={`tab-panel-${panel}`} data-loading={loading}>
+        {children}
+      </div>
+    ) : null
 }))
 
 vi.mock('@/components/SideNavigation', () => ({
@@ -139,9 +163,7 @@ vi.mock('@/hooks/useAppIsActive', () => ({
 
 vi.mock('@/hooks/usePushNotifications', () => ({
   usePushNotifications: vi.fn().mockReturnValue({
-    initPushNotifications: vi.fn().mockResolvedValue(undefined),
-    retryRegistration: vi.fn().mockResolvedValue(undefined),
-    currentFcmToken: null
+    initPushNotifications: vi.fn().mockResolvedValue(undefined)
   })
 }))
 
@@ -193,13 +215,15 @@ vi.mock('@/utils/dataSliceUtils', async () => {
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockLoadHFIPMTiles.mockReset()
+    mockLoadHFIPMTiles.mockResolvedValue({})
+    vi.mocked(Network.getStatus).mockResolvedValue({ connected: true, connectionType: 'wifi' })
     mockGetToday.mockReturnValue(DateTime.fromISO('2025-07-02'))
     mockUseAppIsActive.mockReturnValue(true)
     vi.mocked(useIsPortrait).mockReturnValue(true)
     vi.mocked(useMediaQuery).mockReturnValue(false)
     vi.mocked(usePushNotifications).mockReturnValue({
-      initPushNotifications: vi.fn().mockResolvedValue(undefined),
-      retryRegistration: vi.fn().mockResolvedValue(undefined)
+      initPushNotifications: vi.fn().mockResolvedValue(undefined)
     })
     vi.mocked(axios.get).mockImplementation((url: string) => {
       if (url === 'psu/fire-centres') {
@@ -232,6 +256,156 @@ describe('App', () => {
 
     // Check if ASAGoMap is rendered (initial tab is MAP)
     expect(screen.getByTestId('asa-go-map')).toBeInTheDocument()
+  })
+
+  it('marks the Map tab loading while operational data is loading', () => {
+    const store = createTestStore({
+      data: {
+        loading: true,
+        error: null,
+        lastUpdated: null,
+        provincialSummaries: null,
+        tpiStats: null,
+        hfiStats: null
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    expect(screen.getByTestId('asa-go-map')).toHaveAttribute('data-loading', 'true')
+    expect(screen.getByTestId('app-header')).toBeInTheDocument()
+    expect(screen.getByTestId('bottom-nav')).toBeInTheDocument()
+  })
+
+  it('does not notify when the HFI cache preflight succeeds', async () => {
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      },
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          '2025-07-02': {
+            for_date: '2025-07-02',
+            run_datetime: '2025-07-02T12:00:00-07:00',
+            run_type: RunType.ACTUAL
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    await waitFor(() => expect(clearStaleHFIPMTiles).toHaveBeenCalled())
+    expect(
+      store
+        .getState()
+        .notifications.notifications.find(
+          notification => notification.dedupeKey === NOTIFICATION_DEFINITIONS.hfiCacheError.dedupeKey
+        )
+    ).toBeUndefined()
+  })
+
+  it('shows one HFI cache error and retries the preflight after reconnecting', async () => {
+    mockLoadHFIPMTiles.mockRejectedValue(
+      Object.assign(new Error('HFI request failed'), { isAxiosError: true, response: { status: 503 } })
+    )
+    const store = createTestStore({
+      networkStatus: {
+        networkStatus: { connected: true, connectionType: 'wifi' }
+      },
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          '2025-07-02': {
+            for_date: '2025-07-02',
+            run_datetime: '2025-07-02T12:00:00-07:00',
+            run_type: RunType.ACTUAL
+          },
+          '2025-07-03': {
+            for_date: '2025-07-03',
+            run_datetime: '2025-07-02T18:00:00-07:00',
+            run_type: RunType.FORECAST
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    await waitFor(() => expect(mockLoadHFIPMTiles).toHaveBeenCalledTimes(2))
+    await waitFor(() => {
+      expect(
+        store
+          .getState()
+          .notifications.notifications.find(
+            notification => notification.dedupeKey === NOTIFICATION_DEFINITIONS.hfiCacheError.dedupeKey
+          )
+      ).toEqual(
+        expect.objectContaining({
+          ...NOTIFICATION_DEFINITIONS.hfiCacheError,
+          message: `503 Error - ${NOTIFICATION_DEFINITIONS.hfiCacheError.message}`
+        })
+      )
+    })
+
+    act(() => {
+      store.dispatch(updateNetworkStatus({ connected: false, connectionType: 'none' }))
+    })
+    await waitFor(() => expect(screen.getByTestId('info-bar')).toHaveAttribute('data-status', 'warning'))
+    act(() => {
+      store.dispatch(updateNetworkStatus({ connected: true, connectionType: 'wifi' }))
+    })
+
+    await waitFor(() => expect(mockLoadHFIPMTiles).toHaveBeenCalledTimes(4))
+    expect(
+      store
+        .getState()
+        .notifications.notifications.filter(
+          notification => notification.dedupeKey === NOTIFICATION_DEFINITIONS.hfiCacheError.dedupeKey
+        )
+    ).toHaveLength(1)
+  })
+
+  it('waits for connectivity before running the HFI cache preflight', async () => {
+    vi.mocked(Network.getStatus).mockResolvedValue({ connected: false, connectionType: 'none' })
+    const store = createTestStore({
+      runParameters: {
+        loading: false,
+        error: null,
+        runParameters: {
+          '2025-07-02': {
+            for_date: '2025-07-02',
+            run_datetime: '2025-07-02T12:00:00-07:00',
+            run_type: RunType.ACTUAL
+          }
+        }
+      }
+    })
+
+    render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    )
+
+    await waitFor(() => expect(Network.getStatus).toHaveBeenCalled())
+    expect(mockLoadHFIPMTiles).not.toHaveBeenCalled()
+    expect(store.getState().notifications.notifications).toHaveLength(0)
   })
 
   it('renders App component with Redux store integration', () => {
@@ -306,6 +480,7 @@ describe('App', () => {
         networkStatus: { connected: true, connectionType: 'wifi' }
       },
       runParameters: {
+        loading: false,
         error: null,
         runParameters: beforeMidnightRunParameters
       }
@@ -447,6 +622,7 @@ describe('App', () => {
     vi.mocked(useMediaQuery).mockReturnValue(true)
 
     const store = createTestStore()
+    store.dispatch(enqueueNotification({ message: 'Landscape notification' }))
 
     render(
       <Provider store={store}>
@@ -456,6 +632,9 @@ describe('App', () => {
 
     await waitFor(() => expect(screen.getByTestId('side-navigation')).toBeInTheDocument())
     expect(screen.queryByTestId('bottom-nav')).not.toBeInTheDocument()
+    expect(screen.getByText('Landscape notification')).toBeInTheDocument()
+    expect(screen.getByTestId('notification-center').parentElement).toBe(screen.getByTestId('app-content'))
+    expect(screen.getByTestId('side-navigation').contains(screen.getByTestId('notification-center'))).toBe(false)
   })
 
   it('displays AppHeader and BottomNavigation in portrait on small screens', async () => {
@@ -494,8 +673,7 @@ describe('App', () => {
   it('calls initPushNotifications when authenticated', async () => {
     const initPushNotifications = vi.fn().mockResolvedValue(undefined)
     vi.mocked(usePushNotifications).mockReturnValue({
-      initPushNotifications,
-      retryRegistration: vi.fn().mockResolvedValue(undefined)
+      initPushNotifications
     })
 
     const store = createTestStore({
@@ -524,8 +702,7 @@ describe('App', () => {
   it('calls initPushNotifications when not authenticated', async () => {
     const initPushNotifications = vi.fn().mockResolvedValue(undefined)
     vi.mocked(usePushNotifications).mockReturnValue({
-      initPushNotifications,
-      retryRegistration: vi.fn().mockResolvedValue(undefined)
+      initPushNotifications
     })
 
     const store = createTestStore()

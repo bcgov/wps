@@ -60,6 +60,7 @@ import {
   getTodayKey,
   getTomorrowKey
 } from '@/utils/dataSliceUtils'
+import { createLoadError } from '@/utils/loadError'
 import {
   type CacheableData,
   HFI_STATS_KEY,
@@ -264,7 +265,7 @@ describe('data reducer', () => {
   })
 
   it('should handle getDataFailed', () => {
-    const error = 'API error'
+    const error = createLoadError('API error')
     const nextState = reducer(initialState, getDataFailed(error))
     expect(nextState.loading).toBe(false)
     expect(nextState.error).toBe(error)
@@ -338,7 +339,7 @@ describe('fetchAndCacheData thunk', () => {
       runParameters: runParametersInitialState
     })
     await store.dispatch(fetchAndCacheData())
-    expect(store.getState().data.error).toMatch(/runParameters can't be null/)
+    expect(store.getState().data.error?.key).toMatch(/runParameters can't be null/)
   })
 
   it('should update state from cache when cache is current and state is empty', async () => {
@@ -450,6 +451,6 @@ describe('fetchAndCacheData thunk', () => {
       }
     })
     await store.dispatch(fetchAndCacheData())
-    expect(store.getState().data.error).toMatch(/Unable to update data/)
+    expect(store.getState().data.error?.key).toMatch(/Unable to update data/)
   })
 })
