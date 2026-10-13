@@ -2,9 +2,10 @@
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Awaitable, Callable
 
+from botocore.exceptions import ClientError
 from wps_sfms.interpolation.field import (
     build_dc_field,
     build_dewpoint_field,
@@ -15,6 +16,7 @@ from wps_sfms.interpolation.field import (
     build_wind_speed_field,
     build_wind_vector_field,
 )
+from wps_sfms.julian_rasters import ensure_julian_archives, read_julian_rasters
 from wps_sfms.processors.fwi import (
     BUICalculator,
     DCCalculator,
@@ -29,10 +31,19 @@ from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
+from wps_sfms.processors.temporal_fuel import publish_temporal_fuel_raster
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
+from wps_shared.db.crud.fuel_layer import (
+    get_latest_temporal_fuel_raster_version,
+    get_matching_temporal_fuel_raster,
+    lock_temporal_fuel_raster_date,
+)
 from wps_shared.db.crud.sfms_run import track_sfms_run
+from wps_shared.db.database import get_async_write_session_scope
+from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
+from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
@@ -41,6 +52,7 @@ from wps_shared.sfms.raster_addresser import (
     SFMSInterpolatedWeatherParameter,
 )
 from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.time import get_utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +117,103 @@ async def get_missing_fwi_seed_keys(
             missing_keys.append(f"{param.value}={key}")
 
     return missing_keys
+
+
+async def _stored_raster_matches(s3_client: S3Client, existing: TemporalFuelRaster) -> bool:
+    """Return whether the stored raster still exists and matches its recorded content hash."""
+    try:
+        await s3_client.get_fuel_raster(existing.object_store_path, existing.content_hash)
+    except ValueError:
+        logger.warning(
+            "Stored temporal fuel raster no longer matches its recorded hash: %s",
+            existing.object_store_path,
+        )
+        return False
+    except ClientError as e:
+        if e.response["Error"]["Code"] not in ("404", "NoSuchKey"):
+            raise
+        logger.warning("Stored temporal fuel raster is missing: %s", existing.object_store_path)
+        return False
+    return True
+
+
+async def resolve_temporal_fuel_raster(
+    target_date: date,
+    fuel_type_raster: FuelTypeRaster,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+) -> GDALPath:
+    """Return the temporal fuel raster for a date, creating a new version when needed.
+
+    An existing raster is reused only when it was built from the same base fuel raster and the
+    same green-up and grass curing Julian date rasters.
+    """
+    julian = await read_julian_rasters(s3_client, raster_addresser)
+    # outside the date lock: concurrent runs would write identical bytes to the same keys
+    await ensure_julian_archives(s3_client, julian)
+
+    async with get_async_write_session_scope() as session:
+        # held until commit so concurrent runs for the same date reuse rather than collide
+        await lock_temporal_fuel_raster_date(session, target_date)
+        existing = await get_matching_temporal_fuel_raster(
+            session, target_date, fuel_type_raster.id, **julian.hash_columns()
+        )
+        if existing is not None and await _stored_raster_matches(s3_client, existing):
+            logger.info(
+                "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
+            )
+            return raster_addresser.gdal_path(existing.object_store_path)
+        # a grid is fully determined by its inputs, so a missing or altered one is rebuilt as the
+        # next version, which the reuse query then prefers
+
+        version = await get_latest_temporal_fuel_raster_version(session, target_date) + 1
+        output_key = raster_addresser.get_temporal_fuel_key(target_date, version)
+        logger.info(
+            "Generating temporal fuel raster for %s, version %s, base raster %s: %s",
+            target_date,
+            version,
+            fuel_type_raster.id,
+            output_key,
+        )
+        with julian.as_datasets() as julian_datasets:
+            content_hash = await publish_temporal_fuel_raster(
+                s3_client,
+                target_date,
+                base_fuel_key=raster_addresser.gdal_path(fuel_type_raster.object_store_path),
+                output_key=output_key,
+                julian=julian_datasets,
+            )
+        session.add(
+            TemporalFuelRaster(
+                fuel_type_raster_id=fuel_type_raster.id,
+                for_date=target_date,
+                version=version,
+                object_store_path=output_key,
+                content_hash=content_hash,
+                **julian.hash_columns(),
+                **julian.archive_path_columns(),
+                create_timestamp=get_utc_now(),
+            )
+        )
+    return raster_addresser.gdal_path(output_key)
+
+
+async def run_temporal_fuel(
+    datetime_to_process: datetime,
+    fuel_type_raster: FuelTypeRaster,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+    sfms_run_id: int,
+    session,
+) -> GDALPath:
+    """Resolve the date's temporal fuel raster as a tracked job of the SFMS run."""
+
+    async def _resolve() -> GDALPath:
+        return await resolve_temporal_fuel_raster(
+            datetime_to_process.date(), fuel_type_raster, raster_addresser, s3_client
+        )
+
+    return await _run_tracked_job(SFMSRunLogJobName.TEMPORAL_FUEL, sfms_run_id, session, _resolve)
 
 
 async def _resolve_percent_conifer_path(

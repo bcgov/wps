@@ -47,3 +47,27 @@ class SFMSRunBounds(BaseModel):
     run_type: RunTypeEnum
     minimum: date
     maximum: date
+
+
+class FuelCode(BaseModel):
+    """One row of the national FBP fuel lookup table, describing a fuel grid value.
+
+    The colour fields are the national table's r, g, b, h, s and l columns.
+    """
+
+    grid_value: int
+    export_value: int
+    descriptive_name: str
+    fuel_type: str
+    red: int
+    green: int
+    blue: int
+    hue: int
+    saturation: int
+    lightness: int
+
+
+class FuelCodesLookup(BaseModel):
+    """A fuel lookup table, one row per fuel grid value."""
+
+    fuel_codes: list[FuelCode]

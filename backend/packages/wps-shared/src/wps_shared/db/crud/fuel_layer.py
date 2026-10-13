@@ -1,12 +1,14 @@
 """CRUD operations relating to processing fuel rasters"""
 
 import logging
+from datetime import date
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from wps_shared.db.models.fuel_type_raster import FuelRasterInstallStatus, FuelTypeRaster
+from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 
 logger = logging.getLogger(__name__)
 
@@ -102,3 +104,52 @@ async def get_ready_fuel_type_raster_by_year_and_hash(
     )
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
+
+
+async def lock_temporal_fuel_raster_date(session: AsyncSession, for_date: date) -> None:
+    """Serialize temporal fuel raster creation for a date until the transaction ends.
+
+    Choosing the next version and inserting it are separate statements, so two runs for the same
+    date could otherwise both pick the same version and write to the same object store keys.
+    """
+    key = f"temporal_fuel_raster:{for_date.isoformat()}"
+    await session.execute(select(func.pg_advisory_xact_lock(func.hashtextextended(key, 0))))
+
+
+async def get_matching_temporal_fuel_raster(
+    session: AsyncSession,
+    for_date: date,
+    fuel_type_raster_id: int,
+    *,
+    green_up_on_hash: str,
+    green_up_off_hash: str,
+    grass_standing_hash: str,
+    grass_matted_hash: str,
+) -> Optional[TemporalFuelRaster]:
+    """
+    Get the latest temporal fuel raster for a date that was built from the same base fuel raster
+    and Julian date rasters.
+    """
+    stmt = (
+        select(TemporalFuelRaster)
+        .where(
+            TemporalFuelRaster.for_date == for_date,
+            TemporalFuelRaster.fuel_type_raster_id == fuel_type_raster_id,
+            TemporalFuelRaster.green_up_on_hash == green_up_on_hash,
+            TemporalFuelRaster.green_up_off_hash == green_up_off_hash,
+            TemporalFuelRaster.grass_standing_hash == grass_standing_hash,
+            TemporalFuelRaster.grass_matted_hash == grass_matted_hash,
+        )
+        .order_by(TemporalFuelRaster.version.desc())
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def get_latest_temporal_fuel_raster_version(session: AsyncSession, for_date: date) -> int:
+    """Get the highest temporal fuel raster version recorded for a date, or 0 if there is none."""
+    stmt = select(func.coalesce(func.max(TemporalFuelRaster.version), 0)).where(
+        TemporalFuelRaster.for_date == for_date
+    )
+    return (await session.execute(stmt)).scalar_one()

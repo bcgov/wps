@@ -34,7 +34,8 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
   - If PDF is required, missing or out-of-range values on M3/M4 pixels should prevent calculation
     rather than silently use a generic percentage.
 - [ ] Identify, retain, and align an initial percent-grass-curing (`cc`) raster source.
-  - It is only meaningful for O1A/O1B pixels.
+  - It is only meaningful for O1A/O1B pixels. Primary FBP passes a fixed `65%` placeholder, which
+    matters more now that the temporal fuel grid makes grass O1B (standing) from June to December.
   - The initial source and update cadence still need to be determined.
   - Define staleness and fallback rules once the source is selected.
 - [x] Generate one shared Foliar Moisture Content (FMC) raster per calendar date from the
@@ -52,10 +53,58 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
   - Pass `isi=0` so CFFDRS calculates ISI from FFMC and the slope-adjusted effective wind.
   - Continue producing the daily FWI ISI raster as an FWI output, but do not use it as a primary
     FBP input.
-- [ ] Define the seasonal fuel-type policy.
-  - Set the green-up/standing-period dates used to choose M1/M2, M3/M4, and O1A/O1B.
-  - Resolve D1/D2 handling: the SFMS seasonal mapping includes D2, but the installed `cffdrs`
-    package does not support D2 as an FBP fuel type.
+- [x] Apply green-up and grass curing through a daily temporal fuel grid (#5880).
+  - Right before primary FBP, each actual and forecast run builds, or reuses, one temporal fuel
+    grid per processed date from the base fuel grid and four Julian-date rasters. It runs as the
+    `temporal_fuel` job, after weather and FWI, so a failure can't stop the weather and FWI
+    rasters from being written. Like every tracked SFMS job, a failure rolls back the run's
+    `sfms_run` and `sfms_run_log` rows; the job exits with an error and alerts chatops instead.
+    The Julian-date rasters must be uploaded manually; the step fails with "Missing Julian date
+    rasters" otherwise:
+    - `sfms_ng/static/julian/green_up_on.tif`: day of year green-up starts, per pixel.
+    - `sfms_ng/static/julian/green_up_off.tif`: day of year green-up ends, per pixel.
+    - `sfms_ng/static/julian/grass_standing.tif`: day of year grass becomes standing, per pixel.
+    - `sfms_ng/static/julian/grass_matted.tif`: day of year grass becomes matted, per pixel.
+    - All must match the fuel grid (778 by 683, 2 km). The interim rasters from the Predictive
+      Services SharePoint (`Geospatial Data/Fuel Layer`) are constant: green-up day `152` (Jun 1)
+      to `258` (Sep 15), and grass standing day `152` (Jun 1) to `335` (Dec 1).
+  - Green-up is applied first, then grass curing:
+    - A pixel is green when `green_up_on <= day of year < green_up_off`, which turns D1, M1 and
+      M3 into D2, M2 and M4.
+    - Its grass is standing when `grass_standing <= day of year < grass_matted`, which turns O1A
+      into O1B.
+    - Julian-date nodata pixels never switch.
+    - Day of year is counted as in a non-leap year (`152` is always Jun 1), so Julian-date rasters
+      should be numbered the same way; in leap years Feb 29 counts as Feb 28.
+  - An existing grid is reused only when its base grid and all four Julian-date raster hashes
+    match, and only after its stored file is downloaded and matched against its recorded content
+    hash. A missing or altered grid is rebuilt as the next version.
+  - Temporal grids use national FBP lookup codes, not BC base grid codes, and are stored at
+    `sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fbpYYYY_MM_DD_{version}.tif` (e.g.
+    `sfms_ng/fuel/temporal/2026/07/01/1/fbp2026_07_01_1.tif`). `{version}` counts the grids
+    stored for that date, starting at `1`; a new one is stored whenever no stored grid matches the
+    run's base grid and Julian-date rasters, or the matching one is missing or altered.
+  - The national fuel lookup (`wps_shared/sfms/national_fuel_lookup.py`) describes every temporal
+    fuel grid: one row per grid value, with its fuel type, descriptive name and colour
+    (`red`/`green`/`blue` and `hue`/`saturation`/`lightness`). Primary FBP reads its CFFDRS fuel
+    types from it in code (`wps_sfms.fbp_fuel_types.NATIONAL_FUEL_TYPES`). The table is
+    append-only: add rows for new grid values, but never change what an existing grid value
+    means, since every stored grid is read with the current table.
+  - The names and colours are for the frontend, which labels and colours fuel grids from a copy
+    of the table uploaded with `wps_tools.upload_national_fuel_codes` to
+    `sfms_ng/fuel/temporal/fuel_codes_lookup.json`. Re-upload it to every environment whenever
+    the table changes (`--dry-run` prints it instead):
+
+    ```bash
+    cd backend
+    uv run python -m wps_tools.upload_national_fuel_codes
+    ```
+  - D2 is supported by `cffdrs_vec`. It applies BUI thresholding, so D2 produces almost no spread
+    below BUI 80.
+  - Seasonal variants apply to every primary FBP output, including SFC, following the
+    `fuel_type_code` policy below. This replaces the standalone SFC processor's use of base fuel
+    types (#5696): green aspen now uses D2's SFC, which is zero below BUI 80. M2 and O1B SFC
+    match M1 and O1A.
 
 ## Inputs Already Available or Derivable
 
