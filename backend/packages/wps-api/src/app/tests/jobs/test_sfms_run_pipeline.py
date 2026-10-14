@@ -18,7 +18,6 @@ from wps_shared.sfms.raster_addresser import FBPParameter
 from app.jobs.sfms_run_pipeline import (
     ResolvedTemporalFuelRaster,
     SFMSRunContext,
-    StagePhase,
     _resolve_percent_conifer_path,
     _resolve_percent_dead_conifer_path,
     resolve_temporal_fuel_raster,
@@ -122,8 +121,11 @@ class TestSFMSRunContext:
         events = []
 
         class Node:
-            def accept(self, visitor, context, phase, result=None):
-                events.append((phase, context, result))
+            def on_enter(self, context):
+                events.append(("visit", context))
+
+            def on_exit(self, context, result):
+                events.append(("exit", context, result))
 
         context = a_run()
 
@@ -135,9 +137,9 @@ class TestSFMSRunContext:
 
         assert result == "output"
         assert events == [
-            (StagePhase.ENTER, context, None),
+            ("visit", context),
             ("action",),
-            (StagePhase.EXIT, context, "output"),
+            ("exit", context, "output"),
         ]
 
     @pytest.mark.anyio
@@ -146,18 +148,19 @@ class TestSFMSRunContext:
         events = []
 
         class Node:
-            def accept(self, visitor, context, phase, result=None):
-                events.append(phase)
+            def on_enter(self, context):
+                events.append("visit")
+
+            def on_exit(self, context, result):
+                events.append("exit")
 
         async def action():
             raise RuntimeError("stage failed")
 
-        context = a_run()
-        node = Node()
         with pytest.raises(RuntimeError, match="stage failed"):
-            await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, node)
+            await a_run().run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
 
-        assert events == [StagePhase.ENTER]
+        assert events == ["visit"]
 
 
 @pytest.mark.anyio
