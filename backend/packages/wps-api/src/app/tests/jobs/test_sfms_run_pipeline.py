@@ -12,7 +12,6 @@ from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 from wps_shared.run_type import RunType
 
 from app.jobs.sfms_run_pipeline import (
-    SFMSRunContext,
     _resolve_percent_conifer_path,
     _resolve_percent_dead_conifer_path,
     resolve_temporal_fuel_raster,
@@ -114,16 +113,16 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
 
     mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=run_tracked_job)
 
-    ctx = SFMSRunContext(
-        datetime_to_process=datetime_to_process,
-        run_type=RunType.ACTUAL,
-        sfms_run_id=42,
-        session=session,
-        s3_client=s3_client,
-        raster_addresser=addresser,
+    await run_fbp_calculations(
+        datetime_to_process,
+        addresser,
+        s3_client,
+        "/vsis3/test/fuel.tif",
+        2025,
+        42,
+        session,
+        RunType.ACTUAL,
     )
-
-    await run_fbp_calculations(ctx, "/vsis3/test/fuel.tif", 2025)
 
     resolve_percent_conifer.assert_awaited_once_with(2025, addresser, s3_client)
     addresser.get_primary_fire_behaviour_inputs.assert_called_once_with(
