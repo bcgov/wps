@@ -10,7 +10,6 @@ import asyncio
 import logging
 import os
 import sys
-from dataclasses import replace
 from datetime import datetime, timezone
 
 from aiohttp import ClientSession
@@ -112,7 +111,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
         if fwi_calculated:
             async with get_async_write_session_scope() as session:
                 # the fuel and FBP stages log their jobs against this session of their own
-                fuel_run = replace(ctx, session=session)
+                fuel_run = ctx.with_session(session)
                 temporal_fuel_path = await run_temporal_fuel(fuel_run, fuel_type_raster)
                 await run_fbp_calculations(fuel_run, temporal_fuel_path, fuel_type_raster.year)
 

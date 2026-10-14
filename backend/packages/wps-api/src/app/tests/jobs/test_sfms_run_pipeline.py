@@ -76,6 +76,17 @@ class TestSFMSRunContext:
         assert run.manifest.for_date == date(2026, 6, 1)
         assert run.manifest.run_datetime == RUN_DATETIME
 
+    def test_with_session_preserves_the_run_and_manifest(self):
+        run = a_run()
+        session = MagicMock()
+
+        rebound = run.with_session(session)
+
+        assert rebound.session is session
+        assert rebound.manifest is run.manifest
+        assert rebound.sfms_run_id == run.sfms_run_id
+        assert rebound.datetime_to_process == run.datetime_to_process
+
     @pytest.mark.parametrize(
         "manifest",
         [

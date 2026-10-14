@@ -85,9 +85,10 @@ class RasterInterpolationJob:
     processor: RasterProcessor
 
     def visit(self, context: "SFMSRunContext") -> None:
+        # The raster output is the only trace metadata; it is recorded on successful exit.
         pass
 
-    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         context.manifest.record_raster_output(self.parameter, self.output_key)
 
 
@@ -98,9 +99,10 @@ class FWICalculationJob:
     output_key: S3Key
 
     def visit(self, context: "SFMSRunContext") -> None:
+        # The output key is the only trace metadata; it is recorded on successful exit.
         pass
 
-    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         context.manifest.record_raster_output(self.calculator.fwi_param, self.output_key)
 
 
@@ -123,7 +125,8 @@ class WeatherInterpolationStage:
         context.manifest.record_base_fuel_raster(self.fuel_raster_path)
         context.manifest.record_static_rasters(self.static_rasters)
 
-    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
+        # The child raster nodes record weather outputs individually.
         pass
 
 
@@ -134,13 +137,15 @@ class FWISeedStage:
     def visit(self, context: "SFMSRunContext") -> None:
         context.manifest.record_seed_rasters(self.seed_keys)
 
-    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
+        # The calculation nodes record FWI outputs individually.
         pass
 
 
 @dataclass(frozen=True)
 class TemporalFuelStage:
     def visit(self, context: "SFMSRunContext") -> None:
+        # The exact Julian inputs are returned by the resolver after they are read.
         pass
 
     def exit(self, context: "SFMSRunContext", result: object | None) -> None:
@@ -157,7 +162,7 @@ class FoliarMoistureContentStage:
     def visit(self, context: "SFMSRunContext") -> None:
         context.manifest.record_fmc_static_inputs(self.fmc_inputs)
 
-    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         context.manifest.record_fmc_raster(self.fmc_inputs, self.target_date)
 
 
@@ -171,7 +176,7 @@ class PrimaryFBPStage:
         context.manifest.record_percent_conifer_raster(self.percent_conifer_path)
         context.manifest.record_static_rasters(self.static_rasters)
 
-    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         for parameter, output_key in self.output_keys.items():
             context.manifest.record_raster_output(parameter, output_key)
 
@@ -256,6 +261,18 @@ class SFMSRunContext:
     async def track(self, job_name: SFMSRunLogJobName, action: Callable[[], Awaitable[T]]) -> T:
         """Run ``action`` as a job of this run, logged under ``job_name``."""
         return await _run_tracked_job(job_name, self.sfms_run_id, self.session, action)
+
+    def with_session(self, session: AsyncSession) -> "SFMSRunContext":
+        """Return this run context using another session while preserving its manifest."""
+        return SFMSRunContext(
+            datetime_to_process=self.datetime_to_process,
+            run_type=self.run_type,
+            sfms_run_id=self.sfms_run_id,
+            manifest=self.manifest,
+            session=session,
+            s3_client=self.s3_client,
+            raster_addresser=self.raster_addresser,
+        )
 
     def visit_node(self, node: VisitorNode) -> None:
         """Invoke a stage node's input-recording hook with this run context."""
