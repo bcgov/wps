@@ -1,11 +1,12 @@
 """Shared SFMS weather interpolation and FWI calculation pipeline."""
 
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Awaitable, Callable, TypeVar
 
-from aiohttp import ClientError
+from botocore.exceptions import ClientError
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_sfms.interpolation.field import (
     build_dc_field,
@@ -34,6 +35,7 @@ from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.temporal_fuel import publish_temporal_fuel_raster
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
+from wps_sfms.run_manifest import SFMSRunManifest
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.db.crud.fuel_layer import (
     get_latest_temporal_fuel_raster_version,
@@ -50,6 +52,7 @@ from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FWIParameter,
     GDALPath,
+    S3Key,
     SFMSInterpolatedWeatherParameter,
 )
 from wps_shared.utils.s3_client import S3Client
@@ -62,7 +65,10 @@ T = TypeVar("T")
 
 @dataclass(frozen=True)
 class RasterInterpolationJob:
+    """One tracked interpolation job: the parameter it interpolates and where it is written."""
+
     job_name: SFMSRunLogJobName
+    parameter: SFMSInterpolatedWeatherParameter | FWIParameter
     output_key: str
     log_label: str
     processor: RasterProcessor
@@ -72,6 +78,27 @@ class RasterInterpolationJob:
 class FWICalculationJob:
     job_name: SFMSRunLogJobName
     calculator: FWICalculator
+
+
+@dataclass(frozen=True)
+class ResolvedTemporalFuelRaster:
+    """A date's temporal fuel raster, and the archived Julian rasters its grid was built from."""
+
+    path: GDALPath
+    julian_archive_keys: Mapping[str, S3Key]
+
+
+def get_fwi_seed_keys(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    run_type: RunType = RunType.ACTUAL,
+) -> dict[FWIParameter, S3Key]:
+    """Return the previous-day FFMC/DMC/DC seed raster keys for a run type."""
+    previous_date = datetime_to_process - timedelta(days=1)
+    return {
+        param: raster_addresser.get_index_key(previous_date, param, run_type)
+        for param in (FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC)
+    }
 
 
 async def _run_tracked_job(
@@ -90,18 +117,61 @@ async def _run_tracked_job(
 @dataclass(frozen=True)
 class SFMSRunContext:
     """What every stage of one SFMS run for one date shares: the date and run type being
-    processed, the run its jobs are tracked against, and the clients they read and write with."""
+    processed, the manifest its inputs and outputs are traced in, the run its jobs are tracked
+    against, and the clients they read and write with."""
 
     datetime_to_process: datetime
     run_type: RunType
     sfms_run_id: int
+    manifest: SFMSRunManifest
     session: AsyncSession
     s3_client: S3Client
     raster_addresser: SFMSNGRasterAddresser
 
+    @classmethod
+    def start(
+        cls,
+        datetime_to_process: datetime,
+        run_type: RunType,
+        sfms_run_id: int,
+        run_datetime: datetime,
+        session: AsyncSession,
+        s3_client: S3Client,
+        raster_addresser: SFMSNGRasterAddresser,
+    ) -> "SFMSRunContext":
+        """Start a run, creating the manifest its inputs and outputs will be traced in.
+
+        ``run_datetime`` is when the run was saved, and is the same value its ``sfms_run`` row
+        records, so a manifest and that row can be joined on it.
+        """
+        return cls(
+            datetime_to_process=datetime_to_process,
+            run_type=run_type,
+            sfms_run_id=sfms_run_id,
+            manifest=SFMSRunManifest(
+                run_type=run_type,
+                for_date=datetime_to_process.date(),
+                run_datetime=run_datetime,
+            ),
+            session=session,
+            s3_client=s3_client,
+            raster_addresser=raster_addresser,
+        )
+
+    def __post_init__(self):
+        # a manifest that describes another run's date or type could never be joined to this one
+        assert self.manifest.run_type == self.run_type, "the manifest must describe this run type"
+        assert self.manifest.for_date == self.datetime_to_process.date(), (
+            "the manifest must describe this target date"
+        )
+
     async def track(self, job_name: SFMSRunLogJobName, action: Callable[[], Awaitable[T]]) -> T:
         """Run ``action`` as a job of this run, logged under ``job_name``."""
         return await _run_tracked_job(job_name, self.sfms_run_id, self.session, action)
+
+    async def write_manifest(self) -> None:
+        """Upload the manifest tracing this run's inputs and outputs."""
+        await self.manifest.write(self.s3_client)
 
 
 async def _process_raster_job(
@@ -112,6 +182,7 @@ async def _process_raster_job(
         logger.info("%s: %s", job.log_label, s3_key)
 
     await ctx.track(job.job_name, _run)
+    ctx.manifest.record_raster_output(job.parameter, job.output_key)
 
 
 async def get_missing_fwi_seed_keys(
@@ -121,10 +192,8 @@ async def get_missing_fwi_seed_keys(
     run_type: RunType = RunType.ACTUAL,
 ) -> list[str]:
     """Return any missing previous-day FFMC/DMC/DC seed rasters."""
-    previous_date = datetime_to_process - timedelta(days=1)
     missing_keys = []
-    for param in (FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC):
-        key = raster_addresser.get_index_key(previous_date, param, run_type)
+    for param, key in get_fwi_seed_keys(datetime_to_process, raster_addresser, run_type).items():
         if not await s3_client.all_objects_exist(key):
             missing_keys.append(f"{param.value}={key}")
 
@@ -154,15 +223,17 @@ async def resolve_temporal_fuel_raster(
     fuel_type_raster: FuelTypeRaster,
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
-) -> GDALPath:
+) -> ResolvedTemporalFuelRaster:
     """Return the temporal fuel raster for a date, creating a new version when needed.
 
     An existing raster is reused only when it was built from the same base fuel raster and the
-    same green-up and grass curing Julian date rasters.
+    same green-up and grass curing Julian date rasters. The resolved raster carries the archived
+    Julian raster keys its grid was built from, since the live Julian keys are replaced over time.
     """
     julian = await read_julian_rasters(s3_client, raster_addresser)
     # outside the date lock: concurrent runs would write identical bytes to the same keys
     await ensure_julian_archives(s3_client, julian)
+    julian_archive_keys = {raster.name: raster.archive_key for raster in julian}
 
     async with get_async_write_session_scope() as session:
         # held until commit so concurrent runs for the same date reuse rather than collide
@@ -174,7 +245,10 @@ async def resolve_temporal_fuel_raster(
             logger.info(
                 "Reusing temporal fuel raster for %s: %s", target_date, existing.object_store_path
             )
-            return raster_addresser.gdal_path(existing.object_store_path)
+            return ResolvedTemporalFuelRaster(
+                path=raster_addresser.gdal_path(existing.object_store_path),
+                julian_archive_keys=julian_archive_keys,
+            )
         # a grid is fully determined by its inputs, so a missing or altered one is rebuilt as the
         # next version, which the reuse query then prefers
 
@@ -207,25 +281,26 @@ async def resolve_temporal_fuel_raster(
                 create_timestamp=get_utc_now(),
             )
         )
-    return raster_addresser.gdal_path(output_key)
+    return ResolvedTemporalFuelRaster(
+        path=raster_addresser.gdal_path(output_key),
+        julian_archive_keys=julian_archive_keys,
+    )
 
 
-async def run_temporal_fuel(
-    datetime_to_process: datetime,
-    fuel_type_raster: FuelTypeRaster,
-    raster_addresser: SFMSNGRasterAddresser,
-    s3_client: S3Client,
-    sfms_run_id: int,
-    session,
-) -> GDALPath:
+async def run_temporal_fuel(run: SFMSRunContext, fuel_type_raster: FuelTypeRaster) -> GDALPath:
     """Resolve the date's temporal fuel raster as a tracked job of the SFMS run."""
 
     async def _resolve() -> GDALPath:
-        return await resolve_temporal_fuel_raster(
-            datetime_to_process.date(), fuel_type_raster, raster_addresser, s3_client
+        resolved = await resolve_temporal_fuel_raster(
+            run.datetime_to_process.date(),
+            fuel_type_raster,
+            run.raster_addresser,
+            run.s3_client,
         )
+        run.manifest.record_temporal_fuel_raster(resolved.path, resolved.julian_archive_keys)
+        return resolved.path
 
-    return await _run_tracked_job(SFMSRunLogJobName.TEMPORAL_FUEL, sfms_run_id, session, _resolve)
+    return await run.track(SFMSRunLogJobName.TEMPORAL_FUEL, _resolve)
 
 
 async def _resolve_percent_conifer_path(
@@ -268,6 +343,10 @@ async def run_fbp_calculations(
     percent_conifer_path = await _resolve_percent_conifer_path(
         fuel_raster_year, raster_addresser, ctx.s3_client
     )
+    ctx.manifest.record_percent_conifer_raster(percent_conifer_path)
+    slope_key = raster_addresser.get_slope_key()
+    aspect_key = raster_addresser.get_aspect_key()
+    ctx.manifest.record_static_rasters({"slope": slope_key, "aspect": aspect_key})
     inputs = raster_addresser.get_primary_fire_behaviour_inputs(
         ctx.datetime_to_process,
         ctx.run_type,
@@ -288,8 +367,8 @@ async def run_fbp_calculations(
             )
         ),
         raster_addresser.gdal_path(raster_addresser.get_fmc_key(ctx.datetime_to_process.date())),
-        raster_addresser.gdal_path(raster_addresser.get_slope_key()),
-        raster_addresser.gdal_path(raster_addresser.get_aspect_key()),
+        raster_addresser.gdal_path(slope_key),
+        raster_addresser.gdal_path(aspect_key),
     )
     processor = PrimaryFireBehaviourProcessor(ctx.datetime_to_process)
 
@@ -297,6 +376,8 @@ async def run_fbp_calculations(
         await processor.process(ctx.s3_client, multi_wps_dataset_context, inputs)
 
     await ctx.track(SFMSRunLogJobName.PRIMARY_FBP_CALCULATION, _run_primary_fbp)
+    for parameter, output_key in inputs.output_keys.items():
+        ctx.manifest.record_raster_output(parameter, output_key)
 
 
 async def run_weather_interpolation(
@@ -306,6 +387,7 @@ async def run_weather_interpolation(
     raster_addresser = ctx.raster_addresser
     mask_path = raster_addresser.get_mask_key()
     dem_path = raster_addresser.get_dem_key()
+    ctx.manifest.record_static_rasters({"dem": dem_path, "mask": mask_path})
 
     def weather_key(param: SFMSInterpolatedWeatherParameter) -> str:
         return raster_addresser.get_weather_key(ctx.datetime_to_process, param, ctx.run_type)
@@ -315,6 +397,7 @@ async def run_weather_interpolation(
     jobs = [
         RasterInterpolationJob(
             job_name=SFMSRunLogJobName.TEMPERATURE_INTERPOLATION,
+            parameter=SFMSInterpolatedWeatherParameter.TEMP,
             output_key=temp_output_key,
             log_label="Temperature interpolation raster",
             processor=TemperatureInterpolator(
@@ -323,6 +406,7 @@ async def run_weather_interpolation(
         ),
         RasterInterpolationJob(
             job_name=SFMSRunLogJobName.RH_INTERPOLATION,
+            parameter=SFMSInterpolatedWeatherParameter.RH,
             output_key=weather_key(SFMSInterpolatedWeatherParameter.RH),
             log_label="RH interpolation raster",
             processor=RHInterpolator(
@@ -331,12 +415,14 @@ async def run_weather_interpolation(
         ),
         RasterInterpolationJob(
             job_name=SFMSRunLogJobName.WIND_SPEED_INTERPOLATION,
+            parameter=SFMSInterpolatedWeatherParameter.WIND_SPEED,
             output_key=weather_key(SFMSInterpolatedWeatherParameter.WIND_SPEED),
             log_label="Wind speed interpolation raster",
             processor=WindSpeedInterpolator(mask_path, build_wind_speed_field(station_weather)),
         ),
         RasterInterpolationJob(
             job_name=SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION,
+            parameter=SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
             output_key=weather_key(SFMSInterpolatedWeatherParameter.WIND_DIRECTION),
             log_label="Wind direction interpolation raster",
             processor=WindDirectionInterpolator(
@@ -345,6 +431,7 @@ async def run_weather_interpolation(
         ),
         RasterInterpolationJob(
             job_name=SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+            parameter=SFMSInterpolatedWeatherParameter.PRECIP,
             output_key=weather_key(SFMSInterpolatedWeatherParameter.PRECIP),
             log_label="Precip interpolation raster",
             processor=Interpolator(mask_path, build_precipitation_field(station_weather)),
@@ -371,18 +458,21 @@ async def run_fwi_interpolation(
     jobs = [
         RasterInterpolationJob(
             job_name=SFMSRunLogJobName.FFMC_INTERPOLATION,
+            parameter=FWIParameter.FFMC,
             output_key=index_key(FWIParameter.FFMC),
             log_label=f"{SFMSRunLogJobName.FFMC_INTERPOLATION.value} raster",
             processor=Interpolator(mask_path, build_ffmc_field(station_weather)),
         ),
         RasterInterpolationJob(
             job_name=SFMSRunLogJobName.DMC_INTERPOLATION,
+            parameter=FWIParameter.DMC,
             output_key=index_key(FWIParameter.DMC),
             log_label=f"{SFMSRunLogJobName.DMC_INTERPOLATION.value} raster",
             processor=Interpolator(mask_path, build_dmc_field(station_weather)),
         ),
         RasterInterpolationJob(
             job_name=SFMSRunLogJobName.DC_INTERPOLATION,
+            parameter=FWIParameter.DC,
             output_key=index_key(FWIParameter.DC),
             log_label=f"{SFMSRunLogJobName.DC_INTERPOLATION.value} raster",
             processor=Interpolator(mask_path, build_dc_field(station_weather)),
@@ -435,6 +525,7 @@ async def _run_fwi_calculation_jobs(
             await fwi_processor.calculate_index(
                 ctx.s3_client, multi_wps_dataset_context, _calculator, _fwi_inputs
             )
+            ctx.manifest.record_raster_output(_calculator.fwi_param, _fwi_inputs.output_key)
 
         await ctx.track(job.job_name, _run)
 
@@ -468,6 +559,9 @@ async def run_fwi_calculations(
         )
         return False
 
+    ctx.manifest.record_seed_rasters(
+        get_fwi_seed_keys(ctx.datetime_to_process, ctx.raster_addresser, seed_run_type)
+    )
     full_fwi_calculators = (
         FFMCCalculator(),
         DMCCalculator(month),
