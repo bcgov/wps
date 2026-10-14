@@ -44,8 +44,9 @@ overwrite an earlier manifest: each run lands under its own run datetime. A mani
 `run_datetime` is the same value the run stored on its `sfms_run` row, so the two can be joined
 on it.
 
-Manifests are written at the end of a successful run. A run that fails writes no manifest; the
-`sfms_run_log` rows for that run record which job failed.
+Manifests are written when a run reaches a terminal state. A failed run's manifest contains the
+inputs recorded so far and outputs from stages that completed successfully, plus the failing stage
+and exception type. Failures before an `SFMSRunContext` is created have no run manifest.
 
 ## Schema
 
@@ -59,6 +60,7 @@ versions can add to them.
   "run_datetime": "2026-10-13T20:45:00Z",
   "run_type": "actual",
   "for_date": "2026-10-13",
+  "status": "success",
   "input": {
     "station_codes": [122, 346],
     "fuel_raster": {
@@ -125,6 +127,10 @@ versions can add to them.
 | `run_datetime` | string | ISO 8601 UTC instant the run was saved. Also names the manifest's folder and file.               |
 | `run_type`     | string | `actual` or `forecast`.                                                                          |
 | `for_date`     | string | ISO date the run's rasters are for.                                                              |
+| `status`       | string | `success` or `failed`; manifests are written only for terminal runs.                             |
+| `failed_stage` | string | Present for failed runs; the stage that raised.                                                  |
+| `failure_type` | string | Present for failed runs; the exception class.                                                    |
+| `failure_message` | string | Optional, truncated exception message for failed runs.                                       |
 | `input`        | object | What the run read. See below.                                                                    |
 | `output`       | object | What the run wrote, by product. See below.                                                       |
 

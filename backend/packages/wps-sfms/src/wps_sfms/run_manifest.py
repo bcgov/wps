@@ -13,6 +13,7 @@ The schema is versioned: every manifest records the ``version`` it was written w
 import logging
 from collections.abc import Iterable, Mapping
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 from wps_shared import config
@@ -86,8 +87,22 @@ class SFMSRunManifest(BaseModel):
     run_datetime: datetime
     run_type: RunType
     for_date: date
+    status: Literal["running", "success", "failed"] = "running"
+    failed_stage: str | None = None
+    failure_type: str | None = None
+    failure_message: str | None = None
     input: SFMSRunInputs = Field(default_factory=SFMSRunInputs)
     output: SFMSRunOutputs = Field(default_factory=SFMSRunOutputs)
+
+    def record_failure(self, stage: str, error: Exception) -> None:
+        """Record the first stage failure, without replacing an earlier failure cause."""
+        if self.status != "running":
+            return
+        self.status = "failed"
+        self.failed_stage = stage
+        self.failure_type = type(error).__name__
+        message = str(error).strip()
+        self.failure_message = message[:512] if message else None
 
     def record_station_codes(self, station_codes: Iterable[int]) -> None:
         """Record the station codes whose weather the run interpolated."""
@@ -181,8 +196,16 @@ class SFMSRunManifest(BaseModel):
         )
 
     async def write(self, s3_client: S3Client) -> None:
-        """Upload this manifest to the object store."""
+        """Upload this terminal manifest to the object store."""
         key = self.key()
-        body = self.model_dump_json(indent=2, exclude_none=True).encode()
-        await s3_client.put_object(key=key, body=body)
+        was_running = self.status == "running"
+        if was_running:
+            self.status = "success"
+        try:
+            body = self.model_dump_json(indent=2, exclude_none=True).encode()
+            await s3_client.put_object(key=key, body=body)
+        except Exception:
+            if was_running:
+                self.status = "running"
+            raise
         logger.info("Wrote SFMS run manifest: %s", key)

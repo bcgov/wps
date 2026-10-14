@@ -442,6 +442,10 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.wind_speed_processor.process.assert_not_called()
         mock_dependencies.wind_direction_processor.process.assert_not_called()
         mock_dependencies.interpolation_processor.process.assert_not_called()
+        manifest = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
+        assert manifest["status"] == "failed"
+        assert manifest["failed_stage"] == "temperature_interpolation"
+        assert manifest["failure_type"] == "RuntimeError"
 
     @pytest.mark.anyio
     async def test_temporal_fuel_failure_keeps_weather_and_fwi_and_raises(
@@ -460,6 +464,13 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.primary_fbp_processor.process.assert_not_called()
         # weather and FWI committed before fuel failed
         mock_dependencies.db_session.commit.assert_awaited_once()
+        mock_dependencies.s3_client.put_object.assert_awaited_once()
+        failure_manifest = json.loads(
+            mock_dependencies.s3_client.put_object.await_args.kwargs["body"]
+        )
+        assert failure_manifest["status"] == "failed"
+        assert failure_manifest["failure_type"] == "RuntimeError"
+        assert failure_manifest["failure_message"] == "temporal fuel failed"
 
     @pytest.mark.anyio
     async def test_precipitation_failure_logs_failed_and_raises(

@@ -314,17 +314,26 @@ class SFMSRunContext:
     ) -> T:
         """Track a stage and let its trace node record inputs on entry and outputs on success."""
         stage_name = job_name.value
-        self.enter_node(trace_node, stage_name)
-        result = await self.track(job_name, action)
-        self.exit_node(trace_node, result, stage_name)
-        return result
+        try:
+            self.enter_node(trace_node, stage_name)
+            result = await self.track(job_name, action)
+            self.exit_node(trace_node, result, stage_name)
+            return result
+        except Exception as error:
+            self.manifest.record_failure(stage_name, error)
+            raise
 
     async def run_group(self, trace_node: SFMSStageNode, action: Callable[[], Awaitable[T]]) -> T:
         """Visit a multi-job stage around its successful execution."""
-        self.enter_node(trace_node)
-        result = await action()
-        self.exit_node(trace_node, result)
-        return result
+        stage_name = self._stage_name(trace_node)
+        try:
+            self.enter_node(trace_node, stage_name)
+            result = await action()
+            self.exit_node(trace_node, result, stage_name)
+            return result
+        except Exception as error:
+            self.manifest.record_failure(stage_name, error)
+            raise
 
     async def write_manifest(self) -> None:
         """Upload the manifest tracing this run's inputs and outputs."""
@@ -342,25 +351,49 @@ async def run_fmc_calculations(contexts: list[SFMSRunContext], fuel_raster_path:
     if not contexts:
         return
 
-    raster_addresser = contexts[0].raster_addresser
-    fmc_inputs = raster_addresser.get_fmc_inputs(
-        [context.datetime_to_process.date() for context in contexts], fuel_raster_path
-    )
-    trace_nodes = [
-        FoliarMoistureContentStage(fmc_inputs, context.datetime_to_process.date())
-        for context in contexts
-    ]
-    for context, node in zip(contexts, trace_nodes):
-        context.enter_node(node)
+    stage_name = "foliar_moisture_content"
+    try:
+        raster_addresser = contexts[0].raster_addresser
+        fmc_inputs = raster_addresser.get_fmc_inputs(
+            [context.datetime_to_process.date() for context in contexts], fuel_raster_path
+        )
+        trace_nodes = [
+            FoliarMoistureContentStage(fmc_inputs, context.datetime_to_process.date())
+            for context in contexts
+        ]
+        for context, node in zip(contexts, trace_nodes):
+            context.enter_node(node, stage_name)
 
-    await FoliarMoistureContentProcessor(raster_addresser).process(
-        contexts[0].s3_client,
-        multi_wps_dataset_context,
-        fmc_inputs,
-    )
+        await FoliarMoistureContentProcessor(raster_addresser).process(
+            contexts[0].s3_client,
+            multi_wps_dataset_context,
+            fmc_inputs,
+        )
 
-    for context, node in zip(contexts, trace_nodes):
-        context.exit_node(node)
+        for context, node in zip(contexts, trace_nodes):
+            context.exit_node(node, stage_name=stage_name)
+    except Exception as error:
+        for context in contexts:
+            context.manifest.record_failure(stage_name, error)
+        raise
+
+
+async def write_failure_manifests(
+    contexts: list[SFMSRunContext], stage: str, error: Exception
+) -> None:
+    """Best-effort persist failure manifests without masking the original stage exception."""
+    for context in contexts:
+        if context.manifest.status == "success":
+            continue
+        context.manifest.record_failure(stage, error)
+        try:
+            await context.write_manifest()
+        except Exception:
+            logger.exception(
+                "Failed to write SFMS failure manifest for %s %s",
+                context.run_type.value,
+                context.datetime_to_process.date(),
+            )
 
 
 async def _process_raster_job(
@@ -753,7 +786,9 @@ async def run_fwi_calculations(
             f"{previous_date.date()}: {', '.join(missing_previous_keys)}"
         )
         if raise_on_missing_seed_keys:
-            raise RuntimeError(message)
+            error = RuntimeError(message)
+            ctx.manifest.record_failure("fwi_seed_check", error)
+            raise error
         logger.warning(
             "Skipping FWI calculations for %s because %s",
             ctx.datetime_to_process.date(),

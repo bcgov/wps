@@ -131,6 +131,7 @@ def test_key_rejects_non_utc_run_datetime():
 def test_manifest_json_follows_the_version_1_schema(bucket):
     manifest = a_manifest()
     record_everything(manifest)
+    manifest.status = "success"
 
     payload = json.loads(manifest.model_dump_json(indent=2, exclude_none=True))
 
@@ -139,6 +140,7 @@ def test_manifest_json_follows_the_version_1_schema(bucket):
         "run_datetime": "2026-10-13T20:45:00Z",
         "run_type": "actual",
         "for_date": "2026-10-13",
+        "status": "success",
         "input": {
             "station_codes": [122, 346],
             "fuel_raster": {
@@ -208,6 +210,29 @@ def test_manifest_records_only_the_stages_that_ran(bucket):
     assert payload["input"]["fuel_raster"] == {}
 
 
+def test_manifest_records_failure_and_preserves_partial_trace():
+    manifest = a_manifest()
+    manifest.record_station_codes([122])
+    manifest.record_raster_output(
+        SFMSInterpolatedWeatherParameter.TEMP,
+        "sfms_ng/actual/2026/10/13/temperature_20261013.tif",
+    )
+
+    manifest.record_failure("relative_humidity_interpolation", RuntimeError("RH failed"))
+    manifest.record_failure("later_stage", ValueError("later failure"))
+
+    assert manifest.status == "failed"
+    assert manifest.failed_stage == "relative_humidity_interpolation"
+    assert manifest.failure_type == "RuntimeError"
+    assert manifest.failure_message == "RH failed"
+    assert manifest.output.weather == {
+        "temperature": "sfms_ng/actual/2026/10/13/temperature_20261013.tif"
+    }
+    payload = json.loads(manifest.model_dump_json(indent=2, exclude_none=True))
+    assert payload["status"] == "failed"
+    assert payload["failed_stage"] == "relative_humidity_interpolation"
+
+
 def test_record_raster_output_rejects_an_unsupported_parameter():
     manifest = a_manifest()
 
@@ -229,6 +254,7 @@ async def test_write_uploads_the_manifest_json(bucket):
     assert key == ("sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json")
     payload = json.loads(body)
     assert payload["version"] == MANIFEST_SCHEMA_VERSION
+    assert payload["status"] == "success"
     assert payload["run_datetime"] == "2026-10-13T20:45:00Z"
     assert payload["run_type"] == "actual"
     assert payload["for_date"] == "2026-10-13"

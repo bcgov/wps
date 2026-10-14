@@ -319,6 +319,14 @@ class TestRunSfmsDailyForecasts:
         mock_dependencies.primary_fbp_processor.process.assert_not_called()
         # weather and FWI committed before fuel failed
         mock_dependencies.db_session.commit.assert_awaited_once()
+        failure_manifests = [
+            json.loads(call.kwargs["body"])
+            for call in mock_dependencies.s3_client.put_object.await_args_list
+            if call.kwargs["key"].endswith("_run.json")
+        ]
+        assert len(failure_manifests) == 3
+        assert all(manifest["status"] == "failed" for manifest in failure_manifests)
+        assert all(manifest["failure_type"] == "RuntimeError" for manifest in failure_manifests)
 
     @pytest.mark.anyio
     async def test_fbp_uses_temporal_fuel_raster_per_forecast_date(
