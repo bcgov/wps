@@ -3,26 +3,15 @@
 import json
 import os
 import sys
-from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta, timezone
-from typing import NamedTuple
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
-from sqlalchemy.ext.asyncio import AsyncSession
-from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
-from wps_sfms.processors.fwi import FWIProcessor
-from wps_sfms.processors.idw import Interpolator
-from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
-from wps_sfms.processors.relative_humidity import RHInterpolator
-from wps_sfms.processors.temperature import TemperatureInterpolator
-from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
-from wps_sfms.raster_inputs import FWIInputs
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
-from wps_shared.sfms.raster_addresser import FBPParameter, FWIParameter
+from wps_shared.sfms.raster_addresser import FWIParameter
 
 from app.jobs.sfms_daily_forecasts import (
     expected_actual_target_date,
@@ -31,206 +20,22 @@ from app.jobs.sfms_daily_forecasts import (
     run_datetime_for_cli_date,
     run_sfms_daily_forecasts,
 )
-from app.tests.conftest import create_mock_sfms_actuals
+from app.tests.jobs.sfms_daily_job_fixtures import (
+    MockDailySFMSDeps,
+    make_mock_daily_sfms_dependencies,
+)
 
 MODULE_PATH = "app.jobs.sfms_daily_forecasts"
 PIPELINE_PATH = "app.jobs.sfms_run_pipeline"
 
 
-def _raster_key(datetime_utc, parameter, run_type):
-    """A realistic raster key for a weather, FWI or FBP parameter."""
-    return (
-        f"sfms_ng/{run_type.value}/{datetime_utc:%Y/%m/%d}/"
-        f"{parameter.value}_{datetime_utc:%Y%m%d}.tif"
-    )
-
-
-def _fmc_key(target_date):
-    """A realistic FMC output key for a target date."""
-    return f"sfms_ng/static/fmc/{target_date:%Y/%m/%d}/fmc_{target_date:%Y%m%d}.tif"
-
-
-def _fwi_inputs(datetime_to_process, fwi_param, run_type, previous_base_run_type=None):
-    """Realistic FWI inputs whose output key names the parameter and date."""
-    return FWIInputs(
-        weather_keys={},
-        index_keys={},
-        output_key=_raster_key(datetime_to_process, fwi_param, run_type),
-        run_type=run_type,
-    )
-
-
-class MockDailyForecastsDeps(NamedTuple):
-    """Typed container for sfms_daily_forecasts mock dependencies."""
-
-    db_session: MagicMock
-    s3_client: MagicMock
-    temp_processor: MagicMock
-    rh_processor: MagicMock
-    wind_speed_processor: MagicMock
-    wind_direction_processor: MagicMock
-    interpolation_processor: MagicMock
-    fwi_processor: MagicMock
-    primary_fbp_processor: MagicMock
-    run_temporal_fuel: AsyncMock
-    fmc_processor: MagicMock
-    fmc_processor_class: MagicMock
-    fmc_inputs: MagicMock
-    wfwx_api: MagicMock
-    addresser: MagicMock
-    save_sfms_run: AsyncMock
-    get_fuel_type_raster_by_year: AsyncMock
-
-
 @pytest.fixture
 def mock_dependencies(
     mocker: MockerFixture, monkeypatch, mock_s3_client, mock_wfwx_api
-) -> MockDailyForecastsDeps:
-    """Mock external dependencies for run_sfms_daily_forecasts."""
-    # the mocked addresser builds GDAL paths under this bucket, which the manifest strips
-    monkeypatch.setenv("OBJECT_STORE_BUCKET", "test-bucket")
-    mocker.patch(f"{MODULE_PATH}.S3Client", return_value=mock_s3_client)
-    mock_s3_client.all_objects_exist = AsyncMock(return_value=True)
-
-    mock_session = MagicMock()
-    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-    mock_session.__aexit__ = AsyncMock(return_value=None)
-    mocker.patch(f"{MODULE_PATH}.ClientSession", return_value=mock_session)
-
-    mock_wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
-        return_value=create_mock_sfms_actuals()
-    )
-    mocker.patch(f"{MODULE_PATH}.WfwxApi", return_value=mock_wfwx_api)
-
-    mock_fuel_type_raster = MagicMock()
-    mock_fuel_type_raster.year = 2024
-    mock_fuel_type_raster.object_store_path = "sfms/fuel/2024/fuel.tif"
-    mock_run_temporal_fuel = mocker.patch(
-        f"{MODULE_PATH}.run_temporal_fuel",
-        new_callable=AsyncMock,
-        side_effect=lambda run, *_: (
-            f"/vsis3/test-bucket/temporal/{run.datetime_to_process.date()}.tif"
-        ),
-    )
-    mock_get_fuel_type_raster_by_year = mocker.patch(
-        f"{MODULE_PATH}.get_fuel_type_raster_by_year",
-        new_callable=AsyncMock,
-        return_value=mock_fuel_type_raster,
-    )
-
-    @asynccontextmanager
-    async def _read_scope():
-        mock_read_session = MagicMock(spec=AsyncSession)
-        yield mock_read_session
-
-    mocker.patch(f"{MODULE_PATH}.get_async_read_session_scope", _read_scope)
-
-    mock_save_sfms_run = mocker.patch(
-        f"{MODULE_PATH}.save_sfms_run", new_callable=AsyncMock, return_value=1
-    )
-
-    mock_addresser = MagicMock()
-    mock_addresser.s3_prefix = "/vsis3/test-bucket"
-    mocker.patch(f"{MODULE_PATH}.SFMSNGRasterAddresser", return_value=mock_addresser)
-    mock_addresser.get_percent_conifer_key.side_effect = lambda year: f"sfms/static/m12_{year}.tif"
-    mock_addresser.get_slope_key.side_effect = lambda: "sfms_ng/static/bc_slope.tif"
-    mock_addresser.get_aspect_key.side_effect = lambda: "sfms_ng/static/bc_aspect.tif"
-    mock_addresser.get_dem_key.side_effect = lambda: (
-        "/vsis3/test-bucket/sfms/static/bc_elevation.tif"
-    )
-    mock_addresser.get_mask_key.side_effect = lambda: "/vsis3/test-bucket/sfms/static/bc_mask.tif"
-    mock_addresser.get_weather_key.side_effect = _raster_key
-    mock_addresser.get_index_key.side_effect = _raster_key
-    mock_addresser.get_fbp_key.side_effect = _raster_key
-    mock_addresser.get_fwi_inputs.side_effect = _fwi_inputs
-    mock_addresser.get_primary_fire_behaviour_inputs.side_effect = (
-        lambda datetime_to_process, run_type, *_args: MagicMock(
-            output_keys={
-                parameter: _raster_key(datetime_to_process, parameter, run_type)
-                for parameter in FBPParameter
-            }
-        )
-    )
-    mock_addresser.gdal_path.side_effect = lambda key: f"/vsis3/test-bucket/{key}"
-    mock_fmc_inputs = MagicMock()
-    mock_fmc_inputs.output_keys.__getitem__.side_effect = _fmc_key
-    mock_fmc_inputs.elevation_key = "/vsis3/test-bucket/sfms_ng/static/bc_elevation.tif"
-    mock_fmc_inputs.latitude_key = "/vsis3/test-bucket/sfms_ng/static/latitude.tif"
-    mock_fmc_inputs.longitude_key = "/vsis3/test-bucket/sfms_ng/static/longitude.tif"
-    mock_addresser.get_fmc_inputs.return_value = mock_fmc_inputs
-    mock_fmc_processor = MagicMock(spec=FoliarMoistureContentProcessor)
-    mock_fmc_processor.process = AsyncMock()
-    mock_fmc_processor_class = mocker.patch(
-        f"{PIPELINE_PATH}.FoliarMoistureContentProcessor",
-        return_value=mock_fmc_processor,
-    )
-
-    mock_temp_processor = MagicMock(spec=TemperatureInterpolator)
-    mock_temp_processor.process = AsyncMock(return_value="temperature.tif")
-    mocker.patch(f"{PIPELINE_PATH}.TemperatureInterpolator", return_value=mock_temp_processor)
-
-    mock_rh_processor = MagicMock(spec=RHInterpolator)
-    mock_rh_processor.process = AsyncMock(return_value="relative_humidity.tif")
-    mocker.patch(f"{PIPELINE_PATH}.RHInterpolator", return_value=mock_rh_processor)
-
-    mock_wind_speed_processor = MagicMock(spec=WindSpeedInterpolator)
-    mock_wind_speed_processor.process = AsyncMock(return_value="wind_speed.tif")
-    mocker.patch(f"{PIPELINE_PATH}.WindSpeedInterpolator", return_value=mock_wind_speed_processor)
-
-    mock_wind_direction_processor = MagicMock(spec=WindDirectionInterpolator)
-    mock_wind_direction_processor.process = AsyncMock(return_value="wind_direction.tif")
-    mocker.patch(
-        f"{PIPELINE_PATH}.WindDirectionInterpolator",
-        return_value=mock_wind_direction_processor,
-    )
-
-    mock_interpolation_processor = MagicMock(spec=Interpolator)
-    mock_interpolation_processor.process = AsyncMock(return_value="precipitation.tif")
-    mocker.patch(f"{PIPELINE_PATH}.Interpolator", return_value=mock_interpolation_processor)
-
-    mock_fwi_processor = MagicMock(spec=FWIProcessor)
-    mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
-    mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
-
-    mock_primary_fbp_processor = MagicMock(spec=PrimaryFireBehaviourProcessor)
-    mock_primary_fbp_processor.process = AsyncMock(return_value=None)
-    mocker.patch(
-        f"{PIPELINE_PATH}.PrimaryFireBehaviourProcessor",
-        return_value=mock_primary_fbp_processor,
-    )
-
-    db_session = MagicMock(spec=AsyncSession)
-    db_execute_result = MagicMock()
-    db_execute_result.scalar = MagicMock(return_value=1)
-    db_session.execute = AsyncMock(return_value=db_execute_result)
-    db_session.get = AsyncMock(return_value=MagicMock())
-    db_session.commit = AsyncMock()
-
-    @asynccontextmanager
-    async def _write_scope():
-        yield db_session
-        await db_session.commit()
-
-    mocker.patch(f"{MODULE_PATH}.get_async_write_session_scope", _write_scope)
-
-    return MockDailyForecastsDeps(
-        db_session=db_session,
-        s3_client=mock_s3_client,
-        temp_processor=mock_temp_processor,
-        rh_processor=mock_rh_processor,
-        wind_speed_processor=mock_wind_speed_processor,
-        wind_direction_processor=mock_wind_direction_processor,
-        interpolation_processor=mock_interpolation_processor,
-        fwi_processor=mock_fwi_processor,
-        primary_fbp_processor=mock_primary_fbp_processor,
-        run_temporal_fuel=mock_run_temporal_fuel,
-        fmc_processor=mock_fmc_processor,
-        fmc_processor_class=mock_fmc_processor_class,
-        fmc_inputs=mock_fmc_inputs,
-        wfwx_api=mock_wfwx_api,
-        addresser=mock_addresser,
-        save_sfms_run=mock_save_sfms_run,
-        get_fuel_type_raster_by_year=mock_get_fuel_type_raster_by_year,
+) -> MockDailySFMSDeps:
+    """Use the shared daily-job dependencies for forecast tests."""
+    return make_mock_daily_sfms_dependencies(
+        mocker, monkeypatch, MODULE_PATH, mock_s3_client, mock_wfwx_api
     )
 
 
@@ -287,7 +92,7 @@ class TestRunSfmsDailyForecasts:
     """Tests for run_sfms_daily_forecasts."""
 
     @pytest.mark.anyio
-    async def test_runs_three_days(self, mock_dependencies: MockDailyForecastsDeps):
+    async def test_runs_three_days(self, mock_dependencies: MockDailySFMSDeps):
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
@@ -305,7 +110,7 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_temporal_fuel_failure_keeps_weather_and_fwi_for_every_date(
-        self, mock_dependencies: MockDailyForecastsDeps
+        self, mock_dependencies: MockDailySFMSDeps
     ):
         mock_dependencies.run_temporal_fuel.side_effect = RuntimeError("temporal fuel failed")
 
@@ -330,7 +135,7 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_fbp_uses_temporal_fuel_raster_per_forecast_date(
-        self, mock_dependencies: MockDailyForecastsDeps
+        self, mock_dependencies: MockDailySFMSDeps
     ):
         await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
 
@@ -346,7 +151,7 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_processes_shared_fmc_for_processed_forecast_dates(
-        self, mock_dependencies: MockDailyForecastsDeps
+        self, mock_dependencies: MockDailySFMSDeps
     ):
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
@@ -366,7 +171,7 @@ class TestRunSfmsDailyForecasts:
         )
 
     @pytest.mark.anyio
-    async def test_saves_forecast_runs(self, mock_dependencies: MockDailyForecastsDeps):
+    async def test_saves_forecast_runs(self, mock_dependencies: MockDailySFMSDeps):
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
@@ -382,7 +187,7 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_forecasts_from_expected_successful_actual(
-        self, mock_dependencies: MockDailyForecastsDeps
+        self, mock_dependencies: MockDailySFMSDeps
     ):
         run_datetime = datetime(2024, 7, 4, 15, tzinfo=timezone.utc)
 
@@ -399,7 +204,7 @@ class TestRunSfmsDailyForecasts:
         ]
 
     @pytest.mark.anyio
-    async def test_chains_fwi_seeds(self, mock_dependencies: MockDailyForecastsDeps):
+    async def test_chains_fwi_seeds(self, mock_dependencies: MockDailySFMSDeps):
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
@@ -413,9 +218,7 @@ class TestRunSfmsDailyForecasts:
         assert base_seed_run_types[3:] == [RunType.FORECAST] * 6
 
     @pytest.mark.anyio
-    async def test_writes_a_manifest_per_forecast_date(
-        self, mock_dependencies: MockDailyForecastsDeps
-    ):
+    async def test_writes_a_manifest_per_forecast_date(self, mock_dependencies: MockDailySFMSDeps):
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
@@ -450,7 +253,7 @@ class TestRunSfmsDailyForecasts:
         assert payload["output"]["fbp"]["hfi"] == "sfms_ng/forecast/2024/07/05/hfi_20240705.tif"
 
     @pytest.mark.anyio
-    async def test_raises_on_empty_forecasts(self, mock_dependencies: MockDailyForecastsDeps):
+    async def test_raises_on_empty_forecasts(self, mock_dependencies: MockDailySFMSDeps):
         mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(return_value=[])
 
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
@@ -462,7 +265,7 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_raises_when_actual_seed_rasters_missing(
-        self, mock_dependencies: MockDailyForecastsDeps
+        self, mock_dependencies: MockDailySFMSDeps
     ):
         mock_dependencies.s3_client.all_objects_exist = AsyncMock(return_value=False)
 
@@ -476,12 +279,12 @@ class TestRunSfmsDailyForecasts:
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
 
     @pytest.mark.anyio
-    async def test_rejects_naive_run_datetime(self, mock_dependencies: MockDailyForecastsDeps):
+    async def test_rejects_naive_run_datetime(self, mock_dependencies: MockDailySFMSDeps):
         with pytest.raises(AssertionError, match="timezone-aware"):
             await run_sfms_daily_forecasts(datetime(2024, 7, 4))
 
     @pytest.mark.anyio
-    async def test_rejects_non_utc_run_datetime(self, mock_dependencies: MockDailyForecastsDeps):
+    async def test_rejects_non_utc_run_datetime(self, mock_dependencies: MockDailySFMSDeps):
         run_datetime = datetime(2024, 7, 4, tzinfo=timezone(timedelta(hours=-7)))
 
         with pytest.raises(AssertionError, match="not in UTC"):
