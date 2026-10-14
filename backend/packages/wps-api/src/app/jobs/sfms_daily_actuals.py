@@ -10,7 +10,6 @@ import asyncio
 import logging
 import os
 import sys
-from dataclasses import replace
 from datetime import datetime, timezone
 
 from aiohttp import ClientSession
@@ -89,28 +88,22 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
 
         async with get_async_write_session_scope() as session:
             station_codes = [actual.code for actual in sfms_actuals]
-            saved_run_datetime = get_utc_now()
             sfms_run_id = await save_sfms_run(
                 session,
                 RunTypeEnum.actual,
                 datetime_to_process.date(),
-                saved_run_datetime,
+                get_utc_now(),
                 station_codes,
             )
 
-            ctx = SFMSRunContext.start(
+            ctx = SFMSRunContext(
                 datetime_to_process=datetime_to_process,
                 run_type=RunType.ACTUAL,
                 sfms_run_id=sfms_run_id,
-                run_datetime=saved_run_datetime,
                 session=session,
                 s3_client=s3_client,
                 raster_addresser=raster_addresser,
             )
-            # everything the run reads before its stages record what they traced
-            ctx.manifest.record_station_codes(station_codes)
-            ctx.manifest.record_base_fuel_raster(fuel_type_raster.object_store_path)
-            ctx.manifest.record_fmc_inputs(fmc_inputs, datetime_to_process.date())
 
             await run_weather_interpolation(ctx, fuel_raster_path, sfms_actuals)
 
@@ -121,16 +114,17 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
             else:
                 fwi_calculated = await run_fwi_calculations(ctx)
 
-        # weather and FWI commit first, so a fuel failure can't roll back their run and logs
-        if fwi_calculated:
-            async with get_async_write_session_scope() as session:
-                # the fuel and FBP stages log their jobs against this session of their own
-                fuel_run = replace(ctx, session=session)
-                temporal_fuel_path = await run_temporal_fuel(fuel_run, fuel_type_raster)
-                await run_fbp_calculations(fuel_run, temporal_fuel_path, fuel_type_raster.year)
-
-        # traced at the end of the run, so a run that fails part way leaves no manifest
-        await ctx.write_manifest()
+            if fwi_calculated:
+                async with get_async_write_session_scope() as session:
+                    temporal_fuel_path = await run_temporal_fuel(
+                        datetime_to_process,
+                        fuel_type_raster,
+                        raster_addresser,
+                        s3_client,
+                        sfms_run_id,
+                        session,
+                    )
+                await run_fbp_calculations(ctx, temporal_fuel_path, fuel_type_raster.year)
 
     logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
 
