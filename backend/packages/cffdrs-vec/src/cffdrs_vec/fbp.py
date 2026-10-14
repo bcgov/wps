@@ -887,3 +887,95 @@ def vectorized_fire_behaviour_prediction(
         wsv0=wsv0,
         raz0=raz0,
     )
+
+
+def vectorized_elliptical_fire_area_30min(
+    fuel_type_code,
+    ffmc,
+    bui,
+    ws,
+    wd_rad,
+    gs,
+    aspect_rad,
+    pc,
+    pdf,
+    cc,
+    gfl,
+    cbh,
+    cfl,
+    fmc,
+    isi,
+    lat,
+    lon,
+    elv,
+    dj,
+    d0,
+    sd,
+    sh,
+    hr,
+    theta_rad,
+    accel,
+    buieff,
+):
+    """Standalone accelerated elliptical fire area at 30 minutes.
+
+    Does not affect the other FBP outputs.
+
+    Parameters have the same meaning as ``vectorized_fire_behaviour_prediction`` above.
+
+    Refer to the 1992 Information Report ST-X-3 (page 49, equation 86) for the elliptical fire area formula.
+
+    Note that accel is unused in this function, but acceleration is still implicity applied through the
+    use of the "_at_time" versions of the CFFDRS functions called within this function.
+
+    Returns:
+      - area_ha (float64): Elliptical fire area at 30 minutes with acceleration applied (unit is hectares).
+    """
+
+    # Constants for the Time of Interest (30 minutes). Need this time in both hours and minutes.
+    TOI_HR = 0.5
+    TOI_MIN = TOI_HR * 60.0
+
+    # Step 1: Calculate the Surface Fuel Consumption (SFC) needed for the Rate of Spread (ROS) calculations.
+    sfc = vectorized_surface_fuel_consumption(fuel_type_code, ffmc, bui, pc, gfl)
+
+    # Step 2: Calculate the equilibrium ROS and Crown Fraction Burned (CFB).
+    #         Note that vectorized_rate_of_spread_extended returns the 4-tuple (ros, cfb, csi, rso).
+    #         We only need ros and cfb for the elliptical fire area calculation, so csi and rso are ignored.
+    ros, cfb, _, _ = vectorized_rate_of_spread_extended(fuel_type_code, isi, bui, fmc, sfc, pc, pdf, cc, cbh)
+
+    # Step 3: Calculate the Wind Speed Velocity (WSV) needed for the length-to-breadth (LB) ratio.
+    #         Note that vectorized_slope_adjustment takes waz (wind azimuth), saz (slope azimuth) as inputs.
+    #         In this context, waz == wd_rad (wind direction) and saz == aspect_rad (slope aspect).
+    #         Also, note that vectorized_slope_adjustment returns the 2-tuple (wsv, raz).
+    #         We only need wsv for the elliptical fire area calculation, so raz is ignored.
+    wsv, _ = vectorized_slope_adjustment(
+        fuel_type_code, ffmc, bui, ws, wd_rad, gs, aspect_rad, fmc, sfc, pc, pdf, cc, cbh, isi
+        )
+
+    # Step 4: Calculate the LB ratio at equilibrium,
+    #         and then calculate the time-dependent LB ratio needed for the final area calculation.
+    #         Note that vectorized_length_to_breadth_at_time takes time in hours as an input.
+    lb = vectorized_length_to_breadth(fuel_type_code, wsv)
+    lb_t = vectorized_length_to_breadth_at_time(fuel_type_code, lb, TOI_HR, cfb)
+
+    # Step 5: Calculate head fire spread distance at elapsed time of interest (30 minutes).
+    #         Note that vectorized_distance_at_time takes time in minutes as an input.
+    head_fire_distance = vectorized_distance_at_time(fuel_type_code, ros, TOI_MIN, cfb)
+
+    # Step 6: Calculate the equilibrium Back Rate of Spread (BROS) needed for the back fire distance.
+    bros = vectorized_back_rate_of_spread(fuel_type_code, ffmc, bui, wsv, fmc, sfc, pc, pdf, cc, cbh)
+
+    # Step 7: Calculate the back fire spread distance at elapsed time of interest (30 minutes).
+    back_fire_distance = vectorized_distance_at_time(fuel_type_code, bros, TOI_MIN, cfb)
+
+    # Step 8: Calculate the total spread distance D_T = head fire distance + back fire distance.
+    total_distance = head_fire_distance + back_fire_distance
+
+    # Step 9: Calculate the elliptical fire area (in hectares) at elapsed time of interest (30 minutes).
+    #         This is equation 86 on page 49 of the 1992 Information Report ST-X-3:
+    #         A(ha) = ((pi / (4 * LB)) * (D_T)^2) / 10000,
+    #         which is albebraically equivalent to A(ha) = (pi * (D_T)^2) / (40000 * LB).
+    area_ha = (np.pi * (total_distance ** 2)) / (40000.0 * lb_t)
+
+    return area_ha
