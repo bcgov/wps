@@ -141,6 +141,7 @@ class TestSFMSRunContext:
             ("action",),
             ("exit", context, "output"),
         ]
+        assert context.stage_graph == "ENTER temporal_fuel\nEXIT temporal_fuel"
 
     @pytest.mark.anyio
     async def test_run_stage_does_not_exit_node_when_action_fails(self, mocker: MockerFixture):
@@ -157,10 +158,36 @@ class TestSFMSRunContext:
         async def action():
             raise RuntimeError("stage failed")
 
+        context = a_run()
         with pytest.raises(RuntimeError, match="stage failed"):
-            await a_run().run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
+            await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
 
         assert events == ["visit"]
+        assert context.stage_graph == "ENTER temporal_fuel"
+
+    @pytest.mark.anyio
+    async def test_stage_graph_indents_nested_stages(self, mocker: MockerFixture):
+        mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
+        context = a_run()
+
+        class Node:
+            def on_enter(self, context):
+                pass
+
+            def on_exit(self, context, result):
+                pass
+
+        async def _run_child():
+            async def action():
+                return None
+
+            return await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
+
+        await context.run_group(Node(), _run_child)
+
+        assert context.stage_graph == (
+            "ENTER Node\n  ENTER temporal_fuel\n  EXIT temporal_fuel\nEXIT Node"
+        )
 
 
 @pytest.mark.anyio
