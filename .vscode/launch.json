@@ -423,6 +423,25 @@
             ]
         },
         {
+            "name": "Weather - Local 4Panel Charts",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/backend/.venv/bin/python",
+            "module": "wps_weather.wx_4panel_charts.backfill",
+            "args": [
+                "--model",
+                "${input:localChartModel}",
+                "--init-ymd",
+                "${input:weatherChartDate}",
+                "--model-run",
+                "${input:localChartRun}",
+                "--end-hour",
+                "6"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Weather - RDPS 4Panel Charts",
             "type": "debugpy",
             "request": "launch",
@@ -446,8 +465,8 @@
             "python": "${workspaceFolder}/backend/.venv/bin/python",
             "module": "wps_weather.wx_4panel_charts.wx_4panel_charts",
             "args": [
-                "--init_ym",
-                "20260326",
+                "--init_ymd",
+                "${input:weatherChartDate}",
                 "--model_runs",
                 "00",
                 "--end_hour",
@@ -490,6 +509,27 @@
                 "api (main)",
                 "api (asa-go)"
             ]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "weatherChartDate",
+            "type": "promptString",
+            "description": "ECCC model date in YYYYMMDD format"
+        },
+        {
+            "id": "localChartModel",
+            "type": "pickString",
+            "description": "ECCC model for local charts",
+            "options": ["GDPS", "RDPS"],
+            "default": "GDPS"
+        },
+        {
+            "id": "localChartRun",
+            "type": "pickString",
+            "description": "ECCC model run hour in UTC",
+            "options": ["00", "12"],
+            "default": "00"
         }
     ]
 }

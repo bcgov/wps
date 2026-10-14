@@ -48,8 +48,49 @@ from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import WX4PanelChart
 DEFAULT_FIG_SIZE = (11.8, 10)
 DEFAULT_DPI = 300
 
+MODEL_CHART_CONFIGS = {
+    ECCCModel.GDPS: (CFG_500_GDPS, CFG_MSLP_GDPS, CFG_700_GDPS, CFG_PCPN_GDPS, gdps_fname),
+    ECCCModel.RDPS: (CFG_500_RDPS, CFG_MSLP_RDPS, CFG_700_RDPS, CFG_PCPN_RDPS, rdps_fname),
+}
+
 configure_logging()
 logger = logging.getLogger(__name__)
+
+
+def create_config_builder(model: ECCCModel, init_ymd: str, init_hh: str) -> ConfigBuilder:
+    """Create the chart input configuration used by generation and local backfill."""
+    cfg500, cfgmslp, cfg700, cfgpcpn, filename_builder = MODEL_CHART_CONFIGS[model]
+    return ConfigBuilder(
+        init_ymd=init_ymd,
+        init_hh=init_hh,
+        raster_addresser=WX4PanelChartAddresser(init_ymd, init_hh, model),
+        cfg500=cfg500,
+        cfgmslp=cfgmslp,
+        cfg700=cfg700,
+        cfgpcpn=cfgpcpn,
+        file_name_builder=filename_builder,
+        model=model,
+    )
+
+
+def get_required_grib_keys(config_builder: ConfigBuilder, forecast_hour: int) -> list[str]:
+    """Return every GRIB object needed to generate one four-panel chart."""
+    cfg500, cfgmslp, cfg700, cfgpcpn = config_builder.build_config_for_hour(forecast_hour)
+    required_keys = [
+        cfg500["z500_grib"],
+        cfg500["vort_grib"],
+        cfgmslp["mslp_grib"],
+        cfgmslp["thk_grib"],
+        cfg700["z700_grib"],
+        cfg700["rh500_grib"],
+        cfg700["rh700_grib"],
+        cfg700["rh850_grib"],
+    ]
+    if cfgpcpn.get("show_precip", True):
+        required_keys.append(cfgpcpn["pcpn_grib"])
+    if cfgpcpn.get("show_jet_core", True):
+        required_keys.append(cfgpcpn["jet_spd_grib"])
+    return required_keys
 
 
 class FourPanelChartRunner:
@@ -228,23 +269,8 @@ class FourPanelChartRunner:
         end_hour: int,
         step: int,
     ):
-        _model_cfgs = {
-            ECCCModel.GDPS: (CFG_500_GDPS, CFG_MSLP_GDPS, CFG_700_GDPS, CFG_PCPN_GDPS, gdps_fname),
-            ECCCModel.RDPS: (CFG_500_RDPS, CFG_MSLP_RDPS, CFG_700_RDPS, CFG_PCPN_RDPS, rdps_fname),
-        }
-        cfg500_base, cfgmslp_base, cfg700_base, cfgpcpn_base, fname_builder = _model_cfgs[model]
         raster_addresser = WX4PanelChartAddresser(init_ymd, init_hh, model)
-        config_builder = ConfigBuilder(
-            init_ymd=init_ymd,
-            init_hh=init_hh,
-            raster_addresser=raster_addresser,
-            cfg500=cfg500_base,
-            cfgmslp=cfgmslp_base,
-            cfg700=cfg700_base,
-            cfgpcpn=cfgpcpn_base,
-            file_name_builder=fname_builder,
-            model=model,
-        )
+        config_builder = create_config_builder(model, init_ymd, init_hh)
         plotter_factory = PlotterFactory(model=model)
         for fh in range(start_hour, end_hour + 1, step):
             logger.info(
@@ -260,20 +286,7 @@ class FourPanelChartRunner:
 
             cfg500, cfgmslp, cfg700, cfgpcpn = config_builder.build_config_for_hour(fh)
 
-            required_keys = [
-                cfg500["z500_grib"],
-                cfg500["vort_grib"],
-                cfgmslp["mslp_grib"],
-                cfgmslp["thk_grib"],
-                cfg700["z700_grib"],
-                cfg700["rh500_grib"],
-                cfg700["rh700_grib"],
-                cfg700["rh850_grib"],
-            ]
-            if cfgpcpn.get("show_precip", True):
-                required_keys.append(cfgpcpn["pcpn_grib"])
-            if cfgpcpn.get("show_jet_core", True):
-                required_keys.append(cfgpcpn["jet_spd_grib"])
+            required_keys = get_required_grib_keys(config_builder, fh)
 
             all_keys_exist = await self._s3_client.all_objects_exist(*required_keys)
             if not all_keys_exist:
@@ -302,6 +315,18 @@ class FourPanelChartRunner:
             )
         # The specified end hour has been reached and the processing is complete.
         return True
+
+    async def generate_range(
+        self,
+        model: ECCCModel,
+        init_ymd: str,
+        init_hh: str,
+        start_hour: int,
+        end_hour: int,
+        step: int,
+    ) -> bool:
+        """Generate an idempotent chart range without modifying processing status records."""
+        return await self._make_4panel_charts(model, init_ymd, init_hh, start_hour, end_hour, step)
 
     async def run(
         self,

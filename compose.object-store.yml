@@ -1,0 +1,26 @@
+name: wps-local-object-store
+
+services:
+  object-store:
+    image: ghcr.io/chrislusf/seaweedfs:4.47
+    # keep the derived admin gRPC port below the Linux ephemeral port range
+    command: >-
+      mini -dir=/data -webdav=false -s3.port.iceberg=0 -s3.port.lance=0
+      -admin.port=12646 -master.telemetry=false -bucket=wps-local,wps-wx-local
+    environment:
+      AWS_ACCESS_KEY_ID: wps-local
+      AWS_SECRET_ACCESS_KEY: wps-local-password
+    ports:
+      - "127.0.0.1:9000:8333"
+      - "127.0.0.1:9001:12646"
+    volumes:
+      - seaweedfs_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:12646/health"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  seaweedfs_data:

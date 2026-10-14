@@ -76,3 +76,31 @@ This package includes:
 Add new Python modules to `src/wps_weather/`. They will be automatically available for import as `from wps_weather.your_module import ...`
 
 Optionally export them from `src/wps_weather/__init__.py` for easier access.
+
+## Local Weather Toolkit charts
+
+The repository's local object-store sidecar can hold both downloaded ECCC GRIB inputs
+and generated four-panel charts without requiring deployed S3 credentials. Copy
+`external-contributor-api.env` to the repository root as `.env`, then start the sidecar
+with `make local-object-store-up`. In VS Code, run `Weather - Local 4Panel Charts` and
+enter a published model date, model, and run hour. This launch downloads the required
+inputs and generates charts without the chart status database. The existing RDPS and
+GDPS chart launches need GRIB inputs and Postgres.
+
+The same bounded backfill can be run from the repository root without VS Code:
+
+```bash
+uv run --project backend --package wps-weather python \
+  -m wps_weather.wx_4panel_charts.backfill \
+  --model RDPS \
+  --init-ymd "$(date -u +%Y%m%d)" \
+  --model-run 00 \
+  --end-hour 12
+```
+
+Required arguments deliberately identify the model, UTC model-run date, run hour, and
+ending forecast hour so a local setup does not unexpectedly download a complete model
+run. `--start-hour` defaults to `0`, and `--max-concurrent-downloads` defaults to `4`.
+Use a recent archived date if today's `00` run is not available yet. The command accepts
+only a loopback object-store endpoint and uses public ECCC data to produce charts with
+the same processor used by deployed jobs.

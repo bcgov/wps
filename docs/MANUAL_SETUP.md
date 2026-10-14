@@ -6,9 +6,10 @@ covers the manual steps and platform-specific notes.
 
 #### Local machine, in docker
 
-> **Note:** Docker Compose and the VS Code dev container are **currently
-> unsupported** and may be out of date — native setup (below) is the recommended
-> and supported path. The docker steps are kept here for reference.
+> **Note:** The full-application Docker Compose setup and VS Code dev container are
+> **currently unsupported** and may be out of date — native setup (below) is the
+> recommended and supported path. The standalone local object-store sidecar documented
+> below is intentionally supported for native development.
 
 For local development with docker compose, copy the repo-root `.env.example` to the
 two files compose reads (see `docker-compose.yml`'s `env_file` entries):
@@ -35,6 +36,55 @@ POSTGRES_READ_HOST=localhost
 NOTE: matching the exact version of postgresql/postgis with production on your local
 machine is not necessary — production runs in containers (CrunchyDB) and CI matches it
 there. Locally we use Homebrew's `postgresql@17` + `postgis`.
+
+#### Local object storage
+
+Contributors can run the API and web app natively while using a loopback-only SeaweedFS
+container instead of credentials for the deployed object stores. The sidecar pins
+SeaweedFS `4.47`, which is distributed under the
+[Apache License 2.0](https://github.com/seaweedfs/seaweedfs/blob/master/LICENSE). On
+macOS, see [Running Docker with Colima](COLIMA_SETUP.md) for a Docker Desktop-free
+runtime. Start the object store from the repository root:
+
+```bash
+make local-object-store-up
+```
+
+SeaweedFS creates empty `wps-local` and `wps-wx-local` buckets at startup. Data is stored
+in a Docker volume and survives restarts. The loopback-only SeaweedFS Admin UI is at
+<http://127.0.0.1:9001>. The S3 endpoint uses the local credentials in the contributor
+env file. Copy `external-contributor-api.env` to the repository root as `.env` for the
+API and backfill command. Copy `external-contributor-web.env` to
+`web/apps/wps-web/.env` for the web app.
+
+To generate Weather Toolkit charts, run `Weather - Local 4Panel Charts` from VS Code.
+Choose a published model date from the
+[public MSC Datamart](https://eccc-msc.github.io/open-data/msc-datamart/readme_en/),
+then select GDPS or RDPS and the `00` or `12` run. The launch downloads the required
+public GRIB files and generates charts through forecast hour 6. It does not need the
+chart status database. The existing RDPS and GDPS chart launches require GRIB inputs
+and Postgres.
+
+The same backfill is available from the repository root when working outside VS Code:
+
+```bash
+uv run --project backend --package wps-weather python \
+  -m wps_weather.wx_4panel_charts.backfill \
+  --model GDPS \
+  --init-ymd "$(date -u +%Y%m%d)" \
+  --model-run 00 \
+  --end-hour 12
+```
+
+The command is idempotent and skips objects already present. Use a recent archived date
+if today's `00` run is not available yet. GDPS hours must use a 6-hour interval and
+cannot exceed 240; RDPS hours must use a 3-hour interval and cannot exceed 84. Larger
+ranges download and process substantially more data. In Weather Toolkit, select the
+same model, date, and run hour used by the command.
+
+Stop SeaweedFS without deleting data with `make local-object-store-down`. To deliberately
+delete all locally generated object-store data and recreate empty buckets, run
+`make local-object-store-reset`.
 
 ##### Artifactory npm repo config
 

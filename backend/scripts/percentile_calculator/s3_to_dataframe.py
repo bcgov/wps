@@ -1,6 +1,12 @@
+from contextlib import closing
+from io import BytesIO
+
 import pandas as pd
+from botocore.session import get_session
+
 from wps_shared.utils.s3 import get_client
 from wps_shared import config
+from wps_shared.utils.object_store import get_endpoint_url
 
 
 async def get_csv_list_from_s3(year: int):
@@ -26,13 +32,16 @@ def filter_wx_and_station_csv(csv_list: list):
 
 
 def read_s3_csv_to_pandas(s3_key: str):
-    server = config.get("OBJECT_STORE_SERVER")
     bucket = config.get("OBJECT_STORE_BUCKET")
-
-    url = f"https://{server}/{bucket}/{s3_key}"
-    df = pd.read_csv(url)
-
-    return df
+    with get_session().create_client(
+        "s3",
+        endpoint_url=get_endpoint_url(),
+        aws_access_key_id=config.get("OBJECT_STORE_USER_ID"),
+        aws_secret_access_key=config.get("OBJECT_STORE_SECRET"),
+    ) as client:
+        response = client.get_object(Bucket=bucket, Key=s3_key)
+        with closing(response["Body"]) as body:
+            return pd.read_csv(BytesIO(body.read()))
 
 
 def load_all_csv_to_dataframe(csv_list: list, filter_dailies: bool = False) -> pd.DataFrame:

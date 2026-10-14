@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12.3, <4.0"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -5247,6 +5247,7 @@ dependencies = [
     { name = "python-decouple" },
     { name = "requests" },
     { name = "types-aiobotocore", extra = ["s3"] },
+    { name = "wps-shared" },
 ]
 
 [package.metadata]
@@ -5260,6 +5261,7 @@ requires-dist = [
     { name = "python-decouple", specifier = ">=3.6,<4" },
     { name = "requests", specifier = ">=2.31.0,<3" },
     { name = "types-aiobotocore", extras = ["s3"], specifier = ">=3.9,<4" },
+    { name = "wps-shared", editable = "packages/wps-shared" },
 ]
 
 [[package]]

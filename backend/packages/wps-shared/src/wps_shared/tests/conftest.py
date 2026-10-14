@@ -12,6 +12,7 @@ from pytest_mock import MockerFixture
 import wps_shared.db.database
 import wps_shared.utils.redis
 import wps_shared.utils.s3
+import wps_shared.utils.s3_client
 import wps_shared.utils.time
 from wps_shared import auth
 from wps_shared.schemas.shared import WeatherDataRequest
@@ -63,6 +64,7 @@ def mock_env(monkeypatch):
 def mock_aiobotocore_get_session(monkeypatch):
     """Patch the session by default"""
     monkeypatch.setattr(wps_shared.utils.s3, "get_session", default_aiobotocore_get_session)
+    monkeypatch.setattr(wps_shared.utils.s3_client, "get_session", default_aiobotocore_get_session)
 
 
 @pytest.fixture(autouse=True)

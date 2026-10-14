@@ -9,6 +9,7 @@ from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
 from osgeo import gdal
 from wps_shared import config
+from wps_shared.utils.object_store import get_endpoint_url, get_gdal_endpoint
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
 
@@ -18,7 +19,6 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def get_client() -> AsyncGenerator[Tuple[AioBaseClient, str], None]:
     """Return AioBaseClient client and bucket"""
-    server = config.get("OBJECT_STORE_SERVER")
     user_id = config.get("OBJECT_STORE_USER_ID")
     secret_key = config.get("OBJECT_STORE_SECRET")
     bucket = config.get("OBJECT_STORE_BUCKET")
@@ -26,7 +26,7 @@ async def get_client() -> AsyncGenerator[Tuple[AioBaseClient, str], None]:
     session = get_session()
     async with session.create_client(
         "s3",
-        endpoint_url=f"https://{server}",
+        endpoint_url=get_endpoint_url(),
         aws_secret_access_key=secret_key,
         aws_access_key_id=user_id,
     ) as client:
@@ -80,9 +80,11 @@ async def read_into_memory(key: str):
 
 
 def set_s3_gdal_config():
+    endpoint, use_https = get_gdal_endpoint()
     gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", config.get("OBJECT_STORE_SECRET"))
     gdal.SetConfigOption("AWS_ACCESS_KEY_ID", config.get("OBJECT_STORE_USER_ID"))
-    gdal.SetConfigOption("AWS_S3_ENDPOINT", config.get("OBJECT_STORE_SERVER"))
+    gdal.SetConfigOption("AWS_S3_ENDPOINT", endpoint)
+    gdal.SetConfigOption("AWS_HTTPS", "YES" if use_https else "NO")
     gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
     # Enable temp file usage for COG creation to S3 (COG driver requires random write access)
     gdal.SetConfigOption("CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE", "YES")

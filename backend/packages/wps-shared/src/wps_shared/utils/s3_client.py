@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
+from wps_shared.utils.object_store import get_endpoint_url
 
 logger = logging.getLogger(__name__)
 
@@ -17,21 +18,21 @@ logger = logging.getLogger(__name__)
 class S3Client:
     def __init__(
         self,
-        server=config.get("OBJECT_STORE_SERVER"),
-        user_id=config.get("OBJECT_STORE_USER_ID"),
-        secret_key=config.get("OBJECT_STORE_SECRET"),
-        bucket=config.get("OBJECT_STORE_BUCKET"),
+        server: str | None = None,
+        user_id: str | None = None,
+        secret_key: str | None = None,
+        bucket: str | None = None,
     ):
-        self.server = server
-        self.user_id = user_id
-        self.secret_key = secret_key
-        self.bucket = bucket
+        self.endpoint_url = get_endpoint_url(server)
+        self.user_id = user_id or config.get("OBJECT_STORE_USER_ID")
+        self.secret_key = secret_key or config.get("OBJECT_STORE_SECRET")
+        self.bucket = bucket or config.get("OBJECT_STORE_BUCKET")
         self.session = get_session()
 
     async def __aenter__(self):
         self.client_context = self.session.create_client(
             "s3",
-            endpoint_url=f"https://{self.server}",
+            endpoint_url=self.endpoint_url,
             aws_secret_access_key=self.secret_key,
             aws_access_key_id=self.user_id,
         )
