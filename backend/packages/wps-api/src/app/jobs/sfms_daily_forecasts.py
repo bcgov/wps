@@ -32,6 +32,7 @@ from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.jobs.sfms_run_pipeline import (
+    SFMSRunContext,
     get_missing_fwi_seed_keys,
     run_fbp_calculations,
     run_fwi_calculations,
@@ -152,25 +153,20 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                             station_codes,
                         )
 
-                        await run_weather_interpolation(
-                            datetime_to_process,
-                            raster_addresser,
-                            s3_client,
-                            fuel_raster_path,
-                            sfms_forecasts,
-                            sfms_run_id,
-                            write_session,
-                            RunType.FORECAST,
+                        ctx = SFMSRunContext(
+                            datetime_to_process=datetime_to_process,
+                            run_type=RunType.FORECAST,
+                            sfms_run_id=sfms_run_id,
+                            session=write_session,
+                            s3_client=s3_client,
+                            raster_addresser=raster_addresser,
                         )
+
+                        await run_weather_interpolation(ctx, fuel_raster_path, sfms_forecasts)
 
                         previous_base_run_type = RunType.ACTUAL if index == 0 else RunType.FORECAST
                         await run_fwi_calculations(
-                            datetime_to_process,
-                            raster_addresser,
-                            s3_client,
-                            sfms_run_id,
-                            write_session,
-                            RunType.FORECAST,
+                            ctx,
                             previous_base_run_type=previous_base_run_type,
                             raise_on_missing_seed_keys=True,
                         )
@@ -186,16 +182,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                             sfms_run_id,
                             write_session,
                         )
-                        await run_fbp_calculations(
-                            datetime_to_process,
-                            raster_addresser,
-                            s3_client,
-                            temporal_fuel_path,
-                            fuel_type_raster.year,
-                            sfms_run_id,
-                            write_session,
-                            RunType.FORECAST,
-                        )
+                    await run_fbp_calculations(ctx, temporal_fuel_path, fuel_type_raster.year)
 
     logger.info("SFMS daily forecasts completed successfully from %s", run_datetime.date())
 
