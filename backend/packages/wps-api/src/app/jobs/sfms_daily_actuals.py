@@ -28,6 +28,7 @@ from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.jobs.sfms_run_pipeline import (
+    SFMSRunContext,
     run_derived_fwi_calculations,
     run_fbp_calculations,
     run_fwi_calculations,
@@ -95,68 +96,35 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 station_codes,
             )
 
-            await run_weather_interpolation(
-                datetime_to_process,
-                raster_addresser,
-                s3_client,
-                fuel_raster_path,
-                sfms_actuals,
-                sfms_run_id,
-                session,
-                RunType.ACTUAL,
+            ctx = SFMSRunContext(
+                datetime_to_process=datetime_to_process,
+                run_type=RunType.ACTUAL,
+                sfms_run_id=sfms_run_id,
+                session=session,
+                s3_client=s3_client,
+                raster_addresser=raster_addresser,
             )
 
+            await run_weather_interpolation(ctx, fuel_raster_path, sfms_actuals)
+
             if is_fwi_interpolation_day(datetime_to_process):
-                await run_fwi_interpolation(
-                    datetime_to_process,
-                    raster_addresser,
-                    s3_client,
-                    fuel_raster_path,
-                    sfms_actuals,
-                    sfms_run_id,
-                    session,
-                    RunType.ACTUAL,
-                )
-                await run_derived_fwi_calculations(
-                    datetime_to_process,
-                    raster_addresser,
-                    s3_client,
-                    sfms_run_id,
-                    session,
-                    RunType.ACTUAL,
-                )
+                await run_fwi_interpolation(ctx, fuel_raster_path, sfms_actuals)
+                await run_derived_fwi_calculations(ctx)
                 fwi_calculated = True
             else:
-                fwi_calculated = await run_fwi_calculations(
-                    datetime_to_process,
-                    raster_addresser,
-                    s3_client,
-                    sfms_run_id,
-                    session,
-                    RunType.ACTUAL,
-                )
+                fwi_calculated = await run_fwi_calculations(ctx)
 
-        # weather and FWI commit first, so a fuel failure can't roll back their run and logs
-        if fwi_calculated:
-            async with get_async_write_session_scope() as session:
-                temporal_fuel_path = await run_temporal_fuel(
-                    datetime_to_process,
-                    fuel_type_raster,
-                    raster_addresser,
-                    s3_client,
-                    sfms_run_id,
-                    session,
-                )
-                await run_fbp_calculations(
-                    datetime_to_process,
-                    raster_addresser,
-                    s3_client,
-                    temporal_fuel_path,
-                    fuel_type_raster.year,
-                    sfms_run_id,
-                    session,
-                    RunType.ACTUAL,
-                )
+            if fwi_calculated:
+                async with get_async_write_session_scope() as session:
+                    temporal_fuel_path = await run_temporal_fuel(
+                        datetime_to_process,
+                        fuel_type_raster,
+                        raster_addresser,
+                        s3_client,
+                        sfms_run_id,
+                        session,
+                    )
+                await run_fbp_calculations(ctx, temporal_fuel_path, fuel_type_raster.year)
 
     logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
 
