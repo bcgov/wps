@@ -25,8 +25,8 @@ from wps_sfms.raster_inputs import (
     PrimaryFireBehaviourInputs,
 )
 
-RUN_DATETIME_FILENAME_FORMAT = "%Y%m%dT%H%M%SZ"
-"""Compact UTC format for the run datetime in run manifest file names."""
+RUN_DATETIME_FILENAME_FORMAT = "%Y%m%dT%H%M%S%fZ"
+"""Compact UTC format preserving microseconds in run manifest file names."""
 
 
 class SFMSNGRasterAddresser(BaseRasterAddresser):

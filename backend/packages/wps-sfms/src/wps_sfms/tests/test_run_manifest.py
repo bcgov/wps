@@ -99,7 +99,9 @@ def test_object_store_key_passes_plain_keys_through(bucket):
 def test_key_uses_the_run_datetime_folder_and_run_type():
     manifest = a_manifest()
 
-    assert manifest.key() == ("sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500Z_run.json")
+    assert manifest.key() == (
+        "sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json"
+    )
 
 
 def test_key_uses_the_for_date_in_the_file_name():
@@ -111,7 +113,7 @@ def test_key_uses_the_for_date_in_the_file_name():
 
     # forecast runs process dates after the run datetime; the folder stays the run date
     assert manifest.key() == (
-        "sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T204500Z_run.json"
+        "sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T204500000000Z_run.json"
     )
 
 
@@ -224,7 +226,7 @@ async def test_write_uploads_the_manifest_json(bucket):
 
     key = s3_client.put_object.await_args.kwargs["key"]
     body = s3_client.put_object.await_args.kwargs["body"]
-    assert key == "sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500Z_run.json"
+    assert key == ("sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json")
     payload = json.loads(body)
     assert payload["version"] == MANIFEST_SCHEMA_VERSION
     assert payload["run_datetime"] == "2026-10-13T20:45:00Z"

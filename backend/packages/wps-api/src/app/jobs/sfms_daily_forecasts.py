@@ -14,14 +14,12 @@ from dataclasses import replace
 from datetime import date, datetime, timedelta, timezone
 
 from aiohttp import ClientSession
-from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
-from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import (
@@ -36,6 +34,7 @@ from app.jobs.sfms_run_pipeline import (
     SFMSRunContext,
     get_missing_fwi_seed_keys,
     run_fbp_calculations,
+    run_fmc_calculations,
     run_fwi_calculations,
     run_temporal_fuel,
     run_weather_interpolation,
@@ -122,19 +121,10 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                 fuel_raster_path = raster_addresser.gdal_path(fuel_type_raster.object_store_path)
                 logger.info("Using reference raster: %s", fuel_raster_path)
 
-                fmc_inputs = raster_addresser.get_fmc_inputs(
-                    [datetime_to_process.date() for datetime_to_process in datetimes_to_process],
-                    fuel_raster_path,
-                )
-                await FoliarMoistureContentProcessor(raster_addresser).process(
-                    s3_client,
-                    multi_wps_dataset_context,
-                    fmc_inputs,
-                )
-
                 # weather and FWI for every date commit first, so a fuel failure can't roll back
                 # their runs and logs
                 runs = {}
+                station_forecasts_by_datetime = {}
                 async with get_async_write_session_scope() as write_session:
                     for index, datetime_to_process in enumerate(datetimes_to_process):
                         sfms_forecasts = await wfwx_api.get_sfms_daily_weather_all_stations(
@@ -165,11 +155,13 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                             raster_addresser=raster_addresser,
                         )
                         runs[datetime_to_process] = ctx
-                        # everything the run reads before its stages record what they traced
-                        ctx.manifest.record_station_codes(station_codes)
-                        ctx.manifest.record_base_fuel_raster(fuel_type_raster.object_store_path)
-                        ctx.manifest.record_fmc_inputs(fmc_inputs, datetime_to_process.date())
+                        station_forecasts_by_datetime[datetime_to_process] = sfms_forecasts
 
+                    await run_fmc_calculations(list(runs.values()), fuel_raster_path)
+
+                    for index, datetime_to_process in enumerate(datetimes_to_process):
+                        ctx = runs[datetime_to_process]
+                        sfms_forecasts = station_forecasts_by_datetime[datetime_to_process]
                         await run_weather_interpolation(ctx, fuel_raster_path, sfms_forecasts)
 
                         previous_base_run_type = RunType.ACTUAL if index == 0 else RunType.FORECAST
@@ -187,10 +179,9 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                         await run_fbp_calculations(
                             fuel_run, temporal_fuel_path, fuel_type_raster.year
                         )
-
-                # traced at the end of the run, so a run that fails part way leaves no manifest
-                for ctx in runs.values():
-                    await ctx.write_manifest()
+                        # each date has its own run and manifest; retain completed dates if a later
+                        # forecast date fails.
+                        await ctx.write_manifest()
 
     logger.info("SFMS daily forecasts completed successfully from %s", run_datetime.date())
 

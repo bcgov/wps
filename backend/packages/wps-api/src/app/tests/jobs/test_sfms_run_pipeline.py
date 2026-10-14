@@ -60,7 +60,7 @@ def a_run(
 
 async def _run_action(job_name, _sfms_run_id, _session, action):
     """A _run_tracked_job stand-in that runs the job without the run log."""
-    await action()
+    return await action()
 
 
 class TestSFMSRunContext:
@@ -101,6 +101,55 @@ class TestSFMSRunContext:
                 MagicMock(),
                 MagicMock(),
             )
+
+    @pytest.mark.anyio
+    async def test_run_stage_visits_node_before_action_and_exits_after_success(
+        self, mocker: MockerFixture
+    ):
+        mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
+        events = []
+
+        class Node:
+            def visit(self, context):
+                events.append(("visit", context))
+
+            def exit(self, context, result):
+                events.append(("exit", context, result))
+
+        context = a_run()
+
+        async def action():
+            events.append(("action",))
+            return "output"
+
+        result = await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
+
+        assert result == "output"
+        assert events == [
+            ("visit", context),
+            ("action",),
+            ("exit", context, "output"),
+        ]
+
+    @pytest.mark.anyio
+    async def test_run_stage_does_not_exit_node_when_action_fails(self, mocker: MockerFixture):
+        mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
+        events = []
+
+        class Node:
+            def visit(self, context):
+                events.append("visit")
+
+            def exit(self, context, result):
+                events.append("exit")
+
+        async def action():
+            raise RuntimeError("stage failed")
+
+        with pytest.raises(RuntimeError, match="stage failed"):
+            await a_run().run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
+
+        assert events == ["visit"]
 
 
 @pytest.mark.anyio

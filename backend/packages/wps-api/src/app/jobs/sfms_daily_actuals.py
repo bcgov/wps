@@ -14,14 +14,12 @@ from dataclasses import replace
 from datetime import datetime, timezone
 
 from aiohttp import ClientSession
-from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
-from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import assert_all_utc, get_utc_now
@@ -31,6 +29,7 @@ from wps_wf1.wfwx_api import WfwxApi
 from app.jobs.sfms_run_pipeline import (
     SFMSRunContext,
     run_derived_fwi_calculations,
+    run_fmc_calculations,
     run_fbp_calculations,
     run_fwi_calculations,
     run_fwi_interpolation,
@@ -69,16 +68,6 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     logger.info("Using reference raster: %s", fuel_raster_path)
 
     async with S3Client() as s3_client:
-        fmc_inputs = raster_addresser.get_fmc_inputs(
-            [datetime_to_process.date()],
-            fuel_raster_path,
-        )
-        await FoliarMoistureContentProcessor(raster_addresser).process(
-            s3_client,
-            multi_wps_dataset_context,
-            fmc_inputs,
-        )
-
         # Fetch station observations from WF1
         async with ClientSession() as session:
             wfwx_api = WfwxApi(session)
@@ -107,10 +96,8 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
                 s3_client=s3_client,
                 raster_addresser=raster_addresser,
             )
-            # everything the run reads before its stages record what they traced
-            ctx.manifest.record_station_codes(station_codes)
-            ctx.manifest.record_base_fuel_raster(fuel_type_raster.object_store_path)
-            ctx.manifest.record_fmc_inputs(fmc_inputs, datetime_to_process.date())
+
+            await run_fmc_calculations([ctx], fuel_raster_path)
 
             await run_weather_interpolation(ctx, fuel_raster_path, sfms_actuals)
 

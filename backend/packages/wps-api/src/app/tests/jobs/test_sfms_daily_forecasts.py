@@ -161,7 +161,7 @@ def mock_dependencies(
     mock_fmc_processor = MagicMock(spec=FoliarMoistureContentProcessor)
     mock_fmc_processor.process = AsyncMock()
     mock_fmc_processor_class = mocker.patch(
-        f"{MODULE_PATH}.FoliarMoistureContentProcessor",
+        f"{PIPELINE_PATH}.FoliarMoistureContentProcessor",
         return_value=mock_fmc_processor,
     )
 
@@ -420,9 +420,9 @@ class TestRunSfmsDailyForecasts:
         # one manifest per forecast date, each under the same run datetime folder
         keys = sorted(call.kwargs["key"] for call in manifest_calls)
         assert keys == [
-            "sfms_ng/runs/2020/05/21/forecast/2024-07-05_20200521T155013Z_run.json",
-            "sfms_ng/runs/2020/05/21/forecast/2024-07-06_20200521T155013Z_run.json",
-            "sfms_ng/runs/2020/05/21/forecast/2024-07-07_20200521T155013Z_run.json",
+            "sfms_ng/runs/2020/05/21/forecast/2024-07-05_20200521T155013962000Z_run.json",
+            "sfms_ng/runs/2020/05/21/forecast/2024-07-06_20200521T155013962000Z_run.json",
+            "sfms_ng/runs/2020/05/21/forecast/2024-07-07_20200521T155013962000Z_run.json",
         ]
         payload = json.loads(manifest_calls[0].kwargs["body"])
         assert payload["run_type"] == "forecast"

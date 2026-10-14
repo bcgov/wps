@@ -4,7 +4,7 @@ import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Awaitable, Callable, TypeVar
+from typing import Awaitable, Callable, Protocol, TypeVar
 
 from botocore.exceptions import ClientError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +29,7 @@ from wps_sfms.processors.fwi import (
     FWIProcessor,
     ISICalculator,
 )
+from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
@@ -36,6 +37,7 @@ from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.temporal_fuel import publish_temporal_fuel_raster
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_sfms.run_manifest import SFMSRunManifest
+from wps_sfms.raster_inputs import FoliarMoistureContentInputs
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.db.crud.fuel_layer import (
     get_latest_temporal_fuel_raster_version,
@@ -50,6 +52,7 @@ from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
+    FBPParameter,
     FWIParameter,
     GDALPath,
     S3Key,
@@ -63,6 +66,14 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
+class VisitorNode(Protocol):
+    """A stage node visited with its run context on entry and exit."""
+
+    def visit(self, context: "SFMSRunContext") -> None: ...
+
+    def exit(self, context: "SFMSRunContext", result: object | None) -> None: ...
+
+
 @dataclass(frozen=True)
 class RasterInterpolationJob:
     """One tracked interpolation job: the parameter it interpolates and where it is written."""
@@ -73,11 +84,24 @@ class RasterInterpolationJob:
     log_label: str
     processor: RasterProcessor
 
+    def visit(self, context: "SFMSRunContext") -> None:
+        pass
+
+    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+        context.manifest.record_raster_output(self.parameter, self.output_key)
+
 
 @dataclass(frozen=True)
 class FWICalculationJob:
     job_name: SFMSRunLogJobName
     calculator: FWICalculator
+    output_key: S3Key
+
+    def visit(self, context: "SFMSRunContext") -> None:
+        pass
+
+    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+        context.manifest.record_raster_output(self.calculator.fwi_param, self.output_key)
 
 
 @dataclass(frozen=True)
@@ -86,6 +110,70 @@ class ResolvedTemporalFuelRaster:
 
     path: GDALPath
     julian_archive_keys: Mapping[str, S3Key]
+
+
+@dataclass(frozen=True)
+class WeatherInterpolationStage:
+    station_codes: tuple[int, ...]
+    fuel_raster_path: GDALPath
+    static_rasters: Mapping[str, str]
+
+    def visit(self, context: "SFMSRunContext") -> None:
+        context.manifest.record_station_codes(self.station_codes)
+        context.manifest.record_base_fuel_raster(self.fuel_raster_path)
+        context.manifest.record_static_rasters(self.static_rasters)
+
+    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+        pass
+
+
+@dataclass(frozen=True)
+class FWISeedStage:
+    seed_keys: Mapping[FWIParameter, str]
+
+    def visit(self, context: "SFMSRunContext") -> None:
+        context.manifest.record_seed_rasters(self.seed_keys)
+
+    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+        pass
+
+
+@dataclass(frozen=True)
+class TemporalFuelStage:
+    def visit(self, context: "SFMSRunContext") -> None:
+        pass
+
+    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+        if not isinstance(result, ResolvedTemporalFuelRaster):
+            raise TypeError("Temporal fuel stage must return a ResolvedTemporalFuelRaster")
+        context.manifest.record_temporal_fuel_raster(result.path, result.julian_archive_keys)
+
+
+@dataclass(frozen=True)
+class FoliarMoistureContentStage:
+    fmc_inputs: FoliarMoistureContentInputs
+    target_date: date
+
+    def visit(self, context: "SFMSRunContext") -> None:
+        context.manifest.record_fmc_static_inputs(self.fmc_inputs)
+
+    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+        context.manifest.record_fmc_raster(self.fmc_inputs, self.target_date)
+
+
+@dataclass(frozen=True)
+class PrimaryFBPStage:
+    percent_conifer_path: GDALPath
+    static_rasters: Mapping[str, str]
+    output_keys: Mapping[FBPParameter, S3Key]
+
+    def visit(self, context: "SFMSRunContext") -> None:
+        context.manifest.record_percent_conifer_raster(self.percent_conifer_path)
+        context.manifest.record_static_rasters(self.static_rasters)
+
+    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+        for parameter, output_key in self.output_keys.items():
+            context.manifest.record_raster_output(parameter, output_key)
 
 
 def get_fwi_seed_keys(
@@ -169,9 +257,62 @@ class SFMSRunContext:
         """Run ``action`` as a job of this run, logged under ``job_name``."""
         return await _run_tracked_job(job_name, self.sfms_run_id, self.session, action)
 
+    def visit_node(self, node: VisitorNode) -> None:
+        """Invoke a stage node's input-recording hook with this run context."""
+        node.visit(self)
+
+    def exit_node(self, node: VisitorNode, result: object | None = None) -> None:
+        """Invoke a stage node's output-recording hook after successful execution."""
+        node.exit(self, result)
+
+    async def run_stage(
+        self,
+        job_name: SFMSRunLogJobName,
+        action: Callable[[], Awaitable[T]],
+        trace_node: VisitorNode,
+    ) -> T:
+        """Track a stage and let its trace node record inputs on entry and outputs on success."""
+        self.visit_node(trace_node)
+        result = await self.track(job_name, action)
+        self.exit_node(trace_node, result)
+        return result
+
+    async def run_group(self, trace_node: VisitorNode, action: Callable[[], Awaitable[T]]) -> T:
+        """Visit a multi-job stage around its successful execution."""
+        self.visit_node(trace_node)
+        result = await action()
+        self.exit_node(trace_node, result)
+        return result
+
     async def write_manifest(self) -> None:
         """Upload the manifest tracing this run's inputs and outputs."""
         await self.manifest.write(self.s3_client)
+
+
+async def run_fmc_calculations(contexts: list[SFMSRunContext], fuel_raster_path: GDALPath) -> None:
+    """Calculate shared FMC rasters and trace the inputs/outputs on each date's run context."""
+    if not contexts:
+        return
+
+    raster_addresser = contexts[0].raster_addresser
+    fmc_inputs = raster_addresser.get_fmc_inputs(
+        [context.datetime_to_process.date() for context in contexts], fuel_raster_path
+    )
+    trace_nodes = [
+        FoliarMoistureContentStage(fmc_inputs, context.datetime_to_process.date())
+        for context in contexts
+    ]
+    for context, node in zip(contexts, trace_nodes):
+        context.visit_node(node)
+
+    await FoliarMoistureContentProcessor(raster_addresser).process(
+        contexts[0].s3_client,
+        multi_wps_dataset_context,
+        fmc_inputs,
+    )
+
+    for context, node in zip(contexts, trace_nodes):
+        context.exit_node(node)
 
 
 async def _process_raster_job(
@@ -181,8 +322,7 @@ async def _process_raster_job(
         s3_key = await job.processor.process(ctx.s3_client, fuel_raster_path, job.output_key)
         logger.info("%s: %s", job.log_label, s3_key)
 
-    await ctx.track(job.job_name, _run)
-    ctx.manifest.record_raster_output(job.parameter, job.output_key)
+    await ctx.run_stage(job.job_name, _run, job)
 
 
 async def get_missing_fwi_seed_keys(
@@ -290,17 +430,16 @@ async def resolve_temporal_fuel_raster(
 async def run_temporal_fuel(run: SFMSRunContext, fuel_type_raster: FuelTypeRaster) -> GDALPath:
     """Resolve the date's temporal fuel raster as a tracked job of the SFMS run."""
 
-    async def _resolve() -> GDALPath:
-        resolved = await resolve_temporal_fuel_raster(
+    async def _resolve() -> ResolvedTemporalFuelRaster:
+        return await resolve_temporal_fuel_raster(
             run.datetime_to_process.date(),
             fuel_type_raster,
             run.raster_addresser,
             run.s3_client,
         )
-        run.manifest.record_temporal_fuel_raster(resolved.path, resolved.julian_archive_keys)
-        return resolved.path
 
-    return await run.track(SFMSRunLogJobName.TEMPORAL_FUEL, _resolve)
+    resolved = await run.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, _resolve, TemporalFuelStage())
+    return resolved.path
 
 
 async def _resolve_percent_conifer_path(
@@ -343,10 +482,8 @@ async def run_fbp_calculations(
     percent_conifer_path = await _resolve_percent_conifer_path(
         fuel_raster_year, raster_addresser, ctx.s3_client
     )
-    ctx.manifest.record_percent_conifer_raster(percent_conifer_path)
     slope_key = raster_addresser.get_slope_key()
     aspect_key = raster_addresser.get_aspect_key()
-    ctx.manifest.record_static_rasters({"slope": slope_key, "aspect": aspect_key})
     inputs = raster_addresser.get_primary_fire_behaviour_inputs(
         ctx.datetime_to_process,
         ctx.run_type,
@@ -375,9 +512,15 @@ async def run_fbp_calculations(
     async def _run_primary_fbp() -> None:
         await processor.process(ctx.s3_client, multi_wps_dataset_context, inputs)
 
-    await ctx.track(SFMSRunLogJobName.PRIMARY_FBP_CALCULATION, _run_primary_fbp)
-    for parameter, output_key in inputs.output_keys.items():
-        ctx.manifest.record_raster_output(parameter, output_key)
+    await ctx.run_stage(
+        SFMSRunLogJobName.PRIMARY_FBP_CALCULATION,
+        _run_primary_fbp,
+        PrimaryFBPStage(
+            percent_conifer_path=percent_conifer_path,
+            static_rasters={"slope": slope_key, "aspect": aspect_key},
+            output_keys=inputs.output_keys,
+        ),
+    )
 
 
 async def run_weather_interpolation(
@@ -387,7 +530,11 @@ async def run_weather_interpolation(
     raster_addresser = ctx.raster_addresser
     mask_path = raster_addresser.get_mask_key()
     dem_path = raster_addresser.get_dem_key()
-    ctx.manifest.record_static_rasters({"dem": dem_path, "mask": mask_path})
+    trace = WeatherInterpolationStage(
+        station_codes=tuple(weather.code for weather in station_weather),
+        fuel_raster_path=fuel_raster_path,
+        static_rasters={"dem": dem_path, "mask": mask_path},
+    )
 
     def weather_key(param: SFMSInterpolatedWeatherParameter) -> str:
         return raster_addresser.get_weather_key(ctx.datetime_to_process, param, ctx.run_type)
@@ -438,8 +585,11 @@ async def run_weather_interpolation(
         ),
     ]
 
-    for job in jobs:
-        await _process_raster_job(ctx, job, fuel_raster_path)
+    async def _run_jobs() -> None:
+        for job in jobs:
+            await _process_raster_job(ctx, job, fuel_raster_path)
+
+    await ctx.run_group(trace, _run_jobs)
 
 
 async def run_fwi_interpolation(
@@ -451,6 +601,11 @@ async def run_fwi_interpolation(
     )
 
     mask_path = ctx.raster_addresser.get_mask_key()
+    trace = WeatherInterpolationStage(
+        station_codes=tuple(weather.code for weather in station_weather),
+        fuel_raster_path=fuel_raster_path,
+        static_rasters={"mask": mask_path},
+    )
 
     def index_key(param: FWIParameter) -> str:
         return ctx.raster_addresser.get_index_key(ctx.datetime_to_process, param, ctx.run_type)
@@ -479,8 +634,11 @@ async def run_fwi_interpolation(
         ),
     ]
 
-    for job in jobs:
-        await _process_raster_job(ctx, job, fuel_raster_path)
+    async def _run_jobs() -> None:
+        for job in jobs:
+            await _process_raster_job(ctx, job, fuel_raster_path)
+
+    await ctx.run_group(trace, _run_jobs)
 
 
 async def _run_fwi_calculation_jobs(
@@ -505,29 +663,25 @@ async def _run_fwi_calculation_jobs(
         FWIParameter.BUI: SFMSRunLogJobName.BUI_CALCULATION,
         FWIParameter.FWI: SFMSRunLogJobName.FWI_CALCULATION,
     }
-    jobs = [
-        FWICalculationJob(
+    for calculator in calculators:
+        fwi_inputs = ctx.raster_addresser.get_fwi_inputs(
+            ctx.datetime_to_process,
+            calculator.fwi_param,
+            ctx.run_type,
+            previous_base_run_type=previous_base_run_type,
+        )
+        job = FWICalculationJob(
             job_name=job_names_by_param[calculator.fwi_param],
             calculator=calculator,
+            output_key=fwi_inputs.output_key,
         )
-        for calculator in calculators
-    ]
 
-    for job in jobs:
-
-        async def _run(_calculator=job.calculator) -> None:
-            _fwi_inputs = ctx.raster_addresser.get_fwi_inputs(
-                ctx.datetime_to_process,
-                _calculator.fwi_param,
-                ctx.run_type,
-                previous_base_run_type=previous_base_run_type,
-            )
+        async def _run(_calculator=calculator, _inputs=fwi_inputs) -> None:
             await fwi_processor.calculate_index(
-                ctx.s3_client, multi_wps_dataset_context, _calculator, _fwi_inputs
+                ctx.s3_client, multi_wps_dataset_context, _calculator, _inputs
             )
-            ctx.manifest.record_raster_output(_calculator.fwi_param, _fwi_inputs.output_key)
 
-        await ctx.track(job.job_name, _run)
+        await ctx.run_stage(job.job_name, _run, job)
 
 
 async def run_fwi_calculations(
@@ -559,9 +713,6 @@ async def run_fwi_calculations(
         )
         return False
 
-    ctx.manifest.record_seed_rasters(
-        get_fwi_seed_keys(ctx.datetime_to_process, ctx.raster_addresser, seed_run_type)
-    )
     full_fwi_calculators = (
         FFMCCalculator(),
         DMCCalculator(month),
@@ -570,8 +721,13 @@ async def run_fwi_calculations(
         BUICalculator(),
         FWIFinalCalculator(),
     )
-    await _run_fwi_calculation_jobs(
-        ctx, full_fwi_calculators, previous_base_run_type=previous_base_run_type
+    await ctx.run_group(
+        FWISeedStage(
+            get_fwi_seed_keys(ctx.datetime_to_process, ctx.raster_addresser, seed_run_type)
+        ),
+        lambda: _run_fwi_calculation_jobs(
+            ctx, full_fwi_calculators, previous_base_run_type=previous_base_run_type
+        ),
     )
     return True
 

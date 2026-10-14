@@ -24,18 +24,19 @@ sfms_ng/runs/{run_datetime yyyy/mm/dd}/{run_type}/{for_date}_{run_datetime}_run.
 - `run_type` is `actual` or `forecast`.
 - `yyyy/mm/dd` is the **run datetime's** date (UTC) — not the target date.
 - `for_date` is the run's target date, ISO `YYYY-MM-DD`.
-- the `run_datetime` in the file name is the same UTC datetime, compacted to `YYYYMMDDThhmmssZ`.
+- the `run_datetime` in the file name is the same UTC datetime, compacted to
+  `YYYYMMDDThhmmssffffffZ` (including six microsecond digits).
 
 For example, an actuals run for 2026-10-13 that started at 20:45:00 UTC writes:
 
 ```
-sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500Z_run.json
+sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json
 ```
 
 and that day's forecast run, processing 2026-10-14, writes:
 
 ```
-sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T211500Z_run.json
+sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T211500000000Z_run.json
 ```
 
 Because the folder is the run datetime, re-runs and backfills of the same target date never

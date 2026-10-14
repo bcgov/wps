@@ -121,9 +121,11 @@ class SFMSRunManifest(BaseModel):
         FMC is recorded as both an input and an output: the run is responsible for the target
         date's raster, and primary FBP consumes it.
         """
-        fmc_key = object_store_key(fmc_inputs.output_keys[target_date])
-        self.input.fmc_raster = fmc_key
-        self.output.fmc_raster = fmc_key
+        self.record_fmc_static_inputs(fmc_inputs)
+        self.record_fmc_raster(fmc_inputs, target_date)
+
+    def record_fmc_static_inputs(self, fmc_inputs: FoliarMoistureContentInputs) -> None:
+        """Record the static rasters used to calculate FMC."""
         self.record_static_rasters(
             {
                 "elevation": fmc_inputs.elevation_key,
@@ -131,6 +133,12 @@ class SFMSRunManifest(BaseModel):
                 "longitude": fmc_inputs.longitude_key,
             }
         )
+
+    def record_fmc_raster(self, fmc_inputs: FoliarMoistureContentInputs, target_date: date) -> None:
+        """Record the calculated FMC raster as a run output and later FBP input."""
+        fmc_key = object_store_key(fmc_inputs.output_keys[target_date])
+        self.input.fmc_raster = fmc_key
+        self.output.fmc_raster = fmc_key
 
     def record_seed_rasters(self, seed_keys: Mapping[FWIParameter, str]) -> None:
         """Record the previous-day index rasters the run calculated FWI forward from."""
