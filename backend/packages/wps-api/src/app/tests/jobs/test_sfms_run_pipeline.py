@@ -121,10 +121,10 @@ class TestSFMSRunContext:
         events = []
 
         class Node:
-            def visit(self, context):
+            def on_enter(self, context):
                 events.append(("visit", context))
 
-            def exit(self, context, result):
+            def on_exit(self, context, result):
                 events.append(("exit", context, result))
 
         context = a_run()
@@ -148,10 +148,10 @@ class TestSFMSRunContext:
         events = []
 
         class Node:
-            def visit(self, context):
+            def on_enter(self, context):
                 events.append("visit")
 
-            def exit(self, context, result):
+            def on_exit(self, context, result):
                 events.append("exit")
 
         async def action():

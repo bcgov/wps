@@ -66,12 +66,12 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class VisitorNode(Protocol):
-    """A stage node visited with its run context on entry and exit."""
+class SFMSStageNode(Protocol):
+    """A stage node that records run inputs on entry and outputs on successful exit."""
 
-    def visit(self, context: "SFMSRunContext") -> None: ...
+    def on_enter(self, context: "SFMSRunContext") -> None: ...
 
-    def exit(self, context: "SFMSRunContext", result: object | None) -> None: ...
+    def on_exit(self, context: "SFMSRunContext", result: object | None) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -84,11 +84,11 @@ class RasterInterpolationJob:
     log_label: str
     processor: RasterProcessor
 
-    def visit(self, context: "SFMSRunContext") -> None:
+    def on_enter(self, context: "SFMSRunContext") -> None:
         # The raster output is the only trace metadata; it is recorded on successful exit.
         pass
 
-    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
+    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         context.manifest.record_raster_output(self.parameter, self.output_key)
 
 
@@ -98,11 +98,11 @@ class FWICalculationJob:
     calculator: FWICalculator
     output_key: S3Key
 
-    def visit(self, context: "SFMSRunContext") -> None:
+    def on_enter(self, context: "SFMSRunContext") -> None:
         # The output key is the only trace metadata; it is recorded on successful exit.
         pass
 
-    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
+    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         context.manifest.record_raster_output(self.calculator.fwi_param, self.output_key)
 
 
@@ -120,12 +120,12 @@ class WeatherInterpolationStage:
     fuel_raster_path: GDALPath
     static_rasters: Mapping[str, str]
 
-    def visit(self, context: "SFMSRunContext") -> None:
+    def on_enter(self, context: "SFMSRunContext") -> None:
         context.manifest.record_station_codes(self.station_codes)
         context.manifest.record_base_fuel_raster(self.fuel_raster_path)
         context.manifest.record_static_rasters(self.static_rasters)
 
-    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
+    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         # The child raster nodes record weather outputs individually.
         pass
 
@@ -134,21 +134,21 @@ class WeatherInterpolationStage:
 class FWISeedStage:
     seed_keys: Mapping[FWIParameter, str]
 
-    def visit(self, context: "SFMSRunContext") -> None:
+    def on_enter(self, context: "SFMSRunContext") -> None:
         context.manifest.record_seed_rasters(self.seed_keys)
 
-    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
+    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         # The calculation nodes record FWI outputs individually.
         pass
 
 
 @dataclass(frozen=True)
 class TemporalFuelStage:
-    def visit(self, context: "SFMSRunContext") -> None:
+    def on_enter(self, context: "SFMSRunContext") -> None:
         # The exact Julian inputs are returned by the resolver after they are read.
         pass
 
-    def exit(self, context: "SFMSRunContext", result: object | None) -> None:
+    def on_exit(self, context: "SFMSRunContext", result: object | None) -> None:
         if not isinstance(result, ResolvedTemporalFuelRaster):
             raise TypeError("Temporal fuel stage must return a ResolvedTemporalFuelRaster")
         context.manifest.record_temporal_fuel_raster(result.path, result.julian_archive_keys)
@@ -159,10 +159,10 @@ class FoliarMoistureContentStage:
     fmc_inputs: FoliarMoistureContentInputs
     target_date: date
 
-    def visit(self, context: "SFMSRunContext") -> None:
+    def on_enter(self, context: "SFMSRunContext") -> None:
         context.manifest.record_fmc_static_inputs(self.fmc_inputs)
 
-    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
+    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         context.manifest.record_fmc_raster(self.fmc_inputs, self.target_date)
 
 
@@ -172,11 +172,11 @@ class PrimaryFBPStage:
     static_rasters: Mapping[str, str]
     output_keys: Mapping[FBPParameter, S3Key]
 
-    def visit(self, context: "SFMSRunContext") -> None:
+    def on_enter(self, context: "SFMSRunContext") -> None:
         context.manifest.record_percent_conifer_raster(self.percent_conifer_path)
         context.manifest.record_static_rasters(self.static_rasters)
 
-    def exit(self, context: "SFMSRunContext", _result: object | None) -> None:
+    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         for parameter, output_key in self.output_keys.items():
             context.manifest.record_raster_output(parameter, output_key)
 
@@ -274,29 +274,29 @@ class SFMSRunContext:
             raster_addresser=self.raster_addresser,
         )
 
-    def visit_node(self, node: VisitorNode) -> None:
+    def enter_node(self, node: SFMSStageNode) -> None:
         """Invoke a stage node's input-recording hook with this run context."""
-        node.visit(self)
+        node.on_enter(self)
 
-    def exit_node(self, node: VisitorNode, result: object | None = None) -> None:
+    def exit_node(self, node: SFMSStageNode, result: object | None = None) -> None:
         """Invoke a stage node's output-recording hook after successful execution."""
-        node.exit(self, result)
+        node.on_exit(self, result)
 
     async def run_stage(
         self,
         job_name: SFMSRunLogJobName,
         action: Callable[[], Awaitable[T]],
-        trace_node: VisitorNode,
+        trace_node: SFMSStageNode,
     ) -> T:
         """Track a stage and let its trace node record inputs on entry and outputs on success."""
-        self.visit_node(trace_node)
+        self.enter_node(trace_node)
         result = await self.track(job_name, action)
         self.exit_node(trace_node, result)
         return result
 
-    async def run_group(self, trace_node: VisitorNode, action: Callable[[], Awaitable[T]]) -> T:
+    async def run_group(self, trace_node: SFMSStageNode, action: Callable[[], Awaitable[T]]) -> T:
         """Visit a multi-job stage around its successful execution."""
-        self.visit_node(trace_node)
+        self.enter_node(trace_node)
         result = await action()
         self.exit_node(trace_node, result)
         return result
@@ -320,7 +320,7 @@ async def run_fmc_calculations(contexts: list[SFMSRunContext], fuel_raster_path:
         for context in contexts
     ]
     for context, node in zip(contexts, trace_nodes):
-        context.visit_node(node)
+        context.enter_node(node)
 
     await FoliarMoistureContentProcessor(raster_addresser).process(
         contexts[0].s3_client,
