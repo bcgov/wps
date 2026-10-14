@@ -84,6 +84,7 @@ class TestSFMSRunContext:
 
         assert rebound.session is session
         assert rebound.manifest is run.manifest
+        assert rebound.stage_trace is run.stage_trace
         assert rebound.sfms_run_id == run.sfms_run_id
         assert rebound.datetime_to_process == run.datetime_to_process
 
@@ -141,7 +142,7 @@ class TestSFMSRunContext:
             ("action",),
             ("exit", context, "output"),
         ]
-        assert context.stage_graph == "ENTER temporal_fuel\nEXIT temporal_fuel"
+        assert context.stage_trace.render() == "ENTER temporal_fuel\nEXIT temporal_fuel"
 
     @pytest.mark.anyio
     async def test_run_stage_does_not_exit_node_when_action_fails(self, mocker: MockerFixture):
@@ -163,7 +164,7 @@ class TestSFMSRunContext:
             await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
 
         assert events == ["visit"]
-        assert context.stage_graph == "ENTER temporal_fuel"
+        assert context.stage_trace.render() == "ENTER temporal_fuel"
 
     @pytest.mark.anyio
     async def test_stage_graph_indents_nested_stages(self, mocker: MockerFixture):
@@ -185,7 +186,7 @@ class TestSFMSRunContext:
 
         await context.run_group(Node(), _run_child)
 
-        assert context.stage_graph == (
+        assert context.stage_trace.render() == (
             "ENTER Node\n  ENTER temporal_fuel\n  EXIT temporal_fuel\nEXIT Node"
         )
 

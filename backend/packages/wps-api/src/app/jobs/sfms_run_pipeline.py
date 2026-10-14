@@ -207,6 +207,36 @@ async def _run_tracked_job(
     return await _wrapped()
 
 
+@dataclass
+class StageTrace:
+    """Per-run nested trace of stage entry and successful exit events."""
+
+    _stack: list[str] = field(default_factory=list, repr=False)
+    _events: list[str] = field(default_factory=list, repr=False)
+
+    @staticmethod
+    def name_for(node: SFMSStageNode) -> str:
+        job_name = getattr(node, "job_name", None)
+        return getattr(job_name, "value", None) or type(node).__name__
+
+    def enter(self, stage_name: str) -> None:
+        self._events.append(f"{'  ' * len(self._stack)}ENTER {stage_name}")
+        self._stack.append(stage_name)
+
+    def assert_current(self, stage_name: str) -> None:
+        if not self._stack or self._stack[-1] != stage_name:
+            raise RuntimeError(f"Unbalanced stage exit: {stage_name}")
+
+    def exit(self, stage_name: str) -> None:
+        self.assert_current(stage_name)
+        self._stack.pop()
+        self._events.append(f"{'  ' * len(self._stack)}EXIT {stage_name}")
+
+    def render(self) -> str:
+        """Render the recorded stage lifecycle as an indented tree."""
+        return "\n".join(self._events)
+
+
 @dataclass(frozen=True)
 class SFMSRunContext:
     """What every stage of one SFMS run for one date shares: the date and run type being
@@ -220,8 +250,7 @@ class SFMSRunContext:
     session: AsyncSession
     s3_client: S3Client
     raster_addresser: SFMSNGRasterAddresser
-    _stage_stack: list[str] = field(default_factory=list, repr=False, compare=False)
-    _stage_events: list[str] = field(default_factory=list, repr=False, compare=False)
+    stage_trace: StageTrace = field(default_factory=StageTrace, repr=False, compare=False)
 
     @classmethod
     def start(
@@ -274,37 +303,23 @@ class SFMSRunContext:
             session=session,
             s3_client=self.s3_client,
             raster_addresser=self.raster_addresser,
-            _stage_stack=self._stage_stack,
-            _stage_events=self._stage_events,
+            stage_trace=self.stage_trace,
         )
 
     def enter_node(self, node: SFMSStageNode, stage_name: str | None = None) -> None:
         """Invoke a stage node's input-recording hook with this run context."""
-        stage_name = stage_name or self._stage_name(node)
-        self._stage_events.append(f"{'  ' * len(self._stage_stack)}ENTER {stage_name}")
-        self._stage_stack.append(stage_name)
+        stage_name = stage_name or self.stage_trace.name_for(node)
+        self.stage_trace.enter(stage_name)
         node.on_enter(self)
 
     def exit_node(
         self, node: SFMSStageNode, result: object | None = None, stage_name: str | None = None
     ) -> None:
         """Invoke a stage node's output-recording hook after successful execution."""
-        stage_name = stage_name or self._stage_name(node)
-        if not self._stage_stack or self._stage_stack[-1] != stage_name:
-            raise RuntimeError(f"Unbalanced stage exit: {stage_name}")
+        stage_name = stage_name or self.stage_trace.name_for(node)
+        self.stage_trace.assert_current(stage_name)
         node.on_exit(self, result)
-        self._stage_stack.pop()
-        self._stage_events.append(f"{'  ' * len(self._stage_stack)}EXIT {stage_name}")
-
-    @staticmethod
-    def _stage_name(node: SFMSStageNode) -> str:
-        job_name = getattr(node, "job_name", None)
-        return getattr(job_name, "value", None) or type(node).__name__
-
-    @property
-    def stage_graph(self) -> str:
-        """A readable enter/exit trace of the stages this run executed."""
-        return "\n".join(self._stage_events)
+        self.stage_trace.exit(stage_name)
 
     async def run_stage(
         self,
@@ -325,7 +340,7 @@ class SFMSRunContext:
 
     async def run_group(self, trace_node: SFMSStageNode, action: Callable[[], Awaitable[T]]) -> T:
         """Visit a multi-job stage around its successful execution."""
-        stage_name = self._stage_name(trace_node)
+        stage_name = self.stage_trace.name_for(trace_node)
         try:
             self.enter_node(trace_node, stage_name)
             result = await action()
@@ -341,7 +356,7 @@ class SFMSRunContext:
             "SFMS stage graph for %s %s:\n%s",
             self.run_type.value,
             self.datetime_to_process.date(),
-            self.stage_graph or "No stages recorded",
+            self.stage_trace.render() or "No stages recorded",
         )
         await self.manifest.write(self.s3_client)
 
