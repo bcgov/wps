@@ -67,8 +67,10 @@ def test_expected_actual_target_date_uses_today_after_actuals_available():
 
 
 def test_expected_actual_target_date_rejects_naive_datetime():
+    naive_datetime = datetime(2024, 7, 4)
+
     with pytest.raises(AssertionError, match="timezone-aware"):
-        expected_actual_target_date(datetime(2024, 7, 4))
+        expected_actual_target_date(naive_datetime)
 
 
 def test_run_datetime_for_cli_date_uses_current_pdt_time():

@@ -108,6 +108,7 @@ class TestSFMSRunContext:
     def test_rejects_a_manifest_describing_another_run(self, manifest: SFMSRunManifest):
         datetime_to_process = datetime_to_process_for(date(2025, 7, 4))
         s3_client, addresser, fuel_type_raster = MagicMock(), MagicMock(), MagicMock()
+        seed_actual_date = date(2025, 7, 3)
         with pytest.raises(AssertionError, match="the manifest must describe"):
             SFMSRunContext(
                 datetime_to_process,
@@ -117,7 +118,7 @@ class TestSFMSRunContext:
                 s3_client,
                 addresser,
                 fuel_type_raster,
-                date(2025, 7, 3),
+                seed_actual_date,
             )
 
     @pytest.mark.anyio
@@ -155,9 +156,10 @@ async def test_fmc_stage_records_its_failure(mocker: MockerFixture, tracked_jobs
         longitude_key="sfms_ng/static/longitude.tif",
     )
     run = a_run(addresser=addresser)
+    stage = FoliarMoistureContentStage()
 
     with pytest.raises(RuntimeError, match="fmc failed"):
-        await FoliarMoistureContentStage().run(run)
+        await stage.run(run)
 
     assert run.manifest.failed_stage == SFMSRunLogJobName.FOLIAR_MOISTURE_CONTENT.value
     # its inputs were recorded before the calculation, its output only on success
