@@ -84,7 +84,6 @@ class TestSFMSRunContext:
 
         assert rebound.session is session
         assert rebound.manifest is run.manifest
-        assert rebound.stage_trace is run.stage_trace
         assert rebound.sfms_run_id == run.sfms_run_id
         assert rebound.datetime_to_process == run.datetime_to_process
 
@@ -142,7 +141,6 @@ class TestSFMSRunContext:
             ("action",),
             ("exit", context, "output"),
         ]
-        assert context.stage_trace.render() == "ENTER temporal_fuel\nEXIT temporal_fuel"
 
     @pytest.mark.anyio
     async def test_run_stage_does_not_exit_node_when_action_fails(self, mocker: MockerFixture):
@@ -164,31 +162,7 @@ class TestSFMSRunContext:
             await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
 
         assert events == ["visit"]
-        assert context.stage_trace.render() == "ENTER temporal_fuel"
-
-    @pytest.mark.anyio
-    async def test_stage_graph_indents_nested_stages(self, mocker: MockerFixture):
-        mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
-        context = a_run()
-
-        class Node:
-            def on_enter(self, context):
-                pass
-
-            def on_exit(self, context, result):
-                pass
-
-        async def _run_child():
-            async def action():
-                return None
-
-            return await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
-
-        await context.run_group(Node(), _run_child)
-
-        assert context.stage_trace.render() == (
-            "ENTER Node\n  ENTER temporal_fuel\n  EXIT temporal_fuel\nEXIT Node"
-        )
+        assert context.manifest.failed_stage == SFMSRunLogJobName.TEMPORAL_FUEL.value
 
 
 @pytest.mark.anyio
@@ -272,6 +246,7 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
     }
     primary_inputs = MagicMock()
     primary_inputs.output_keys = fbp_output_keys
+    primary_inputs.percent_conifer_key = "/vsis3/some bucket/sfms/static/m12_2025.tif"
     addresser.get_primary_fire_behaviour_inputs.return_value = primary_inputs
     resolve_percent_conifer = mocker.patch(
         f"{PIPELINE_PATH}._resolve_percent_conifer_path",
@@ -286,7 +261,7 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
 
     async def run_tracked_job(job_name, _ctx, _session, action):
         tracked_jobs.append(job_name)
-        await action()
+        return await action()
 
     mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=run_tracked_job)
     run = a_run(addresser=addresser, s3_client=s3_client, session=session)

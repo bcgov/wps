@@ -16,7 +16,6 @@ from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
-from wps_shared import config
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FBPParameter,
@@ -38,7 +37,7 @@ MANIFEST_SCHEMA_VERSION = 1
 
 def object_store_key(path: str) -> str:
     """Return the plain object store key for a plain key or a GDAL ``/vsis3/{bucket}/`` path."""
-    return path.removeprefix(f"/vsis3/{config.get('OBJECT_STORE_BUCKET')}/")
+    return SFMSNGRasterAddresser().s3_key(path)
 
 
 class FuelRasterTrace(BaseModel):
@@ -130,15 +129,6 @@ class SFMSRunManifest(BaseModel):
         self.output.fuel_raster = fuel_key
         self.record_julian_rasters(julian_archive_keys)
 
-    def record_fmc_inputs(self, fmc_inputs: FoliarMoistureContentInputs, target_date: date) -> None:
-        """Record the shared FMC raster ensured for the target date and its static rasters.
-
-        FMC is recorded as both an input and an output: the run is responsible for the target
-        date's raster, and primary FBP consumes it.
-        """
-        self.record_fmc_static_inputs(fmc_inputs)
-        self.record_fmc_raster(fmc_inputs, target_date)
-
     def record_fmc_static_inputs(self, fmc_inputs: FoliarMoistureContentInputs) -> None:
         """Record the static rasters used to calculate FMC."""
         self.record_static_rasters(
@@ -150,7 +140,11 @@ class SFMSRunManifest(BaseModel):
         )
 
     def record_fmc_raster(self, fmc_inputs: FoliarMoistureContentInputs, target_date: date) -> None:
-        """Record the calculated FMC raster as a run output and later FBP input."""
+        """Record the calculated FMC raster for the target date.
+
+        FMC is recorded as both an input and an output: the run is responsible for the target
+        date's raster, and primary FBP consumes it.
+        """
         fmc_key = object_store_key(fmc_inputs.output_keys[target_date])
         self.input.fmc_raster = fmc_key
         self.output.fmc_raster = fmc_key

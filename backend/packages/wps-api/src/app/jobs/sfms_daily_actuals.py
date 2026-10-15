@@ -68,50 +68,48 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     logger.info("Using reference raster: %s", fuel_raster_path)
 
     async with S3Client() as s3_client:
-        ctx = None
+        # Fetch station observations from WF1
+        async with ClientSession() as session:
+            wfwx_api = WfwxApi(session)
+            sfms_actuals = await wfwx_api.get_sfms_daily_weather_all_stations(datetime_to_process)
+
+        if not sfms_actuals:
+            raise RuntimeError(f"No station observations found for {datetime_to_process}")
+
+        async with get_async_write_session_scope() as session:
+            station_codes = [actual.code for actual in sfms_actuals]
+            saved_run_datetime = get_utc_now()
+            sfms_run_id = await save_sfms_run(
+                session,
+                RunTypeEnum.actual,
+                datetime_to_process.date(),
+                saved_run_datetime,
+                station_codes,
+            )
+
+            ctx = SFMSRunContext.start(
+                datetime_to_process=datetime_to_process,
+                run_type=RunType.ACTUAL,
+                sfms_run_id=sfms_run_id,
+                run_datetime=saved_run_datetime,
+                session=session,
+                s3_client=s3_client,
+                raster_addresser=raster_addresser,
+            )
+
+            await run_fmc_calculations([ctx], fuel_raster_path)
+            await run_weather_interpolation(ctx, fuel_raster_path, sfms_actuals)
+
+            if is_fwi_interpolation_day(datetime_to_process):
+                await run_fwi_interpolation(ctx, fuel_raster_path, sfms_actuals)
+                await run_derived_fwi_calculations(ctx)
+                fwi_calculated = True
+            else:
+                fwi_calculated = await run_fwi_calculations(ctx)
+
+        # weather and FWI commit first, so a fuel failure can't roll back their run and logs, and
+        # a failure manifest written from here can always be joined to its sfms_run row
         try:
-            # Fetch station observations from WF1
-            async with ClientSession() as session:
-                wfwx_api = WfwxApi(session)
-                sfms_actuals = await wfwx_api.get_sfms_daily_weather_all_stations(
-                    datetime_to_process
-                )
-
-            if not sfms_actuals:
-                raise RuntimeError(f"No station observations found for {datetime_to_process}")
-
-            async with get_async_write_session_scope() as session:
-                station_codes = [actual.code for actual in sfms_actuals]
-                saved_run_datetime = get_utc_now()
-                sfms_run_id = await save_sfms_run(
-                    session,
-                    RunTypeEnum.actual,
-                    datetime_to_process.date(),
-                    saved_run_datetime,
-                    station_codes,
-                )
-
-                ctx = SFMSRunContext.start(
-                    datetime_to_process=datetime_to_process,
-                    run_type=RunType.ACTUAL,
-                    sfms_run_id=sfms_run_id,
-                    run_datetime=saved_run_datetime,
-                    session=session,
-                    s3_client=s3_client,
-                    raster_addresser=raster_addresser,
-                )
-
-                await run_fmc_calculations([ctx], fuel_raster_path)
-                await run_weather_interpolation(ctx, fuel_raster_path, sfms_actuals)
-
-                if is_fwi_interpolation_day(datetime_to_process):
-                    await run_fwi_interpolation(ctx, fuel_raster_path, sfms_actuals)
-                    await run_derived_fwi_calculations(ctx)
-                    fwi_calculated = True
-                else:
-                    fwi_calculated = await run_fwi_calculations(ctx)
-
-            # weather and FWI commit first, so a fuel failure can't roll back their run and logs
             if fwi_calculated:
                 async with get_async_write_session_scope() as session:
                     # the fuel and FBP stages log their jobs against this session of their own
@@ -123,8 +121,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
 
             await ctx.write_manifest()
         except Exception as error:
-            if ctx is not None:
-                await write_failure_manifests([ctx], "daily_actuals", error)
+            await write_failure_manifests([ctx], "daily_actuals", error)
             raise
 
     logger.info("SFMS daily actuals completed successfully for %s", target_date.date())

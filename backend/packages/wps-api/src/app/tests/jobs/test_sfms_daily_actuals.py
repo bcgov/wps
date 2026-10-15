@@ -229,10 +229,8 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.wind_speed_processor.process.assert_not_called()
         mock_dependencies.wind_direction_processor.process.assert_not_called()
         mock_dependencies.interpolation_processor.process.assert_not_called()
-        manifest = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
-        assert manifest["status"] == "failed"
-        assert manifest["failed_stage"] == "temperature_interpolation"
-        assert manifest["failure_type"] == "RuntimeError"
+        # the sfms_run row was rolled back, so a manifest would have nothing to join to
+        mock_dependencies.s3_client.put_object.assert_not_awaited()
 
     @pytest.mark.anyio
     async def test_temporal_fuel_failure_keeps_weather_and_fwi_and_raises(
@@ -342,6 +340,8 @@ class TestRunSfmsDailyActuals:
         assert payload["output"]["fbp"] == {}
         assert "fuel_raster" not in payload["output"]
         assert payload["input"]["seed_rasters"] == {}
+        assert payload["status"] == "failed"
+        assert payload["failed_stage"] == "fwi_seed_check"
         mock_dependencies.run_temporal_fuel.assert_not_awaited()
 
 

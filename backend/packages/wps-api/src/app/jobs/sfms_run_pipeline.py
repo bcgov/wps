@@ -2,7 +2,7 @@
 
 import logging
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Awaitable, Callable, Protocol, TypeVar
 
@@ -37,7 +37,7 @@ from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.temporal_fuel import publish_temporal_fuel_raster
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_sfms.run_manifest import SFMSRunManifest
-from wps_sfms.raster_inputs import FoliarMoistureContentInputs
+from wps_sfms.raster_inputs import FoliarMoistureContentInputs, PrimaryFireBehaviourInputs
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.db.crud.fuel_layer import (
     get_latest_temporal_fuel_raster_version,
@@ -67,15 +67,17 @@ T = TypeVar("T")
 
 
 class SFMSStageNode(Protocol):
-    """A stage node that records run inputs on entry and outputs on successful exit."""
+    """A stage that records the run's inputs on entry and its outputs on successful exit."""
 
-    def on_enter(self, context: "SFMSRunContext") -> None: ...
+    def on_enter(self, context: "SFMSRunContext") -> None:
+        pass
 
-    def on_exit(self, context: "SFMSRunContext", result: object | None) -> None: ...
+    def on_exit(self, context: "SFMSRunContext", result: object | None) -> None:
+        pass
 
 
 @dataclass(frozen=True)
-class RasterInterpolationJob:
+class RasterInterpolationJob(SFMSStageNode):
     """One tracked interpolation job: the parameter it interpolates and where it is written."""
 
     job_name: SFMSRunLogJobName
@@ -84,23 +86,15 @@ class RasterInterpolationJob:
     log_label: str
     processor: RasterProcessor
 
-    def on_enter(self, context: "SFMSRunContext") -> None:
-        # The raster output is the only trace metadata; it is recorded on successful exit.
-        pass
-
     def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         context.manifest.record_raster_output(self.parameter, self.output_key)
 
 
 @dataclass(frozen=True)
-class FWICalculationJob:
+class FWICalculationJob(SFMSStageNode):
     job_name: SFMSRunLogJobName
     calculator: FWICalculator
     output_key: S3Key
-
-    def on_enter(self, context: "SFMSRunContext") -> None:
-        # The output key is the only trace metadata; it is recorded on successful exit.
-        pass
 
     def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
         context.manifest.record_raster_output(self.calculator.fwi_param, self.output_key)
@@ -115,7 +109,7 @@ class ResolvedTemporalFuelRaster:
 
 
 @dataclass(frozen=True)
-class WeatherInterpolationStage:
+class WeatherInterpolationStage(SFMSStageNode):
     station_codes: tuple[int, ...]
     fuel_raster_path: GDALPath
     static_rasters: Mapping[str, str]
@@ -125,37 +119,23 @@ class WeatherInterpolationStage:
         context.manifest.record_base_fuel_raster(self.fuel_raster_path)
         context.manifest.record_static_rasters(self.static_rasters)
 
-    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
-        # The child raster nodes record weather outputs individually.
-        pass
-
 
 @dataclass(frozen=True)
-class FWISeedStage:
+class FWISeedStage(SFMSStageNode):
     seed_keys: Mapping[FWIParameter, str]
 
     def on_enter(self, context: "SFMSRunContext") -> None:
         context.manifest.record_seed_rasters(self.seed_keys)
 
-    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
-        # The calculation nodes record FWI outputs individually.
-        pass
-
 
 @dataclass(frozen=True)
-class TemporalFuelStage:
-    def on_enter(self, context: "SFMSRunContext") -> None:
-        # The exact Julian inputs are returned by the resolver after they are read.
-        pass
-
-    def on_exit(self, context: "SFMSRunContext", result: object | None) -> None:
-        if not isinstance(result, ResolvedTemporalFuelRaster):
-            raise TypeError("Temporal fuel stage must return a ResolvedTemporalFuelRaster")
+class TemporalFuelStage(SFMSStageNode):
+    def on_exit(self, context: "SFMSRunContext", result: ResolvedTemporalFuelRaster) -> None:
         context.manifest.record_temporal_fuel_raster(result.path, result.julian_archive_keys)
 
 
 @dataclass(frozen=True)
-class FoliarMoistureContentStage:
+class FoliarMoistureContentStage(SFMSStageNode):
     fmc_inputs: FoliarMoistureContentInputs
     target_date: date
 
@@ -167,17 +147,15 @@ class FoliarMoistureContentStage:
 
 
 @dataclass(frozen=True)
-class PrimaryFBPStage:
-    percent_conifer_path: GDALPath
+class PrimaryFBPStage(SFMSStageNode):
     static_rasters: Mapping[str, str]
-    output_keys: Mapping[FBPParameter, S3Key]
 
     def on_enter(self, context: "SFMSRunContext") -> None:
-        context.manifest.record_percent_conifer_raster(self.percent_conifer_path)
         context.manifest.record_static_rasters(self.static_rasters)
 
-    def on_exit(self, context: "SFMSRunContext", _result: object | None) -> None:
-        for parameter, output_key in self.output_keys.items():
+    def on_exit(self, context: "SFMSRunContext", result: PrimaryFireBehaviourInputs) -> None:
+        context.manifest.record_percent_conifer_raster(result.percent_conifer_key)
+        for parameter, output_key in result.output_keys.items():
             context.manifest.record_raster_output(parameter, output_key)
 
 
@@ -207,36 +185,6 @@ async def _run_tracked_job(
     return await _wrapped()
 
 
-@dataclass
-class StageTrace:
-    """Per-run nested trace of stage entry and successful exit events."""
-
-    _stack: list[str] = field(default_factory=list, repr=False)
-    _events: list[str] = field(default_factory=list, repr=False)
-
-    @staticmethod
-    def name_for(node: SFMSStageNode) -> str:
-        job_name = getattr(node, "job_name", None)
-        return getattr(job_name, "value", None) or type(node).__name__
-
-    def enter(self, stage_name: str) -> None:
-        self._events.append(f"{'  ' * len(self._stack)}ENTER {stage_name}")
-        self._stack.append(stage_name)
-
-    def assert_current(self, stage_name: str) -> None:
-        if not self._stack or self._stack[-1] != stage_name:
-            raise RuntimeError(f"Unbalanced stage exit: {stage_name}")
-
-    def exit(self, stage_name: str) -> None:
-        self.assert_current(stage_name)
-        self._stack.pop()
-        self._events.append(f"{'  ' * len(self._stack)}EXIT {stage_name}")
-
-    def render(self) -> str:
-        """Render the recorded stage lifecycle as an indented tree."""
-        return "\n".join(self._events)
-
-
 @dataclass(frozen=True)
 class SFMSRunContext:
     """What every stage of one SFMS run for one date shares: the date and run type being
@@ -250,7 +198,6 @@ class SFMSRunContext:
     session: AsyncSession
     s3_client: S3Client
     raster_addresser: SFMSNGRasterAddresser
-    stage_trace: StageTrace = field(default_factory=StageTrace, repr=False, compare=False)
 
     @classmethod
     def start(
@@ -303,61 +250,35 @@ class SFMSRunContext:
             session=session,
             s3_client=self.s3_client,
             raster_addresser=self.raster_addresser,
-            stage_trace=self.stage_trace,
         )
-
-    def enter_node(self, node: SFMSStageNode, stage_name: str | None = None) -> None:
-        """Invoke a stage node's input-recording hook with this run context."""
-        stage_name = stage_name or self.stage_trace.name_for(node)
-        self.stage_trace.enter(stage_name)
-        node.on_enter(self)
-
-    def exit_node(
-        self, node: SFMSStageNode, result: object | None = None, stage_name: str | None = None
-    ) -> None:
-        """Invoke a stage node's output-recording hook after successful execution."""
-        stage_name = stage_name or self.stage_trace.name_for(node)
-        self.stage_trace.assert_current(stage_name)
-        node.on_exit(self, result)
-        self.stage_trace.exit(stage_name)
 
     async def run_stage(
         self,
         job_name: SFMSRunLogJobName,
         action: Callable[[], Awaitable[T]],
-        trace_node: SFMSStageNode,
+        node: SFMSStageNode,
     ) -> T:
-        """Track a stage and let its trace node record inputs on entry and outputs on success."""
-        stage_name = job_name.value
-        try:
-            self.enter_node(trace_node, stage_name)
-            result = await self.track(job_name, action)
-            self.exit_node(trace_node, result, stage_name)
-            return result
-        except Exception as error:
-            self.manifest.record_failure(stage_name, error)
-            raise
+        """Run a stage as a tracked job of this run, letting its node record inputs and outputs."""
+        return await self.run_group(node, lambda: self.track(job_name, action), job_name.value)
 
-    async def run_group(self, trace_node: SFMSStageNode, action: Callable[[], Awaitable[T]]) -> T:
-        """Visit a multi-job stage around its successful execution."""
-        stage_name = self.stage_trace.name_for(trace_node)
+    async def run_group(
+        self,
+        node: SFMSStageNode,
+        action: Callable[[], Awaitable[T]],
+        stage_name: str | None = None,
+    ) -> T:
+        """Run a stage, recording its inputs on entry, outputs on success, and failure otherwise."""
         try:
-            self.enter_node(trace_node, stage_name)
+            node.on_enter(self)
             result = await action()
-            self.exit_node(trace_node, result, stage_name)
+            node.on_exit(self, result)
             return result
         except Exception as error:
-            self.manifest.record_failure(stage_name, error)
+            self.manifest.record_failure(stage_name or type(node).__name__, error)
             raise
 
     async def write_manifest(self) -> None:
         """Upload the manifest tracing this run's inputs and outputs."""
-        logger.info(
-            "SFMS stage graph for %s %s:\n%s",
-            self.run_type.value,
-            self.datetime_to_process.date(),
-            self.stage_trace.render() or "No stages recorded",
-        )
         await self.manifest.write(self.s3_client)
 
 
@@ -377,7 +298,7 @@ async def run_fmc_calculations(contexts: list[SFMSRunContext], fuel_raster_path:
             for context in contexts
         ]
         for context, node in zip(contexts, trace_nodes):
-            context.enter_node(node, stage_name)
+            node.on_enter(context)
 
         await FoliarMoistureContentProcessor(raster_addresser).process(
             contexts[0].s3_client,
@@ -386,7 +307,7 @@ async def run_fmc_calculations(contexts: list[SFMSRunContext], fuel_raster_path:
         )
 
         for context, node in zip(contexts, trace_nodes):
-            context.exit_node(node, stage_name=stage_name)
+            node.on_exit(context, None)
     except Exception as error:
         for context in contexts:
             context.manifest.record_failure(stage_name, error)
@@ -575,47 +496,47 @@ async def run_fbp_calculations(
 ) -> None:
     """Calculate and publish the same-day primary FBP products."""
     raster_addresser = ctx.raster_addresser
-    percent_conifer_path = await _resolve_percent_conifer_path(
-        fuel_raster_year, raster_addresser, ctx.s3_client
-    )
     slope_key = raster_addresser.get_slope_key()
     aspect_key = raster_addresser.get_aspect_key()
-    inputs = raster_addresser.get_primary_fire_behaviour_inputs(
-        ctx.datetime_to_process,
-        ctx.run_type,
-        fuel_raster_path,
-        percent_conifer_path,
-        raster_addresser.gdal_path(
-            raster_addresser.get_weather_key(
-                ctx.datetime_to_process,
-                SFMSInterpolatedWeatherParameter.WIND_SPEED,
-                ctx.run_type,
-            )
-        ),
-        raster_addresser.gdal_path(
-            raster_addresser.get_weather_key(
-                ctx.datetime_to_process,
-                SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
-                ctx.run_type,
-            )
-        ),
-        raster_addresser.gdal_path(raster_addresser.get_fmc_key(ctx.datetime_to_process.date())),
-        raster_addresser.gdal_path(slope_key),
-        raster_addresser.gdal_path(aspect_key),
-    )
-    processor = PrimaryFireBehaviourProcessor(ctx.datetime_to_process)
 
-    async def _run_primary_fbp() -> None:
-        await processor.process(ctx.s3_client, multi_wps_dataset_context, inputs)
+    async def _run_primary_fbp() -> PrimaryFireBehaviourInputs:
+        percent_conifer_path = await _resolve_percent_conifer_path(
+            fuel_raster_year, raster_addresser, ctx.s3_client
+        )
+        inputs = raster_addresser.get_primary_fire_behaviour_inputs(
+            ctx.datetime_to_process,
+            ctx.run_type,
+            fuel_raster_path,
+            percent_conifer_path,
+            raster_addresser.gdal_path(
+                raster_addresser.get_weather_key(
+                    ctx.datetime_to_process,
+                    SFMSInterpolatedWeatherParameter.WIND_SPEED,
+                    ctx.run_type,
+                )
+            ),
+            raster_addresser.gdal_path(
+                raster_addresser.get_weather_key(
+                    ctx.datetime_to_process,
+                    SFMSInterpolatedWeatherParameter.WIND_DIRECTION,
+                    ctx.run_type,
+                )
+            ),
+            raster_addresser.gdal_path(
+                raster_addresser.get_fmc_key(ctx.datetime_to_process.date())
+            ),
+            raster_addresser.gdal_path(slope_key),
+            raster_addresser.gdal_path(aspect_key),
+        )
+        await PrimaryFireBehaviourProcessor(ctx.datetime_to_process).process(
+            ctx.s3_client, multi_wps_dataset_context, inputs
+        )
+        return inputs
 
     await ctx.run_stage(
         SFMSRunLogJobName.PRIMARY_FBP_CALCULATION,
         _run_primary_fbp,
-        PrimaryFBPStage(
-            percent_conifer_path=percent_conifer_path,
-            static_rasters={"slope": slope_key, "aspect": aspect_key},
-            output_keys=inputs.output_keys,
-        ),
+        PrimaryFBPStage(static_rasters={"slope": slope_key, "aspect": aspect_key}),
     )
 
 
@@ -800,9 +721,10 @@ async def run_fwi_calculations(
             f"Missing previous-day {seed_run_type.value} index rasters for "
             f"{previous_date.date()}: {', '.join(missing_previous_keys)}"
         )
+        error = RuntimeError(message)
+        # recorded even when skipping, so a run without FWI or FBP isn't reported as a success
+        ctx.manifest.record_failure("fwi_seed_check", error)
         if raise_on_missing_seed_keys:
-            error = RuntimeError(message)
-            ctx.manifest.record_failure("fwi_seed_check", error)
             raise error
         logger.warning(
             "Skipping FWI calculations for %s because %s",

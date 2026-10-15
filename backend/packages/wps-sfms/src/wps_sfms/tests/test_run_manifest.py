@@ -59,16 +59,15 @@ def record_everything(manifest: SFMSRunManifest) -> None:
             "aspect": "sfms_ng/static/bc_aspect.tif",
         }
     )
-    manifest.record_fmc_inputs(
-        FoliarMoistureContentInputs(
-            fuel_key="/vcis3/some bucket/sfms/static/fuel/2026/fbp2026_v1.tif",
-            elevation_key="/vsis3/some bucket/sfms_ng/static/bc_elevation.tif",
-            latitude_key="/vsis3/some bucket/sfms_ng/static/latitude.tif",
-            longitude_key="/vsis3/some bucket/sfms_ng/static/longitude.tif",
-            output_keys={FOR_DATE: "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif"},
-        ),
-        FOR_DATE,
+    fmc_inputs = FoliarMoistureContentInputs(
+        fuel_key="/vcis3/some bucket/sfms/static/fuel/2026/fbp2026_v1.tif",
+        elevation_key="/vsis3/some bucket/sfms_ng/static/bc_elevation.tif",
+        latitude_key="/vsis3/some bucket/sfms_ng/static/latitude.tif",
+        longitude_key="/vsis3/some bucket/sfms_ng/static/longitude.tif",
+        output_keys={FOR_DATE: "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif"},
     )
+    manifest.record_fmc_static_inputs(fmc_inputs)
+    manifest.record_fmc_raster(fmc_inputs, FOR_DATE)
     for weather_param in SFMSInterpolatedWeatherParameter:
         manifest.record_raster_output(
             weather_param, f"sfms_ng/actual/2026/10/13/{weather_param.value}_20261013.tif"

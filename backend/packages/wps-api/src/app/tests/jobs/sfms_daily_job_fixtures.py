@@ -128,11 +128,12 @@ def make_mock_daily_sfms_dependencies(
     addresser.get_fbp_key.side_effect = raster_key
     addresser.get_fwi_inputs.side_effect = fwi_inputs
     addresser.get_primary_fire_behaviour_inputs.side_effect = (
-        lambda datetime_to_process, run_type, *_args: MagicMock(
+        lambda datetime_to_process, run_type, _fuel_key, percent_conifer_key, *_args: MagicMock(
+            percent_conifer_key=percent_conifer_key,
             output_keys={
                 parameter: raster_key(datetime_to_process, parameter, run_type)
                 for parameter in FBPParameter
-            }
+            },
         )
     )
     addresser.gdal_path.side_effect = lambda key: f"/vsis3/test-bucket/{key}"

@@ -127,7 +127,7 @@ versions can add to them.
 | `run_datetime` | string | ISO 8601 UTC instant the run was saved. Also names the manifest's folder and file.               |
 | `run_type`     | string | `actual` or `forecast`.                                                                          |
 | `for_date`     | string | ISO date the run's rasters are for.                                                              |
-| `status`       | string | `success` or `failed`; manifests are written only for terminal runs.                             |
+| `status`       | string | `success` or `failed`; manifests are written only for terminal runs whose `sfms_run` row was committed, so every manifest joins to one. |
 | `failed_stage` | string | Present for failed runs; the stage that raised.                                                  |
 | `failure_type` | string | Present for failed runs; the exception class.                                                    |
 | `failure_message` | string | Optional, truncated exception message for failed runs.                                       |
@@ -143,9 +143,10 @@ per version, so once a manifest records their keys, those keys keep naming the s
 
 Only sections the run actually used are present. A field is absent — not null — when the run did
 not record it, and groups that were recorded are objects keyed by parameter name. For example, a
-run whose FWI calculation was skipped for missing previous-day rasters records
-`input.station_codes`, `input.fuel_raster.base` and `output.weather`, leaves `input.seed_rasters`,
-`output.fwi` and `output.fbp` as empty objects, and omits `output.fuel_raster`.
+run whose FWI calculation was skipped for missing previous-day rasters has `status` `failed` with
+`failed_stage` `fwi_seed_check`, records `input.station_codes`, `input.fuel_raster.base` and
+`output.weather`, leaves `input.seed_rasters`, `output.fwi` and `output.fbp` as empty objects, and
+omits `output.fuel_raster`.
 
 #### `input`
 
@@ -153,7 +154,7 @@ run whose FWI calculation was skipped for missing previous-day rasters records
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `station_codes`  | The station codes whose daily weather the run interpolated from WF1.                                                            |
 | `fuel_raster`    | `base`: the base fuel grid selected for the run's year. `temporal`: the dated temporal fuel grid FBP ran on. `pc`: the percent-conifer raster paired with the base grid's year. |
-| `seed_rasters`   | Previous-day FFMC/DMC/DC rasters the run calculated FWI forward from. Absent on April/May Monday re-interpolation days, which interpolate the base indices from stations instead, and for the derived ISI/BUI/FWI calculations that follow them. |
+| `seed_rasters`   | Previous-day FFMC/DMC/DC rasters the run calculated FWI forward from. An empty object on April/May Monday re-interpolation days, which interpolate the base indices from stations instead, and for the derived ISI/BUI/FWI calculations that follow them. |
 | `static_rasters` | Static rasters by role: `dem` and `mask` for interpolation, `elevation`, `latitude` and `longitude` for FMC, `slope` and `aspect` for primary FBP. `dem` is the legacy SFMS elevation raster and is distinct from `elevation`. |
 | `julian_rasters` | The green-up and grass curing rasters the temporal fuel grid was built from, keyed by name. These are the **archive** keys (`sfms_ng/static/julian/archive/{name}/{sha256}.tif`), because the live `sfms_ng/static/julian/{name}.tif` keys are replaced over time and an archive key is the content-addressed copy of the exact bytes the grid was built from. |
 | `fmc_raster`     | The shared FMC raster for the target date. Listed twice: it is an input to primary FBP, and it is a product of the run.         |
