@@ -26,6 +26,7 @@ from wps_sfms.raster_inputs import (
 )
 
 RUN_DATETIME_FILENAME_FORMAT = "%Y%m%dT%H%M%S%fZ"
+"""Compact UTC format preserving microseconds in run manifest file names."""
 
 FWI_WEATHER_INPUTS = (
     SFMSInterpolatedWeatherParameter.TEMP,
@@ -34,7 +35,6 @@ FWI_WEATHER_INPUTS = (
     SFMSInterpolatedWeatherParameter.WIND_SPEED,
 )
 """The same-day weather rasters an FWI index calculation reads."""
-"""Compact UTC format preserving microseconds in run manifest file names."""
 
 
 class SFMSNGRasterAddresser(BaseRasterAddresser):

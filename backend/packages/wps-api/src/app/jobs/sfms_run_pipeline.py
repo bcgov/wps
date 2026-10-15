@@ -45,6 +45,7 @@ from wps_shared.db.crud.fuel_layer import (
     get_matching_temporal_fuel_raster,
     lock_temporal_fuel_raster_date,
 )
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.sfms_run import track_sfms_run
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
@@ -642,20 +643,21 @@ class SFMSRunContext:
         """Upload the manifest tracing this run's inputs and outputs.
 
         Given the ``error`` the run failed with, it's recorded under ``stage`` unless a stage
-        already recorded the failure, and the upload is best effort so it can't mask that error.
+        already recorded the failure. The upload never raises: a run whose rasters were written
+        doesn't fail over its trace, and a failed run's own error isn't masked. A failed upload is
+        logged and reported to chatops instead.
         """
-        if error is None:
-            await self.manifest.write(self.s3_client)
-            return
-        self.manifest.record_failure(stage, error)
+        if error is not None:
+            self.manifest.record_failure(stage, error)
         try:
             await self.manifest.write(self.s3_client)
-        except Exception:
-            logger.exception(
-                "Failed to write SFMS failure manifest for %s %s",
-                self.run_type.value,
-                self.datetime_to_process.date(),
+        except Exception as upload_error:
+            message = (
+                f"Failed to write SFMS run manifest for {self.run_type.value} "
+                f"{self.datetime_to_process.date()}"
             )
+            logger.exception(message)
+            send_chatops_notification(message, upload_error)
 
 
 async def _stored_raster_matches(s3_client: S3Client, existing: TemporalFuelRaster) -> bool:

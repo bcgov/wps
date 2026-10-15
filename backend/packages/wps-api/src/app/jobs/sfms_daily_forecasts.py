@@ -10,7 +10,7 @@ import asyncio
 import logging
 import os
 import sys
-from datetime import UTC, date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 from aiohttp import ClientSession
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser

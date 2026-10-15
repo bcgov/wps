@@ -23,6 +23,7 @@ from app.tests.jobs.sfms_daily_job_fixtures import (
 )
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
+PIPELINE_PATH = "app.jobs.sfms_run_pipeline"
 
 
 @pytest.mark.parametrize(
@@ -190,6 +191,20 @@ class TestRunSfmsDailyActuals:
         # recorded when the run started, so a run that fails early still has them
         assert manifest["input"]["station_codes"] == [100, 101]
         assert manifest["input"]["fuel_raster"]["base"] == "sfms/fuel/2024/fuel.tif"
+
+    @pytest.mark.anyio
+    async def test_failed_manifest_upload_alerts_without_failing_the_run(
+        self, mock_dependencies: MockDailySFMSDeps, mocker: MockerFixture
+    ):
+        """A run whose rasters were all written completes even when its manifest can't be."""
+        chatops = mocker.patch(f"{PIPELINE_PATH}.send_chatops_notification")
+        mock_dependencies.s3_client.put_object = AsyncMock(side_effect=RuntimeError("s3 down"))
+
+        await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))
+
+        mock_dependencies.primary_fbp_processor.process.assert_awaited_once()
+        chatops.assert_called_once()
+        assert "manifest" in chatops.call_args.args[0]
 
     @pytest.mark.anyio
     async def test_failed_manifest_upload_does_not_mask_the_stage_failure(
