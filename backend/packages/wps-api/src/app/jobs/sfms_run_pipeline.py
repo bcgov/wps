@@ -293,11 +293,11 @@ async def run_fmc_calculations(contexts: list[SFMSRunContext], fuel_raster_path:
         fmc_inputs = raster_addresser.get_fmc_inputs(
             [context.datetime_to_process.date() for context in contexts], fuel_raster_path
         )
-        trace_nodes = [
+        stages = [
             FoliarMoistureContentStage(fmc_inputs, context.datetime_to_process.date())
             for context in contexts
         ]
-        for context, node in zip(contexts, trace_nodes):
+        for context, node in zip(contexts, stages):
             node.on_enter(context)
 
         await FoliarMoistureContentProcessor(raster_addresser).process(
@@ -306,7 +306,7 @@ async def run_fmc_calculations(contexts: list[SFMSRunContext], fuel_raster_path:
             fmc_inputs,
         )
 
-        for context, node in zip(contexts, trace_nodes):
+        for context, node in zip(contexts, stages):
             node.on_exit(context, None)
     except Exception as error:
         for context in contexts:
@@ -547,7 +547,7 @@ async def run_weather_interpolation(
     raster_addresser = ctx.raster_addresser
     mask_path = raster_addresser.get_mask_key()
     dem_path = raster_addresser.get_dem_key()
-    trace = WeatherInterpolationStage(
+    stage = WeatherInterpolationStage(
         station_codes=tuple(weather.code for weather in station_weather),
         fuel_raster_path=fuel_raster_path,
         static_rasters={"dem": dem_path, "mask": mask_path},
@@ -606,7 +606,7 @@ async def run_weather_interpolation(
         for job in jobs:
             await _process_raster_job(ctx, job, fuel_raster_path)
 
-    await ctx.run_group(trace, _run_jobs)
+    await ctx.run_group(stage, _run_jobs)
 
 
 async def run_fwi_interpolation(
@@ -618,7 +618,7 @@ async def run_fwi_interpolation(
     )
 
     mask_path = ctx.raster_addresser.get_mask_key()
-    trace = WeatherInterpolationStage(
+    stage = WeatherInterpolationStage(
         station_codes=tuple(weather.code for weather in station_weather),
         fuel_raster_path=fuel_raster_path,
         static_rasters={"mask": mask_path},
@@ -655,7 +655,7 @@ async def run_fwi_interpolation(
         for job in jobs:
             await _process_raster_job(ctx, job, fuel_raster_path)
 
-    await ctx.run_group(trace, _run_jobs)
+    await ctx.run_group(stage, _run_jobs)
 
 
 async def _run_fwi_calculation_jobs(
