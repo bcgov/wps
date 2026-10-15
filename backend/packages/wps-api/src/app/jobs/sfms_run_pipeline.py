@@ -1,10 +1,10 @@
 """Shared SFMS weather interpolation and FWI calculation pipeline."""
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from typing import Awaitable, Callable, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
 from botocore.exceptions import ClientError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +19,7 @@ from wps_sfms.interpolation.field import (
     build_wind_vector_field,
 )
 from wps_sfms.julian_rasters import ensure_julian_archives, read_julian_rasters
+from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.processors.fwi import (
     BUICalculator,
     DCCalculator,
@@ -29,15 +30,14 @@ from wps_sfms.processors.fwi import (
     FWIProcessor,
     ISICalculator,
 )
-from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.processors.idw import Interpolator, RasterProcessor
 from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.temporal_fuel import publish_temporal_fuel_raster
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
-from wps_sfms.run_manifest import SFMSRunManifest
 from wps_sfms.raster_inputs import FoliarMoistureContentInputs, PrimaryFireBehaviourInputs
+from wps_sfms.run_manifest import SFMSRunManifest
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.db.crud.fuel_layer import (
     get_latest_temporal_fuel_raster_version,
@@ -52,7 +52,6 @@ from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
-    FBPParameter,
     FWIParameter,
     GDALPath,
     S3Key,

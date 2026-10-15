@@ -10,7 +10,7 @@ import asyncio
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from aiohttp import ClientSession
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
@@ -28,8 +28,8 @@ from wps_wf1.wfwx_api import WfwxApi
 from app.jobs.sfms_run_pipeline import (
     SFMSRunContext,
     run_derived_fwi_calculations,
-    run_fmc_calculations,
     run_fbp_calculations,
+    run_fmc_calculations,
     run_fwi_calculations,
     run_fwi_interpolation,
     run_temporal_fuel,
@@ -131,7 +131,7 @@ def main():
     """Main entry point for the job."""
     if len(sys.argv) > 1:
         try:
-            target_date = datetime.strptime(sys.argv[1], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            target_date = datetime.strptime(sys.argv[1], "%Y-%m-%d").replace(tzinfo=UTC)
         except ValueError:
             logger.error("Error: Please provide the date in 'YYYY-MM-DD' format")
             sys.exit(1)
