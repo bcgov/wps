@@ -140,12 +140,12 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         """
         S3 key for a versioned temporal fuel raster for one calendar date.
 
-        Format: sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fbpYYYY_MM_DD_{version}.tif
+        Format: sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fuelYYYY_MM_DD_{version}.tif
         """
         date_str = target_date.strftime("%Y_%m_%d")
         return S3Key(
             f"{self.root}/fuel/temporal/{target_date.year:04d}/{target_date.month:02d}/"
-            f"{target_date.day:02d}/{version}/fbp{date_str}_{version}.tif"
+            f"{target_date.day:02d}/{version}/fuel{date_str}_{version}.tif"
         )
 
     def get_national_fuel_codes_key(self) -> S3Key:
