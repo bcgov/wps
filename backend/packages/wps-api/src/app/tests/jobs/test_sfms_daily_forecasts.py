@@ -146,8 +146,9 @@ class TestRunSfmsDailyForecasts:
 
         mock_dependencies.run_temporal_fuel.side_effect = fail_on_second_date
 
+        run_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
         with pytest.raises(RuntimeError, match="temporal fuel failed"):
-            await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
+            await run_sfms_daily_forecasts(run_datetime)
 
         # weather/FWI, then the first date's fuel and FBP, each committed
         assert mock_dependencies.db_session.commit.await_count == 2

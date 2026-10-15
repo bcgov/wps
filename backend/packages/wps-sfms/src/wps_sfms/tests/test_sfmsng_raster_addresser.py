@@ -124,8 +124,9 @@ class TestRunManifestKeys:
         )
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
+        for_date = date(2026, 10, 13)
         with pytest.raises(AssertionError, match="is not in UTC"):
-            addresser.get_run_manifest_key(RunType.ACTUAL, date(2026, 10, 13), NON_UTC)
+            addresser.get_run_manifest_key(RunType.ACTUAL, for_date, NON_UTC)
 
 
 class TestGetActualWeatherKey:

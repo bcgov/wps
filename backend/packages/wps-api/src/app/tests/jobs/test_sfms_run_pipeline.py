@@ -102,15 +102,17 @@ class TestSFMSRunContext:
         ids=["another run type", "another target date"],
     )
     def test_rejects_a_manifest_describing_another_run(self, manifest: SFMSRunManifest):
+        datetime_to_process = datetime_to_process_for(date(2025, 7, 4))
+        session, s3_client, addresser = MagicMock(), MagicMock(), MagicMock()
         with pytest.raises(AssertionError, match="the manifest must describe"):
             SFMSRunContext(
-                datetime_to_process_for(date(2025, 7, 4)),
+                datetime_to_process,
                 RunType.ACTUAL,
                 42,
                 manifest,
-                MagicMock(),
-                MagicMock(),
-                MagicMock(),
+                session,
+                s3_client,
+                addresser,
             )
 
     @pytest.mark.anyio
@@ -158,8 +160,9 @@ class TestSFMSRunContext:
             raise RuntimeError("stage failed")
 
         context = a_run()
+        node = Node()
         with pytest.raises(RuntimeError, match="stage failed"):
-            await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
+            await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, node)
 
         assert events == ["visit"]
         assert context.manifest.failed_stage == SFMSRunLogJobName.TEMPORAL_FUEL.value
