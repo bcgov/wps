@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timezone
 
 import pytest
@@ -159,12 +160,23 @@ async def test_multiple_run_logs(async_session: AsyncSession):
     }
 
 
+@pytest.fixture
+def run_log_write_scope(monkeypatch, async_session: AsyncSession):
+    """Make track_sfms_run's own write sessions use the test session."""
+
+    @asynccontextmanager
+    async def write_scope():
+        yield async_session
+
+    monkeypatch.setattr("wps_shared.db.crud.sfms_run.get_async_write_session_scope", write_scope)
+
+
 @pytest.mark.anyio
-async def test_track_sfms_run_success(async_session: AsyncSession):
+async def test_track_sfms_run_success(async_session: AsyncSession, run_log_write_scope):
     """Test decorator records success when the wrapped function succeeds."""
     called = False
 
-    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1, async_session)
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1)
     async def my_job() -> None:
         nonlocal called
         called = True
@@ -181,10 +193,10 @@ async def test_track_sfms_run_success(async_session: AsyncSession):
 
 
 @pytest.mark.anyio
-async def test_track_sfms_run_failure(async_session: AsyncSession):
+async def test_track_sfms_run_failure(async_session: AsyncSession, run_log_write_scope):
     """Test decorator records failure and re-raises when the wrapped function raises."""
 
-    @track_sfms_run(SFMSRunLogJobName.PRECIPITATION_INTERPOLATION, 1, async_session)
+    @track_sfms_run(SFMSRunLogJobName.PRECIPITATION_INTERPOLATION, 1)
     async def my_failing_job() -> None:
         raise RuntimeError("something went wrong")
 
@@ -199,10 +211,12 @@ async def test_track_sfms_run_failure(async_session: AsyncSession):
 
 
 @pytest.mark.anyio
-async def test_track_sfms_run_preserves_return_value(async_session: AsyncSession):
+async def test_track_sfms_run_preserves_return_value(
+    async_session: AsyncSession, run_log_write_scope
+):
     """Test decorator passes through the return value of the wrapped function."""
 
-    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1, async_session)
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1)
     async def my_job() -> str:
         return "result"
 
@@ -214,7 +228,7 @@ async def test_track_sfms_run_preserves_return_value(async_session: AsyncSession
 async def test_track_sfms_run_preserves_function_name(async_session: AsyncSession):
     """Test decorator preserves the wrapped function's name via functools.wraps."""
 
-    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1, async_session)
+    @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, 1)
     async def original_name() -> None:
         pass
 
