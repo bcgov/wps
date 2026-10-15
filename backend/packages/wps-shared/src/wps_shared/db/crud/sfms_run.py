@@ -8,6 +8,7 @@ from typing import List
 from sqlalchemy import extract, func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.sfms_run import (
     SFMSRun,
@@ -57,30 +58,33 @@ async def update_sfms_run_log(
     record.completed_at = completed_at
 
 
-def track_sfms_run(
-    job_name: SFMSRunLogJobName,
-    sfms_run_id: int,
-    session: AsyncSession,
-):
+def track_sfms_run(job_name: SFMSRunLogJobName, sfms_run_id: int):
     """Decorator that logs an sfms_run_log entry around an async function.
 
+    Each write commits in its own session, so the RUNNING row, and the SUCCESS or FAILED status it
+    ends with, persist whatever happens to the work around the job.
+
     :param job_name: Name to record in the run log.
-    :param datetime_to_process: The datetime being processed.
-    :param session: An async database session for run-log operations.
+    :param sfms_run_id: The committed sfms_run row the job belongs to.
 
     Usage::
 
-        @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, datetime_to_process, session)
+        @track_sfms_run(SFMSRunLogJobName.TEMPERATURE_INTERPOLATION, sfms_run_id)
         async def run_temperature() -> None:
             ...
     """
 
+    async def set_status(log_id: int, status: SFMSRunLogStatus) -> None:
+        async with get_async_write_session_scope() as session:
+            await update_sfms_run_log(session, log_id, status=status, completed_at=get_utc_now())
+
     def decorator(fn):
         @functools.wraps(fn)
         async def wrapper(*args, **kwargs):
-            log_id = await save_sfms_run_log(
-                session, job_name, SFMSRunLogStatus.RUNNING, sfms_run_id
-            )
+            async with get_async_write_session_scope() as session:
+                log_id = await save_sfms_run_log(
+                    session, job_name, SFMSRunLogStatus.RUNNING, sfms_run_id
+                )
 
             try:
                 # Calculate execution time
@@ -96,16 +100,12 @@ def track_sfms_run(
                     minutes,
                     seconds,
                 )
-                await update_sfms_run_log(
-                    session, log_id, status=SFMSRunLogStatus.SUCCESS, completed_at=get_utc_now()
-                )
+                await set_status(log_id, SFMSRunLogStatus.SUCCESS)
                 return result
             except Exception:
                 logger.exception("%s failed", job_name.value)
                 try:
-                    await update_sfms_run_log(
-                        session, log_id, status=SFMSRunLogStatus.FAILED, completed_at=get_utc_now()
-                    )
+                    await set_status(log_id, SFMSRunLogStatus.FAILED)
                 except Exception:
                     logger.exception(
                         "Failed to update run log for %s after job failure", job_name.value

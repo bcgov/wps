@@ -10,7 +10,7 @@ import asyncio
 import logging
 import os
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta, timezone
 
 from aiohttp import ClientSession
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
@@ -30,14 +30,12 @@ from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.jobs.sfms_run_pipeline import (
+    FoliarMoistureContentStage,
+    FWICalculationStage,
+    PrimaryFBPStage,
     SFMSRunContext,
-    get_missing_fwi_seed_keys,
-    run_fbp_calculations,
-    run_fmc_calculations,
-    run_fwi_calculations,
-    run_temporal_fuel,
-    run_weather_interpolation,
-    write_failure_manifests,
+    TemporalFuelStage,
+    WeatherInterpolationStage,
 )
 
 logger = logging.getLogger(__name__)
@@ -53,7 +51,7 @@ def forecast_datetimes(seed_actual_date: date) -> list[datetime]:
         seed_actual_date.month,
         seed_actual_date.day,
         hour=20,
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
     return [base_datetime + timedelta(days=day) for day in range(1, FORECAST_DAYS + 1)]
 
@@ -81,7 +79,7 @@ def run_datetime_for_cli_date(run_date: date, current_datetime: datetime) -> dat
         current_datetime_local.second,
         tzinfo=vancouver_tz,
     )
-    return cli_datetime.astimezone(timezone.utc)
+    return cli_datetime.astimezone(UTC)
 
 
 async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
@@ -95,7 +93,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
     datetimes_to_process = forecast_datetimes(seed_actual_date)
 
     async with S3Client() as s3_client:
-        missing_actual_seed_keys = await get_missing_fwi_seed_keys(
+        missing_actual_seed_keys = await FWICalculationStage.missing_seed_keys(
             datetimes_to_process[0],
             raster_addresser,
             s3_client,
@@ -107,88 +105,67 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                 f"{', '.join(missing_actual_seed_keys)}"
             )
 
-        runs = {}
+        async with get_async_read_session_scope() as read_session:
+            # all the forecasts will use the same fuel raster (only 1 year needed)
+            fuel_raster_year = datetimes_to_process[0].year
+            fuel_type_raster = await get_fuel_type_raster_by_year(read_session, fuel_raster_year)
+        if fuel_type_raster is None:
+            raise RuntimeError(f"No fuel type raster found for {fuel_raster_year}")
+        logger.info("Using reference raster: %s", fuel_type_raster.object_store_path)
+
+        # every date's forecasts are fetched before any run starts, so a missing forecast fails
+        # the batch before it writes anything
         async with ClientSession() as client_session:
             wfwx_api = WfwxApi(client_session)
-
-            async with get_async_read_session_scope() as read_session:
-                # all the forecasts will use the same fuel raster (only 1 year needed)
-                fuel_raster_year = datetimes_to_process[0].year
-                fuel_type_raster = await get_fuel_type_raster_by_year(
-                    read_session, fuel_raster_year
+            station_forecasts_by_datetime = {}
+            for datetime_to_process in datetimes_to_process:
+                sfms_forecasts = await wfwx_api.get_sfms_daily_weather_all_stations(
+                    datetime_to_process
                 )
-                if fuel_type_raster is None:
-                    raise RuntimeError(f"No fuel type raster found for {fuel_raster_year}")
-                fuel_raster_path = raster_addresser.gdal_path(fuel_type_raster.object_store_path)
-                logger.info("Using reference raster: %s", fuel_raster_path)
+                if not sfms_forecasts:
+                    raise RuntimeError(f"No station forecasts found for {datetime_to_process}")
+                station_forecasts_by_datetime[datetime_to_process] = sfms_forecasts
 
-                # weather and FWI for every date commit first, so a fuel failure can't roll back
-                # their runs and logs
-                station_forecasts_by_datetime = {}
-                async with get_async_write_session_scope() as write_session:
-                    for datetime_to_process in datetimes_to_process:
-                        sfms_forecasts = await wfwx_api.get_sfms_daily_weather_all_stations(
-                            datetime_to_process
-                        )
-                        if not sfms_forecasts:
-                            raise RuntimeError(
-                                f"No station forecasts found for {datetime_to_process}"
-                            )
+        # each date runs in turn and later dates seed from earlier ones, so the batch stops at the
+        # first date that fails
+        for datetime_to_process, sfms_forecasts in station_forecasts_by_datetime.items():
+            station_codes = [forecast.code for forecast in sfms_forecasts]
+            saved_run_datetime = get_utc_now()
+            # committed before any job runs, so every run log row and manifest can be joined to it
+            async with get_async_write_session_scope() as write_session:
+                sfms_run_id = await save_sfms_run(
+                    write_session,
+                    RunTypeEnum.forecast,
+                    datetime_to_process.date(),
+                    saved_run_datetime,
+                    station_codes,
+                )
 
-                        station_codes = [forecast.code for forecast in sfms_forecasts]
-                        saved_run_datetime = get_utc_now()
-                        sfms_run_id = await save_sfms_run(
-                            write_session,
-                            RunTypeEnum.forecast,
-                            datetime_to_process.date(),
-                            saved_run_datetime,
-                            station_codes,
-                        )
-
-                        ctx = SFMSRunContext.start(
-                            datetime_to_process=datetime_to_process,
-                            run_type=RunType.FORECAST,
-                            sfms_run_id=sfms_run_id,
-                            run_datetime=saved_run_datetime,
-                            session=write_session,
-                            s3_client=s3_client,
-                            raster_addresser=raster_addresser,
-                        )
-                        runs[datetime_to_process] = ctx
-                        station_forecasts_by_datetime[datetime_to_process] = sfms_forecasts
-
-                    await run_fmc_calculations(list(runs.values()), fuel_raster_path)
-
-                    for index, datetime_to_process in enumerate(datetimes_to_process):
-                        ctx = runs[datetime_to_process]
-                        sfms_forecasts = station_forecasts_by_datetime[datetime_to_process]
-                        await run_weather_interpolation(ctx, fuel_raster_path, sfms_forecasts)
-
-                        previous_base_run_type = RunType.ACTUAL if index == 0 else RunType.FORECAST
-                        await run_fwi_calculations(
-                            ctx,
-                            previous_base_run_type=previous_base_run_type,
-                            raise_on_missing_seed_keys=True,
-                        )
-
-                # every date's run and weather/FWI logs are committed, so from here failure
-                # manifests can be joined to their sfms_run rows
-                try:
-                    for ctx in runs.values():
-                        # each date commits its fuel and FBP logs in its own session before its
-                        # manifest is written, so a later date's failure can't roll them back
-                        async with get_async_write_session_scope() as write_session:
-                            fuel_fbp_context = ctx.with_session(write_session)
-                            temporal_fuel_path = await run_temporal_fuel(
-                                fuel_fbp_context, fuel_type_raster
-                            )
-                            await run_fbp_calculations(
-                                fuel_fbp_context, temporal_fuel_path, fuel_type_raster.year
-                            )
-                        await ctx.write_manifest()
-                except Exception as error:
-                    await write_failure_manifests(list(runs.values()), "forecast_batch", error)
-                    raise
+            ctx = SFMSRunContext.start(
+                datetime_to_process=datetime_to_process,
+                run_type=RunType.FORECAST,
+                sfms_run_id=sfms_run_id,
+                run_datetime=saved_run_datetime,
+                s3_client=s3_client,
+                raster_addresser=raster_addresser,
+                fuel_type_raster=fuel_type_raster,
+                seed_actual_date=seed_actual_date,
+                station_codes=station_codes,
+            )
+            try:
+                fmc_key = await FoliarMoistureContentStage().run(ctx)
+                weather_keys = await WeatherInterpolationStage(sfms_forecasts).run(ctx)
+                fwi_keys = await FWICalculationStage(weather_keys).run(ctx)
+                # None when the run had no previous-day seeds to calculate FWI from
+                if fwi_keys is not None:
+                    temporal_fuel_path = await TemporalFuelStage().run(ctx)
+                    await PrimaryFBPStage(temporal_fuel_path, fmc_key, weather_keys, fwi_keys).run(
+                        ctx
+                    )
+                await ctx.write_manifest()
+            except Exception as error:
+                await ctx.write_manifest(error, stage="forecast_batch")
+                raise
 
     logger.info("SFMS daily forecasts completed successfully from %s", run_datetime.date())
 

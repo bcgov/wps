@@ -115,19 +115,16 @@ class SFMSRunManifest(BaseModel):
         """Record the percent-conifer raster paired with the base fuel grid's year."""
         self.input.fuel_raster.pc = object_store_key(key)
 
-    def record_temporal_fuel_raster(
-        self, raster_path: GDALPath, julian_archive_keys: Mapping[str, S3Key]
-    ) -> None:
+    def record_temporal_fuel_raster(self, raster_path: GDALPath) -> None:
         """Record the temporal fuel grid the run resolved for the target date.
 
         The grid is recorded as both an input and an output: it is the fuel raster primary FBP ran
-        on, and it is stored under this run's date. The Julian date rasters its grid was built from
-        are recorded by their archive keys, since the live Julian keys are replaced over time.
+        on, and it is stored under this run's date. The Julian date rasters it was built from are
+        recorded separately, with ``record_julian_rasters``.
         """
         fuel_key = object_store_key(raster_path)
         self.input.fuel_raster.temporal = fuel_key
         self.output.fuel_raster = fuel_key
-        self.record_julian_rasters(julian_archive_keys)
 
     def record_fmc_static_inputs(self, fmc_inputs: FoliarMoistureContentInputs) -> None:
         """Record the static rasters used to calculate FMC."""

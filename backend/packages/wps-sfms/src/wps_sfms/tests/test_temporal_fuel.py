@@ -187,7 +187,7 @@ async def publish(
     grass_standing_key: str,
     grass_matted_key: str,
 ) -> str:
-    """Publish with each Julian raster opened from its bytes, as resolve_temporal_fuel_raster does."""
+    """Publish with each Julian raster opened from its bytes, as the temporal fuel stage does."""
     with (
         open_from_file(green_up_on_key) as green_up_on,
         open_from_file(green_up_off_key) as green_up_off,

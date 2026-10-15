@@ -4,7 +4,7 @@ import json
 import os
 import sys
 from datetime import date, datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
 from pytest_mock import MockerFixture
@@ -26,7 +26,6 @@ from app.tests.jobs.sfms_daily_job_fixtures import (
 )
 
 MODULE_PATH = "app.jobs.sfms_daily_forecasts"
-PIPELINE_PATH = "app.jobs.sfms_run_pipeline"
 
 
 @pytest.fixture
@@ -109,49 +108,43 @@ class TestRunSfmsDailyForecasts:
         assert mock_dependencies.get_fuel_type_raster_by_year.call_args.args[1] == 2024
 
     @pytest.mark.anyio
-    async def test_temporal_fuel_failure_keeps_weather_and_fwi_for_every_date(
-        self, mock_dependencies: MockDailySFMSDeps
-    ):
-        mock_dependencies.run_temporal_fuel.side_effect = RuntimeError("temporal fuel failed")
+    async def test_first_date_failure_stops_the_batch(self, mock_dependencies: MockDailySFMSDeps):
+        mock_dependencies.find_temporal_fuel.side_effect = RuntimeError("temporal fuel failed")
 
         run_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         with pytest.raises(RuntimeError, match="temporal fuel failed"):
             await run_sfms_daily_forecasts(run_datetime)
 
-        assert mock_dependencies.temp_processor.process.call_count == 3
-        assert mock_dependencies.fwi_processor.calculate_index.call_count == 18
+        # only the first date started: later dates seed from it, so they don't run
+        mock_dependencies.save_sfms_run.assert_awaited_once()
+        mock_dependencies.temp_processor.process.assert_called_once()
+        assert mock_dependencies.fwi_processor.calculate_index.call_count == 6
         mock_dependencies.primary_fbp_processor.process.assert_not_called()
-        # weather and FWI committed before fuel failed
-        mock_dependencies.db_session.commit.assert_awaited_once()
-        failure_manifests = [
-            json.loads(call.kwargs["body"])
-            for call in mock_dependencies.s3_client.put_object.await_args_list
-            if call.kwargs["key"].endswith("_run.json")
-        ]
-        assert len(failure_manifests) == 3
-        assert all(manifest["status"] == "failed" for manifest in failure_manifests)
-        assert all(manifest["failure_type"] == "RuntimeError" for manifest in failure_manifests)
+        manifest = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
+        assert manifest["for_date"] == "2024-07-05"
+        assert manifest["status"] == "failed"
+        assert manifest["failed_stage"] == "temporal_fuel"
+        assert manifest["failure_message"] == "temporal fuel failed"
 
     @pytest.mark.anyio
-    async def test_later_date_failure_keeps_earlier_dates_committed_and_successful(
+    async def test_later_date_failure_keeps_earlier_dates_and_skips_later_ones(
         self, mock_dependencies: MockDailySFMSDeps
     ):
-        succeed = mock_dependencies.run_temporal_fuel.side_effect
+        succeed = mock_dependencies.find_temporal_fuel.side_effect
 
-        def fail_on_second_date(run, *args):
-            if run.datetime_to_process.day == 6:
+        def fail_on_second_date(session, target_date, *args, **hashes):
+            if target_date.day == 6:
                 raise RuntimeError("temporal fuel failed")
-            return succeed(run, *args)
+            return succeed(session, target_date, *args, **hashes)
 
-        mock_dependencies.run_temporal_fuel.side_effect = fail_on_second_date
+        mock_dependencies.find_temporal_fuel.side_effect = fail_on_second_date
 
         run_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
         with pytest.raises(RuntimeError, match="temporal fuel failed"):
             await run_sfms_daily_forecasts(run_datetime)
 
-        # weather/FWI, then the first date's fuel and FBP, each committed
-        assert mock_dependencies.db_session.commit.await_count == 2
+        assert mock_dependencies.save_sfms_run.await_count == 2
         statuses = {
             manifest["for_date"]: manifest["status"]
             for manifest in (
@@ -160,7 +153,7 @@ class TestRunSfmsDailyForecasts:
                 if call.kwargs["key"].endswith("_run.json")
             )
         }
-        assert statuses == {"2024-07-05": "success", "2024-07-06": "failed", "2024-07-07": "failed"}
+        assert statuses == {"2024-07-05": "success", "2024-07-06": "failed"}
 
     @pytest.mark.anyio
     async def test_fbp_uses_temporal_fuel_raster_per_forecast_date(
@@ -179,24 +172,25 @@ class TestRunSfmsDailyForecasts:
         ]
 
     @pytest.mark.anyio
-    async def test_processes_shared_fmc_for_processed_forecast_dates(
-        self, mock_dependencies: MockDailySFMSDeps
-    ):
+    async def test_processes_fmc_for_each_forecast_date(self, mock_dependencies: MockDailySFMSDeps):
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
 
-        mock_dependencies.addresser.get_fmc_inputs.assert_called_once_with(
-            [date(2024, 7, 5), date(2024, 7, 6), date(2024, 7, 7)],
-            "/vsis3/test-bucket/sfms/fuel/2024/fuel.tif",
-        )
-        mock_dependencies.fmc_processor_class.assert_called_once_with(
-            mock_dependencies.addresser,
-        )
-        mock_dependencies.fmc_processor.process.assert_awaited_once_with(
-            mock_dependencies.s3_client,
-            multi_wps_dataset_context,
-            mock_dependencies.fmc_inputs,
+        assert mock_dependencies.addresser.get_fmc_inputs.call_args_list == [
+            call([for_date], "/vsis3/test-bucket/sfms/fuel/2024/fuel.tif")
+            for for_date in (date(2024, 7, 5), date(2024, 7, 6), date(2024, 7, 7))
+        ]
+        assert (
+            mock_dependencies.fmc_processor.process.await_args_list
+            == [
+                call(
+                    mock_dependencies.s3_client,
+                    multi_wps_dataset_context,
+                    mock_dependencies.fmc_inputs,
+                )
+            ]
+            * 3
         )
 
     @pytest.mark.anyio
@@ -238,13 +232,14 @@ class TestRunSfmsDailyForecasts:
 
         await run_sfms_daily_forecasts(target_date)
 
-        base_seed_run_types = [
-            call.kwargs["previous_base_run_type"]
+        # the run type of the seed raster each FFMC, DMC and DC calculation was handed
+        seed_run_types = [
+            call.args[4][call.args[1]].split("/")[1]
             for call in mock_dependencies.addresser.get_fwi_inputs.call_args_list
             if call.args[1] in (FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC)
         ]
-        assert base_seed_run_types[:3] == [RunType.ACTUAL, RunType.ACTUAL, RunType.ACTUAL]
-        assert base_seed_run_types[3:] == [RunType.FORECAST] * 6
+        assert seed_run_types[:3] == ["actual"] * 3
+        assert seed_run_types[3:] == ["forecast"] * 6
 
     @pytest.mark.anyio
     async def test_writes_a_manifest_per_forecast_date(self, mock_dependencies: MockDailySFMSDeps):
@@ -311,8 +306,10 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_rejects_naive_run_datetime(self, mock_dependencies: MockDailySFMSDeps):
+        run_datetime = datetime(2024, 7, 4)
+
         with pytest.raises(AssertionError, match="timezone-aware"):
-            await run_sfms_daily_forecasts(datetime(2024, 7, 4))
+            await run_sfms_daily_forecasts(run_datetime)
 
     @pytest.mark.anyio
     async def test_rejects_non_utc_run_datetime(self, mock_dependencies: MockDailySFMSDeps):

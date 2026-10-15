@@ -35,14 +35,16 @@ def record_everything(manifest: SFMSRunManifest) -> None:
     manifest.record_station_codes([122, 346])
     manifest.record_base_fuel_raster("sfms/static/fuel/2026/fbp2026_v1.tif")
     manifest.record_percent_conifer_raster("/vsis3/some bucket/sfms/static/m12_2026.tif")
-    manifest.record_temporal_fuel_raster(
-        "/vsis3/some bucket/sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
+    manifest.record_julian_rasters(
         {
             "green_up_on": "sfms_ng/static/julian/archive/green_up_on/on-hash.tif",
             "green_up_off": "sfms_ng/static/julian/archive/green_up_off/off-hash.tif",
             "grass_standing": "sfms_ng/static/julian/archive/grass_standing/standing-hash.tif",
             "grass_matted": "sfms_ng/static/julian/archive/grass_matted/matted-hash.tif",
-        },
+        }
+    )
+    manifest.record_temporal_fuel_raster(
+        "/vsis3/some bucket/sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif"
     )
     manifest.record_seed_rasters(
         {

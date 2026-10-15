@@ -14,7 +14,7 @@ from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProce
 from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
-from wps_sfms.raster_inputs import FWIInputs
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.sfms.raster_addresser import FBPParameter, FWIParameter
 
 from app.tests.conftest import create_mock_sfms_actuals
@@ -35,16 +35,6 @@ def fmc_key(target_date: date) -> str:
     return f"sfms_ng/static/fmc/{target_date:%Y/%m/%d}/fmc_{target_date:%Y%m%d}.tif"
 
 
-def fwi_inputs(datetime_to_process, fwi_param, run_type, previous_base_run_type=None):
-    """Realistic FWI inputs whose output key names the parameter and date."""
-    return FWIInputs(
-        weather_keys={},
-        index_keys={},
-        output_key=raster_key(datetime_to_process, fwi_param, run_type),
-        run_type=run_type,
-    )
-
-
 class MockDailySFMSDeps(NamedTuple):
     """Mock dependencies shared by the SFMS daily actuals and forecast tests."""
 
@@ -57,7 +47,7 @@ class MockDailySFMSDeps(NamedTuple):
     interpolation_processor: MagicMock
     fwi_processor: MagicMock
     primary_fbp_processor: MagicMock
-    run_temporal_fuel: AsyncMock
+    find_temporal_fuel: AsyncMock
     fmc_processor: MagicMock
     fmc_processor_class: MagicMock
     fmc_inputs: MagicMock
@@ -90,13 +80,6 @@ def make_mock_daily_sfms_dependencies(
     mocker.patch(f"{module_path}.WfwxApi", return_value=mock_wfwx_api)
 
     fuel_type_raster = MagicMock(year=2024, object_store_path="sfms/fuel/2024/fuel.tif")
-    run_temporal_fuel = mocker.patch(
-        f"{module_path}.run_temporal_fuel",
-        new_callable=AsyncMock,
-        side_effect=lambda run, *_: (
-            f"/vsis3/test-bucket/temporal/{run.datetime_to_process.date()}.tif"
-        ),
-    )
     get_fuel_type_raster_by_year = mocker.patch(
         f"{module_path}.get_fuel_type_raster_by_year",
         new_callable=AsyncMock,
@@ -126,10 +109,12 @@ def make_mock_daily_sfms_dependencies(
     addresser.get_weather_key.side_effect = raster_key
     addresser.get_index_key.side_effect = raster_key
     addresser.get_fbp_key.side_effect = raster_key
-    addresser.get_fwi_inputs.side_effect = fwi_inputs
+    # the real FWI input builder, over the mocked key helpers
+    addresser.get_fwi_inputs.side_effect = lambda *args: SFMSNGRasterAddresser.get_fwi_inputs(
+        addresser, *args
+    )
     addresser.get_primary_fire_behaviour_inputs.side_effect = (
-        lambda datetime_to_process, run_type, _fuel_key, percent_conifer_key, *_args: MagicMock(
-            percent_conifer_key=percent_conifer_key,
+        lambda datetime_to_process, run_type, *_args: MagicMock(
             output_keys={
                 parameter: raster_key(datetime_to_process, parameter, run_type)
                 for parameter in FBPParameter
@@ -194,7 +179,30 @@ def make_mock_daily_sfms_dependencies(
         yield db_session
         await db_session.commit()
 
+    # the job saves its run, and each tracked job commits its own run log rows
     mocker.patch(f"{module_path}.get_async_write_session_scope", _write_scope)
+    mocker.patch(f"{PIPELINE_PATH}.get_async_write_session_scope", _write_scope)
+    mocker.patch("wps_shared.db.crud.sfms_run.get_async_write_session_scope", _write_scope)
+
+    # the temporal fuel stage reuses an existing grid for each date, at a fixed path
+    julian = MagicMock()
+    julian.__iter__.side_effect = lambda: iter(())
+    julian.hash_columns.return_value = {}
+    mocker.patch(
+        f"{PIPELINE_PATH}.read_julian_rasters", new_callable=AsyncMock, return_value=julian
+    )
+    mocker.patch(f"{PIPELINE_PATH}.ensure_julian_archives", new_callable=AsyncMock)
+    mocker.patch(f"{PIPELINE_PATH}.lock_temporal_fuel_raster_date", new_callable=AsyncMock)
+    mocker.patch(
+        f"{PIPELINE_PATH}._stored_raster_matches", new_callable=AsyncMock, return_value=True
+    )
+    find_temporal_fuel = mocker.patch(
+        f"{PIPELINE_PATH}.get_matching_temporal_fuel_raster",
+        new_callable=AsyncMock,
+        side_effect=lambda _session, target_date, *_args, **_hashes: MagicMock(
+            object_store_path=f"temporal/{target_date}.tif"
+        ),
+    )
 
     return MockDailySFMSDeps(
         db_session=db_session,
@@ -206,7 +214,7 @@ def make_mock_daily_sfms_dependencies(
         interpolation_processor=interpolation_processor,
         fwi_processor=fwi_processor,
         primary_fbp_processor=primary_fbp_processor,
-        run_temporal_fuel=run_temporal_fuel,
+        find_temporal_fuel=find_temporal_fuel,
         fmc_processor=fmc_processor,
         fmc_processor_class=fmc_processor_class,
         fmc_inputs=fmc_inputs,
