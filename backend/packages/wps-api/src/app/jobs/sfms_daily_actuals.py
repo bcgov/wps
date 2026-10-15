@@ -13,14 +13,12 @@ import sys
 from datetime import datetime, timezone
 
 from aiohttp import ClientSession
-from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from wps_shared.db.crud.sfms_run import save_sfms_run
 from wps_shared.db.database import get_async_read_session_scope, get_async_write_session_scope
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
-from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import assert_all_utc, get_utc_now
@@ -28,12 +26,15 @@ from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.jobs.sfms_run_pipeline import (
+    SFMSRunContext,
     run_derived_fwi_calculations,
+    run_fmc_calculations,
     run_fbp_calculations,
     run_fwi_calculations,
     run_fwi_interpolation,
     run_temporal_fuel,
     run_weather_interpolation,
+    write_failure_manifests,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,16 +68,6 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
     logger.info("Using reference raster: %s", fuel_raster_path)
 
     async with S3Client() as s3_client:
-        fmc_inputs = raster_addresser.get_fmc_inputs(
-            [datetime_to_process.date()],
-            fuel_raster_path,
-        )
-        await FoliarMoistureContentProcessor(raster_addresser).process(
-            s3_client,
-            multi_wps_dataset_context,
-            fmc_inputs,
-        )
-
         # Fetch station observations from WF1
         async with ClientSession() as session:
             wfwx_api = WfwxApi(session)
@@ -87,76 +78,51 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
 
         async with get_async_write_session_scope() as session:
             station_codes = [actual.code for actual in sfms_actuals]
+            saved_run_datetime = get_utc_now()
             sfms_run_id = await save_sfms_run(
                 session,
                 RunTypeEnum.actual,
                 datetime_to_process.date(),
-                get_utc_now(),
+                saved_run_datetime,
                 station_codes,
             )
 
-            await run_weather_interpolation(
-                datetime_to_process,
-                raster_addresser,
-                s3_client,
-                fuel_raster_path,
-                sfms_actuals,
-                sfms_run_id,
-                session,
-                RunType.ACTUAL,
+            ctx = SFMSRunContext.start(
+                datetime_to_process=datetime_to_process,
+                run_type=RunType.ACTUAL,
+                sfms_run_id=sfms_run_id,
+                run_datetime=saved_run_datetime,
+                session=session,
+                s3_client=s3_client,
+                raster_addresser=raster_addresser,
             )
 
+            await run_fmc_calculations([ctx], fuel_raster_path)
+            await run_weather_interpolation(ctx, fuel_raster_path, sfms_actuals)
+
             if is_fwi_interpolation_day(datetime_to_process):
-                await run_fwi_interpolation(
-                    datetime_to_process,
-                    raster_addresser,
-                    s3_client,
-                    fuel_raster_path,
-                    sfms_actuals,
-                    sfms_run_id,
-                    session,
-                    RunType.ACTUAL,
-                )
-                await run_derived_fwi_calculations(
-                    datetime_to_process,
-                    raster_addresser,
-                    s3_client,
-                    sfms_run_id,
-                    session,
-                    RunType.ACTUAL,
-                )
+                await run_fwi_interpolation(ctx, fuel_raster_path, sfms_actuals)
+                await run_derived_fwi_calculations(ctx)
                 fwi_calculated = True
             else:
-                fwi_calculated = await run_fwi_calculations(
-                    datetime_to_process,
-                    raster_addresser,
-                    s3_client,
-                    sfms_run_id,
-                    session,
-                    RunType.ACTUAL,
-                )
+                fwi_calculated = await run_fwi_calculations(ctx)
 
-        # weather and FWI commit first, so a fuel failure can't roll back their run and logs
-        if fwi_calculated:
-            async with get_async_write_session_scope() as session:
-                temporal_fuel_path = await run_temporal_fuel(
-                    datetime_to_process,
-                    fuel_type_raster,
-                    raster_addresser,
-                    s3_client,
-                    sfms_run_id,
-                    session,
-                )
-                await run_fbp_calculations(
-                    datetime_to_process,
-                    raster_addresser,
-                    s3_client,
-                    temporal_fuel_path,
-                    fuel_type_raster.year,
-                    sfms_run_id,
-                    session,
-                    RunType.ACTUAL,
-                )
+        # weather and FWI commit first, so a fuel failure can't roll back their run and logs, and
+        # a failure manifest written from here can always be joined to its sfms_run row
+        try:
+            if fwi_calculated:
+                async with get_async_write_session_scope() as session:
+                    # the fuel and FBP stages log their jobs against this session of their own
+                    fuel_fbp_context = ctx.with_session(session)
+                    temporal_fuel_path = await run_temporal_fuel(fuel_fbp_context, fuel_type_raster)
+                    await run_fbp_calculations(
+                        fuel_fbp_context, temporal_fuel_path, fuel_type_raster.year
+                    )
+
+            await ctx.write_manifest()
+        except Exception as error:
+            await write_failure_manifests([ctx], "daily_actuals", error)
+            raise
 
     logger.info("SFMS daily actuals completed successfully for %s", target_date.date())
 
