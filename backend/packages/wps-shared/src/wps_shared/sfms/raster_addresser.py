@@ -48,10 +48,6 @@ class BaseRasterAddresser:
         """Return a GDAL vsis3-prefixed path for a plain S3 key."""
         return GDALPath(f"{self.s3_prefix}/{key}")
 
-    def s3_key(self, path: str) -> S3Key:
-        """Return the plain S3 key for a plain key or a GDAL vsis3-prefixed path."""
-        return S3Key(path.removeprefix(f"{self.s3_prefix}/"))
-
     def gdal_prefix_keys(self, *keys: S3Key) -> tuple[GDALPath, ...]:
         """Prefix keys with vsis3/{bucket} for reading from S3 with GDAL."""
         return tuple(self.gdal_path(key) for key in keys)

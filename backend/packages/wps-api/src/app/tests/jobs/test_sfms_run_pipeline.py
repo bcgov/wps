@@ -7,162 +7,19 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from botocore.exceptions import ClientError
 from pytest_mock import MockerFixture
-from wps_sfms.processors.idw import RasterProcessor
-from wps_sfms.raster_inputs import FWIInputs
-from wps_sfms.run_manifest import SFMSRunManifest
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 from wps_shared.run_type import RunType
-from wps_shared.sfms.raster_addresser import FBPParameter
 
 from app.jobs.sfms_run_pipeline import (
-    ResolvedTemporalFuelRaster,
-    SFMSRunContext,
     _resolve_percent_conifer_path,
     _resolve_percent_dead_conifer_path,
     resolve_temporal_fuel_raster,
-    run_fbp_calculations,
-    run_fwi_calculations,
     run_temporal_fuel,
-    run_weather_interpolation,
+    run_fbp_calculations,
 )
-from app.tests.conftest import create_mock_sfms_actuals
 
 PIPELINE_PATH = "app.jobs.sfms_run_pipeline"
-
-RUN_DATETIME = datetime(2025, 7, 4, 20, 45, tzinfo=timezone.utc)
-
-
-def datetime_to_process_for(for_date: date) -> datetime:
-    """The hour-20 UTC datetime a target date is processed at."""
-    return datetime(for_date.year, for_date.month, for_date.day, 20, tzinfo=timezone.utc)
-
-
-def a_run(
-    for_date: date = date(2025, 7, 4),
-    run_type: RunType = RunType.ACTUAL,
-    sfms_run_id: int = 42,
-    addresser: MagicMock | None = None,
-    s3_client: MagicMock | None = None,
-    session: MagicMock | None = None,
-) -> SFMSRunContext:
-    """A run context for one target date, tracing into a real manifest."""
-    return SFMSRunContext.start(
-        datetime_to_process_for(for_date),
-        run_type,
-        sfms_run_id,
-        RUN_DATETIME,
-        session or MagicMock(),
-        s3_client or MagicMock(),
-        addresser or MagicMock(),
-    )
-
-
-async def _run_action(job_name, _sfms_run_id, _session, action):
-    """A _run_tracked_job stand-in that runs the job without the run log."""
-    return await action()
-
-
-class TestSFMSRunContext:
-    """The run context keeps a manifest describing the run it's started for."""
-
-    def test_start_creates_a_manifest_describing_the_run(self):
-        run = a_run(date(2026, 6, 1), RunType.FORECAST)
-
-        assert run.datetime_to_process == datetime(2026, 6, 1, 20, tzinfo=timezone.utc)
-        assert run.run_type == RunType.FORECAST
-        assert run.sfms_run_id == 42
-        assert run.manifest.run_type == RunType.FORECAST
-        assert run.manifest.for_date == date(2026, 6, 1)
-        assert run.manifest.run_datetime == RUN_DATETIME
-
-    def test_with_session_preserves_the_run_and_manifest(self):
-        run = a_run()
-        session = MagicMock()
-
-        rebound = run.with_session(session)
-
-        assert rebound.session is session
-        assert rebound.manifest is run.manifest
-        assert rebound.sfms_run_id == run.sfms_run_id
-        assert rebound.datetime_to_process == run.datetime_to_process
-
-    @pytest.mark.parametrize(
-        "manifest",
-        [
-            SFMSRunManifest(
-                run_type=RunType.FORECAST,
-                for_date=date(2025, 7, 4),
-                run_datetime=RUN_DATETIME,
-            ),
-            SFMSRunManifest(
-                run_type=RunType.ACTUAL, for_date=date(2025, 7, 5), run_datetime=RUN_DATETIME
-            ),
-        ],
-        ids=["another run type", "another target date"],
-    )
-    def test_rejects_a_manifest_describing_another_run(self, manifest: SFMSRunManifest):
-        with pytest.raises(AssertionError, match="the manifest must describe"):
-            SFMSRunContext(
-                datetime_to_process_for(date(2025, 7, 4)),
-                RunType.ACTUAL,
-                42,
-                manifest,
-                MagicMock(),
-                MagicMock(),
-                MagicMock(),
-            )
-
-    @pytest.mark.anyio
-    async def test_run_stage_visits_node_before_action_and_exits_after_success(
-        self, mocker: MockerFixture
-    ):
-        mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
-        events = []
-
-        class Node:
-            def on_enter(self, context):
-                events.append(("visit", context))
-
-            def on_exit(self, context, result):
-                events.append(("exit", context, result))
-
-        context = a_run()
-
-        async def action():
-            events.append(("action",))
-            return "output"
-
-        result = await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
-
-        assert result == "output"
-        assert events == [
-            ("visit", context),
-            ("action",),
-            ("exit", context, "output"),
-        ]
-
-    @pytest.mark.anyio
-    async def test_run_stage_does_not_exit_node_when_action_fails(self, mocker: MockerFixture):
-        mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
-        events = []
-
-        class Node:
-            def on_enter(self, context):
-                events.append("visit")
-
-            def on_exit(self, context, result):
-                events.append("exit")
-
-        async def action():
-            raise RuntimeError("stage failed")
-
-        context = a_run()
-        with pytest.raises(RuntimeError, match="stage failed"):
-            await context.run_stage(SFMSRunLogJobName.TEMPORAL_FUEL, action, Node())
-
-        assert events == ["visit"]
-        assert context.manifest.failed_stage == SFMSRunLogJobName.TEMPORAL_FUEL.value
 
 
 @pytest.mark.anyio
@@ -235,22 +92,13 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
 ):
     datetime_to_process = datetime(2025, 7, 4, 20, tzinfo=timezone.utc)
     addresser = MagicMock()
-    addresser.get_slope_key.side_effect = lambda: "sfms_ng/static/bc_slope.tif"
-    addresser.get_aspect_key.side_effect = lambda: "sfms_ng/static/bc_aspect.tif"
-    addresser.gdal_path.side_effect = lambda key: f"/vsis3/some bucket/{key}"
     s3_client = MagicMock()
     session = MagicMock()
-    fbp_output_keys = {
-        parameter: f"sfms_ng/actual/2025/07/04/{parameter.value}_20250704.tif"
-        for parameter in FBPParameter
-    }
     primary_inputs = MagicMock()
-    primary_inputs.output_keys = fbp_output_keys
-    primary_inputs.percent_conifer_key = "/vsis3/some bucket/sfms/static/m12_2025.tif"
     addresser.get_primary_fire_behaviour_inputs.return_value = primary_inputs
     resolve_percent_conifer = mocker.patch(
         f"{PIPELINE_PATH}._resolve_percent_conifer_path",
-        new=AsyncMock(return_value="/vsis3/some bucket/sfms/static/m12_2025.tif"),
+        new=AsyncMock(return_value="/vsis3/test/sfms/static/m12_2025.tif"),
     )
     primary_processor = MagicMock()
     primary_processor.process = AsyncMock()
@@ -259,42 +107,40 @@ async def test_run_fbp_calculations_runs_one_tracked_primary_calculation(
     )
     tracked_jobs = []
 
-    async def run_tracked_job(job_name, _ctx, _session, action):
+    async def run_tracked_job(job_name, _sfms_run_id, _session, action):
         tracked_jobs.append(job_name)
-        return await action()
+        await action()
 
     mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=run_tracked_job)
-    run = a_run(addresser=addresser, s3_client=s3_client, session=session)
 
-    await run_fbp_calculations(run, "/vsis3/some bucket/fuel.tif", 2025)
+    await run_fbp_calculations(
+        datetime_to_process,
+        addresser,
+        s3_client,
+        "/vsis3/test/fuel.tif",
+        2025,
+        42,
+        session,
+        RunType.ACTUAL,
+    )
 
     resolve_percent_conifer.assert_awaited_once_with(2025, addresser, s3_client)
     addresser.get_primary_fire_behaviour_inputs.assert_called_once_with(
         datetime_to_process,
         RunType.ACTUAL,
-        "/vsis3/some bucket/fuel.tif",
-        "/vsis3/some bucket/sfms/static/m12_2025.tif",
-        f"/vsis3/some bucket/{addresser.get_weather_key.return_value}",
-        f"/vsis3/some bucket/{addresser.get_weather_key.return_value}",
-        f"/vsis3/some bucket/{addresser.get_fmc_key.return_value}",
-        "/vsis3/some bucket/sfms_ng/static/bc_slope.tif",
-        "/vsis3/some bucket/sfms_ng/static/bc_aspect.tif",
+        "/vsis3/test/fuel.tif",
+        "/vsis3/test/sfms/static/m12_2025.tif",
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
+        addresser.gdal_path.return_value,
     )
     primary_processor_class.assert_called_once_with(datetime_to_process)
     primary_processor.process.assert_awaited_once()
     assert primary_processor.process.await_args.args[0] is s3_client
     assert primary_processor.process.await_args.args[2] is primary_inputs
     assert tracked_jobs == [SFMSRunLogJobName.PRIMARY_FBP_CALCULATION]
-
-    # the manifest records the percent-conifer and terrain rasters FBP read, and its outputs
-    assert run.manifest.input.fuel_raster.pc == "sfms/static/m12_2025.tif"
-    assert run.manifest.input.static_rasters == {
-        "slope": "sfms_ng/static/bc_slope.tif",
-        "aspect": "sfms_ng/static/bc_aspect.tif",
-    }
-    assert run.manifest.output.fbp == {
-        parameter.value: key for parameter, key in fbp_output_keys.items()
-    }
 
 
 TARGET_DATE = date(2026, 6, 1)
@@ -385,15 +231,10 @@ def stored_raster(version: int) -> MagicMock:
     )
 
 
-async def resolve(deps) -> ResolvedTemporalFuelRaster:
+async def resolve(deps) -> str:
     return await resolve_temporal_fuel_raster(
         TARGET_DATE, deps.fuel_type_raster, deps.addresser, deps.s3_client
     )
-
-
-def julian_archive_keys() -> dict[str, str]:
-    """The archive keys the test fixture's addresser builds for the read Julian rasters."""
-    return {name: f"archive/{name}/{JULIAN_HASHES[f'{name}_hash']}.tif" for name in JULIAN_BYTES}
 
 
 @pytest.mark.anyio
@@ -406,9 +247,7 @@ async def test_resolve_temporal_fuel_raster_reuses_matching_raster(
 
     result = await resolve(deps)
 
-    assert result.path == "/vsis3/bucket/temporal/2.tif"
-    # the reused grid's inputs survive the live Julian keys being replaced
-    assert result.julian_archive_keys == julian_archive_keys()
+    assert result == "/vsis3/bucket/temporal/2.tif"
     deps.lock.assert_awaited_once_with(deps.session, TARGET_DATE)
     get_existing.assert_awaited_once_with(deps.session, TARGET_DATE, 7, **JULIAN_HASHES)
     deps.s3_client.get_fuel_raster.assert_awaited_once_with("temporal/2.tif", "stored-hash")
@@ -442,8 +281,7 @@ async def test_resolve_temporal_fuel_raster_records_next_version(
 
     result = await resolve(deps)
 
-    assert result.path == "/vsis3/bucket/temporal/3.tif"
-    assert result.julian_archive_keys == julian_archive_keys()
+    assert result == "/vsis3/bucket/temporal/3.tif"
     publish_args = deps.publish.await_args.kwargs
     assert publish_args["base_fuel_key"] == "/vsis3/bucket/sfms/static/fuel/fbp2026_v1.tif"
     # the grid is built from the same bytes that were hashed, and each dataset is closed after
@@ -487,7 +325,7 @@ async def test_resolve_temporal_fuel_raster_rebuilds_unverified_raster(
 
     result = await resolve(deps)
 
-    assert result.path == "/vsis3/bucket/temporal/3.tif"
+    assert result == "/vsis3/bucket/temporal/3.tif"
     deps.publish.assert_awaited_once()
     assert deps.session.add.call_args.args[0].version == 3
 
@@ -524,19 +362,11 @@ async def test_resolve_temporal_fuel_raster_requires_julian_rasters(temporal_fue
 
 @pytest.mark.anyio
 async def test_run_temporal_fuel_is_a_tracked_job_for_the_date(mocker: MockerFixture):
-    temporal_fuel = "/vsis3/some bucket/sfms_ng/fuel/temporal/2026/06/01/1/fbp2026_06_01_1.tif"
-    julian_archive_keys = {
-        "green_up_on": "sfms_ng/static/julian/archive/green_up_on/green-up-hash.tif",
-        "green_up_off": "sfms_ng/static/julian/archive/green_up_off/green-off-hash.tif",
-        "grass_standing": "sfms_ng/static/julian/archive/grass_standing/standing-hash.tif",
-        "grass_matted": "sfms_ng/static/julian/archive/grass_matted/matted-hash.tif",
-    }
+    temporal_fuel = "/vsis3/t.tif"
     resolve = mocker.patch(
         f"{PIPELINE_PATH}.resolve_temporal_fuel_raster",
         new_callable=AsyncMock,
-        return_value=ResolvedTemporalFuelRaster(
-            path=temporal_fuel, julian_archive_keys=julian_archive_keys
-        ),
+        return_value=temporal_fuel,
     )
     tracked_jobs = []
 
@@ -545,152 +375,17 @@ async def test_run_temporal_fuel_is_a_tracked_job_for_the_date(mocker: MockerFix
         return await action()
 
     mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=run_tracked_job)
-    fuel_type_raster, addresser, s3_client, session = (
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    fuel_type_raster, addresser, s3_client = MagicMock(), MagicMock(), MagicMock()
+
+    result = await run_temporal_fuel(
+        datetime(2026, 6, 1, 20, tzinfo=timezone.utc),
+        fuel_type_raster,
+        addresser,
+        s3_client,
+        42,
         MagicMock(),
     )
-    run = a_run(date(2026, 6, 1), addresser=addresser, s3_client=s3_client, session=session)
-
-    result = await run_temporal_fuel(run, fuel_type_raster)
 
     assert result == temporal_fuel
     assert tracked_jobs == [(SFMSRunLogJobName.TEMPORAL_FUEL, 42)]
-    resolve.assert_awaited_once_with(date(2026, 6, 1), fuel_type_raster, addresser, s3_client)
-    # the fuel grid is an FBP input and an output, and its Julian rasters are traced by archive key
-    manifest = run.manifest
-    assert manifest.input.fuel_raster.temporal == (
-        "sfms_ng/fuel/temporal/2026/06/01/1/fbp2026_06_01_1.tif"
-    )
-    assert manifest.output.fuel_raster == "sfms_ng/fuel/temporal/2026/06/01/1/fbp2026_06_01_1.tif"
-    assert manifest.input.julian_rasters == julian_archive_keys
-
-
-@pytest.mark.anyio
-async def test_run_weather_interpolation_records_statics_and_outputs(mocker: MockerFixture):
-    addresser = MagicMock()
-    addresser.get_mask_key.return_value = "/vsis3/some bucket/sfms/static/bc_mask.tif"
-    addresser.get_dem_key.return_value = "/vsis3/some bucket/sfms/static/bc_elevation.tif"
-    addresser.get_weather_key.side_effect = lambda datetime_utc, weather_param, run_type: (
-        f"sfms_ng/{run_type.value}/{datetime_utc:%Y/%m/%d}/"
-        f"{weather_param.value}_{datetime_utc:%Y%m%d}.tif"
-    )
-    mocker.patch.object(RasterProcessor, "process", new=AsyncMock(return_value="ignored.tif"))
-    mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
-    run = a_run(addresser=addresser)
-
-    await run_weather_interpolation(
-        run,
-        "/vsis3/some bucket/fuel.tif",
-        create_mock_sfms_actuals(),
-    )
-
-    assert run.manifest.input.static_rasters == {
-        "dem": "sfms/static/bc_elevation.tif",
-        "mask": "sfms/static/bc_mask.tif",
-    }
-    assert run.manifest.output.weather == {
-        "temperature": "sfms_ng/actual/2025/07/04/temperature_20250704.tif",
-        "relative_humidity": "sfms_ng/actual/2025/07/04/relative_humidity_20250704.tif",
-        "wind_speed": "sfms_ng/actual/2025/07/04/wind_speed_20250704.tif",
-        "wind_direction": "sfms_ng/actual/2025/07/04/wind_direction_20250704.tif",
-        "precipitation": "sfms_ng/actual/2025/07/04/precipitation_20250704.tif",
-    }
-
-
-def stub_fwi_addresser(addresser: MagicMock) -> None:
-    """Give an addresser realistic index and FWI input keys for the given run."""
-
-    def index_key(datetime_utc, fwi_param, run_type):
-        return (
-            f"sfms_ng/{run_type.value}/{datetime_utc:%Y/%m/%d}/"
-            f"{fwi_param.value}_{datetime_utc:%Y%m%d}.tif"
-        )
-
-    def fwi_inputs(datetime_to_process, fwi_param, run_type, previous_base_run_type=None):
-        return FWIInputs(
-            weather_keys={},
-            index_keys={},
-            output_key=index_key(datetime_to_process, fwi_param, run_type),
-            run_type=run_type,
-        )
-
-    addresser.get_index_key.side_effect = index_key
-    addresser.get_fwi_inputs.side_effect = fwi_inputs
-
-
-@pytest.mark.anyio
-async def test_run_fwi_calculations_records_seed_rasters_and_outputs(mocker: MockerFixture):
-    addresser = MagicMock()
-    stub_fwi_addresser(addresser)
-    s3_client = MagicMock()
-    s3_client.all_objects_exist = AsyncMock(return_value=True)
-    mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
-    fwi_processor = MagicMock()
-    fwi_processor.calculate_index = AsyncMock()
-    mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=fwi_processor)
-    run = a_run(addresser=addresser, s3_client=s3_client)
-
-    calculated = await run_fwi_calculations(run)
-
-    manifest = run.manifest
-    assert calculated is True
-    assert manifest.input.seed_rasters == {
-        "ffmc": "sfms_ng/actual/2025/07/03/ffmc_20250703.tif",
-        "dmc": "sfms_ng/actual/2025/07/03/dmc_20250703.tif",
-        "dc": "sfms_ng/actual/2025/07/03/dc_20250703.tif",
-    }
-    assert manifest.output.fwi == {
-        "ffmc": "sfms_ng/actual/2025/07/04/ffmc_20250704.tif",
-        "dmc": "sfms_ng/actual/2025/07/04/dmc_20250704.tif",
-        "dc": "sfms_ng/actual/2025/07/04/dc_20250704.tif",
-        "isi": "sfms_ng/actual/2025/07/04/isi_20250704.tif",
-        "bui": "sfms_ng/actual/2025/07/04/bui_20250704.tif",
-        "fwi": "sfms_ng/actual/2025/07/04/fwi_20250704.tif",
-    }
-
-
-@pytest.mark.anyio
-async def test_run_fwi_calculations_records_seeds_of_the_previous_base_run_type(
-    mocker: MockerFixture,
-):
-    addresser = MagicMock()
-    stub_fwi_addresser(addresser)
-    s3_client = MagicMock()
-    s3_client.all_objects_exist = AsyncMock(return_value=True)
-    mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=_run_action)
-    fwi_processor = MagicMock()
-    fwi_processor.calculate_index = AsyncMock()
-    mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=fwi_processor)
-    run = a_run(run_type=RunType.FORECAST, addresser=addresser, s3_client=s3_client)
-
-    await run_fwi_calculations(run, previous_base_run_type=RunType.ACTUAL)
-
-    # the first forecast day seeds from the previous actual run's rasters
-    assert run.manifest.input.seed_rasters == {
-        "ffmc": "sfms_ng/actual/2025/07/03/ffmc_20250703.tif",
-        "dmc": "sfms_ng/actual/2025/07/03/dmc_20250703.tif",
-        "dc": "sfms_ng/actual/2025/07/03/dc_20250703.tif",
-    }
-
-
-@pytest.mark.anyio
-async def test_run_fwi_calculations_records_nothing_when_seeds_are_missing(
-    mocker: MockerFixture,
-):
-    addresser = MagicMock()
-    stub_fwi_addresser(addresser)
-    s3_client = MagicMock()
-    s3_client.all_objects_exist = AsyncMock(return_value=False)
-    fwi_processor = MagicMock()
-    fwi_processor.calculate_index = AsyncMock()
-    mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=fwi_processor)
-    run = a_run(addresser=addresser, s3_client=s3_client)
-
-    calculated = await run_fwi_calculations(run)
-
-    assert calculated is False
-    fwi_processor.calculate_index.assert_not_awaited()
-    assert run.manifest.input.seed_rasters == {}
-    assert run.manifest.output.fwi == {}
+    resolve.assert_awaited_once_with(TARGET_DATE, fuel_type_raster, addresser, s3_client)
