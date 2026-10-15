@@ -6,7 +6,7 @@ Uses a `sfms_ng/` S3 root prefix, completely separate from the legacy
 """
 
 from collections.abc import Iterable, Mapping
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (

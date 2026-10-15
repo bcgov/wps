@@ -10,7 +10,7 @@ import pytest
 from pytest_mock import MockerFixture
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName, SFMSRunLogStatus
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
-from wps_shared.sfms.raster_addresser import FBPParameter, FWIParameter
+from wps_shared.sfms.raster_addresser import FWIParameter
 
 from app.jobs.sfms_daily_actuals import (
     is_fwi_interpolation_day,
@@ -134,6 +134,20 @@ class TestRunSfmsDailyActuals:
         assert dt.hour == 20
         assert dt.minute == 0
         assert dt.second == 0
+
+    @pytest.mark.anyio
+    async def test_raises_when_no_fuel_type_raster_for_the_year(
+        self, mock_dependencies: MockDailySFMSDeps
+    ):
+        mock_dependencies.get_fuel_type_raster_by_year.return_value = None
+        target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
+
+        with pytest.raises(RuntimeError, match="No fuel type raster found for 2024"):
+            await run_sfms_daily_actuals(target_date)
+
+        # fails before observations are fetched or a run is saved
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations.assert_not_called()
+        mock_dependencies.save_sfms_run.assert_not_awaited()
 
     @pytest.mark.anyio
     async def test_raises_on_empty_actuals(self, mock_dependencies: MockDailySFMSDeps):

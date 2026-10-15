@@ -7,7 +7,6 @@ from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FBPParameter,
     FWIParameter,
-    S3Key,
     SFMSInterpolatedWeatherParameter,
 )
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser

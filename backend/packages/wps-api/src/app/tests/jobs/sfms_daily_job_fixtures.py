@@ -15,7 +15,7 @@ from wps_sfms.processors.relative_humidity import RHInterpolator
 from wps_sfms.processors.temperature import TemperatureInterpolator
 from wps_sfms.processors.wind import WindDirectionInterpolator, WindSpeedInterpolator
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
-from wps_shared.sfms.raster_addresser import FBPParameter, FWIParameter
+from wps_shared.sfms.raster_addresser import FBPParameter
 
 from app.tests.conftest import create_mock_sfms_actuals
 

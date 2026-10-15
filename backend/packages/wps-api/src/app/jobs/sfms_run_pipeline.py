@@ -1,14 +1,12 @@
 """Shared SFMS weather interpolation and FWI calculation pipeline."""
 
-import asyncio
 import logging
 from collections.abc import Awaitable, Callable, Iterable, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import ClassVar, Protocol, TypeVar
 
 from botocore.exceptions import ClientError
-from sqlalchemy.ext.asyncio import AsyncSession
 from wps_sfms.interpolation.field import (
     build_dc_field,
     build_dewpoint_field,

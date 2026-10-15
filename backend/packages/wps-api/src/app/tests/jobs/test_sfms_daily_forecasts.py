@@ -4,13 +4,12 @@ import json
 import os
 import sys
 from datetime import date, datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock, call
+from unittest.mock import AsyncMock, call
 
 import pytest
 from pytest_mock import MockerFixture
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
-from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FWIParameter
 
 from app.jobs.sfms_daily_forecasts import (
@@ -277,6 +276,49 @@ class TestRunSfmsDailyForecasts:
             "sfms_ng/forecast/2024/07/05/temperature_20240705.tif"
         )
         assert payload["output"]["fbp"]["hfi"] == "sfms_ng/forecast/2024/07/05/hfi_20240705.tif"
+
+    @pytest.mark.anyio
+    async def test_raises_when_no_fuel_type_raster_for_the_year(
+        self, mock_dependencies: MockDailySFMSDeps
+    ):
+        mock_dependencies.get_fuel_type_raster_by_year.return_value = None
+        run_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
+
+        with pytest.raises(RuntimeError, match="No fuel type raster found for 2024"):
+            await run_sfms_daily_forecasts(run_datetime)
+
+        # fails before any forecast is fetched or run saved
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations.assert_not_called()
+        mock_dependencies.save_sfms_run.assert_not_awaited()
+        mock_dependencies.s3_client.put_object.assert_not_awaited()
+
+    @pytest.mark.anyio
+    async def test_date_missing_its_forecast_seeds_skips_fwi_fuel_and_fbp(
+        self, mock_dependencies: MockDailySFMSDeps
+    ):
+        """A date whose previous-day forecast seeds are missing records that and moves on."""
+        # the actual seeds exist, so the batch starts, but the first date's forecast
+        # rasters, which the second date seeds from, are missing
+        mock_dependencies.s3_client.all_objects_exist = AsyncMock(
+            side_effect=lambda *keys: not any("forecast/2024/07/05" in key for key in keys)
+        )
+
+        await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
+
+        manifests = {
+            manifest["for_date"]: manifest
+            for manifest in (
+                json.loads(call.kwargs["body"])
+                for call in mock_dependencies.s3_client.put_object.await_args_list
+                if call.kwargs["key"].endswith("_run.json")
+            )
+        }
+        assert manifests["2024-07-06"]["status"] == "failed"
+        assert manifests["2024-07-06"]["failed_stage"] == "fwi_seed_check"
+        assert manifests["2024-07-06"]["output"]["fbp"] == {}
+        assert manifests["2024-07-05"]["status"] == "success"
+        # FBP ran for the dates that had their seeds
+        assert mock_dependencies.primary_fbp_processor.process.await_count == 2
 
     @pytest.mark.anyio
     async def test_raises_on_empty_forecasts(self, mock_dependencies: MockDailySFMSDeps):
