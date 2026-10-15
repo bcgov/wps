@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
+from wps_sfms.processors.danger_rating import DangerRatingInterpolator
 from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
@@ -65,6 +66,7 @@ class MockDailyActualsDeps(NamedTuple):
     wind_speed_processor: MagicMock
     wind_direction_processor: MagicMock
     interpolation_processor: MagicMock
+    danger_rating_processor: MagicMock
     fwi_processor: MagicMock
     primary_fbp_processor: MagicMock
     run_temporal_fuel: AsyncMock
@@ -171,6 +173,12 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
     )
     mocker.patch(f"{PIPELINE_PATH}.Interpolator", return_value=mock_interpolation_processor)
 
+    mock_danger_rating_processor = MagicMock(spec=DangerRatingInterpolator)
+    mock_danger_rating_processor.process = AsyncMock(return_value="danger_rating.tif")
+    mocker.patch(
+        f"{PIPELINE_PATH}.DangerRatingInterpolator", return_value=mock_danger_rating_processor
+    )
+
     mock_fwi_processor = MagicMock(spec=FWIProcessor)
     mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
     mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
@@ -209,6 +217,7 @@ def mock_dependencies(mocker: MockerFixture, mock_s3_client, mock_wfwx_api) -> M
         wind_speed_processor=mock_wind_speed_processor,
         wind_direction_processor=mock_wind_direction_processor,
         interpolation_processor=mock_interpolation_processor,
+        danger_rating_processor=mock_danger_rating_processor,
         fwi_processor=mock_fwi_processor,
         primary_fbp_processor=mock_primary_fbp_processor,
         run_temporal_fuel=mock_run_temporal_fuel,
@@ -253,6 +262,7 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.wind_speed_processor.process.assert_called_once()
         mock_dependencies.wind_direction_processor.process.assert_called_once()
         mock_dependencies.interpolation_processor.process.assert_called_once()
+        mock_dependencies.danger_rating_processor.process.assert_called_once()
         mock_dependencies.primary_fbp_processor.process.assert_called_once()
 
     @pytest.mark.anyio
@@ -358,19 +368,19 @@ class TestRunSfmsDailyActuals:
 
         await run_sfms_daily_actuals(target_date)
 
-        # twelve tracked runs: 5 weather + 6 FWI + 1 primary FBP calculation
-        assert mock_dependencies.db_session.execute.call_count == 12
+        # thirteen tracked runs: 5 weather + danger rating + 6 FWI + primary FBP
+        assert mock_dependencies.db_session.execute.call_count == 13
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailyActualsDeps):
         """Test that successful jobs are updated to success status."""
-        records = [MagicMock() for _ in range(12)]
+        records = [MagicMock() for _ in range(13)]
         mock_dependencies.db_session.get = AsyncMock(side_effect=records)
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.db_session.get.call_count == 12
+        assert mock_dependencies.db_session.get.call_count == 13
         for record in records:
             assert record.status == SFMSRunLogStatus.SUCCESS
             assert record.completed_at is not None
@@ -509,7 +519,7 @@ class TestMondayFWIInterpolation:
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 3
 
     @pytest.mark.anyio
-    async def test_monday_april_writes_twelve_run_log_entries(
+    async def test_monday_april_writes_thirteen_run_log_entries(
         self, mock_dependencies: MockDailyActualsDeps
     ):
         """Test that a Monday in April produces 12 run log entries."""
@@ -518,8 +528,8 @@ class TestMondayFWIInterpolation:
 
         await run_sfms_daily_actuals(target_date)
 
-        # twelve tracked runs: 5 weather + 3 interpolated FWI + 3 derived FWI + 1 primary FBP
-        assert mock_dependencies.db_session.execute.call_count == 12
+        # thirteen tracked runs: 5 weather + danger rating + 6 FWI + primary FBP
+        assert mock_dependencies.db_session.execute.call_count == 13
 
 
 class TestFWICalculationVsInterpolation:
@@ -621,8 +631,8 @@ class TestFWICalculationVsInterpolation:
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
         mock_dependencies.run_temporal_fuel.assert_not_awaited()
         mock_dependencies.primary_fbp_processor.process.assert_not_called()
-        # Only weather interpolation jobs are tracked when the FWI chain is skipped.
-        assert mock_dependencies.db_session.execute.call_count == 5
+        # weather and danger rating still run when the FWI chain is skipped
+        assert mock_dependencies.db_session.execute.call_count == 6
 
     @pytest.mark.anyio
     async def test_regular_day_tracks_expected_job_names_in_order(
@@ -646,6 +656,7 @@ class TestFWICalculationVsInterpolation:
             SFMSRunLogJobName.WIND_SPEED_INTERPOLATION,
             SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION,
             SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+            SFMSRunLogJobName.DANGER_RATING_INTERPOLATION,
             SFMSRunLogJobName.FFMC_CALCULATION,
             SFMSRunLogJobName.DMC_CALCULATION,
             SFMSRunLogJobName.DC_CALCULATION,
@@ -677,6 +688,7 @@ class TestFWICalculationVsInterpolation:
             SFMSRunLogJobName.WIND_SPEED_INTERPOLATION,
             SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION,
             SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+            SFMSRunLogJobName.DANGER_RATING_INTERPOLATION,
             SFMSRunLogJobName.FFMC_INTERPOLATION,
             SFMSRunLogJobName.DMC_INTERPOLATION,
             SFMSRunLogJobName.DC_INTERPOLATION,

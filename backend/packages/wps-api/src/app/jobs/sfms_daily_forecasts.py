@@ -33,6 +33,7 @@ from wps_wf1.wfwx_api import WfwxApi
 
 from app.jobs.sfms_run_pipeline import (
     get_missing_fwi_seed_keys,
+    run_danger_rating_interpolation,
     run_fbp_calculations,
     run_fwi_calculations,
     run_temporal_fuel,
@@ -153,6 +154,16 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                         )
 
                         await run_weather_interpolation(
+                            datetime_to_process,
+                            raster_addresser,
+                            s3_client,
+                            fuel_raster_path,
+                            sfms_forecasts,
+                            sfms_run_id,
+                            write_session,
+                            RunType.FORECAST,
+                        )
+                        await run_danger_rating_interpolation(
                             datetime_to_process,
                             raster_addresser,
                             s3_client,

@@ -8,6 +8,7 @@ from typing import Awaitable, Callable
 from botocore.exceptions import ClientError
 from wps_sfms.interpolation.field import (
     build_dc_field,
+    build_danger_rating_field,
     build_dewpoint_field,
     build_dmc_field,
     build_ffmc_field,
@@ -17,6 +18,7 @@ from wps_sfms.interpolation.field import (
     build_wind_vector_field,
 )
 from wps_sfms.julian_rasters import ensure_julian_archives, read_julian_rasters
+from wps_sfms.processors.danger_rating import DangerRatingInterpolator
 from wps_sfms.processors.fwi import (
     BUICalculator,
     DCCalculator,
@@ -44,6 +46,7 @@ from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
@@ -94,9 +97,12 @@ async def _process_raster_job(
     fuel_raster_path: str,
     output_key: str,
     log_label: str,
+    cog_resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
 ) -> None:
     async def _run() -> None:
-        s3_key = await processor.process(s3_client, fuel_raster_path, output_key)
+        s3_key = await processor.process(
+            s3_client, fuel_raster_path, output_key, cog_resample_alg=cog_resample_alg
+        )
         logger.info("%s: %s", log_label, s3_key)
 
     await _run_tracked_job(job_name, sfms_run_id, session, _run)
@@ -373,6 +379,32 @@ async def run_weather_interpolation(
             output_key=job.output_key,
             log_label=job.log_label,
         )
+
+
+async def run_danger_rating_interpolation(
+    datetime_to_process: datetime,
+    raster_addresser: SFMSNGRasterAddresser,
+    s3_client: S3Client,
+    fuel_raster_path: str,
+    station_weather: list,
+    sfms_run_id: int,
+    session,
+    run_type: RunType,
+) -> None:
+    """Interpolate and publish station danger ratings for one run."""
+    await _process_raster_job(
+        job_name=SFMSRunLogJobName.DANGER_RATING_INTERPOLATION,
+        sfms_run_id=sfms_run_id,
+        session=session,
+        processor=DangerRatingInterpolator(
+            raster_addresser.get_mask_key(), build_danger_rating_field(station_weather)
+        ),
+        s3_client=s3_client,
+        fuel_raster_path=fuel_raster_path,
+        output_key=raster_addresser.get_danger_rating_key(datetime_to_process, run_type),
+        log_label="Danger rating interpolation raster",
+        cog_resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
+    )
 
 
 async def run_fwi_interpolation(

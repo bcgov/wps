@@ -415,6 +415,7 @@ def sfms_daily_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
                 ffmc=raw_daily.get("fineFuelMoistureCode"),
                 dmc=raw_daily.get("duffMoistureCode"),
                 dc=raw_daily.get("droughtCode"),
+                danger_rating=raw_daily.get("dangerForest"),
             )
         )
     return sfms_dailies

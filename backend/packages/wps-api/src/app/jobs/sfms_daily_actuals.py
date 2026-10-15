@@ -28,6 +28,7 @@ from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.jobs.sfms_run_pipeline import (
+    run_danger_rating_interpolation,
     run_derived_fwi_calculations,
     run_fbp_calculations,
     run_fwi_calculations,
@@ -96,6 +97,16 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
             )
 
             await run_weather_interpolation(
+                datetime_to_process,
+                raster_addresser,
+                s3_client,
+                fuel_raster_path,
+                sfms_actuals,
+                sfms_run_id,
+                session,
+                RunType.ACTUAL,
+            )
+            await run_danger_rating_interpolation(
                 datetime_to_process,
                 raster_addresser,
                 s3_client,

@@ -23,6 +23,16 @@ def addresser():
 
 
 class TestTemporalFuelKeys:
+    @pytest.mark.parametrize(
+        "run_type,expected_key",
+        [
+            (RunType.ACTUAL, "sfms_ng/actual/2024/04/15/danger_rating_20240415.tif"),
+            (RunType.FORECAST, "sfms_ng/forecast/2024/04/15/danger_rating_20240415.tif"),
+        ],
+    )
+    def test_danger_rating_key(self, addresser, run_type, expected_key):
+        assert addresser.get_danger_rating_key(TEST_DATETIME, run_type) == expected_key
+
     def test_julian_keys_use_julian_static_prefix(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_julian_key("green_up_on") == "sfms_ng/static/julian/green_up_on.tif"
 

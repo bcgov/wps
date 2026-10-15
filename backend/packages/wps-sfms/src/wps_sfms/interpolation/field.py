@@ -125,6 +125,20 @@ def build_dc_field(actuals: List[SFMSDaily]) -> ScalarField:
     return build_attribute_field(actuals, "dc")
 
 
+def build_danger_rating_field(actuals: List[SFMSDaily]) -> ScalarField:
+    return ScalarField(
+        lats=np.array([station.lat for station in actuals], dtype=np.float32),
+        lons=np.array([station.lon for station in actuals], dtype=np.float32),
+        values=np.array(
+            [
+                station.danger_rating if station.danger_rating is not None else 0
+                for station in actuals
+            ],
+            dtype=np.float32,
+        ),
+    )
+
+
 def build_wind_vector_field(actuals: List[SFMSDaily]) -> WindVectorField:
     valid = [s for s in actuals if s.wind_speed is not None and s.wind_direction is not None]
     if not valid:

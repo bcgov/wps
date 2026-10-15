@@ -7,19 +7,95 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from botocore.exceptions import ClientError
 from pytest_mock import MockerFixture
+from wps_sfms.processors.danger_rating import DangerRatingInterpolator
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.run_type import RunType
 
 from app.jobs.sfms_run_pipeline import (
+    _process_raster_job,
     _resolve_percent_conifer_path,
     _resolve_percent_dead_conifer_path,
     resolve_temporal_fuel_raster,
+    run_danger_rating_interpolation,
     run_temporal_fuel,
     run_fbp_calculations,
 )
+from app.tests.conftest import create_mock_sfms_actuals
 
 PIPELINE_PATH = "app.jobs.sfms_run_pipeline"
+
+
+@pytest.mark.anyio
+async def test_process_raster_job_passes_cog_resampling_to_processor(mocker: MockerFixture):
+    async def run_action(_job_name, _run_id, _session, action):
+        return await action()
+
+    mocker.patch(f"{PIPELINE_PATH}._run_tracked_job", side_effect=run_action)
+    processor = MagicMock()
+    processor.process = AsyncMock(return_value="danger_rating.tif")
+    s3_client = MagicMock()
+
+    await _process_raster_job(
+        job_name=SFMSRunLogJobName.DANGER_RATING_INTERPOLATION,
+        sfms_run_id=42,
+        session=MagicMock(),
+        processor=processor,
+        s3_client=s3_client,
+        fuel_raster_path="fuel.tif",
+        output_key="danger_rating.tif",
+        log_label="Danger rating interpolation raster",
+        cog_resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
+    )
+
+    processor.process.assert_awaited_once_with(
+        s3_client,
+        "fuel.tif",
+        "danger_rating.tif",
+        cog_resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
+    )
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("run_type", [RunType.ACTUAL, RunType.FORECAST])
+async def test_danger_rating_interpolation_uses_station_values_and_tracks_output(
+    mocker: MockerFixture, run_type: RunType
+):
+    datetime_to_process = datetime(2025, 7, 4, 20, tzinfo=timezone.utc)
+    addresser = MagicMock()
+    addresser.get_mask_key.return_value = "mask.tif"
+    addresser.get_danger_rating_key.return_value = "danger_rating.tif"
+    station_weather = create_mock_sfms_actuals()
+    station_weather[0].danger_rating = 4
+    process_raster_job = mocker.patch(
+        f"{PIPELINE_PATH}._process_raster_job", new_callable=AsyncMock
+    )
+    s3_client = MagicMock()
+    session = MagicMock()
+
+    await run_danger_rating_interpolation(
+        datetime_to_process,
+        addresser,
+        s3_client,
+        "fuel.tif",
+        station_weather,
+        42,
+        session,
+        run_type,
+    )
+
+    addresser.get_danger_rating_key.assert_called_once_with(datetime_to_process, run_type)
+    process_raster_job.assert_awaited_once()
+    kwargs = process_raster_job.await_args.kwargs
+    assert kwargs["job_name"] == SFMSRunLogJobName.DANGER_RATING_INTERPOLATION
+    assert kwargs["output_key"] == "danger_rating.tif"
+    assert kwargs["fuel_raster_path"] == "fuel.tif"
+    assert kwargs["s3_client"] is s3_client
+    assert kwargs["session"] is session
+    assert kwargs["cog_resample_alg"] == GDALResamplingMethod.NEAREST_NEIGHBOUR
+    assert isinstance(kwargs["processor"], DangerRatingInterpolator)
+    assert kwargs["processor"].field.values.tolist() == [4.0, 0.0]
 
 
 @pytest.mark.anyio

@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
+from wps_sfms.processors.danger_rating import DangerRatingInterpolator
 from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
 from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
@@ -45,6 +46,7 @@ class MockDailyForecastsDeps(NamedTuple):
     wind_speed_processor: MagicMock
     wind_direction_processor: MagicMock
     interpolation_processor: MagicMock
+    danger_rating_processor: MagicMock
     fwi_processor: MagicMock
     primary_fbp_processor: MagicMock
     run_temporal_fuel: AsyncMock
@@ -137,6 +139,12 @@ def mock_dependencies(
     mock_interpolation_processor.process = AsyncMock(return_value="precipitation.tif")
     mocker.patch(f"{PIPELINE_PATH}.Interpolator", return_value=mock_interpolation_processor)
 
+    mock_danger_rating_processor = MagicMock(spec=DangerRatingInterpolator)
+    mock_danger_rating_processor.process = AsyncMock(return_value="danger_rating.tif")
+    mocker.patch(
+        f"{PIPELINE_PATH}.DangerRatingInterpolator", return_value=mock_danger_rating_processor
+    )
+
     mock_fwi_processor = MagicMock(spec=FWIProcessor)
     mock_fwi_processor.calculate_index = AsyncMock(return_value=None)
     mocker.patch(f"{PIPELINE_PATH}.FWIProcessor", return_value=mock_fwi_processor)
@@ -172,6 +180,7 @@ def mock_dependencies(
         wind_speed_processor=mock_wind_speed_processor,
         wind_direction_processor=mock_wind_direction_processor,
         interpolation_processor=mock_interpolation_processor,
+        danger_rating_processor=mock_danger_rating_processor,
         fwi_processor=mock_fwi_processor,
         primary_fbp_processor=mock_primary_fbp_processor,
         run_temporal_fuel=mock_run_temporal_fuel,
@@ -249,6 +258,7 @@ class TestRunSfmsDailyForecasts:
         assert mock_dependencies.wind_speed_processor.process.call_count == 3
         assert mock_dependencies.wind_direction_processor.process.call_count == 3
         assert mock_dependencies.interpolation_processor.process.call_count == 3
+        assert mock_dependencies.danger_rating_processor.process.call_count == 3
         assert mock_dependencies.fwi_processor.calculate_index.call_count == 18
         assert mock_dependencies.primary_fbp_processor.process.call_count == 3
         mock_dependencies.get_fuel_type_raster_by_year.assert_awaited_once()
