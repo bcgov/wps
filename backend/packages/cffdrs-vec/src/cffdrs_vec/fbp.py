@@ -906,41 +906,38 @@ def vectorized_elliptical_fire_area_30min(
     fmc: np.ndarray | np.generic | float | int,
     isi: np.ndarray | np.generic | float | int,
 ) -> np.ndarray | np.generic:
-    """Calculate the elliptical fire area after 30 minutes using accelerated spread.
+    """
+    Calculate the elliptical fire area after 30 minutes using accelerated spread.
 
     This standalone calculation leaves the equilibrium FBP outputs unchanged. Each input may
     be a scalar or NumPy array.
 
-    Args:
-        fuel_type_code: CFFDRS fuel-type code.
-        ffmc: Fine Fuel Moisture Code.
-        bui: Buildup Index.
-        ws: Wind speed (km/h).
-        wd_rad: Wind direction, in radians.
-        gs: Ground slope (%).
-        aspect_rad: Slope aspect, in radians.
-        pc: Percent conifer (%), used for mixedwood fuel types.
-        pdf: Percent dead balsam fir (%), used for mixedwood-dead fuel types.
-        grass_curing: Percent cured grass, used for grass fuel types.
-        gfl: Grass fuel load (kg/m^2).
-        cbh: Crown base height (m).
-        cfl: Crown fuel load (kg/m^2); zero disables crown fraction burned.
-        fmc: Foliar Moisture Content (%).
-        isi: Initial Spread Index.
-
-    Returns:
-        Elliptical fire area in hectares, as a float64 array (or NumPy scalar for scalar inputs).
+    :param fuel_type_code: CFFDRS fuel-type code.
+    :param ffmc: Fine Fuel Moisture Code.
+    :param bui: Buildup Index.
+    :param ws: Wind speed (km/h).
+    :param wd_rad: Wind direction, in radians.
+    :param gs: Ground slope (%).
+    :param aspect_rad: Slope aspect, in radians.
+    :param pc: Percent conifer (%), used for mixedwood fuel types.
+    :param pdf: Percent dead balsam fir (%), used for mixedwood-dead fuel types.
+    :param grass_curing: Percent cured grass, used for grass fuel types.
+    :param gfl: Grass fuel load (kg/m^2).
+    :param cbh: Crown base height (m).
+    :param cfl: Crown fuel load (kg/m^2); zero disables crown fraction burned.
+    :param fmc: Foliar Moisture Content (%).
+    :param isi: Initial Spread Index.
+    :return: Elliptical fire area in hectares, as a float64 array (or NumPy scalar for scalar inputs).
     """
-
     # Time of Interest (30 minutes). Note that the CFFDRS FBP calculation passes time in minutes to the
     # time-dependent helpers, including length_to_breadth_at_time (despite the CFFDRS docstring saying hours).
     TOI_MIN = 30.0
 
-    # Step 1: Calculate Surface Fuel Consumption (SFC) and apply the Buildup Effect using BUI.
+    # Step 1: Calculate Surface Fuel Consumption (SFC).
     sfc = vectorized_surface_fuel_consumption(fuel_type_code, ffmc, bui, pc, gfl)
 
     # Step 2: Calculate the equilibrium Rate of Spread (ROS) and Crown Fraction Burned (CFB).
-    # CFFDRS sets CFB to zero when Crown Fuel Load (CFL) is zero.
+    #         CFFDRS sets CFB to zero when Crown Fuel Load (CFL) is zero.
     ros, cfb, _, _ = vectorized_rate_of_spread_extended(
         fuel_type_code,
         isi,
@@ -955,7 +952,7 @@ def vectorized_elliptical_fire_area_30min(
     cfb = np.where(cfl > 0.0, cfb, 0.0)
 
     # Step 3: Calculate the Wind Speed Velocity (WSV) used for length-to-breadth and back ROS.
-    # Slope adjustment also returns direction, but it is not needed for fire area.
+    #         Slope adjustment also returns direction, but it is not needed for fire area.
     wsv, _ = vectorized_slope_adjustment(
         fuel_type_code,
         ffmc,
@@ -973,7 +970,7 @@ def vectorized_elliptical_fire_area_30min(
         isi,
     )
 
-    # Step 4: Calculate equilibrium Length-to-Breadth (LB), then its value at 30 minutes.
+    # Step 4: Calculate the equilibrium Length-to-Breadth ratio (LB), then its value at 30 minutes.
     lb = vectorized_length_to_breadth(fuel_type_code, wsv)
     lb_t = vectorized_length_to_breadth_at_time(fuel_type_code, lb, TOI_MIN, cfb)
 
@@ -998,11 +995,12 @@ def vectorized_elliptical_fire_area_30min(
     back_fire_distance = vectorized_distance_at_time(fuel_type_code, bros, TOI_MIN, cfb)
 
     # Step 8: Calculate total spread distance from the back-fire edge to the head-fire edge.
+    #         This is the D_T variable in the elliptical fire area equation.
     total_distance = head_fire_distance + back_fire_distance
 
-    # Step 9: Calculate elliptical fire area using equation 86 on page 49 of the 1992
-    # Information Report ST-X-3: A(ha) = ((pi / (4 * LB(t))) * (D_T)^2) / 10000,
-    # which is algebraically equivalent to the calculation below.
+    # Step 9: Calculate elliptical fire area using equation 86 on page 49 from the
+    #         1992 Information Report ST-X-3: A(ha) = ((pi / (4 * LB(t))) * (D_T)^2) / 10000,
+    #         which is algebraically equivalent to the calculation below.
     area_ha = (np.pi * (total_distance**2)) / (40000.0 * lb_t)
 
     return area_ha
