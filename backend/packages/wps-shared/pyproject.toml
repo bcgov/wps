@@ -6,7 +6,7 @@ authors = [{ name = "Darren Boss", email = "darren.boss@gov.bc.ca" }]
 requires-python = ">=3.12.3,<4.0"
 dependencies = [
     "sqlalchemy>=2,<3",
-    "aiohttp>=3,<4",
+    "aiohttp>=3.14.4,<4",
     "requests>=2,<3",
     "python-decouple>=3,<4",
     "geopandas>=1.0.1,<2",
