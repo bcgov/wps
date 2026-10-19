@@ -13,6 +13,12 @@ import sys
 from datetime import UTC, datetime, timedelta
 
 from aiohttp import ClientSession
+from wps_sfms.fbp_stage import calculate_primary_fbp
+from wps_sfms.fmc_stage import calculate_fmc
+from wps_sfms.fwi_stage import calculate_fwi, interpolate_fwi
+from wps_sfms.run_context import SFMSRunContext
+from wps_sfms.temporal_fuel_stage import resolve_temporal_fuel
+from wps_sfms.weather_stage import interpolate_weather
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
@@ -25,15 +31,6 @@ from wps_shared.utils.time import assert_all_utc, get_utc_now
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
-from app.jobs.sfms_run_pipeline import (
-    FWICalculationStage,
-    FWIInterpolationStage,
-    FoliarMoistureContentStage,
-    PrimaryFBPStage,
-    SFMSRunContext,
-    TemporalFuelStage,
-    WeatherInterpolationStage,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -97,16 +94,18 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
             station_codes=station_codes,
         )
         try:
-            fmc_key = await FoliarMoistureContentStage().run(ctx)
-            weather_keys = await WeatherInterpolationStage(sfms_actuals).run(ctx)
+            fmc_key = await calculate_fmc(ctx)
+            weather_keys = await interpolate_weather(ctx, sfms_actuals)
             if is_fwi_interpolation_day(datetime_to_process):
-                fwi_keys = await FWIInterpolationStage(sfms_actuals, weather_keys).run(ctx)
+                fwi_keys = await interpolate_fwi(ctx, sfms_actuals, weather_keys)
             else:
-                fwi_keys = await FWICalculationStage(weather_keys).run(ctx)
+                fwi_keys = await calculate_fwi(ctx, weather_keys)
             # None when the run had no previous-day seeds to calculate FWI from
             if fwi_keys is not None:
-                temporal_fuel_path = await TemporalFuelStage().run(ctx)
-                await PrimaryFBPStage(temporal_fuel_path, fmc_key, weather_keys, fwi_keys).run(ctx)
+                temporal_fuel_path = await resolve_temporal_fuel(ctx)
+                await calculate_primary_fbp(
+                    ctx, temporal_fuel_path, fmc_key, weather_keys, fwi_keys
+                )
             await ctx.write_manifest()
         except Exception as error:
             await ctx.write_manifest(error, stage="daily_actuals")

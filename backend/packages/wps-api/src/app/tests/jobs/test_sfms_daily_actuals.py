@@ -23,7 +23,6 @@ from app.tests.jobs.sfms_daily_job_fixtures import (
 )
 
 MODULE_PATH = "app.jobs.sfms_daily_actuals"
-PIPELINE_PATH = "app.jobs.sfms_run_pipeline"
 
 
 @pytest.mark.parametrize(
@@ -211,7 +210,7 @@ class TestRunSfmsDailyActuals:
         self, mock_dependencies: MockDailySFMSDeps, mocker: MockerFixture
     ):
         """A run whose rasters were all written completes even when its manifest can't be."""
-        chatops = mocker.patch(f"{PIPELINE_PATH}.send_chatops_notification")
+        chatops = mocker.patch("wps_sfms.run_context.send_chatops_notification")
         mock_dependencies.s3_client.put_object = AsyncMock(side_effect=RuntimeError("s3 down"))
 
         await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))

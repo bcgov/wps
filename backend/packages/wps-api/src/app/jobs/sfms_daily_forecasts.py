@@ -13,6 +13,12 @@ import sys
 from datetime import UTC, date, datetime, timedelta
 
 from aiohttp import ClientSession
+from wps_sfms.fbp_stage import calculate_primary_fbp
+from wps_sfms.fmc_stage import calculate_fmc
+from wps_sfms.fwi_stage import calculate_fwi, missing_seed_keys
+from wps_sfms.run_context import SFMSRunContext
+from wps_sfms.temporal_fuel_stage import resolve_temporal_fuel
+from wps_sfms.weather_stage import interpolate_weather
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
@@ -29,14 +35,6 @@ from wps_shared.utils.time import (
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
-from app.jobs.sfms_run_pipeline import (
-    FoliarMoistureContentStage,
-    FWICalculationStage,
-    PrimaryFBPStage,
-    SFMSRunContext,
-    TemporalFuelStage,
-    WeatherInterpolationStage,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +91,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
     datetimes_to_process = forecast_datetimes(seed_actual_date)
 
     async with S3Client() as s3_client:
-        missing_actual_seed_keys = await FWICalculationStage.missing_seed_keys(
+        missing_actual_seed_keys = await missing_seed_keys(
             datetimes_to_process[0],
             raster_addresser,
             s3_client,
@@ -153,14 +151,14 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                 station_codes=station_codes,
             )
             try:
-                fmc_key = await FoliarMoistureContentStage().run(ctx)
-                weather_keys = await WeatherInterpolationStage(sfms_forecasts).run(ctx)
-                fwi_keys = await FWICalculationStage(weather_keys).run(ctx)
+                fmc_key = await calculate_fmc(ctx)
+                weather_keys = await interpolate_weather(ctx, sfms_forecasts)
+                fwi_keys = await calculate_fwi(ctx, weather_keys)
                 # None when the run had no previous-day seeds to calculate FWI from
                 if fwi_keys is not None:
-                    temporal_fuel_path = await TemporalFuelStage().run(ctx)
-                    await PrimaryFBPStage(temporal_fuel_path, fmc_key, weather_keys, fwi_keys).run(
-                        ctx
+                    temporal_fuel_path = await resolve_temporal_fuel(ctx)
+                    await calculate_primary_fbp(
+                        ctx, temporal_fuel_path, fmc_key, weather_keys, fwi_keys
                     )
                 await ctx.write_manifest()
             except Exception as error:
