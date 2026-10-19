@@ -1,4 +1,4 @@
-"""The weather interpolation stage of an SFMS run."""
+"""The weather interpolation step of an SFMS run."""
 
 import logging
 
@@ -32,7 +32,16 @@ async def interpolate_raster(
     output_key: S3Key,
     processor: RasterProcessor,
 ) -> S3Key:
-    """Interpolate one raster as a tracked job of the run, returning its key."""
+    """
+    Interpolate one raster as a tracked job of the run.
+
+    :param context: The run's context
+    :param job_name: Job the interpolation is logged under
+    :param parameter: Parameter the raster is recorded under in the manifest
+    :param output_key: Key the raster is written to
+    :param processor: Interpolator that writes the raster
+    :return: Key of the interpolated raster
+    """
 
     async def _interpolate() -> None:
         s3_key = await processor.process(
@@ -46,7 +55,13 @@ async def interpolate_raster(
 
 
 async def interpolate_weather(context: SFMSRunContext, station_weather: list) -> WeatherKeys:
-    """Interpolate the run's weather rasters from its station weather, returning their keys."""
+    """
+    Interpolate the run's weather rasters from its station weather.
+
+    :param context: The run's context
+    :param station_weather: The run's station weather
+    :return: Keys of the temperature, RH, wind speed, wind direction and precipitation rasters
+    """
     raster_addresser = context.raster_addresser
     mask_path = raster_addresser.get_mask_key()
     dem_path = raster_addresser.get_dem_key()

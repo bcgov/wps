@@ -45,7 +45,7 @@ overwrite an earlier manifest: each run lands under its own run datetime. A mani
 on it.
 
 Manifests are written when a run reaches a terminal state. A failed run's manifest contains the
-inputs recorded so far and outputs from stages that completed successfully, plus the failing stage
+inputs recorded so far and outputs from steps that completed successfully, plus the failing step
 and exception type. Failures before an `SFMSRunContext` is created have no run manifest.
 
 ## Schema
@@ -128,7 +128,7 @@ versions can add to them.
 | `run_type`     | string | `actual` or `forecast`.                                                                          |
 | `for_date`     | string | ISO date the run's rasters are for.                                                              |
 | `status`       | string | `success` or `failed`; manifests are written only for terminal runs whose `sfms_run` row was committed, so every manifest joins to one. |
-| `failed_stage` | string | Present for failed runs; the stage that raised.                                                  |
+| `failed_step`  | string | Present for failed runs; the step that raised.                                                   |
 | `failure_type` | string | Present for failed runs; the exception class.                                                    |
 | `failure_message` | string | Optional, truncated exception message for failed runs.                                       |
 | `input`        | object | What the run read. See below.                                                                    |
@@ -144,7 +144,7 @@ per version, so once a manifest records their keys, those keys keep naming the s
 Only sections the run actually used are present. A field is absent — not null — when the run did
 not record it, and groups that were recorded are objects keyed by parameter name. For example, a
 run whose FWI calculation was skipped for missing previous-day rasters has `status` `failed` with
-`failed_stage` `fwi_seed_check`, records `input.station_codes`, `input.fuel_raster.base` and
+`failed_step` `fwi_seed_check`, records `input.station_codes`, `input.fuel_raster.base` and
 `output.weather`, leaves `input.seed_rasters`, `output.fwi` and `output.fbp` as empty objects, and
 omits `output.fuel_raster`.
 

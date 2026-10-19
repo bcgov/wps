@@ -1,4 +1,4 @@
-"""Tests for the SFMS weather interpolation stage."""
+"""Tests for the SFMS weather interpolation step."""
 
 from unittest.mock import AsyncMock, MagicMock
 
@@ -10,14 +10,14 @@ from wps_sfms.tests.run_test_utils import (
     a_run,
     station_weather,
 )
-from wps_sfms.weather_stage import interpolate_weather
+from wps_sfms.weather_step import interpolate_weather
 
 # manifest keys strip this bucket's GDAL prefix
 pytestmark = pytest.mark.usefixtures("some_bucket")
 
 
 @pytest.mark.anyio
-async def test_weather_interpolation_stage_records_statics_and_outputs(
+async def test_weather_interpolation_step_records_statics_and_outputs(
     mocker: MockerFixture, tracked_jobs
 ):
     addresser = MagicMock()

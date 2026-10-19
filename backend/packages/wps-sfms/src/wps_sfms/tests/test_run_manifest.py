@@ -190,7 +190,7 @@ def test_manifest_json_follows_the_version_1_schema(bucket):
     }
 
 
-def test_manifest_records_only_the_stages_that_ran(bucket):
+def test_manifest_records_only_the_steps_that_ran(bucket):
     manifest = a_manifest()
     manifest.record_station_codes([122])
     for weather_param in SFMSInterpolatedWeatherParameter:
@@ -220,10 +220,10 @@ def test_manifest_records_failure_and_preserves_partial_trace():
     )
 
     manifest.record_failure("relative_humidity_interpolation", RuntimeError("RH failed"))
-    manifest.record_failure("later_stage", ValueError("later failure"))
+    manifest.record_failure("later_step", ValueError("later failure"))
 
     assert manifest.status == "failed"
-    assert manifest.failed_stage == "relative_humidity_interpolation"
+    assert manifest.failed_step == "relative_humidity_interpolation"
     assert manifest.failure_type == "RuntimeError"
     assert manifest.failure_message == "RH failed"
     assert manifest.output.weather == {
@@ -231,7 +231,7 @@ def test_manifest_records_failure_and_preserves_partial_trace():
     }
     payload = json.loads(manifest.model_dump_json(indent=2, exclude_none=True))
     assert payload["status"] == "failed"
-    assert payload["failed_stage"] == "relative_humidity_interpolation"
+    assert payload["failed_step"] == "relative_humidity_interpolation"
 
 
 def test_record_raster_output_rejects_an_unsupported_parameter():

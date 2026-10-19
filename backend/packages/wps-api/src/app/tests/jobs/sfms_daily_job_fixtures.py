@@ -130,41 +130,41 @@ def make_mock_daily_sfms_dependencies(
     fmc_processor = MagicMock(spec=FoliarMoistureContentProcessor)
     fmc_processor.process = AsyncMock()
     fmc_processor_class = mocker.patch(
-        "wps_sfms.fmc_stage.FoliarMoistureContentProcessor", return_value=fmc_processor
+        "wps_sfms.fmc_step.FoliarMoistureContentProcessor", return_value=fmc_processor
     )
 
     temp_processor = MagicMock(spec=TemperatureInterpolator)
     temp_processor.process = AsyncMock(return_value="temperature.tif")
-    mocker.patch("wps_sfms.weather_stage.TemperatureInterpolator", return_value=temp_processor)
+    mocker.patch("wps_sfms.weather_step.TemperatureInterpolator", return_value=temp_processor)
 
     rh_processor = MagicMock(spec=RHInterpolator)
     rh_processor.process = AsyncMock(return_value="relative_humidity.tif")
-    mocker.patch("wps_sfms.weather_stage.RHInterpolator", return_value=rh_processor)
+    mocker.patch("wps_sfms.weather_step.RHInterpolator", return_value=rh_processor)
 
     wind_speed_processor = MagicMock(spec=WindSpeedInterpolator)
     wind_speed_processor.process = AsyncMock(return_value="wind_speed.tif")
-    mocker.patch("wps_sfms.weather_stage.WindSpeedInterpolator", return_value=wind_speed_processor)
+    mocker.patch("wps_sfms.weather_step.WindSpeedInterpolator", return_value=wind_speed_processor)
 
     wind_direction_processor = MagicMock(spec=WindDirectionInterpolator)
     wind_direction_processor.process = AsyncMock(return_value="wind_direction.tif")
     mocker.patch(
-        "wps_sfms.weather_stage.WindDirectionInterpolator", return_value=wind_direction_processor
+        "wps_sfms.weather_step.WindDirectionInterpolator", return_value=wind_direction_processor
     )
 
     interpolation_processor = MagicMock(spec=Interpolator)
     interpolation_processor.process = AsyncMock(return_value="precipitation.tif")
-    # the weather stage interpolates precipitation, the FWI stage Monday FFMC, DMC and DC
-    mocker.patch("wps_sfms.weather_stage.Interpolator", return_value=interpolation_processor)
-    mocker.patch("wps_sfms.fwi_stage.Interpolator", return_value=interpolation_processor)
+    # the weather step interpolates precipitation, the FWI step Monday FFMC, DMC and DC
+    mocker.patch("wps_sfms.weather_step.Interpolator", return_value=interpolation_processor)
+    mocker.patch("wps_sfms.fwi_step.Interpolator", return_value=interpolation_processor)
 
     fwi_processor = MagicMock(spec=FWIProcessor)
     fwi_processor.calculate_index = AsyncMock(return_value=None)
-    mocker.patch("wps_sfms.fwi_stage.FWIProcessor", return_value=fwi_processor)
+    mocker.patch("wps_sfms.fwi_step.FWIProcessor", return_value=fwi_processor)
 
     primary_fbp_processor = MagicMock(spec=PrimaryFireBehaviourProcessor)
     primary_fbp_processor.process = AsyncMock(return_value=None)
     mocker.patch(
-        "wps_sfms.fbp_stage.PrimaryFireBehaviourProcessor", return_value=primary_fbp_processor
+        "wps_sfms.fbp_step.PrimaryFireBehaviourProcessor", return_value=primary_fbp_processor
     )
 
     db_session = MagicMock(spec=AsyncSession)
@@ -181,29 +181,29 @@ def make_mock_daily_sfms_dependencies(
 
     # the job saves its run, and each tracked job commits its own run log rows
     mocker.patch(f"{module_path}.get_async_write_session_scope", _write_scope)
-    mocker.patch("wps_sfms.temporal_fuel_stage.get_async_write_session_scope", _write_scope)
+    mocker.patch("wps_sfms.temporal_fuel_step.get_async_write_session_scope", _write_scope)
     mocker.patch("wps_shared.db.crud.sfms_run.get_async_write_session_scope", _write_scope)
 
-    # the temporal fuel stage reuses an existing grid for each date, at a fixed path
+    # the temporal fuel step reuses an existing grid for each date, at a fixed path
     julian = MagicMock()
     julian.__iter__.side_effect = lambda: iter(())
     julian.hash_columns.return_value = {}
     mocker.patch(
-        "wps_sfms.temporal_fuel_stage.read_julian_rasters",
+        "wps_sfms.temporal_fuel_step.read_julian_rasters",
         new_callable=AsyncMock,
         return_value=julian,
     )
-    mocker.patch("wps_sfms.temporal_fuel_stage.ensure_julian_archives", new_callable=AsyncMock)
+    mocker.patch("wps_sfms.temporal_fuel_step.ensure_julian_archives", new_callable=AsyncMock)
     mocker.patch(
-        "wps_sfms.temporal_fuel_stage.lock_temporal_fuel_raster_date", new_callable=AsyncMock
+        "wps_sfms.temporal_fuel_step.lock_temporal_fuel_raster_date", new_callable=AsyncMock
     )
     mocker.patch(
-        "wps_sfms.temporal_fuel_stage._stored_raster_matches",
+        "wps_sfms.temporal_fuel_step._stored_raster_matches",
         new_callable=AsyncMock,
         return_value=True,
     )
     find_temporal_fuel = mocker.patch(
-        "wps_sfms.temporal_fuel_stage.get_matching_temporal_fuel_raster",
+        "wps_sfms.temporal_fuel_step.get_matching_temporal_fuel_raster",
         new_callable=AsyncMock,
         side_effect=lambda _session, target_date, *_args, **_hashes: MagicMock(
             object_store_path=f"temporal/{target_date}.tif"

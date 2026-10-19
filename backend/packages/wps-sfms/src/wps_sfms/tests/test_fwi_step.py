@@ -1,4 +1,4 @@
-"""Tests for the SFMS FWI stages."""
+"""Tests for the SFMS FWI steps."""
 
 from datetime import date, datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
@@ -10,7 +10,7 @@ from wps_shared.sfms.raster_addresser import (
     FWIParameter,
 )
 
-from wps_sfms.fwi_stage import calculate_fwi, missing_seed_keys
+from wps_sfms.fwi_step import calculate_fwi, missing_seed_keys
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_sfms.tests.run_test_utils import (
     WEATHER_KEYS,
@@ -39,7 +39,7 @@ def stub_fwi_addresser(addresser: MagicMock) -> None:
 
 
 @pytest.mark.anyio
-async def test_fwi_calculation_stage_records_seed_rasters_and_outputs(
+async def test_fwi_calculation_step_records_seed_rasters_and_outputs(
     mocker: MockerFixture, tracked_jobs
 ):
     addresser = MagicMock()
@@ -48,7 +48,7 @@ async def test_fwi_calculation_stage_records_seed_rasters_and_outputs(
     s3_client.all_objects_exist = AsyncMock(return_value=True)
     fwi_processor = MagicMock()
     fwi_processor.calculate_index = AsyncMock()
-    mocker.patch("wps_sfms.fwi_stage.FWIProcessor", return_value=fwi_processor)
+    mocker.patch("wps_sfms.fwi_step.FWIProcessor", return_value=fwi_processor)
     run = a_run(addresser=addresser, s3_client=s3_client)
 
     fwi_keys = await calculate_fwi(run, WEATHER_KEYS)
@@ -57,7 +57,7 @@ async def test_fwi_calculation_stage_records_seed_rasters_and_outputs(
     assert fwi_keys == {
         param: f"sfms_ng/actual/2025/07/04/{param.value}_20250704.tif" for param in FWIParameter
     }
-    # ISI reads the same-day FFMC the stage just calculated, not a seed
+    # ISI reads the same-day FFMC the step just calculated, not a seed
     isi_inputs = fwi_processor.calculate_index.await_args_list[3].args[3]
     assert isi_inputs.index_keys == {
         FWIParameter.FFMC: "/vsis3/some bucket/sfms_ng/actual/2025/07/04/ffmc_20250704.tif"
@@ -92,7 +92,7 @@ async def test_forecast_seeds_from_the_latest_actual_then_from_forecasts(
     s3_client.all_objects_exist = AsyncMock(return_value=True)
     fwi_processor = MagicMock()
     fwi_processor.calculate_index = AsyncMock()
-    mocker.patch("wps_sfms.fwi_stage.FWIProcessor", return_value=fwi_processor)
+    mocker.patch("wps_sfms.fwi_step.FWIProcessor", return_value=fwi_processor)
     run = a_run(
         run_type=RunType.FORECAST,
         addresser=addresser,
@@ -109,14 +109,14 @@ async def test_forecast_seeds_from_the_latest_actual_then_from_forecasts(
 
 
 @pytest.mark.anyio
-async def test_fwi_calculation_stage_skips_fwi_when_seeds_are_missing(mocker: MockerFixture):
+async def test_fwi_calculation_step_skips_fwi_when_seeds_are_missing(mocker: MockerFixture):
     addresser = MagicMock()
     stub_fwi_addresser(addresser)
     s3_client = MagicMock()
     s3_client.all_objects_exist = AsyncMock(return_value=False)
     fwi_processor = MagicMock()
     fwi_processor.calculate_index = AsyncMock()
-    mocker.patch("wps_sfms.fwi_stage.FWIProcessor", return_value=fwi_processor)
+    mocker.patch("wps_sfms.fwi_step.FWIProcessor", return_value=fwi_processor)
     run = a_run(addresser=addresser, s3_client=s3_client)
 
     fwi_keys = await calculate_fwi(run, WEATHER_KEYS)

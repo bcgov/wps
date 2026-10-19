@@ -1,4 +1,4 @@
-"""The primary fire behaviour prediction stage of an SFMS run."""
+"""The primary fire behaviour prediction step of an SFMS run."""
 
 import logging
 
@@ -27,8 +27,15 @@ async def calculate_primary_fbp(
     weather_keys: WeatherKeys,
     fwi_keys: FWIKeys,
 ) -> None:
-    """Calculate the same-day primary FBP products on the date's temporal fuel raster, from the
-    run's FMC, wind, FFMC and BUI rasters."""
+    """
+    Calculate the same-day primary FBP products on the date's temporal fuel raster.
+
+    :param context: The run's context
+    :param temporal_fuel_path: The date's temporal fuel raster
+    :param fmc_key: The run's FMC raster
+    :param weather_keys: The run's weather rasters, of which it reads wind speed and direction
+    :param fwi_keys: The run's index rasters, of which it reads FFMC and BUI
+    """
     raster_addresser = context.raster_addresser
     slope_key = raster_addresser.get_slope_key()
     aspect_key = raster_addresser.get_aspect_key()
@@ -69,7 +76,14 @@ async def _resolve_percent_conifer_path(
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
 ) -> GDALPath:
-    """Resolve the percent-conifer raster matching the selected fuel-grid year."""
+    """
+    Resolve the percent-conifer raster matching the selected fuel-grid year.
+
+    :param fuel_raster_year: Year of the run's base fuel grid
+    :param raster_addresser: Addresser naming the raster's key
+    :param s3_client: Client the raster is looked up with
+    :return: Path of the percent-conifer raster
+    """
     key = raster_addresser.get_percent_conifer_key(fuel_raster_year)
     if await s3_client.object_exists(key):
         logger.info("Using percent-conifer raster: %s", key)
@@ -85,7 +99,14 @@ async def _resolve_percent_dead_conifer_path(
     raster_addresser: SFMSNGRasterAddresser,
     s3_client: S3Client,
 ) -> GDALPath:
-    """Resolve the percent-dead-conifer raster matching the selected fuel-grid year."""
+    """
+    Resolve the percent-dead-conifer raster matching the selected fuel-grid year.
+
+    :param fuel_raster_year: Year of the run's base fuel grid
+    :param raster_addresser: Addresser naming the raster's key
+    :param s3_client: Client the raster is looked up with
+    :return: Path of the percent-dead-conifer raster
+    """
     key = raster_addresser.get_percent_dead_conifer_key(fuel_raster_year)
     if await s3_client.object_exists(key):
         logger.info("Using percent-dead-conifer raster: %s", key)

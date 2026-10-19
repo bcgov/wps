@@ -1,4 +1,4 @@
-"""The temporal fuel stage of an SFMS run."""
+"""The temporal fuel step of an SFMS run."""
 
 import logging
 
@@ -23,13 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 async def resolve_temporal_fuel(context: SFMSRunContext) -> GDALPath:
-    """Resolve the date's temporal fuel raster from the base fuel grid and Julian rasters,
-    creating a new version when needed, and return its path.
+    """
+    Resolve the date's temporal fuel raster from the base fuel grid and Julian rasters, creating
+    a new version when needed.
 
     An existing raster is reused only when it was built from the same base fuel raster and the
     same green-up and grass curing Julian date rasters, and the stored raster still matches its
     recorded hash. The Julian rasters are recorded by archive key, since the live Julian keys are
     replaced over time.
+
+    :param context: The run's context
+    :return: Path of the temporal fuel raster
     """
     target_date = context.datetime_to_process.date()
     fuel_type_raster = context.fuel_type_raster
@@ -97,7 +101,13 @@ async def resolve_temporal_fuel(context: SFMSRunContext) -> GDALPath:
 
 
 async def _stored_raster_matches(s3_client: S3Client, existing: TemporalFuelRaster) -> bool:
-    """Return whether the stored raster still exists and matches its recorded content hash."""
+    """
+    Whether the stored raster still exists and matches its recorded content hash.
+
+    :param s3_client: Client the raster is read with
+    :param existing: The stored temporal fuel raster's record
+    :return: True when the raster exists and matches its hash
+    """
     try:
         await s3_client.get_fuel_raster(existing.object_store_path, existing.content_hash)
     except ValueError:

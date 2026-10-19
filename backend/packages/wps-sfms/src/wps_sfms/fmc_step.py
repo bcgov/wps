@@ -1,4 +1,4 @@
-"""The foliar moisture content stage of an SFMS run."""
+"""The foliar moisture content step of an SFMS run."""
 
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
@@ -9,9 +9,11 @@ from wps_sfms.run_context import SFMSRunContext
 
 
 async def calculate_fmc(context: SFMSRunContext) -> S3Key:
-    """Ensure the FMC raster for the run's date, from static rasters on the base fuel grid.
+    """
+    Ensure the FMC raster for the run's date, from static rasters on the base fuel grid.
 
-    Returns the FMC raster's key.
+    :param context: The run's context
+    :return: Key of the FMC raster
     """
     target_date = context.datetime_to_process.date()
     fmc_inputs = context.raster_addresser.get_fmc_inputs(

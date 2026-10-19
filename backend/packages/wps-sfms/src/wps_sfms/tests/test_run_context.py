@@ -1,4 +1,4 @@
-"""Tests for the context every stage of an SFMS run shares."""
+"""Tests for the context every step of an SFMS run shares."""
 
 from datetime import date, datetime, timezone
 from unittest.mock import MagicMock
@@ -74,13 +74,13 @@ class TestSFMSRunContext:
         assert context.manifest.status == "running"
 
     @pytest.mark.anyio
-    async def test_track_records_the_failed_stage(self, tracked_jobs):
+    async def test_track_records_the_failed_step(self, tracked_jobs):
         context = a_run()
 
         async def action():
-            raise RuntimeError("stage failed")
+            raise RuntimeError("step failed")
 
-        with pytest.raises(RuntimeError, match="stage failed"):
+        with pytest.raises(RuntimeError, match="step failed"):
             await context.track(SFMSRunLogJobName.TEMPORAL_FUEL, action)
 
-        assert context.manifest.failed_stage == SFMSRunLogJobName.TEMPORAL_FUEL.value
+        assert context.manifest.failed_step == SFMSRunLogJobName.TEMPORAL_FUEL.value

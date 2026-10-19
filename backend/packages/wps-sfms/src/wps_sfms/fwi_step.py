@@ -1,4 +1,4 @@
-"""The FWI stages of an SFMS run: calculating forward from previous-day seeds, or re-interpolating
+"""The FWI steps of an SFMS run: calculating forward from previous-day seeds, or re-interpolating
 from station weather on April and May Mondays."""
 
 import logging
@@ -25,7 +25,7 @@ from wps_sfms.processors.idw import Interpolator
 from wps_sfms.raster_inputs import FWIInputs
 from wps_sfms.run_context import FWIKeys, SFMSRunContext, WeatherKeys
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
-from wps_sfms.weather_stage import interpolate_raster
+from wps_sfms.weather_step import interpolate_raster
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +45,15 @@ async def calculate_fwi_index(
     weather_keys: WeatherKeys,
     index_keys: FWIKeys,
 ) -> S3Key:
-    """Calculate one FWI index for the run's date as a tracked job, returning its key.
+    """
+    Calculate one FWI index for the run's date as a tracked job.
 
-    ``index_keys`` are the index rasters it reads: the previous day's value for FFMC, DMC and DC,
-    the same day's FFMC for ISI, DMC and DC for BUI, and ISI and BUI for FWI.
+    :param context: The run's context
+    :param calculator: Calculator for the index
+    :param weather_keys: The run's same-day weather rasters
+    :param index_keys: The index rasters it reads: the previous day's value for FFMC, DMC and DC,
+        the same day's FFMC for ISI, DMC and DC for BUI, and ISI and BUI for FWI
+    :return: Key of the index raster
     """
     fwi_param = calculator.fwi_param
 
@@ -67,11 +72,15 @@ async def calculate_fwi_index(
 
 
 def seed_run_type(context: SFMSRunContext) -> RunType:
-    """The run type of the previous-day rasters the run calculates FWI forward from.
+    """
+    The run type of the previous-day rasters the run calculates FWI forward from.
 
     The run seeds from the actual rasters when the previous day is its ``seed_actual_date``, and
     from the previous day's forecast otherwise: an actual run and the first forecast date seed
     from actuals, later forecast dates from the forecast before them.
+
+    :param context: The run's context
+    :return: Run type of the seed rasters
     """
     previous_date = (context.datetime_to_process - timedelta(days=1)).date()
     if previous_date == context.seed_actual_date:
@@ -84,7 +93,14 @@ def seed_keys(
     raster_addresser: SFMSNGRasterAddresser,
     seed_run_type: RunType,
 ) -> FWIKeys:
-    """The previous-day FFMC, DMC and DC raster keys of the seed run type."""
+    """
+    The previous-day FFMC, DMC and DC raster keys of the seed run type.
+
+    :param datetime_to_process: UTC datetime being processed
+    :param raster_addresser: Addresser naming the seed keys
+    :param seed_run_type: Run type of the seed rasters
+    :return: Keys of the previous-day FFMC, DMC and DC rasters
+    """
     previous_date = datetime_to_process - timedelta(days=1)
     return {
         param: raster_addresser.get_index_key(previous_date, param, seed_run_type)
@@ -98,7 +114,15 @@ async def missing_seed_keys(
     s3_client: S3Client,
     seed_run_type: RunType,
 ) -> list[str]:
-    """Any previous-day FFMC, DMC and DC rasters of the seed run type that don't exist."""
+    """
+    Any previous-day FFMC, DMC and DC rasters of the seed run type that don't exist.
+
+    :param datetime_to_process: UTC datetime being processed
+    :param raster_addresser: Addresser naming the seed keys
+    :param s3_client: Client the seeds are looked up with
+    :param seed_run_type: Run type of the seed rasters
+    :return: ``param=key`` for each missing seed, empty when all exist
+    """
     missing_keys = []
     for param, key in seed_keys(datetime_to_process, raster_addresser, seed_run_type).items():
         if not await s3_client.all_objects_exist(key):
@@ -107,11 +131,15 @@ async def missing_seed_keys(
 
 
 async def calculate_fwi(context: SFMSRunContext, weather_keys: WeatherKeys) -> FWIKeys | None:
-    """Calculate the full FWI chain forward from the previous day's FFMC, DMC and DC, returning
-    the six index keys.
+    """
+    Calculate the full FWI chain forward from the previous day's FFMC, DMC and DC.
 
-    Missing seeds are recorded as a failure, and FWI is skipped and None returned: a run can
-    legitimately start without seeds (season start, backfills) and still produces weather.
+    Missing seeds are recorded as a failure, and FWI is skipped: a run can legitimately start
+    without seeds (season start, backfills) and still produces weather.
+
+    :param context: The run's context
+    :param weather_keys: The run's same-day weather rasters
+    :return: Keys of the six index rasters, or None when seeds are missing
     """
     run_seed_type = seed_run_type(context)
     missing_previous_keys = await missing_seed_keys(
@@ -175,10 +203,15 @@ async def calculate_fwi(context: SFMSRunContext, weather_keys: WeatherKeys) -> F
 async def interpolate_fwi(
     context: SFMSRunContext, station_weather: list, weather_keys: WeatherKeys
 ) -> FWIKeys:
-    """Reset FFMC, DMC and DC from station weather, then derive ISI, BUI and FWI from them,
-    returning the six index keys.
+    """
+    Reset FFMC, DMC and DC from station weather, then derive ISI, BUI and FWI from them.
 
     Runs on April and May Mondays in place of calculating forward from previous-day seeds.
+
+    :param context: The run's context
+    :param station_weather: The run's station weather
+    :param weather_keys: The run's same-day weather rasters
+    :return: Keys of the six index rasters
     """
     logger.info(
         "Monday in %s - running FWI index interpolation",

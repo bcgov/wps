@@ -200,7 +200,7 @@ class TestRunSfmsDailyActuals:
         # the sfms_run row was committed first, so the failure manifest can be joined to it
         manifest = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
         assert manifest["status"] == "failed"
-        assert manifest["failed_stage"] == "temperature_interpolation"
+        assert manifest["failed_step"] == "temperature_interpolation"
         # recorded when the run started, so a run that fails early still has them
         assert manifest["input"]["station_codes"] == [100, 101]
         assert manifest["input"]["fuel_raster"]["base"] == "sfms/fuel/2024/fuel.tif"
@@ -220,10 +220,10 @@ class TestRunSfmsDailyActuals:
         assert "manifest" in chatops.call_args.args[0]
 
     @pytest.mark.anyio
-    async def test_failed_manifest_upload_does_not_mask_the_stage_failure(
+    async def test_failed_manifest_upload_does_not_mask_the_step_failure(
         self, mock_dependencies: MockDailySFMSDeps
     ):
-        """The job raises the stage's error even when its failure manifest can't be written."""
+        """The job raises the step's error even when its failure manifest can't be written."""
         mock_dependencies.temp_processor.process = AsyncMock(
             side_effect=RuntimeError("temp failed")
         )
@@ -342,7 +342,7 @@ class TestRunSfmsDailyActuals:
         assert "fuel_raster" not in payload["output"]
         assert payload["input"]["seed_rasters"] == {}
         assert payload["status"] == "failed"
-        assert payload["failed_stage"] == "fwi_seed_check"
+        assert payload["failed_step"] == "fwi_seed_check"
         mock_dependencies.fwi_processor.calculate_index.assert_not_called()
         mock_dependencies.find_temporal_fuel.assert_not_awaited()
         mock_dependencies.primary_fbp_processor.process.assert_not_called()

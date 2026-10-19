@@ -125,7 +125,7 @@ class TestRunSfmsDailyForecasts:
         manifest = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
         assert manifest["for_date"] == "2024-07-05"
         assert manifest["status"] == "failed"
-        assert manifest["failed_stage"] == "temporal_fuel"
+        assert manifest["failed_step"] == "temporal_fuel"
         assert manifest["failure_message"] == "temporal fuel failed"
 
     @pytest.mark.anyio
@@ -314,7 +314,7 @@ class TestRunSfmsDailyForecasts:
             )
         }
         assert manifests["2024-07-06"]["status"] == "failed"
-        assert manifests["2024-07-06"]["failed_stage"] == "fwi_seed_check"
+        assert manifests["2024-07-06"]["failed_step"] == "fwi_seed_check"
         assert manifests["2024-07-06"]["output"]["fbp"] == {}
         assert manifests["2024-07-05"]["status"] == "success"
         # FBP ran for the dates that had their seeds

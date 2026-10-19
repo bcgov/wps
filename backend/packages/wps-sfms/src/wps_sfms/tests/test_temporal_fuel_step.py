@@ -1,4 +1,4 @@
-"""Tests for the SFMS temporal fuel stage."""
+"""Tests for the SFMS temporal fuel step."""
 
 import hashlib
 from contextlib import asynccontextmanager
@@ -13,7 +13,7 @@ from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.db.models.temporal_fuel_raster import TemporalFuelRaster
 
 from wps_sfms.run_context import SFMSRunContext
-from wps_sfms.temporal_fuel_stage import resolve_temporal_fuel
+from wps_sfms.temporal_fuel_step import resolve_temporal_fuel
 from wps_sfms.tests.run_test_utils import (
     a_run,
 )
@@ -49,14 +49,14 @@ def open_julian_dataset(raster_bytes: bytes) -> MagicMock:
 
 @pytest.fixture
 def temporal_fuel_deps(mocker: MockerFixture, tracked_jobs):
-    """Dependencies for the temporal fuel stage, with every Julian raster present."""
+    """Dependencies for the temporal fuel step, with every Julian raster present."""
     session = MagicMock()
 
     @asynccontextmanager
     async def _write_scope():
         yield session
 
-    mocker.patch("wps_sfms.temporal_fuel_stage.get_async_write_session_scope", _write_scope)
+    mocker.patch("wps_sfms.temporal_fuel_step.get_async_write_session_scope", _write_scope)
 
     addresser = MagicMock()
     addresser.gdal_path.side_effect = lambda key: f"/vsis3/some bucket/{key}"
@@ -82,10 +82,10 @@ def temporal_fuel_deps(mocker: MockerFixture, tracked_jobs):
         s3_client=s3_client,
         fuel_type_raster=MagicMock(id=7, object_store_path="sfms/static/fuel/fbp2026_v1.tif"),
         lock=mocker.patch(
-            "wps_sfms.temporal_fuel_stage.lock_temporal_fuel_raster_date", new_callable=AsyncMock
+            "wps_sfms.temporal_fuel_step.lock_temporal_fuel_raster_date", new_callable=AsyncMock
         ),
         publish=mocker.patch(
-            "wps_sfms.temporal_fuel_stage.publish_temporal_fuel_raster",
+            "wps_sfms.temporal_fuel_step.publish_temporal_fuel_raster",
             new_callable=AsyncMock,
             return_value="temporal-hash",
         ),
@@ -95,13 +95,13 @@ def temporal_fuel_deps(mocker: MockerFixture, tracked_jobs):
 def patch_db(mocker: MockerFixture, existing=None, latest_version: int = 0) -> AsyncMock:
     """Patch the temporal fuel queries; return the mocked reuse lookup."""
     mocker.patch(
-        "wps_sfms.temporal_fuel_stage.get_latest_temporal_fuel_raster_version",
+        "wps_sfms.temporal_fuel_step.get_latest_temporal_fuel_raster_version",
         new_callable=AsyncMock,
         return_value=latest_version,
     )
     # autospec so the reuse query's hash kwargs must match the real function's parameters
     return mocker.patch(
-        "wps_sfms.temporal_fuel_stage.get_matching_temporal_fuel_raster",
+        "wps_sfms.temporal_fuel_step.get_matching_temporal_fuel_raster",
         autospec=True,
         return_value=existing,
     )
@@ -116,7 +116,7 @@ def stored_raster(version: int) -> MagicMock:
 
 
 async def resolve(deps) -> tuple[str, SFMSRunContext]:
-    """Run the temporal fuel stage for the target date; return its grid path and the run."""
+    """Run the temporal fuel step for the target date; return its grid path and the run."""
     run = a_run(
         TARGET_DATE,
         addresser=deps.addresser,
@@ -132,9 +132,7 @@ def julian_archive_keys() -> dict[str, str]:
 
 
 @pytest.mark.anyio
-async def test_temporal_fuel_stage_reuses_matching_raster(
-    mocker: MockerFixture, temporal_fuel_deps
-):
+async def test_temporal_fuel_step_reuses_matching_raster(mocker: MockerFixture, temporal_fuel_deps):
     deps = temporal_fuel_deps
     get_existing = patch_db(mocker, existing=stored_raster(version=2))
     deps.s3_client.object_exists.return_value = True
@@ -157,7 +155,7 @@ async def test_temporal_fuel_stage_reuses_matching_raster(
 
 
 @pytest.mark.anyio
-async def test_temporal_fuel_stage_restores_only_missing_archives(
+async def test_temporal_fuel_step_restores_only_missing_archives(
     mocker: MockerFixture, temporal_fuel_deps
 ):
     deps = temporal_fuel_deps
@@ -173,7 +171,7 @@ async def test_temporal_fuel_stage_restores_only_missing_archives(
 
 
 @pytest.mark.anyio
-async def test_temporal_fuel_stage_records_next_version(mocker: MockerFixture, temporal_fuel_deps):
+async def test_temporal_fuel_step_records_next_version(mocker: MockerFixture, temporal_fuel_deps):
     deps = temporal_fuel_deps
     patch_db(mocker, existing=None, latest_version=2)
 
@@ -215,7 +213,7 @@ async def test_temporal_fuel_stage_records_next_version(mocker: MockerFixture, t
     ],
     ids=["altered", "missing"],
 )
-async def test_temporal_fuel_stage_rebuilds_unverified_raster(
+async def test_temporal_fuel_step_rebuilds_unverified_raster(
     mocker: MockerFixture, temporal_fuel_deps, stored_raster_error: Exception
 ):
     deps = temporal_fuel_deps
@@ -230,7 +228,7 @@ async def test_temporal_fuel_stage_rebuilds_unverified_raster(
 
 
 @pytest.mark.anyio
-async def test_temporal_fuel_stage_raises_unexpected_storage_errors(
+async def test_temporal_fuel_step_raises_unexpected_storage_errors(
     mocker: MockerFixture, temporal_fuel_deps
 ):
     deps = temporal_fuel_deps
@@ -246,7 +244,7 @@ async def test_temporal_fuel_stage_raises_unexpected_storage_errors(
 
 
 @pytest.mark.anyio
-async def test_temporal_fuel_stage_requires_julian_rasters(temporal_fuel_deps):
+async def test_temporal_fuel_step_requires_julian_rasters(temporal_fuel_deps):
     deps = temporal_fuel_deps
     deps.s3_client.all_objects_exist.return_value = False
 

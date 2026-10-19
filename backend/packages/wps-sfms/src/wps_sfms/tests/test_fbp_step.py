@@ -1,4 +1,4 @@
-"""Tests for the SFMS primary fire behaviour prediction stage."""
+"""Tests for the SFMS primary fire behaviour prediction step."""
 
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
@@ -11,7 +11,7 @@ from wps_shared.sfms.raster_addresser import (
     FBPParameter,
 )
 
-from wps_sfms.fbp_stage import (
+from wps_sfms.fbp_step import (
     _resolve_percent_conifer_path,
     _resolve_percent_dead_conifer_path,
     calculate_primary_fbp,
@@ -92,7 +92,7 @@ async def test_resolve_percent_dead_conifer_path_raises_when_missing():
 
 
 @pytest.mark.anyio
-async def test_primary_fbp_stage_runs_one_tracked_primary_calculation(
+async def test_primary_fbp_step_runs_one_tracked_primary_calculation(
     mocker: MockerFixture,
     tracked_jobs,
 ):
@@ -110,13 +110,13 @@ async def test_primary_fbp_stage_runs_one_tracked_primary_calculation(
     primary_inputs.output_keys = fbp_output_keys
     addresser.get_primary_fire_behaviour_inputs.return_value = primary_inputs
     resolve_percent_conifer = mocker.patch(
-        "wps_sfms.fbp_stage._resolve_percent_conifer_path",
+        "wps_sfms.fbp_step._resolve_percent_conifer_path",
         new=AsyncMock(return_value="/vsis3/some bucket/sfms/static/m12_2025.tif"),
     )
     primary_processor = MagicMock()
     primary_processor.process = AsyncMock()
     primary_processor_class = mocker.patch(
-        "wps_sfms.fbp_stage.PrimaryFireBehaviourProcessor", return_value=primary_processor
+        "wps_sfms.fbp_step.PrimaryFireBehaviourProcessor", return_value=primary_processor
     )
     run = a_run(addresser=addresser, s3_client=s3_client)
 
@@ -128,7 +128,7 @@ async def test_primary_fbp_stage_runs_one_tracked_primary_calculation(
         RunType.ACTUAL,
         "/vsis3/some bucket/fuel.tif",
         "/vsis3/some bucket/sfms/static/m12_2025.tif",
-        # FFMC, BUI, wind and FMC are the raster keys the stage was handed
+        # FFMC, BUI, wind and FMC are the raster keys the step was handed
         "/vsis3/some bucket/sfms_ng/actual/2025/07/04/ffmc_20250704.tif",
         "/vsis3/some bucket/sfms_ng/actual/2025/07/04/bui_20250704.tif",
         "/vsis3/some bucket/sfms_ng/actual/2025/07/04/wind_speed_20250704.tif",
@@ -155,7 +155,7 @@ async def test_primary_fbp_stage_runs_one_tracked_primary_calculation(
 
 
 @pytest.mark.anyio
-async def test_primary_fbp_stage_records_its_inputs_but_no_outputs_when_it_fails(
+async def test_primary_fbp_step_records_its_inputs_but_no_outputs_when_it_fails(
     mocker: MockerFixture, tracked_jobs
 ):
     addresser = MagicMock()
@@ -163,10 +163,10 @@ async def test_primary_fbp_stage_records_its_inputs_but_no_outputs_when_it_fails
     addresser.get_aspect_key.side_effect = lambda: "sfms_ng/static/bc_aspect.tif"
     addresser.gdal_path.side_effect = lambda key: f"/vsis3/some bucket/{key}"
     mocker.patch(
-        "wps_sfms.fbp_stage._resolve_percent_conifer_path",
+        "wps_sfms.fbp_step._resolve_percent_conifer_path",
         new=AsyncMock(return_value="/vsis3/some bucket/sfms/static/m12_2025.tif"),
     )
-    processor = mocker.patch("wps_sfms.fbp_stage.PrimaryFireBehaviourProcessor").return_value
+    processor = mocker.patch("wps_sfms.fbp_step.PrimaryFireBehaviourProcessor").return_value
     processor.process = AsyncMock(side_effect=RuntimeError("fbp failed"))
     run = a_run(addresser=addresser)
 
@@ -175,7 +175,7 @@ async def test_primary_fbp_stage_records_its_inputs_but_no_outputs_when_it_fails
             run, "/vsis3/some bucket/fuel.tif", FMC_KEY, WEATHER_KEYS, FWI_KEYS
         )
 
-    assert run.manifest.failed_stage == SFMSRunLogJobName.PRIMARY_FBP_CALCULATION.value
+    assert run.manifest.failed_step == SFMSRunLogJobName.PRIMARY_FBP_CALCULATION.value
     assert run.manifest.input.static_rasters == {
         "slope": "sfms_ng/static/bc_slope.tif",
         "aspect": "sfms_ng/static/bc_aspect.tif",

@@ -1,9 +1,9 @@
-"""The context every stage of one SFMS run shares.
+"""The context every step of one SFMS run shares.
 
-An application of the Context Object pattern: the per-run state each stage needs is bundled into
-one object passed explicitly to every stage, instead of being threaded through each stage's
-signature or reached through globals. Rasters one stage hands another are passed as arguments, not
-stored on the context, so stages don't depend on each other through it.
+An application of the Context Object pattern: the per-run state each step needs is bundled into
+one object passed explicitly to every step, instead of being threaded through each step's
+signature or reached through globals. Rasters one step hands another are passed as arguments, not
+stored on the context, so steps don't depend on each other through it.
 """
 
 import logging
@@ -41,7 +41,7 @@ FWIKeys = Mapping[FWIParameter, S3Key]
 
 @dataclass(frozen=True)
 class SFMSRunContext:
-    """What every stage of one SFMS run for one date shares: the date and run type being
+    """What every step of one SFMS run for one date shares: the date and run type being
     processed, the manifest its inputs and outputs are traced in, the committed run its jobs are
     tracked against, the base fuel grid, and the clients they read and write with."""
 
@@ -56,7 +56,7 @@ class SFMSRunContext:
 
     @property
     def base_fuel_raster_path(self) -> GDALPath:
-        """The base fuel grid every stage grids its rasters to."""
+        """The base fuel grid every step grids its rasters to."""
         return self.raster_addresser.gdal_path(self.fuel_type_raster.object_store_path)
 
     @classmethod
@@ -73,14 +73,23 @@ class SFMSRunContext:
         seed_actual_date: date,
         station_codes: Iterable[int],
     ) -> "SFMSRunContext":
-        """Start a run, creating the manifest its inputs and outputs will be traced in.
+        """
+        Start a run, creating the manifest its inputs and outputs will be traced in.
 
-        ``run_datetime`` is when the run was saved, and ``station_codes`` are the stations it
-        interpolates from; both are the values its ``sfms_run`` row records, so a manifest and that
-        row can be joined on ``run_datetime``. ``fuel_type_raster`` is the base fuel grid selected
-        for the run's year, which every stage grids its rasters to. ``seed_actual_date``
-        is the latest actual date the run's FWI chain is calculated forward from: the previous day
-        for an actual run, and the actual date a forecast batch seeds from.
+        :param datetime_to_process: UTC datetime the run is for
+        :param run_type: Whether the run is an actual or a forecast
+        :param sfms_run_id: The run's committed ``sfms_run`` row, its jobs are logged against
+        :param run_datetime: When the run was saved, as its ``sfms_run`` row records it, so the
+            manifest and that row can be joined on it
+        :param s3_client: Client the run reads and writes rasters with
+        :param raster_addresser: Addresser naming the run's raster keys
+        :param fuel_type_raster: Base fuel grid selected for the run's year, which every step
+            grids its rasters to
+        :param seed_actual_date: Latest actual date the run's FWI chain is calculated forward
+            from: the previous day for an actual run, and the actual date a forecast batch seeds
+            from
+        :param station_codes: Stations the run interpolates from, as its ``sfms_run`` row records
+        :return: The run's context
         """
         manifest = SFMSRunManifest(
             run_type=run_type,
@@ -110,9 +119,14 @@ class SFMSRunContext:
         )
 
     async def track(self, job_name: SFMSRunLogJobName, action: Callable[[], Awaitable[T]]) -> T:
-        """Run ``action`` as a job of this run, logged under ``job_name``.
+        """
+        Run an action as a tracked job of this run, recording any failure as the manifest's
+        failed step.
 
-        A failure is also recorded as the manifest's failed stage, under the same job name.
+        :param job_name: Job the action is logged under in ``sfms_run_log``, and its failure
+            recorded under in the manifest
+        :param action: The job's work
+        :return: The action's result
         """
 
         @track_sfms_run(job_name, self.sfms_run_id)
@@ -125,16 +139,19 @@ class SFMSRunContext:
             self.manifest.record_failure(job_name.value, error)
             raise
 
-    async def write_manifest(self, error: Exception | None = None, stage: str = "") -> None:
-        """Upload the manifest tracing this run's inputs and outputs.
+    async def write_manifest(self, error: Exception | None = None, step: str = "") -> None:
+        """
+        Upload the manifest tracing this run's inputs and outputs.
 
-        Given the ``error`` the run failed with, it's recorded under ``stage`` unless a stage
-        already recorded the failure. The upload never raises: a run whose rasters were written
-        doesn't fail over its trace, and a failed run's own error isn't masked. A failed upload is
-        logged and reported to chatops instead.
+        The upload never raises: a run whose rasters were written doesn't fail over its trace,
+        and a failed run's own error isn't masked. A failed upload is logged and reported to
+        chatops instead.
+
+        :param error: The error the run failed with, if it failed
+        :param step: Step the error is recorded under, unless a step already recorded the failure
         """
         if error is not None:
-            self.manifest.record_failure(stage, error)
+            self.manifest.record_failure(step, error)
         try:
             await self.manifest.write(self.s3_client)
         except Exception as upload_error:

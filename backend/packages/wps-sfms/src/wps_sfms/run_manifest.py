@@ -87,18 +87,18 @@ class SFMSRunManifest(BaseModel):
     run_type: RunType
     for_date: date
     status: Literal["running", "success", "failed"] = "running"
-    failed_stage: str | None = None
+    failed_step: str | None = None
     failure_type: str | None = None
     failure_message: str | None = None
     input: SFMSRunInputs = Field(default_factory=SFMSRunInputs)
     output: SFMSRunOutputs = Field(default_factory=SFMSRunOutputs)
 
-    def record_failure(self, stage: str, error: Exception) -> None:
-        """Record the first stage failure, without replacing an earlier failure cause."""
+    def record_failure(self, step: str, error: Exception) -> None:
+        """Record the first step failure, without replacing an earlier failure cause."""
         if self.status != "running":
             return
         self.status = "failed"
-        self.failed_stage = stage
+        self.failed_step = step
         self.failure_type = type(error).__name__
         message = str(error).strip()
         self.failure_message = message[:512] if message else None

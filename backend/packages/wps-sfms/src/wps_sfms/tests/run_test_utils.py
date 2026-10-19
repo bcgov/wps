@@ -1,4 +1,4 @@
-"""Shared helpers for testing the stages of an SFMS run."""
+"""Shared helpers for testing the steps of an SFMS run."""
 
 from datetime import date, datetime, timedelta, timezone
 from unittest.mock import MagicMock
@@ -15,7 +15,7 @@ from wps_sfms.run_context import SFMSRunContext
 
 RUN_DATETIME = datetime(2025, 7, 4, 20, 45, tzinfo=timezone.utc)
 
-# the raster keys the stages under test are handed by the stages that wrote them, for 2025-07-04
+# the raster keys the steps under test are handed by the steps that wrote them, for 2025-07-04
 WEATHER_KEYS = {
     param: f"sfms_ng/actual/2025/07/04/{param.value}_20250704.tif"
     for param in SFMSInterpolatedWeatherParameter
@@ -101,7 +101,7 @@ def station_weather() -> list[SFMSDaily]:
 
 @pytest.fixture
 def some_bucket(monkeypatch):
-    """Point the object store at the bucket the stage tests' GDAL paths use."""
+    """Point the object store at the bucket the step tests' GDAL paths use."""
     monkeypatch.setenv("OBJECT_STORE_BUCKET", "some bucket")
 
 

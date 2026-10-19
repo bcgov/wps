@@ -1,4 +1,4 @@
-"""Tests for the SFMS foliar moisture content stage."""
+"""Tests for the SFMS foliar moisture content step."""
 
 from unittest.mock import AsyncMock, MagicMock
 
@@ -6,7 +6,7 @@ import pytest
 from pytest_mock import MockerFixture
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 
-from wps_sfms.fmc_stage import calculate_fmc
+from wps_sfms.fmc_step import calculate_fmc
 from wps_sfms.tests.run_test_utils import (
     a_run,
 )
@@ -16,8 +16,8 @@ pytestmark = pytest.mark.usefixtures("some_bucket")
 
 
 @pytest.mark.anyio
-async def test_fmc_stage_records_its_failure(mocker: MockerFixture, tracked_jobs):
-    processor = mocker.patch("wps_sfms.fmc_stage.FoliarMoistureContentProcessor").return_value
+async def test_fmc_step_records_its_failure(mocker: MockerFixture, tracked_jobs):
+    processor = mocker.patch("wps_sfms.fmc_step.FoliarMoistureContentProcessor").return_value
     processor.process = AsyncMock(side_effect=RuntimeError("fmc failed"))
     addresser = MagicMock()
     addresser.get_fmc_inputs.return_value = MagicMock(
@@ -30,7 +30,7 @@ async def test_fmc_stage_records_its_failure(mocker: MockerFixture, tracked_jobs
     with pytest.raises(RuntimeError, match="fmc failed"):
         await calculate_fmc(run)
 
-    assert run.manifest.failed_stage == SFMSRunLogJobName.FOLIAR_MOISTURE_CONTENT.value
+    assert run.manifest.failed_step == SFMSRunLogJobName.FOLIAR_MOISTURE_CONTENT.value
     # its inputs were recorded before the calculation, its output only on success
     assert run.manifest.input.static_rasters == {
         "elevation": "sfms_ng/static/bc_elevation.tif",

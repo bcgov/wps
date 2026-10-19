@@ -13,12 +13,12 @@ import sys
 from datetime import UTC, date, datetime, timedelta
 
 from aiohttp import ClientSession
-from wps_sfms.fbp_stage import calculate_primary_fbp
-from wps_sfms.fmc_stage import calculate_fmc
-from wps_sfms.fwi_stage import calculate_fwi, missing_seed_keys
+from wps_sfms.fbp_step import calculate_primary_fbp
+from wps_sfms.fmc_step import calculate_fmc
+from wps_sfms.fwi_step import calculate_fwi, missing_seed_keys
 from wps_sfms.run_context import SFMSRunContext
-from wps_sfms.temporal_fuel_stage import resolve_temporal_fuel
-from wps_sfms.weather_stage import interpolate_weather
+from wps_sfms.temporal_fuel_step import resolve_temporal_fuel
+from wps_sfms.weather_step import interpolate_weather
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
@@ -162,7 +162,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                     )
                 await ctx.write_manifest()
             except Exception as error:
-                await ctx.write_manifest(error, stage="forecast_batch")
+                await ctx.write_manifest(error, step="forecast_batch")
                 raise
 
     logger.info("SFMS daily forecasts completed successfully from %s", run_datetime.date())
