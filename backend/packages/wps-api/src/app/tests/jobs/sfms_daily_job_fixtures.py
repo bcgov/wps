@@ -120,6 +120,10 @@ def make_mock_daily_sfms_dependencies(
         )
     )
     addresser.gdal_path.side_effect = lambda key: f"/vsis3/test-bucket/{key}"
+    # the manifest names its key and strips GDAL prefixes with the run's addresser
+    real_addresser = SFMSNGRasterAddresser()
+    addresser.s3_key.side_effect = real_addresser.s3_key
+    addresser.get_run_manifest_key.side_effect = real_addresser.get_run_manifest_key
 
     fmc_inputs = MagicMock()
     fmc_inputs.output_keys.__getitem__.side_effect = fmc_key

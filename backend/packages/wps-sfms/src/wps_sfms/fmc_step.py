@@ -28,5 +28,6 @@ async def calculate_fmc(context: SFMSRunContext) -> S3Key:
             context.s3_client, multi_wps_dataset_context, fmc_inputs
         ),
     )
-    context.manifest.record_fmc_raster(fmc_inputs, target_date)
-    return fmc_inputs.output_keys[target_date]
+    fmc_key = fmc_inputs.output_keys[target_date]
+    context.manifest.record_fmc_raster(fmc_key)
+    return fmc_key

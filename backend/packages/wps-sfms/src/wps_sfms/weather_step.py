@@ -3,6 +3,7 @@
 import logging
 
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.sfms.raster_addresser import (
     FWIParameter,
     S3Key,
@@ -54,7 +55,9 @@ async def interpolate_raster(
     return output_key
 
 
-async def interpolate_weather(context: SFMSRunContext, station_weather: list) -> WeatherKeys:
+async def interpolate_weather(
+    context: SFMSRunContext, station_weather: list[SFMSDaily]
+) -> WeatherKeys:
     """
     Interpolate the run's weather rasters from its station weather.
 

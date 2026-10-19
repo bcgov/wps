@@ -299,7 +299,7 @@ class TestRunSfmsDailyActuals:
         assert payload["input"]["fuel_raster"] == {
             "base": "sfms/fuel/2024/fuel.tif",
             "temporal": "temporal/2024-07-04.tif",
-            "pc": "sfms/static/m12_2024.tif",
+            "percent_conifer": "sfms/static/m12_2024.tif",
         }
         assert payload["input"]["seed_rasters"] == {
             "ffmc": "sfms_ng/actual/2024/07/03/ffmc_20240703.tif",

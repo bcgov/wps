@@ -92,6 +92,7 @@ class SFMSRunContext:
         :return: The run's context
         """
         manifest = SFMSRunManifest(
+            raster_addresser,
             run_type=run_type,
             for_date=datetime_to_process.date(),
             run_datetime=run_datetime,
@@ -113,10 +114,10 @@ class SFMSRunContext:
 
     def __post_init__(self):
         # a manifest that describes another run's date or type could never be joined to this one
-        assert self.manifest.run_type == self.run_type, "the manifest must describe this run type"
-        assert self.manifest.for_date == self.datetime_to_process.date(), (
-            "the manifest must describe this target date"
-        )
+        if self.manifest.run_type != self.run_type:
+            raise ValueError("the manifest must describe this run type")
+        if self.manifest.for_date != self.datetime_to_process.date():
+            raise ValueError("the manifest must describe this target date")
 
     async def track(self, job_name: SFMSRunLogJobName, action: Callable[[], Awaitable[T]]) -> T:
         """

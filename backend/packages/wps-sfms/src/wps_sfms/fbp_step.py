@@ -93,25 +93,3 @@ async def _resolve_percent_conifer_path(
         f"No percent-conifer raster found for fuel-grid year {fuel_raster_year}: {key}"
     )
 
-
-async def _resolve_percent_dead_conifer_path(
-    fuel_raster_year: int,
-    raster_addresser: SFMSNGRasterAddresser,
-    s3_client: S3Client,
-) -> GDALPath:
-    """
-    Resolve the percent-dead-conifer raster matching the selected fuel-grid year.
-
-    :param fuel_raster_year: Year of the run's base fuel grid
-    :param raster_addresser: Addresser naming the raster's key
-    :param s3_client: Client the raster is looked up with
-    :return: Path of the percent-dead-conifer raster
-    """
-    key = raster_addresser.get_percent_dead_conifer_key(fuel_raster_year)
-    if await s3_client.object_exists(key):
-        logger.info("Using percent-dead-conifer raster: %s", key)
-        return raster_addresser.gdal_path(key)
-
-    raise RuntimeError(
-        f"No percent-dead-conifer raster found for fuel-grid year {fuel_raster_year}: {key}"
-    )

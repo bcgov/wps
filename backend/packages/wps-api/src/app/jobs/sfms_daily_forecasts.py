@@ -162,7 +162,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                     )
                 await ctx.write_manifest()
             except Exception as error:
-                await ctx.write_manifest(error, step="forecast_batch")
+                await ctx.write_manifest(error, step="daily_forecasts")
                 raise
 
     logger.info("SFMS daily forecasts completed successfully from %s", run_datetime.date())

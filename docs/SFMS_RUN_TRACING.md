@@ -66,7 +66,7 @@ versions can add to them.
     "fuel_raster": {
       "base": "sfms/static/fuel/2026/fbp2026_v1.tif",
       "temporal": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
-      "pc": "sfms/static/m12_2026.tif"
+      "percent_conifer": "sfms/static/m12_2026.tif"
     },
     "seed_rasters": {
       "ffmc": "sfms_ng/actual/2026/10/12/ffmc_20261012.tif",
@@ -153,7 +153,7 @@ omits `output.fuel_raster`.
 | Field            | Contents                                                                                                                        |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `station_codes`  | The station codes whose daily weather the run interpolated from WF1.                                                            |
-| `fuel_raster`    | `base`: the base fuel grid selected for the run's year. `temporal`: the dated temporal fuel grid FBP ran on. `pc`: the percent-conifer raster paired with the base grid's year. |
+| `fuel_raster`    | `base`: the base fuel grid selected for the run's year. `temporal`: the dated temporal fuel grid FBP ran on. `percent_conifer`: the percent-conifer raster paired with the base grid's year. |
 | `seed_rasters`   | Previous-day FFMC/DMC/DC rasters the run calculated FWI forward from. An empty object on April/May Monday re-interpolation days, which interpolate the base indices from stations instead, and for the derived ISI/BUI/FWI calculations that follow them. |
 | `static_rasters` | Static rasters by role: `dem` and `mask` for interpolation, `elevation`, `latitude` and `longitude` for FMC, `slope` and `aspect` for primary FBP. `dem` is the legacy SFMS elevation raster and is distinct from `elevation`. |
 | `julian_rasters` | The green-up and grass curing rasters the temporal fuel grid was built from, keyed by name. These are the **archive** keys (`sfms_ng/static/julian/archive/{name}/{sha256}.tif`), because the live `sfms_ng/static/julian/{name}.tif` keys are replaced over time and an archive key is the content-addressed copy of the exact bytes the grid was built from. |

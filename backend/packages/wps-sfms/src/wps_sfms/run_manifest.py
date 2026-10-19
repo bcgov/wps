@@ -15,7 +15,7 @@ from collections.abc import Iterable, Mapping
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FBPParameter,
@@ -35,17 +35,12 @@ MANIFEST_SCHEMA_VERSION = 1
 """The schema version of the manifest this module writes."""
 
 
-def object_store_key(path: str) -> str:
-    """Return the plain object store key for a plain key or a GDAL ``/vsis3/{bucket}/`` path."""
-    return SFMSNGRasterAddresser().s3_key(path)
-
-
 class FuelRasterTrace(BaseModel):
     """The fuel rasters one SFMS run used, as object store keys."""
 
     base: str | None = None
     temporal: str | None = None
-    pc: str | None = None
+    percent_conifer: str | None = None
 
 
 class SFMSRunInputs(BaseModel):
@@ -92,6 +87,21 @@ class SFMSRunManifest(BaseModel):
     failure_message: str | None = None
     input: SFMSRunInputs = Field(default_factory=SFMSRunInputs)
     output: SFMSRunOutputs = Field(default_factory=SFMSRunOutputs)
+    _raster_addresser: SFMSNGRasterAddresser = PrivateAttr()
+
+    def __init__(self, raster_addresser: SFMSNGRasterAddresser, **data):
+        """
+        Create a run's manifest.
+
+        :param raster_addresser: The run's addresser, which names the manifest's key and strips
+            the GDAL prefix from the raster paths it records
+        """
+        super().__init__(**data)
+        self._raster_addresser = raster_addresser
+
+    def _object_store_key(self, path: str) -> str:
+        """The plain object store key for a plain key or a GDAL ``/vsis3/{bucket}/`` path."""
+        return self._raster_addresser.s3_key(path)
 
     def record_failure(self, step: str, error: Exception) -> None:
         """Record the first step failure, without replacing an earlier failure cause."""
@@ -109,11 +119,11 @@ class SFMSRunManifest(BaseModel):
 
     def record_base_fuel_raster(self, key: str) -> None:
         """Record the base fuel grid the run selected for its year."""
-        self.input.fuel_raster.base = object_store_key(key)
+        self.input.fuel_raster.base = self._object_store_key(key)
 
     def record_percent_conifer_raster(self, key: str) -> None:
         """Record the percent-conifer raster paired with the base fuel grid's year."""
-        self.input.fuel_raster.pc = object_store_key(key)
+        self.input.fuel_raster.percent_conifer = self._object_store_key(key)
 
     def record_temporal_fuel_raster(self, raster_path: GDALPath) -> None:
         """Record the temporal fuel grid the run resolved for the target date.
@@ -122,7 +132,7 @@ class SFMSRunManifest(BaseModel):
         on, and it is stored under this run's date. The Julian date rasters it was built from are
         recorded separately, with ``record_julian_rasters``.
         """
-        fuel_key = object_store_key(raster_path)
+        fuel_key = self._object_store_key(raster_path)
         self.input.fuel_raster.temporal = fuel_key
         self.output.fuel_raster = fuel_key
 
@@ -136,32 +146,32 @@ class SFMSRunManifest(BaseModel):
             }
         )
 
-    def record_fmc_raster(self, fmc_inputs: FoliarMoistureContentInputs, target_date: date) -> None:
+    def record_fmc_raster(self, key: str) -> None:
         """Record the calculated FMC raster for the target date.
 
         FMC is recorded as both an input and an output: the run is responsible for the target
         date's raster, and primary FBP consumes it.
         """
-        fmc_key = object_store_key(fmc_inputs.output_keys[target_date])
+        fmc_key = self._object_store_key(key)
         self.input.fmc_raster = fmc_key
         self.output.fmc_raster = fmc_key
 
     def record_seed_rasters(self, seed_keys: Mapping[FWIParameter, str]) -> None:
         """Record the previous-day index rasters the run calculated FWI forward from."""
         self.input.seed_rasters.update(
-            {param.value: object_store_key(key) for param, key in seed_keys.items()}
+            {param.value: self._object_store_key(key) for param, key in seed_keys.items()}
         )
 
     def record_static_rasters(self, rasters: Mapping[str, str]) -> None:
         """Record static rasters the run read, by role name."""
         self.input.static_rasters.update(
-            {name: object_store_key(key) for name, key in rasters.items()}
+            {name: self._object_store_key(key) for name, key in rasters.items()}
         )
 
     def record_julian_rasters(self, archive_keys: Mapping[str, str]) -> None:
         """Record the Julian date rasters a temporal fuel grid was built from, by archive key."""
         self.input.julian_rasters.update(
-            {name: object_store_key(key) for name, key in archive_keys.items()}
+            {name: self._object_store_key(key) for name, key in archive_keys.items()}
         )
 
     def record_raster_output(
@@ -170,7 +180,7 @@ class SFMSRunManifest(BaseModel):
         key: str,
     ) -> None:
         """Record one published raster under the output family its parameter belongs to."""
-        output_key = object_store_key(key)
+        output_key = self._object_store_key(key)
         if isinstance(parameter, SFMSInterpolatedWeatherParameter):
             self.output.weather[parameter.value] = output_key
         elif isinstance(parameter, FBPParameter):
@@ -182,7 +192,7 @@ class SFMSRunManifest(BaseModel):
 
     def key(self) -> S3Key:
         """The object store key this manifest is written to."""
-        return SFMSNGRasterAddresser().get_run_manifest_key(
+        return self._raster_addresser.get_run_manifest_key(
             self.run_type, self.for_date, self.run_datetime
         )
 

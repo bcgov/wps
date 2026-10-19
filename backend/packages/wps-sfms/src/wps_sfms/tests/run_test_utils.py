@@ -12,6 +12,7 @@ from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.sfms.raster_addresser import FWIParameter, SFMSInterpolatedWeatherParameter
 
 from wps_sfms.run_context import SFMSRunContext
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 RUN_DATETIME = datetime(2025, 7, 4, 20, 45, tzinfo=timezone.utc)
 
@@ -46,13 +47,16 @@ def a_run(
 
     It seeds from the previous day's actuals unless given another ``seed_actual_date``.
     """
+    addresser = addresser or MagicMock()
+    # the manifest strips GDAL prefixes from the keys it records with the run's addresser
+    addresser.s3_key.side_effect = SFMSNGRasterAddresser().s3_key
     return SFMSRunContext.start(
         datetime_to_process_for(for_date),
         run_type,
         sfms_run_id,
         RUN_DATETIME,
         s3_client or MagicMock(),
-        addresser or MagicMock(),
+        addresser,
         fuel_type_raster=fuel_type_raster
         or MagicMock(year=for_date.year, object_store_path="sfms/fuel/fuel.tif"),
         seed_actual_date=seed_actual_date or for_date - timedelta(days=1),

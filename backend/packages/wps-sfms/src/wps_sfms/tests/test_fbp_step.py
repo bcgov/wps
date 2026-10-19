@@ -13,7 +13,6 @@ from wps_shared.sfms.raster_addresser import (
 
 from wps_sfms.fbp_step import (
     _resolve_percent_conifer_path,
-    _resolve_percent_dead_conifer_path,
     calculate_primary_fbp,
 )
 from wps_sfms.tests.run_test_utils import (
@@ -56,38 +55,6 @@ async def test_resolve_percent_conifer_path_does_not_fall_back_one_year():
 
     addresser.get_percent_conifer_key.assert_called_once_with(2025)
     s3_client.object_exists.assert_awaited_once_with("sfms/static/m12_2025.tif")
-    addresser.gdal_path.assert_not_called()
-
-
-@pytest.mark.anyio
-async def test_resolve_percent_dead_conifer_path_uses_fuel_raster_year():
-    addresser = MagicMock()
-    addresser.get_percent_dead_conifer_key.side_effect = lambda year: f"sfms/static/m34_{year}.tif"
-    addresser.gdal_path.side_effect = lambda key: f"/vsis3/test/{key}"
-    s3_client = MagicMock()
-    s3_client.object_exists = AsyncMock(return_value=True)
-
-    result = await _resolve_percent_dead_conifer_path(2025, addresser, s3_client)
-
-    assert result == "/vsis3/test/sfms/static/m34_2025.tif"
-    s3_client.object_exists.assert_awaited_once_with("sfms/static/m34_2025.tif")
-
-
-@pytest.mark.anyio
-async def test_resolve_percent_dead_conifer_path_raises_when_missing():
-    addresser = MagicMock()
-    addresser.get_percent_dead_conifer_key.side_effect = lambda year: f"sfms/static/m34_{year}.tif"
-    s3_client = MagicMock()
-    s3_client.object_exists = AsyncMock(return_value=False)
-
-    with pytest.raises(
-        RuntimeError,
-        match="fuel-grid year 2025: sfms/static/m34_2025.tif",
-    ):
-        await _resolve_percent_dead_conifer_path(2025, addresser, s3_client)
-
-    addresser.get_percent_dead_conifer_key.assert_called_once_with(2025)
-    s3_client.object_exists.assert_awaited_once_with("sfms/static/m34_2025.tif")
     addresser.gdal_path.assert_not_called()
 
 
@@ -144,7 +111,7 @@ async def test_primary_fbp_step_runs_one_tracked_primary_calculation(
     assert tracked_jobs == [SFMSRunLogJobName.PRIMARY_FBP_CALCULATION]
 
     # the manifest records the percent-conifer and terrain rasters FBP read, and its outputs
-    assert run.manifest.input.fuel_raster.pc == "sfms/static/m12_2025.tif"
+    assert run.manifest.input.fuel_raster.percent_conifer == "sfms/static/m12_2025.tif"
     assert run.manifest.input.static_rasters == {
         "slope": "sfms_ng/static/bc_slope.tif",
         "aspect": "sfms_ng/static/bc_aspect.tif",
@@ -180,5 +147,5 @@ async def test_primary_fbp_step_records_its_inputs_but_no_outputs_when_it_fails(
         "slope": "sfms_ng/static/bc_slope.tif",
         "aspect": "sfms_ng/static/bc_aspect.tif",
     }
-    assert run.manifest.input.fuel_raster.pc == "sfms/static/m12_2025.tif"
+    assert run.manifest.input.fuel_raster.percent_conifer == "sfms/static/m12_2025.tif"
     assert run.manifest.output.fbp == {}

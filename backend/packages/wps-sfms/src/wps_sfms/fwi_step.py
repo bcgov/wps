@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.run_type import RunType
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.sfms.raster_addresser import FWIParameter, S3Key
 from wps_shared.utils.s3_client import S3Client
 
@@ -201,7 +202,7 @@ async def calculate_fwi(context: SFMSRunContext, weather_keys: WeatherKeys) -> F
 
 
 async def interpolate_fwi(
-    context: SFMSRunContext, station_weather: list, weather_keys: WeatherKeys
+    context: SFMSRunContext, station_weather: list[SFMSDaily], weather_keys: WeatherKeys
 ) -> FWIKeys:
     """
     Reset FFMC, DMC and DC from station weather, then derive ISI, BUI and FWI from them.

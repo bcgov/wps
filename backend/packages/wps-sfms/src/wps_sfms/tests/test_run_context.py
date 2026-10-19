@@ -36,11 +36,13 @@ class TestSFMSRunContext:
         "manifest",
         [
             SFMSRunManifest(
+                MagicMock(),
                 run_type=RunType.FORECAST,
                 for_date=date(2025, 7, 4),
                 run_datetime=RUN_DATETIME,
             ),
             SFMSRunManifest(
+                MagicMock(),
                 run_type=RunType.ACTUAL, for_date=date(2025, 7, 5), run_datetime=RUN_DATETIME
             ),
         ],
@@ -50,7 +52,7 @@ class TestSFMSRunContext:
         datetime_to_process = datetime_to_process_for(date(2025, 7, 4))
         s3_client, addresser, fuel_type_raster = MagicMock(), MagicMock(), MagicMock()
         seed_actual_date = date(2025, 7, 3)
-        with pytest.raises(AssertionError, match="the manifest must describe"):
+        with pytest.raises(ValueError, match="the manifest must describe"):
             SFMSRunContext(
                 datetime_to_process,
                 RunType.ACTUAL,

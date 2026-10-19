@@ -13,7 +13,8 @@ from wps_shared.sfms.raster_addresser import (
 )
 
 from wps_sfms.raster_inputs import FoliarMoistureContentInputs
-from wps_sfms.run_manifest import MANIFEST_SCHEMA_VERSION, SFMSRunManifest, object_store_key
+from wps_sfms.run_manifest import MANIFEST_SCHEMA_VERSION, SFMSRunManifest
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 RUN_DATETIME = datetime(2026, 10, 13, 20, 45, tzinfo=timezone.utc)
 FOR_DATE = date(2026, 10, 13)
@@ -27,7 +28,7 @@ def bucket(monkeypatch):
 
 def a_manifest() -> SFMSRunManifest:
     """An actual-run manifest for one target date."""
-    return SFMSRunManifest(run_type=RunType.ACTUAL, for_date=FOR_DATE, run_datetime=RUN_DATETIME)
+    return SFMSRunManifest(SFMSNGRasterAddresser(), run_type=RunType.ACTUAL, for_date=FOR_DATE, run_datetime=RUN_DATETIME)
 
 
 def record_everything(manifest: SFMSRunManifest) -> None:
@@ -69,7 +70,7 @@ def record_everything(manifest: SFMSRunManifest) -> None:
         output_keys={FOR_DATE: "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif"},
     )
     manifest.record_fmc_static_inputs(fmc_inputs)
-    manifest.record_fmc_raster(fmc_inputs, FOR_DATE)
+    manifest.record_fmc_raster(fmc_inputs.output_keys[FOR_DATE])
     for weather_param in SFMSInterpolatedWeatherParameter:
         manifest.record_raster_output(
             weather_param, f"sfms_ng/actual/2026/10/13/{weather_param.value}_20261013.tif"
@@ -84,17 +85,21 @@ def record_everything(manifest: SFMSRunManifest) -> None:
         )
 
 
-def test_object_store_key_strips_the_gdal_prefix(bucket):
-    assert (
-        object_store_key("/vsis3/some bucket/sfms_ng/actual/2026/10/13/temperature_20261013.tif")
-        == "sfms_ng/actual/2026/10/13/temperature_20261013.tif"
+def test_records_keys_with_the_gdal_prefix_stripped(bucket):
+    manifest = a_manifest()
+
+    manifest.record_static_rasters(
+        {
+            "mask": "/vsis3/some bucket/sfms/static/bc_mask.tif",
+            "slope": "sfms_ng/static/bc_slope.tif",
+        }
     )
 
-
-def test_object_store_key_passes_plain_keys_through(bucket):
-    assert object_store_key("sfms_ng/actual/2026/10/13/temperature_20261013.tif") == (
-        "sfms_ng/actual/2026/10/13/temperature_20261013.tif"
-    )
+    # a GDAL path is stripped to its key, and a plain key passes through
+    assert manifest.input.static_rasters == {
+        "mask": "sfms/static/bc_mask.tif",
+        "slope": "sfms_ng/static/bc_slope.tif",
+    }
 
 
 def test_key_uses_the_run_datetime_folder_and_run_type():
@@ -107,6 +112,7 @@ def test_key_uses_the_run_datetime_folder_and_run_type():
 
 def test_key_uses_the_for_date_in_the_file_name():
     manifest = SFMSRunManifest(
+        SFMSNGRasterAddresser(),
         run_type=RunType.FORECAST,
         for_date=date(2026, 10, 14),
         run_datetime=RUN_DATETIME,
@@ -120,6 +126,7 @@ def test_key_uses_the_for_date_in_the_file_name():
 
 def test_key_rejects_non_utc_run_datetime():
     manifest = SFMSRunManifest(
+        SFMSNGRasterAddresser(),
         run_type=RunType.ACTUAL,
         for_date=FOR_DATE,
         run_datetime=datetime(2026, 10, 13, 20, 45, tzinfo=timezone(timedelta(hours=-7))),
@@ -147,7 +154,7 @@ def test_manifest_json_follows_the_version_1_schema(bucket):
             "fuel_raster": {
                 "base": "sfms/static/fuel/2026/fbp2026_v1.tif",
                 "temporal": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
-                "pc": "sfms/static/m12_2026.tif",
+                "percent_conifer": "sfms/static/m12_2026.tif",
             },
             "seed_rasters": {
                 "ffmc": "sfms_ng/actual/2026/10/12/ffmc_20261012.tif",
