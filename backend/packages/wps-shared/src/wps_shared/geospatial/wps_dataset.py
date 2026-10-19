@@ -363,10 +363,7 @@ class WPSDataset:
 
     def generate_latitude_array(self):
         """
-        Transforms this dataset to 4326 to compute the latitude coordinates.
-
-        Note: This method is slow for large rasters. Consider using
-        get_lat_lon_coords() for vectorized coordinate transformation.
+        transform pixel centers to 4326 to compute their latitude coordinates.
 
         :return: array of latitude coordinates
         """
@@ -375,26 +372,25 @@ class WPSDataset:
 
         src_srs = osr.SpatialReference()
         src_srs.ImportFromWkt(projection)
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
         x_size = self.ds.RasterXSize
         y_size = self.ds.RasterYSize
 
         tgt_srs = osr.SpatialReference()
         tgt_srs.ImportFromEPSG(4326)
+        tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
         transform = osr.CoordinateTransformation(src_srs, tgt_srs)
-
-        # empty array to store latitude values
-        latitudes = np.zeros((y_size, x_size))
+        latitudes = np.empty((y_size, x_size))
+        columns = np.arange(x_size, dtype=np.float64) + 0.5
 
         for y in range(y_size):
-            for x in range(x_size):
-                x_coord = geotransform[0] + x * geotransform[1] + y * geotransform[2]
-                y_coord = geotransform[3] + x * geotransform[4] + y * geotransform[5]
-
-                _, lat, _ = transform.TransformPoint(x_coord, y_coord)
-
-                latitudes[y, x] = lat
+            row = y + 0.5
+            x_coords = geotransform[0] + columns * geotransform[1] + row * geotransform[2]
+            y_coords = geotransform[3] + columns * geotransform[4] + row * geotransform[5]
+            coordinates = np.column_stack((x_coords, y_coords)).tolist()
+            latitudes[y] = [point[1] for point in transform.TransformPoints(coordinates)]
 
         return latitudes
 
