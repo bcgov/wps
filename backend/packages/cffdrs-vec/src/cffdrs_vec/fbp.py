@@ -1002,6 +1002,6 @@ def vectorized_elliptical_fire_area(
     # Step 9: Calculate elliptical fire area using equation 86 on page 49 from the
     #         1992 Information Report ST-X-3: A(ha) = ((pi / (4 * LB(t))) * (D_T)^2) / 10000,
     #         which is algebraically equivalent to the calculation below.
-    area_ha = (np.pi * (total_distance**2)) / (40000.0 * lb_t)
+    area_ha = (np.pi * (total_distance ** 2)) / (40000.0 * lb_t)
 
     return area_ha
