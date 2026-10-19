@@ -889,7 +889,7 @@ def vectorized_fire_behaviour_prediction(
     )
 
 
-def vectorized_elliptical_fire_area_30min(
+def vectorized_elliptical_fire_area(
     fuel_type_code: np.ndarray | np.generic | float | int,
     ffmc: np.ndarray | np.generic | float | int,
     bui: np.ndarray | np.generic | float | int,
@@ -905,9 +905,10 @@ def vectorized_elliptical_fire_area_30min(
     cfl: np.ndarray | np.generic | float | int,
     fmc: np.ndarray | np.generic | float | int,
     isi: np.ndarray | np.generic | float | int,
+    time_min: np.ndarray | np.generic | float | int = 30.0,
 ) -> np.ndarray | np.generic:
     """
-    Calculate the elliptical fire area after 30 minutes using accelerated spread.
+    Calculate the elliptical fire area at a time of interest using accelerated spread.
 
     This standalone calculation leaves the equilibrium FBP outputs unchanged. Each input may
     be a scalar or NumPy array.
@@ -927,11 +928,11 @@ def vectorized_elliptical_fire_area_30min(
     :param cfl: Crown fuel load (kg/m^2); zero disables crown fraction burned.
     :param fmc: Foliar Moisture Content (%).
     :param isi: Initial Spread Index.
-    :return: Elliptical fire area in hectares, as a float64 array (or NumPy scalar for scalar inputs).
+    :param time_min: Time of interest in minutes since ignition (default 30).
+    :return: Elliptical fire area at time_min in hectares; float64 array or NumPy scalar for scalar inputs.
     """
-    # Time of Interest (30 minutes). Note that the CFFDRS FBP calculation passes time in minutes to the
-    # time-dependent helpers, including length_to_breadth_at_time (despite the CFFDRS docstring saying hours).
-    TOI_MIN = 30.0
+    # Note that the CFFDRS FBP calculation passes time in minutes to the time-dependent helpers,
+    # including length_to_breadth_at_time (despite the CFFDRS docstring saying hours).
 
     # Step 1: Calculate Surface Fuel Consumption (SFC).
     sfc = vectorized_surface_fuel_consumption(fuel_type_code, ffmc, bui, pc, gfl)
@@ -970,12 +971,12 @@ def vectorized_elliptical_fire_area_30min(
         isi,
     )
 
-    # Step 4: Calculate the equilibrium Length-to-Breadth ratio (LB), then its value at 30 minutes.
+    # Step 4: Calculate the equilibrium Length-to-Breadth ratio (LB), then its value at the time of interest.
     lb = vectorized_length_to_breadth(fuel_type_code, wsv)
-    lb_t = vectorized_length_to_breadth_at_time(fuel_type_code, lb, TOI_MIN, cfb)
+    lb_t = vectorized_length_to_breadth_at_time(fuel_type_code, lb, time_min, cfb)
 
-    # Step 5: Calculate the head-fire spread distance at 30 minutes.
-    head_fire_distance = vectorized_distance_at_time(fuel_type_code, ros, TOI_MIN, cfb)
+    # Step 5: Calculate the head-fire spread distance at the time of interest.
+    head_fire_distance = vectorized_distance_at_time(fuel_type_code, ros, time_min, cfb)
 
     # Step 6: Calculate the equilibrium Back Rate of Spread (BROS).
     bros = vectorized_back_rate_of_spread(
@@ -991,8 +992,8 @@ def vectorized_elliptical_fire_area_30min(
         cbh,
     )
 
-    # Step 7: Calculate the back-fire spread distance at 30 minutes.
-    back_fire_distance = vectorized_distance_at_time(fuel_type_code, bros, TOI_MIN, cfb)
+    # Step 7: Calculate the back-fire spread distance at the time of interest.
+    back_fire_distance = vectorized_distance_at_time(fuel_type_code, bros, time_min, cfb)
 
     # Step 8: Calculate total spread distance from the back-fire edge to the head-fire edge.
     #         This is the D_T variable in the elliptical fire area equation.
