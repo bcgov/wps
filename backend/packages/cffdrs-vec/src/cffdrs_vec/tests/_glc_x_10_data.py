@@ -187,6 +187,22 @@ class GLCX10ExpectedOutputs(NamedTuple):
     fire_type: list
 
 
+class GLCX10AreaCases(NamedTuple):
+    """The inputs that vectorized_elliptical_fire_area needs that are missing from GLCX10Inputs,
+    including the expected area output.
+
+    time_min          - time of interest for each case (minutes)
+    fmc               - Foliar Moisture Content (%), published rather than derived
+    isi               - Initial Spread Index, published rather than derived
+    expected_area_ha  - elliptical fire area at time_min (hectares)
+    """
+
+    time_min: np.ndarray
+    fmc: np.ndarray
+    isi: np.ndarray
+    expected_area_ha: np.ndarray
+
+
 class GLCX10Source(ABC):
     """Abstract base for the two independent GLC-X-10 data sources: RPackageSource and
     PaperSource below (the only two subclasses. A source knows how to load its own CSV-sourced
@@ -230,6 +246,13 @@ class GLCX10Source(ABC):
         being filled with a default, so the raster round-trip (write here, then default-fill on
         read in load_raster_inputs()) can prove that same default-filling logic actually works
         when driven by a raster read, not just a CSV read.
+        """
+
+    @abstractmethod
+    def load_area_cases(self) -> GLCX10AreaCases:
+        """Loads the time of interest, FMC, ISI and expected elliptical fire area for all 20
+        cases. Table 4 has no FMC or ISI column, so they come from each source's own published
+        outputs; see load_area_cases in RPackageSource/PaperSource for where the area itself comes from.
         """
 
     def load(self) -> tuple[GLCX10Inputs, GLCX10ExpectedOutputs]:
@@ -446,6 +469,28 @@ class RPackageSource(GLCX10Source):
         )
         return aspect_rad, cbh, cfl
 
+    def load_area_cases(self) -> GLCX10AreaCases:
+        # The R package's secondary outputs have no area column, so rebuild it from the head and
+        # back spread distances and the length-to-breadth ratio at time t, using equation 86 on
+        # page 49 of ST-X-3: A(ha) = pi * (D_T)^2 / (40000 * LBt),
+        # where D_T = DH + DB (the total spread distance at time t).
+        input_rows = load_rows(self.input_csv)
+        secondary_by_id = {row["ID"]: row for row in load_rows("cffdrs_r_test_fbp_secondary_outputs.csv")}
+        secondary = [secondary_by_id[row[self.id_input_col]] for row in input_rows]
+
+        head_distance = np.array([float(row["DH"]) for row in secondary])
+        back_distance = np.array([float(row["DB"]) for row in secondary])
+        total_distance = head_distance + back_distance
+        lb_t = np.array([float(row["LBt"]) for row in secondary])
+
+        return GLCX10AreaCases(
+            # The R package inputs give the elapsed time in hours (hr), so convert to minutes.
+            time_min = np.array([float(row["hr"]) for row in input_rows]) * 60.0,
+            fmc = np.array([float(row["FMC"]) for row in secondary]),
+            isi = np.array([float(row["ISI"]) for row in secondary]),
+            expected_area_ha = (np.pi * (total_distance ** 2)) / (40000.0 * lb_t),
+        )
+
     def raster_aspect_cbh_cfl(self, input_rows):
         aspect_deg = [parse_float(row["Aspect"]) for row in input_rows]
         cbh = [parse_float(row["CBH"]) for row in input_rows]
@@ -497,6 +542,21 @@ class PaperSource(GLCX10Source):
         cbh = np.array([CBH_DEFAULT[ft] for ft in fuel_types])
         cfl = np.array([CFL_DEFAULT[ft] for ft in fuel_types])
         return aspect_rad, cbh, cfl
+
+    def load_area_cases(self) -> GLCX10AreaCases:
+        # FMC and ISI are Table 5 columns. The expected fire area is Table 6's A column.
+        # Time is Table 4's t column, which is already in minutes.
+        input_rows = load_rows(self.input_csv)
+        primary_by_id = {row["TestCase"]: row for row in load_rows(self.output_csv)}
+        secondary_by_id = {row["TestCase"]: row for row in load_rows("glc_x_10_paper_secondary_outputs.csv")}
+        ids = [row["TestCase"] for row in input_rows]
+
+        return GLCX10AreaCases(
+            time_min = np.array([float(row["t"]) for row in input_rows]),
+            fmc = np.array([float(primary_by_id[i]["FMC"]) for i in ids]),
+            isi = np.array([float(primary_by_id[i]["ISI"]) for i in ids]),
+            expected_area_ha = np.array([float(secondary_by_id[i]["A"]) for i in ids]),
+        )
 
     def raster_aspect_cbh_cfl(self, input_rows):
         # Same nan_to_num-before-subtracting-180 order of operations as _aspect_rad_cbh_cfl
