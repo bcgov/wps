@@ -475,7 +475,9 @@ class RPackageSource(GLCX10Source):
         # page 49 of ST-X-3: A(ha) = pi * (D_T)^2 / (40000 * LBt),
         # where D_T = DH + DB (the total spread distance at time t).
         input_rows = load_rows(self.input_csv)
-        secondary_by_id = {row["ID"]: row for row in load_rows("cffdrs_r_test_fbp_secondary_outputs.csv")}
+        secondary_by_id = {
+            row["ID"]: row for row in load_rows("cffdrs_r_test_fbp_secondary_outputs.csv")
+        }
         secondary = [secondary_by_id[row[self.id_input_col]] for row in input_rows]
 
         head_distance = np.array([float(row["DH"]) for row in secondary])
@@ -485,10 +487,10 @@ class RPackageSource(GLCX10Source):
 
         return GLCX10AreaCases(
             # The R package inputs give the elapsed time in hours (hr), so convert to minutes.
-            time_min = np.array([float(row["hr"]) for row in input_rows]) * 60.0,
-            fmc = np.array([float(row["FMC"]) for row in secondary]),
-            isi = np.array([float(row["ISI"]) for row in secondary]),
-            expected_area_ha = (np.pi * (total_distance ** 2)) / (40000.0 * lb_t),
+            time_min=np.array([float(row["hr"]) for row in input_rows]) * 60.0,
+            fmc=np.array([float(row["FMC"]) for row in secondary]),
+            isi=np.array([float(row["ISI"]) for row in secondary]),
+            expected_area_ha=(np.pi * (total_distance**2)) / (40000.0 * lb_t),
         )
 
     def raster_aspect_cbh_cfl(self, input_rows):
@@ -548,14 +550,16 @@ class PaperSource(GLCX10Source):
         # Time is Table 4's t column, which is already in minutes.
         input_rows = load_rows(self.input_csv)
         primary_by_id = {row["TestCase"]: row for row in load_rows(self.output_csv)}
-        secondary_by_id = {row["TestCase"]: row for row in load_rows("glc_x_10_paper_secondary_outputs.csv")}
+        secondary_by_id = {
+            row["TestCase"]: row for row in load_rows("glc_x_10_paper_secondary_outputs.csv")
+        }
         ids = [row["TestCase"] for row in input_rows]
 
         return GLCX10AreaCases(
-            time_min = np.array([float(row["t"]) for row in input_rows]),
-            fmc = np.array([float(primary_by_id[i]["FMC"]) for i in ids]),
-            isi = np.array([float(primary_by_id[i]["ISI"]) for i in ids]),
-            expected_area_ha = np.array([float(secondary_by_id[i]["A"]) for i in ids]),
+            time_min=np.array([float(row["t"]) for row in input_rows]),
+            fmc=np.array([float(primary_by_id[i]["FMC"]) for i in ids]),
+            isi=np.array([float(primary_by_id[i]["ISI"]) for i in ids]),
+            expected_area_ha=np.array([float(secondary_by_id[i]["A"]) for i in ids]),
         )
 
     def raster_aspect_cbh_cfl(self, input_rows):

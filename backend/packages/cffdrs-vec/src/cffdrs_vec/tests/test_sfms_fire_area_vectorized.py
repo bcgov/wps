@@ -88,5 +88,9 @@ def test_fire_area_glc_x_10_rasters(source):
     # Check shape explicitly because assert_allclose can broadcast differently shaped arrays.
     assert result.shape == shape
     np.testing.assert_allclose(
-        result, area_cases.expected_area_ha.reshape(shape), rtol=RTOL_AREA, atol=ATOL_AREA, err_msg="Area"
+        result,
+        area_cases.expected_area_ha.reshape(shape),
+        rtol=RTOL_AREA,
+        atol=ATOL_AREA,
+        err_msg="Area",
     )
