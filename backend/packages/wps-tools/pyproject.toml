@@ -12,7 +12,7 @@ dependencies = [
     "types-aiobotocore[s3]>=3.9,<4",
     "pandas>=1.5.2,<3",
     "requests>=2.31.0,<3",
-    "aiohttp>=3.14.4",
+    "aiohttp>=3.14.4,<4",
     "matplotlib>=3.10.8",
 ]
 
