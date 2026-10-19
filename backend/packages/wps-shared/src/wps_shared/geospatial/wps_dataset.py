@@ -391,6 +391,8 @@ class WPSDataset:
             y_coords = geotransform[3] + columns * geotransform[4] + row * geotransform[5]
             coordinates = np.column_stack((x_coords, y_coords)).tolist()
             latitudes[y] = [point[1] for point in transform.TransformPoints(coordinates)]
+            if not np.isfinite(latitudes[y]).all():
+                raise ValueError(f"Latitude transform produced non-finite values in row {y}")
 
         return latitudes
 
@@ -429,8 +431,12 @@ class WPSDataset:
         xi_grid, yi_grid = np.meshgrid(np.arange(x_size), np.arange(y_size))
 
         # Calculate pixel center coordinates in raster projection
-        x_coords = geotransform[0] + (xi_grid + 0.5) * geotransform[1]
-        y_coords = geotransform[3] + (yi_grid + 0.5) * geotransform[5]
+        x_coords = (
+            geotransform[0] + (xi_grid + 0.5) * geotransform[1] + (yi_grid + 0.5) * geotransform[2]
+        )
+        y_coords = (
+            geotransform[3] + (xi_grid + 0.5) * geotransform[4] + (yi_grid + 0.5) * geotransform[5]
+        )
 
         # Build valid mask if not provided
         if valid_mask is None:
