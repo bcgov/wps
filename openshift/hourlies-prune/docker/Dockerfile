@@ -10,7 +10,7 @@ ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
 # docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag=wps-api-base:ubuntu:24.04-latest
 FROM ${DOCKER_IMAGE}
 
-RUN apt-get update && apt-get -y install unzip
+RUN apt-get update && apt-get -y install ca-certificates unzip
 
 # Download the Amazon CLI installer.
 ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
