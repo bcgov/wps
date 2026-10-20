@@ -78,9 +78,9 @@ class SFMSRunManifest(BaseModel):
     """The inputs, outputs and reused rasters of one SFMS run, in the version 1 manifest schema.
 
     One manifest is written per SFMS run, at
-    ``sfms_ng/runs/{run_datetime yyyy/mm/dd}/{run_type}/{for_date}_{run_datetime}_run.json``.
-    Keying by run datetime means re-runs and backfills of a target date never overwrite an earlier
-    manifest. ``run_datetime`` is serialized as ISO 8601 UTC, ``for_date`` as an ISO date, and
+    ``sfms_ng/runs/{run_type}/{for_date yyyy/mm/dd}/target-{for_date}_run-{run_datetime}.json``.
+    Naming each file by its run datetime means re-runs and backfills of a target date never
+    overwrite an earlier manifest. ``run_datetime`` is serialized as ISO 8601 UTC, ``for_date`` as an ISO date, and
     every raster path as a plain object store key in the manifest's own bucket.
     """
 

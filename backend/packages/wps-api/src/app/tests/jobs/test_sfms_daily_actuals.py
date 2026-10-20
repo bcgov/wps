@@ -290,7 +290,7 @@ class TestRunSfmsDailyActuals:
         payload = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
 
         # the run datetime is the mocked "now", 2020-05-21T15:50:13Z
-        assert key == ("sfms_ng/runs/2020/05/21/actual/2024-07-04_20200521T155013962000Z_run.json")
+        assert key == ("sfms_ng/runs/actual/2024/07/04/target-2024-07-04_run-2020-05-21T15-50-13.962000Z.json")
         assert payload["version"] == 1
         assert payload["run_type"] == "actual"
         assert payload["for_date"] == "2024-07-04"

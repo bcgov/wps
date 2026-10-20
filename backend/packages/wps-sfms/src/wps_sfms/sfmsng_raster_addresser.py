@@ -25,8 +25,8 @@ from wps_sfms.raster_inputs import (
     PrimaryFireBehaviourInputs,
 )
 
-RUN_DATETIME_FILENAME_FORMAT = "%Y%m%dT%H%M%S%fZ"
-"""Compact UTC format preserving microseconds in run manifest file names."""
+RUN_DATETIME_FILENAME_FORMAT = "%Y-%m-%dT%H-%M-%S.%fZ"
+"""UTC format for run manifest file names: ISO 8601 with dashes for colons, and microseconds."""
 
 FWI_WEATHER_INPUTS = (
     SFMSInterpolatedWeatherParameter.TEMP,
@@ -177,16 +177,16 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         """
         S3 key for one SFMS run's input/output manifest.
 
-        Format: sfms_ng/runs/YYYY/MM/DD/{run_type}/{for_date}_{run_datetime}_run.json, where
-        YYYY/MM/DD is the run datetime's date and the run datetime is compacted UTC. Runs of the
-        same target date land under their own run datetime, so re-runs never overwrite a manifest.
+        Format: sfms_ng/runs/{run_type}/YYYY/MM/DD/target-{for_date}_run-{run_datetime}.json,
+        where YYYY/MM/DD is the target date, mirroring the rasters' layout, and the run datetime is
+        UTC. Every run of a target date lands in its folder under its own run datetime, so re-runs
+        never overwrite a manifest, and the fixed-width names sort chronologically.
         """
         assert_all_utc(run_datetime)
         run_datetime_str = run_datetime.strftime(RUN_DATETIME_FILENAME_FORMAT)
         return S3Key(
-            f"{self.root}/runs/{run_datetime.year:04d}/{run_datetime.month:02d}/"
-            f"{run_datetime.day:02d}/{run_type.value}/"
-            f"{for_date.isoformat()}_{run_datetime_str}_run.json"
+            f"{self.root}/runs/{run_type.value}/{for_date.year:04d}/{for_date.month:02d}/"
+            f"{for_date.day:02d}/target-{for_date.isoformat()}_run-{run_datetime_str}.json"
         )
 
     def get_fmc_inputs(

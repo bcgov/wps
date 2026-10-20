@@ -18,29 +18,32 @@ latest.
 Manifests live in the same object store as the rasters they describe, under the SFMSNG root:
 
 ```
-sfms_ng/runs/{run_datetime yyyy/mm/dd}/{run_type}/{for_date}_{run_datetime}_run.json
+sfms_ng/runs/{run_type}/{for_date yyyy/mm/dd}/target-{for_date}_run-{run_datetime}.json
 ```
 
 - `run_type` is `actual` or `forecast`.
-- `yyyy/mm/dd` is the **run datetime's** date (UTC) — not the target date.
-- `for_date` is the run's target date, ISO `YYYY-MM-DD`.
-- the `run_datetime` in the file name is the same UTC datetime, compacted to
-  `YYYYMMDDThhmmssffffffZ` (including six microsecond digits).
+- `yyyy/mm/dd` is the **target date**, mirroring the rasters' `sfms_ng/{run_type}/yyyy/mm/dd/`
+  layout, so a raster's manifests sit at the parallel path.
+- `for_date` is the run's target date, ISO `YYYY-MM-DD`, repeated in the file name so a manifest
+  still says which date it describes outside its folder.
+- `run_datetime` is the UTC datetime the run was saved, as ISO 8601 with `-` in place of `:` and
+  six microsecond digits (`YYYY-MM-DDThh-mm-ss.ffffffZ`).
 
 For example, an actuals run for 2026-10-13 that started at 20:45:00 UTC writes:
 
 ```
-sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json
+sfms_ng/runs/actual/2026/10/13/target-2026-10-13_run-2026-10-13T20-45-00.000000Z.json
 ```
 
 and that day's forecast run, processing 2026-10-14, writes:
 
 ```
-sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T211500000000Z_run.json
+sfms_ng/runs/forecast/2026/10/14/target-2026-10-14_run-2026-10-13T21-15-00.000000Z.json
 ```
 
-Because the folder is the run datetime, re-runs and backfills of the same target date never
-overwrite an earlier manifest: each run lands under its own run datetime. A manifest's
+A target date's folder collects every run that produced it: each forecast run that covered it, its
+actual run, and any re-runs and backfills. Each lands under its own run datetime, so none overwrites
+another, and the fixed-width names list in the order the runs happened. A manifest's
 `run_datetime` is the same value the run stored on its `sfms_run` row, so the two can be joined
 on it.
 

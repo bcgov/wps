@@ -79,27 +79,27 @@ class TestGetFoliarMoistureContentInputs:
 
 
 class TestRunManifestKeys:
-    def test_manifest_key_uses_the_run_datetime_folder(self, addresser: SFMSNGRasterAddresser):
+    def test_manifest_key_uses_the_target_date_folder(self, addresser: SFMSNGRasterAddresser):
         assert (
             addresser.get_run_manifest_key(
                 RunType.ACTUAL,
                 date(2026, 10, 13),
                 datetime(2026, 10, 13, 20, 45, 0, tzinfo=timezone.utc),
             )
-            == "sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json"
+            == "sfms_ng/runs/actual/2026/10/13/target-2026-10-13_run-2026-10-13T20-45-00.000000Z.json"
         )
 
-    def test_manifest_key_uses_the_for_date_in_the_file_name(
+    def test_forecast_manifest_key_uses_the_forecast_date_folder(
         self, addresser: SFMSNGRasterAddresser
     ):
-        # forecast runs process dates after the run datetime; the folder stays the run date
+        # forecast runs process dates after the run datetime; the folder is the forecast date
         assert (
             addresser.get_run_manifest_key(
                 RunType.FORECAST,
                 date(2026, 10, 14),
                 datetime(2026, 10, 13, 20, 45, 0, tzinfo=timezone.utc),
             )
-            == "sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T204500000000Z_run.json"
+            == "sfms_ng/runs/forecast/2026/10/14/target-2026-10-14_run-2026-10-13T20-45-00.000000Z.json"
         )
 
     def test_manifest_key_zero_pads_the_run_datetime_parts(self, addresser: SFMSNGRasterAddresser):
@@ -107,7 +107,7 @@ class TestRunManifestKeys:
             addresser.get_run_manifest_key(
                 RunType.ACTUAL, date(2026, 1, 2), datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
             )
-            == "sfms_ng/runs/2026/01/02/actual/2026-01-02_20260102T030405000000Z_run.json"
+            == "sfms_ng/runs/actual/2026/01/02/target-2026-01-02_run-2026-01-02T03-04-05.000000Z.json"
         )
 
     def test_manifest_key_preserves_run_datetime_microseconds(
@@ -119,7 +119,7 @@ class TestRunManifestKeys:
                 date(2026, 1, 2),
                 datetime(2026, 1, 2, 3, 4, 5, 123456, tzinfo=timezone.utc),
             )
-            == "sfms_ng/runs/2026/01/02/actual/2026-01-02_20260102T030405123456Z_run.json"
+            == "sfms_ng/runs/actual/2026/01/02/target-2026-01-02_run-2026-01-02T03-04-05.123456Z.json"
         )
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):

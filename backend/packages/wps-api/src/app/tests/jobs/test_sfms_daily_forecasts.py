@@ -151,7 +151,7 @@ class TestRunSfmsDailyForecasts:
             for manifest in (
                 json.loads(call.kwargs["body"])
                 for call in mock_dependencies.s3_client.put_object.await_args_list
-                if call.kwargs["key"].endswith("_run.json")
+                if call.kwargs["key"].startswith("sfms_ng/runs/")
             )
         }
         assert statuses == {"2024-07-05": "success", "2024-07-06": "failed"}
@@ -251,14 +251,14 @@ class TestRunSfmsDailyForecasts:
         manifest_calls = [
             call
             for call in mock_dependencies.s3_client.put_object.await_args_list
-            if call.kwargs["key"].endswith("_run.json")
+            if call.kwargs["key"].startswith("sfms_ng/runs/")
         ]
-        # one manifest per forecast date, each under the same run datetime folder
+        # one manifest per forecast date, each in its forecast date folder
         keys = sorted(call.kwargs["key"] for call in manifest_calls)
         assert keys == [
-            "sfms_ng/runs/2020/05/21/forecast/2024-07-05_20200521T155013962000Z_run.json",
-            "sfms_ng/runs/2020/05/21/forecast/2024-07-06_20200521T155013962000Z_run.json",
-            "sfms_ng/runs/2020/05/21/forecast/2024-07-07_20200521T155013962000Z_run.json",
+            "sfms_ng/runs/forecast/2024/07/05/target-2024-07-05_run-2020-05-21T15-50-13.962000Z.json",
+            "sfms_ng/runs/forecast/2024/07/06/target-2024-07-06_run-2020-05-21T15-50-13.962000Z.json",
+            "sfms_ng/runs/forecast/2024/07/07/target-2024-07-07_run-2020-05-21T15-50-13.962000Z.json",
         ]
         payload = json.loads(manifest_calls[0].kwargs["body"])
         assert payload["run_type"] == "forecast"
@@ -312,7 +312,7 @@ class TestRunSfmsDailyForecasts:
             for manifest in (
                 json.loads(call.kwargs["body"])
                 for call in mock_dependencies.s3_client.put_object.await_args_list
-                if call.kwargs["key"].endswith("_run.json")
+                if call.kwargs["key"].startswith("sfms_ng/runs/")
             )
         }
         assert manifests["2024-07-06"]["status"] == "failed"

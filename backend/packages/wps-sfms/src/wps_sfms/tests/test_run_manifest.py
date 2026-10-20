@@ -103,15 +103,15 @@ def test_records_keys_with_the_gdal_prefix_stripped(bucket):
     }
 
 
-def test_key_uses_the_run_datetime_folder_and_run_type():
+def test_key_uses_the_run_type_and_target_date_folder():
     manifest = a_manifest()
 
     assert manifest.key() == (
-        "sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json"
+        "sfms_ng/runs/actual/2026/10/13/target-2026-10-13_run-2026-10-13T20-45-00.000000Z.json"
     )
 
 
-def test_key_uses_the_for_date_in_the_file_name():
+def test_forecast_key_uses_the_forecast_date_folder():
     manifest = SFMSRunManifest(
         SFMSNGRasterAddresser(),
         run_type=RunType.FORECAST,
@@ -119,9 +119,9 @@ def test_key_uses_the_for_date_in_the_file_name():
         run_datetime=RUN_DATETIME,
     )
 
-    # forecast runs process dates after the run datetime; the folder stays the run date
+    # forecast runs process dates after the run datetime; the folder is the forecast date
     assert manifest.key() == (
-        "sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T204500000000Z_run.json"
+        "sfms_ng/runs/forecast/2026/10/14/target-2026-10-14_run-2026-10-13T20-45-00.000000Z.json"
     )
 
 
@@ -263,7 +263,7 @@ async def test_write_uploads_the_manifest_json(bucket):
 
     key = s3_client.put_object.await_args.kwargs["key"]
     body = s3_client.put_object.await_args.kwargs["body"]
-    assert key == ("sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json")
+    assert key == ("sfms_ng/runs/actual/2026/10/13/target-2026-10-13_run-2026-10-13T20-45-00.000000Z.json")
     payload = json.loads(body)
     assert payload["version"] == MANIFEST_SCHEMA_VERSION
     assert payload["status"] == "success"
