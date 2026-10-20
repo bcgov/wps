@@ -230,7 +230,7 @@ jobs:
     runs-on: ubuntu-26.04
     strategy:
       matrix:
-        python-version: [3.12.3]
+        python-version: ["3.12"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
