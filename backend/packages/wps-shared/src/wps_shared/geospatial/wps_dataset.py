@@ -361,6 +361,18 @@ class WPSDataset:
 
         return array, new_no_data_value
 
+    def _wgs84_transform(self) -> osr.CoordinateTransformation:
+        """Transform this dataset's coordinates to EPSG:4326 in (lon, lat) order."""
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromWkt(self.ds.GetProjection())
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        tgt_srs = osr.SpatialReference()
+        tgt_srs.ImportFromEPSG(4326)
+        tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        return osr.CoordinateTransformation(src_srs, tgt_srs)
+
     def generate_latitude_array(self):
         """
         transform pixel centers to 4326 to compute their latitude coordinates.
@@ -368,20 +380,10 @@ class WPSDataset:
         :return: array of latitude coordinates
         """
         geotransform = self.ds.GetGeoTransform()
-        projection = self.ds.GetProjection()
-
-        src_srs = osr.SpatialReference()
-        src_srs.ImportFromWkt(projection)
-        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-
         x_size = self.ds.RasterXSize
         y_size = self.ds.RasterYSize
 
-        tgt_srs = osr.SpatialReference()
-        tgt_srs.ImportFromEPSG(4326)
-        tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-
-        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+        transform = self._wgs84_transform()
         latitudes = np.empty((y_size, x_size))
         columns = np.arange(x_size, dtype=np.float64) + 0.5
 
@@ -413,19 +415,10 @@ class WPSDataset:
                  - xi_indices: 1D array of x (column) indices
         """
         geotransform = self.ds.GetGeoTransform()
-        projection = self.ds.GetProjection()
         x_size = self.ds.RasterXSize
         y_size = self.ds.RasterYSize
 
-        # Setup coordinate transformation
-        src_srs = osr.SpatialReference()
-        src_srs.ImportFromWkt(projection)
-        # Use traditional GIS order (lon, lat) for consistent axis ordering
-        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        tgt_srs = osr.SpatialReference()
-        tgt_srs.ImportFromEPSG(4326)
-        tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+        transform = self._wgs84_transform()
 
         # Create coordinate grids for all pixels
         xi_grid, yi_grid = np.meshgrid(np.arange(x_size), np.arange(y_size))
