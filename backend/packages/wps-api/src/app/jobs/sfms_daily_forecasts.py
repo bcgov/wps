@@ -154,12 +154,16 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
                 fmc_key = await calculate_fmc(ctx)
                 weather_keys = await interpolate_weather(ctx, sfms_forecasts)
                 fwi_keys = await calculate_fwi(ctx, weather_keys)
-                # None when the run had no previous-day seeds to calculate FWI from
-                if fwi_keys is not None:
-                    temporal_fuel_path = await resolve_temporal_fuel(ctx)
-                    await calculate_primary_fbp(
-                        ctx, temporal_fuel_path, fmc_key, weather_keys, fwi_keys
+                # the actual seeds were checked up front and each later date seeds from the one
+                # before it, so missing seeds here mean they changed mid-run
+                if fwi_keys is None:
+                    raise RuntimeError(
+                        f"Missing previous-day seeds for forecast {datetime_to_process.date()}"
                     )
+                temporal_fuel_path = await resolve_temporal_fuel(ctx)
+                await calculate_primary_fbp(
+                    ctx, temporal_fuel_path, fmc_key, weather_keys, fwi_keys
+                )
                 await ctx.write_manifest()
             except Exception as error:
                 await ctx.write_manifest(error, step="daily_forecasts")

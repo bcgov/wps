@@ -293,17 +293,19 @@ class TestRunSfmsDailyForecasts:
         mock_dependencies.s3_client.put_object.assert_not_awaited()
 
     @pytest.mark.anyio
-    async def test_date_missing_its_forecast_seeds_skips_fwi_fuel_and_fbp(
+    async def test_date_missing_its_forecast_seeds_records_it_and_stops_the_batch(
         self, mock_dependencies: MockDailySFMSDeps
     ):
-        """A date whose previous-day forecast seeds are missing records that and moves on."""
+        """A date whose previous-day forecast seeds vanished mid-run fails the batch."""
         # the actual seeds exist, so the batch starts, but the first date's forecast
         # rasters, which the second date seeds from, are missing
         mock_dependencies.s3_client.all_objects_exist = AsyncMock(
             side_effect=lambda *keys: not any("forecast/2024/07/05" in key for key in keys)
         )
+        run_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
-        await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
+        with pytest.raises(RuntimeError, match="Missing previous-day seeds for forecast 2024-07-06"):
+            await run_sfms_daily_forecasts(run_datetime)
 
         manifests = {
             manifest["for_date"]: manifest
@@ -317,8 +319,9 @@ class TestRunSfmsDailyForecasts:
         assert manifests["2024-07-06"]["failed_step"] == "fwi_seed_check"
         assert manifests["2024-07-06"]["output"]["fbp"] == {}
         assert manifests["2024-07-05"]["status"] == "success"
-        # FBP ran for the dates that had their seeds
-        assert mock_dependencies.primary_fbp_processor.process.await_count == 2
+        # only the first date got FBP, and the third date never started
+        assert "2024-07-07" not in manifests
+        assert mock_dependencies.primary_fbp_processor.process.await_count == 1
 
     @pytest.mark.anyio
     async def test_raises_on_empty_forecasts(self, mock_dependencies: MockDailySFMSDeps):
