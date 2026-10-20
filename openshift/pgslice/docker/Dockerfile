@@ -4,7 +4,7 @@ FROM artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
 ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
 
 RUN apt-get update && \
-    apt-get install -y build-essential libpq-dev postgresql-client-16 python3 ruby-full && \
+    apt-get install -y build-essential ca-certificates libpq-dev postgresql-client-16 python3 ruby-full && \
     gem install pgslice
 
 # Download the Amazon CLI installer.
