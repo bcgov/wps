@@ -256,7 +256,7 @@ jobs:
     name: Publish APS Gateway Config to Dev
     if: github.triggering_actor != 'renovate'
     needs: [deploy-asa-go-dev, deploy-sfms-fwi-dev]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/gwa-setup
@@ -296,7 +296,7 @@ jobs:
   scan-dev:
     name: ZAP Baseline Scan Dev
     needs: [deploy-dev]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/zap-baseline-scan
