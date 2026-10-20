@@ -70,7 +70,8 @@ def record_everything(manifest: SFMSRunManifest) -> None:
         output_keys={FOR_DATE: "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif"},
     )
     manifest.record_fmc_static_inputs(fmc_inputs)
-    manifest.record_fmc_raster(fmc_inputs.output_keys[FOR_DATE])
+    # an earlier run calculated the date's FMC, so this one reuses it
+    manifest.record_reused_fmc_raster(fmc_inputs.output_keys[FOR_DATE])
     for weather_param in SFMSInterpolatedWeatherParameter:
         manifest.record_raster_output(
             weather_param, f"sfms_ng/actual/2026/10/13/{weather_param.value}_20261013.tif"
@@ -192,6 +193,8 @@ def test_manifest_json_follows_the_version_1_schema(bucket):
                 for param in FBPParameter
             },
             "fuel_raster": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
+        },
+        "reused": {
             "fmc_raster": "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif",
         },
     }
@@ -216,6 +219,7 @@ def test_manifest_records_only_the_steps_that_ran(bucket):
     assert manifest.input.seed_rasters == {}
     payload = json.loads(manifest.model_dump_json(indent=2, exclude_none=True))
     assert payload["input"]["fuel_raster"] == {}
+    assert payload["reused"] == {}
 
 
 def test_manifest_records_failure_and_preserves_partial_trace():

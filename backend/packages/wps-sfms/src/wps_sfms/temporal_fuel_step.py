@@ -60,7 +60,9 @@ async def resolve_temporal_fuel(context: SFMSRunContext) -> GDALPath:
                     target_date,
                     existing.object_store_path,
                 )
-                return raster_addresser.gdal_path(existing.object_store_path)
+                existing_path = raster_addresser.gdal_path(existing.object_store_path)
+                context.manifest.record_reused_temporal_fuel_raster(existing_path)
+                return existing_path
             # a grid is fully determined by its inputs, so a missing or altered one is rebuilt as
             # the next version, which the reuse query then prefers
 
@@ -93,11 +95,11 @@ async def resolve_temporal_fuel(context: SFMSRunContext) -> GDALPath:
                     create_timestamp=get_utc_now(),
                 )
             )
-        return raster_addresser.gdal_path(output_key)
+        output_path = raster_addresser.gdal_path(output_key)
+        context.manifest.record_temporal_fuel_raster(output_path)
+        return output_path
 
-    temporal_fuel_path = await context.track(SFMSRunLogJobName.TEMPORAL_FUEL, _resolve)
-    context.manifest.record_temporal_fuel_raster(temporal_fuel_path)
-    return temporal_fuel_path
+    return await context.track(SFMSRunLogJobName.TEMPORAL_FUEL, _resolve)
 
 
 async def _stored_raster_matches(s3_client: S3Client, existing: TemporalFuelRaster) -> bool:

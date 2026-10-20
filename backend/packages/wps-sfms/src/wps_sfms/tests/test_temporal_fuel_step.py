@@ -141,10 +141,11 @@ async def test_temporal_fuel_step_reuses_matching_raster(mocker: MockerFixture, 
 
     assert path == "/vsis3/some bucket/temporal/2.tif"
     assert deps.tracked_jobs == [SFMSRunLogJobName.TEMPORAL_FUEL]
-    # the grid is an FBP input and an output, and the reused grid's Julian inputs are traced by
+    # a reused grid is an FBP input this run didn't write, and its Julian inputs are traced by
     # archive key, so they survive the live Julian keys being replaced
     assert run.manifest.input.fuel_raster.temporal == "temporal/2.tif"
-    assert run.manifest.output.fuel_raster == "temporal/2.tif"
+    assert run.manifest.reused.fuel_raster == "temporal/2.tif"
+    assert run.manifest.output.fuel_raster is None
     assert run.manifest.input.julian_rasters == julian_archive_keys()
     deps.lock.assert_awaited_once_with(deps.session, TARGET_DATE)
     get_existing.assert_awaited_once_with(deps.session, TARGET_DATE, 7, **JULIAN_HASHES)
@@ -178,6 +179,10 @@ async def test_temporal_fuel_step_records_next_version(mocker: MockerFixture, te
     path, run = await resolve(deps)
 
     assert path == "/vsis3/some bucket/temporal/3.tif"
+    # a grid this run built is both an FBP input and the run's output
+    assert run.manifest.input.fuel_raster.temporal == "temporal/3.tif"
+    assert run.manifest.output.fuel_raster == "temporal/3.tif"
+    assert run.manifest.reused.fuel_raster is None
     assert run.manifest.input.julian_rasters == julian_archive_keys()
     publish_args = deps.publish.await_args.kwargs
     assert publish_args["base_fuel_key"] == "/vsis3/some bucket/sfms/static/fuel/fbp2026_v1.tif"

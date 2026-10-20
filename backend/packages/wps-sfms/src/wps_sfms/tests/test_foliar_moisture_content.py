@@ -312,12 +312,15 @@ async def test_processor_skips_complete_dates_and_processes_missing_dates(
         ),
     )
 
-    await FoliarMoistureContentProcessor(addresser).process(
+    fmc_keys = await FoliarMoistureContentProcessor(addresser).process(
         s3_client,
         make_dataset_context(datasets, context_calls),
         inputs,
     )
 
+    # the existing date is reused and only the missing one is processed
+    assert fmc_keys.processed_keys == {missing_date: inputs.output_keys[missing_date]}
+    assert fmc_keys.reused_keys == {existing_date: inputs.output_keys[existing_date]}
     assert s3_client.all_objects_exist.await_args_list[0].args == (
         inputs.output_keys[existing_date],
         addresser.get_cog_key(inputs.output_keys[existing_date]),

@@ -113,11 +113,16 @@ versions can add to them.
       "tfc": "sfms_ng/actual/2026/10/13/tfc_20261013.tif",
       "cfb": "sfms_ng/actual/2026/10/13/cfb_20261013.tif"
     },
-    "fuel_raster": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
+    "fuel_raster": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif"
+  },
+  "reused": {
     "fmc_raster": "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif"
   }
 }
 ```
+
+In this example the run built version 2 of the date's temporal fuel grid, so it is an output, and
+reused the FMC raster an earlier run had calculated for the date.
 
 ### Fields
 
@@ -133,6 +138,7 @@ versions can add to them.
 | `failure_message` | string | Optional, truncated exception message for failed runs.                                       |
 | `input`        | object | What the run read. See below.                                                                    |
 | `output`       | object | What the run wrote, by product. See below.                                                       |
+| `reused`       | object | Rasters the run would otherwise have produced, but which already existed. See below.             |
 
 Every raster path is a plain object store key in the same bucket as the manifest, not a GDAL
 `/vsis3/{bucket}/` path; a reader that wants the GDAL path prefixes the key with `/vsis3/{bucket}/`.
@@ -146,7 +152,7 @@ not record it, and groups that were recorded are objects keyed by parameter name
 run whose FWI calculation was skipped for missing previous-day rasters has `status` `failed` with
 `failed_step` `fwi_seed_check`, records `input.station_codes`, `input.fuel_raster.base` and
 `output.weather`, leaves `input.seed_rasters`, `output.fwi` and `output.fbp` as empty objects, and
-omits `output.fuel_raster`.
+records no temporal fuel grid in `input`, `output` or `reused`.
 
 #### `input`
 
@@ -157,7 +163,7 @@ omits `output.fuel_raster`.
 | `seed_rasters`   | Previous-day FFMC/DMC/DC rasters the run calculated FWI forward from. An empty object on April/May Monday re-interpolation days, which interpolate the base indices from stations instead, and for the derived ISI/BUI/FWI calculations that follow them. |
 | `static_rasters` | Static rasters by role: `dem` and `mask` for interpolation, `elevation`, `latitude` and `longitude` for FMC, `slope` and `aspect` for primary FBP. `dem` is the legacy SFMS elevation raster and is distinct from `elevation`. |
 | `julian_rasters` | The green-up and grass curing rasters the temporal fuel grid was built from, keyed by name. These are the **archive** keys (`sfms_ng/static/julian/archive/{name}/{sha256}.tif`), because the live `sfms_ng/static/julian/{name}.tif` keys are replaced over time and an archive key is the content-addressed copy of the exact bytes the grid was built from. |
-| `fmc_raster`     | The shared FMC raster for the target date. Listed twice: it is an input to primary FBP, and it is a product of the run.         |
+| `fmc_raster`     | The shared FMC raster for the target date that primary FBP read, whether the run calculated it or reused it.                     |
 
 #### `output`
 
@@ -167,12 +173,24 @@ Rasters the run wrote, grouped by product:
   `relative_humidity`, `wind_speed`, `wind_direction`, `precipitation`).
 - `fwi`: FWI indices, keyed by parameter (`ffmc`, `dmc`, `dc`, `isi`, `bui`, `fwi`).
 - `fbp`: primary FBP products, keyed by parameter (`sfc`, `ros`, `hfi`, `tfc`, `cfb`).
-- `fuel_raster`: the dated temporal fuel grid, also listed as `input.fuel_raster.temporal`
-  because primary FBP consumes it.
-- `fmc_raster`: the shared FMC raster for the target date, also listed as `input.fmc_raster`.
+- `fuel_raster`: the dated temporal fuel grid, when the run built a new version of it.
+- `fmc_raster`: the shared FMC raster for the target date, when the run calculated it.
 
 Each published raster also has a cloud-optimized copy at the same key with `_cog.tif` in place
 of `.tif` (see `SFMSNGRasterAddresser.get_cog_key`).
+
+#### `reused`
+
+Rasters the run would otherwise have produced, but which an earlier run already had. A date is
+processed by several forecast runs and then its actual run, and only the first to process it
+produces these, so most runs reuse them:
+
+- `fuel_raster`: the temporal fuel grid, when a stored version was built from the same base fuel
+  grid and Julian rasters and still matches its recorded hash.
+- `fmc_raster`: the FMC raster for the target date, when it already existed.
+
+Each is in either `output` or `reused`, never both, and is always also in `input`, since primary
+FBP reads it either way.
 
 ## Changing the schema
 

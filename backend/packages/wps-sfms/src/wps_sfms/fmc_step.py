@@ -22,12 +22,17 @@ async def calculate_fmc(context: SFMSRunContext) -> S3Key:
     context.manifest.record_fmc_static_inputs(fmc_inputs)
     # each forecast date reopens the static rasters; batch dates in one processor call
     # if FMC time matters
-    await context.track(
+    fmc_keys = await context.track(
         SFMSRunLogJobName.FOLIAR_MOISTURE_CONTENT,
         lambda: FoliarMoistureContentProcessor(context.raster_addresser).process(
             context.s3_client, multi_wps_dataset_context, fmc_inputs
         ),
     )
-    fmc_key = fmc_inputs.output_keys[target_date]
-    context.manifest.record_fmc_raster(fmc_key)
+    # only the first run to process a date calculates its FMC; later runs reuse it
+    if target_date in fmc_keys.reused_keys:
+        fmc_key = fmc_keys.reused_keys[target_date]
+        context.manifest.record_reused_fmc_raster(fmc_key)
+    else:
+        fmc_key = fmc_keys.processed_keys[target_date]
+        context.manifest.record_fmc_raster(fmc_key)
     return fmc_key

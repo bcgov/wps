@@ -32,6 +32,16 @@ class FoliarMoistureContentResult:
 
 
 @dataclass(frozen=True)
+class FoliarMoistureContentKeys:
+    """The FMC raster key for each requested date, split by whether it was processed or reused."""
+
+    # dates whose FMC raster was calculated and written
+    processed_keys: dict[date, S3Key]
+    # dates whose valid FMC raster already existed
+    reused_keys: dict[date, S3Key]
+
+
+@dataclass(frozen=True)
 class FoliarMoistureContentDatasets:
     fuel: WPSDataset  # fuel is only used for grid validation, not in the FMC calculation
     elevation: WPSDataset
@@ -167,18 +177,30 @@ class FoliarMoistureContentProcessor:
         s3_client: S3Client,
         input_dataset_context: MultiDatasetContext,
         inputs: FoliarMoistureContentInputs,
-    ) -> None:
-        """Reuse valid FMC rasters and calculate any requested dates that are missing."""
-        if not inputs.output_keys:
-            return
+    ) -> FoliarMoistureContentKeys:
+        """
+        Reuse valid FMC rasters and calculate any requested dates that are missing.
 
+        :param s3_client: Client the rasters are read and written with
+        :param input_dataset_context: Opens the static input rasters
+        :param inputs: The static input rasters and the output key for each date
+        :return: Each date's FMC raster key, split by whether it was processed or reused
+        """
         outputs_to_process = await self._select_outputs_to_process(
             s3_client,
             inputs.fuel_key,
             inputs.output_keys,
         )
+        fmc_keys = FoliarMoistureContentKeys(
+            processed_keys=outputs_to_process,
+            reused_keys={
+                target_date: output_key
+                for target_date, output_key in inputs.output_keys.items()
+                if target_date not in outputs_to_process
+            },
+        )
         if not outputs_to_process:
-            return
+            return fmc_keys
 
         with gdal_s3_context():
             await self._raster_dependencies.assert_keys_exist(
@@ -212,3 +234,4 @@ class FoliarMoistureContentProcessor:
                             published.output_key,
                             published.cog_key,
                         )
+        return fmc_keys

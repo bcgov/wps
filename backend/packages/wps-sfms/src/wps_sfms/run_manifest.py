@@ -67,8 +67,15 @@ class SFMSRunOutputs(BaseModel):
     fmc_raster: str | None = None
 
 
+class SFMSRunReused(BaseModel):
+    """Rasters one SFMS run would otherwise have produced, but which already existed."""
+
+    fuel_raster: str | None = None
+    fmc_raster: str | None = None
+
+
 class SFMSRunManifest(BaseModel):
-    """The inputs and outputs of one SFMS run, in the version 1 manifest schema.
+    """The inputs, outputs and reused rasters of one SFMS run, in the version 1 manifest schema.
 
     One manifest is written per SFMS run, at
     ``sfms_ng/runs/{run_datetime yyyy/mm/dd}/{run_type}/{for_date}_{run_datetime}_run.json``.
@@ -87,6 +94,7 @@ class SFMSRunManifest(BaseModel):
     failure_message: str | None = None
     input: SFMSRunInputs = Field(default_factory=SFMSRunInputs)
     output: SFMSRunOutputs = Field(default_factory=SFMSRunOutputs)
+    reused: SFMSRunReused = Field(default_factory=SFMSRunReused)
     _raster_addresser: SFMSNGRasterAddresser = PrivateAttr()
 
     def __init__(self, raster_addresser: SFMSNGRasterAddresser, **data):
@@ -126,15 +134,21 @@ class SFMSRunManifest(BaseModel):
         self.input.fuel_raster.percent_conifer = self._object_store_key(key)
 
     def record_temporal_fuel_raster(self, raster_path: GDALPath) -> None:
-        """Record the temporal fuel grid the run resolved for the target date.
+        """Record the temporal fuel grid the run built for the target date.
 
-        The grid is recorded as both an input and an output: it is the fuel raster primary FBP ran
-        on, and it is stored under this run's date. The Julian date rasters it was built from are
-        recorded separately, with ``record_julian_rasters``.
+        The grid is recorded as an input, since primary FBP runs on it, and as an output. The
+        Julian date rasters it was built from are recorded separately, with
+        ``record_julian_rasters``.
         """
         fuel_key = self._object_store_key(raster_path)
         self.input.fuel_raster.temporal = fuel_key
         self.output.fuel_raster = fuel_key
+
+    def record_reused_temporal_fuel_raster(self, raster_path: GDALPath) -> None:
+        """Record the temporal fuel grid the run reused from an earlier run, as an input."""
+        fuel_key = self._object_store_key(raster_path)
+        self.input.fuel_raster.temporal = fuel_key
+        self.reused.fuel_raster = fuel_key
 
     def record_fmc_static_inputs(self, fmc_inputs: FoliarMoistureContentInputs) -> None:
         """Record the static rasters used to calculate FMC."""
@@ -147,14 +161,19 @@ class SFMSRunManifest(BaseModel):
         )
 
     def record_fmc_raster(self, key: str) -> None:
-        """Record the calculated FMC raster for the target date.
+        """Record the FMC raster the run calculated for the target date.
 
-        FMC is recorded as both an input and an output: the run is responsible for the target
-        date's raster, and primary FBP consumes it.
+        FMC is recorded as an input, since primary FBP consumes it, and as an output.
         """
         fmc_key = self._object_store_key(key)
         self.input.fmc_raster = fmc_key
         self.output.fmc_raster = fmc_key
+
+    def record_reused_fmc_raster(self, key: str) -> None:
+        """Record the FMC raster the run reused from an earlier run, as an input."""
+        fmc_key = self._object_store_key(key)
+        self.input.fmc_raster = fmc_key
+        self.reused.fmc_raster = fmc_key
 
     def record_seed_rasters(self, seed_keys: Mapping[FWIParameter, str]) -> None:
         """Record the previous-day index rasters the run calculated FWI forward from."""

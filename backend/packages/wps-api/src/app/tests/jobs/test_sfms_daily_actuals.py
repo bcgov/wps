@@ -322,6 +322,8 @@ class TestRunSfmsDailyActuals:
         assert payload["output"]["fwi"]["fwi"] == "sfms_ng/actual/2024/07/04/fwi_20240704.tif"
         assert payload["output"]["fbp"]["hfi"] == "sfms_ng/actual/2024/07/04/hfi_20240704.tif"
         assert payload["output"]["fmc_raster"] == "sfms_ng/static/fmc/2024/07/04/fmc_20240704.tif"
+        # the fixture's temporal fuel grid already exists, so the run reuses it
+        assert payload["reused"] == {"fuel_raster": "temporal/2024-07-04.tif"}
 
     @pytest.mark.anyio
     async def test_skips_fwi_fuel_and_fbp_when_seeds_are_missing(

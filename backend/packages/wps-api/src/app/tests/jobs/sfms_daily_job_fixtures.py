@@ -7,7 +7,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentProcessor
+from wps_sfms.processors.foliar_moisture_content import (
+    FoliarMoistureContentKeys,
+    FoliarMoistureContentProcessor,
+)
 from wps_sfms.processors.fwi import FWIProcessor
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
@@ -132,7 +135,12 @@ def make_mock_daily_sfms_dependencies(
     fmc_inputs.longitude_key = "/vsis3/test-bucket/sfms_ng/static/longitude.tif"
     addresser.get_fmc_inputs.return_value = fmc_inputs
     fmc_processor = MagicMock(spec=FoliarMoistureContentProcessor)
-    fmc_processor.process = AsyncMock()
+    # every date's FMC raster is processed rather than reused
+    processed_fmc_keys = MagicMock()
+    processed_fmc_keys.__getitem__.side_effect = fmc_key
+    fmc_processor.process = AsyncMock(
+        return_value=FoliarMoistureContentKeys(processed_keys=processed_fmc_keys, reused_keys={})
+    )
     fmc_processor_class = mocker.patch(
         "wps_sfms.fmc_step.FoliarMoistureContentProcessor", return_value=fmc_processor
     )
