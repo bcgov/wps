@@ -25,7 +25,7 @@ jobs:
   mac-setup:
     name: Provision a clean macOS machine with setup/mac.sh
     # Apple Silicon (arm64) -- matches dev machines and exercises the Rosetta/wkhtmltopdf path.
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 75
     env:
       HOMEBREW_NO_INSTALL_CLEANUP: "1"
