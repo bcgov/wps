@@ -361,40 +361,40 @@ class WPSDataset:
 
         return array, new_no_data_value
 
+    def _wgs84_transform(self) -> osr.CoordinateTransformation:
+        """Transform this dataset's coordinates to EPSG:4326 in (lon, lat) order."""
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromWkt(self.ds.GetProjection())
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        tgt_srs = osr.SpatialReference()
+        tgt_srs.ImportFromEPSG(4326)
+        tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+        return osr.CoordinateTransformation(src_srs, tgt_srs)
+
     def generate_latitude_array(self):
         """
-        Transforms this dataset to 4326 to compute the latitude coordinates.
-
-        Note: This method is slow for large rasters. Consider using
-        get_lat_lon_coords() for vectorized coordinate transformation.
+        transform pixel centers to 4326 to compute their latitude coordinates.
 
         :return: array of latitude coordinates
         """
         geotransform = self.ds.GetGeoTransform()
-        projection = self.ds.GetProjection()
-
-        src_srs = osr.SpatialReference()
-        src_srs.ImportFromWkt(projection)
-
         x_size = self.ds.RasterXSize
         y_size = self.ds.RasterYSize
 
-        tgt_srs = osr.SpatialReference()
-        tgt_srs.ImportFromEPSG(4326)
-
-        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
-
-        # empty array to store latitude values
-        latitudes = np.zeros((y_size, x_size))
+        transform = self._wgs84_transform()
+        latitudes = np.empty((y_size, x_size))
+        columns = np.arange(x_size, dtype=np.float64) + 0.5
 
         for y in range(y_size):
-            for x in range(x_size):
-                x_coord = geotransform[0] + x * geotransform[1] + y * geotransform[2]
-                y_coord = geotransform[3] + x * geotransform[4] + y * geotransform[5]
-
-                _, lat, _ = transform.TransformPoint(x_coord, y_coord)
-
-                latitudes[y, x] = lat
+            row = y + 0.5
+            x_coords = geotransform[0] + columns * geotransform[1] + row * geotransform[2]
+            y_coords = geotransform[3] + columns * geotransform[4] + row * geotransform[5]
+            coordinates = np.column_stack((x_coords, y_coords)).tolist()
+            latitudes[y] = [point[1] for point in transform.TransformPoints(coordinates)]
+            if not np.isfinite(latitudes[y]).all():
+                raise ValueError(f"Latitude transform produced non-finite values in row {y}")
 
         return latitudes
 
@@ -415,26 +415,21 @@ class WPSDataset:
                  - xi_indices: 1D array of x (column) indices
         """
         geotransform = self.ds.GetGeoTransform()
-        projection = self.ds.GetProjection()
         x_size = self.ds.RasterXSize
         y_size = self.ds.RasterYSize
 
-        # Setup coordinate transformation
-        src_srs = osr.SpatialReference()
-        src_srs.ImportFromWkt(projection)
-        # Use traditional GIS order (lon, lat) for consistent axis ordering
-        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        tgt_srs = osr.SpatialReference()
-        tgt_srs.ImportFromEPSG(4326)
-        tgt_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
-        transform = osr.CoordinateTransformation(src_srs, tgt_srs)
+        transform = self._wgs84_transform()
 
         # Create coordinate grids for all pixels
         xi_grid, yi_grid = np.meshgrid(np.arange(x_size), np.arange(y_size))
 
         # Calculate pixel center coordinates in raster projection
-        x_coords = geotransform[0] + (xi_grid + 0.5) * geotransform[1]
-        y_coords = geotransform[3] + (yi_grid + 0.5) * geotransform[5]
+        x_coords = (
+            geotransform[0] + (xi_grid + 0.5) * geotransform[1] + (yi_grid + 0.5) * geotransform[2]
+        )
+        y_coords = (
+            geotransform[3] + (xi_grid + 0.5) * geotransform[4] + (yi_grid + 0.5) * geotransform[5]
+        )
 
         # Build valid mask if not provided
         if valid_mask is None:
