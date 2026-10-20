@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
 
 # Minimal deps
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential git python3-dev python3-pip \
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential ca-certificates git python3-dev python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 
@@ -78,7 +78,7 @@ USER 0
 COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
 
 # eccodes C library required by cfgrib at runtime
-RUN apt-get update && apt-get install -y libeccodes-tools \
+RUN apt-get update && apt-get install -y ca-certificates libeccodes-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Prepare /app for OpenShift:
