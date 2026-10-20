@@ -92,7 +92,7 @@ jobs:
   set_deployment_status_success:
     name: Set production deployment successful
     needs: [deploy_to_production]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Set status to deployed
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
