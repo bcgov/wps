@@ -11,9 +11,7 @@ vi.mock('@/features/weatherToolkit/hooks/useWxChartCache', () => ({
 }))
 
 vi.mock('@/features/weatherToolkit/components/SidePanel', () => ({
-  default: ({ model }: { model: ModelType }) => (
-  <div data-testid="side-panel" data-model={model} />
-  )
+  default: ({ model }: { model: ModelType }) => <div data-testid="side-panel" data-model={model} />
 }))
 
 vi.mock('@/features/weatherToolkit/components/ChartPanel', () => ({
