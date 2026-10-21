@@ -9,6 +9,7 @@ from pytest_mock import MockerFixture
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
+from wps_sfms.tests.run_test_utils import some_bucket, tracked_jobs  # noqa: F401
 
 
 @pytest.fixture

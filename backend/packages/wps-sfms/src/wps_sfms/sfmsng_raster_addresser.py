@@ -5,8 +5,8 @@ Uses a `sfms_ng/` S3 root prefix, completely separate from the legacy
 `sfms/` storage used by RasterKeyAddresser.
 """
 
-from collections.abc import Iterable
-from datetime import date, datetime, timedelta
+from collections.abc import Iterable, Mapping
+from datetime import date, datetime
 
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
@@ -24,6 +24,17 @@ from wps_sfms.raster_inputs import (
     FoliarMoistureContentInputs,
     PrimaryFireBehaviourInputs,
 )
+
+RUN_DATETIME_FILENAME_FORMAT = "%Y-%m-%dT%H-%M-%S.%fZ"
+"""UTC format for run manifest file names: ISO 8601 with dashes for colons, and microseconds."""
+
+FWI_WEATHER_INPUTS = (
+    SFMSInterpolatedWeatherParameter.TEMP,
+    SFMSInterpolatedWeatherParameter.RH,
+    SFMSInterpolatedWeatherParameter.PRECIP,
+    SFMSInterpolatedWeatherParameter.WIND_SPEED,
+)
+"""The same-day weather rasters an FWI index calculation reads."""
 
 
 class SFMSNGRasterAddresser(BaseRasterAddresser):
@@ -160,6 +171,24 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             f"{target_date.day:02d}/fmc_{date_str}.tif"
         )
 
+    def get_run_manifest_key(
+        self, run_type: RunType, for_date: date, run_datetime: datetime
+    ) -> S3Key:
+        """
+        S3 key for one SFMS run's input/output manifest.
+
+        Format: sfms_ng/runs/{run_type}/YYYY/MM/DD/target-{for_date}_run-{run_datetime}.json,
+        where YYYY/MM/DD is the target date, mirroring the rasters' layout, and the run datetime is
+        UTC. Every run of a target date lands in its folder under its own run datetime, so re-runs
+        never overwrite a manifest, and the fixed-width names sort chronologically.
+        """
+        assert_all_utc(run_datetime)
+        run_datetime_str = run_datetime.strftime(RUN_DATETIME_FILENAME_FORMAT)
+        return S3Key(
+            f"{self.root}/runs/{run_type.value}/{for_date.year:04d}/{for_date.month:02d}/"
+            f"{for_date.day:02d}/target-{for_date.isoformat()}_run-{run_datetime_str}.json"
+        )
+
     def get_fmc_inputs(
         self,
         target_dates: Iterable[date],
@@ -182,6 +211,8 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         run_type: RunType,
         fuel_key: GDALPath,
         percent_conifer_key: GDALPath,
+        ffmc_key: GDALPath,
+        bui_key: GDALPath,
         wind_speed_key: GDALPath,
         wind_direction_key: GDALPath,
         fmc_key: GDALPath,
@@ -192,12 +223,8 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_to_process)
         return PrimaryFireBehaviourInputs(
             fuel_key=fuel_key,
-            ffmc_key=self.gdal_path(
-                self.get_index_key(datetime_to_process, FWIParameter.FFMC, run_type)
-            ),
-            bui_key=self.gdal_path(
-                self.get_index_key(datetime_to_process, FWIParameter.BUI, run_type)
-            ),
+            ffmc_key=ffmc_key,
+            bui_key=bui_key,
             wind_speed_key=wind_speed_key,
             wind_direction_key=wind_direction_key,
             slope_key=slope_key,
@@ -222,92 +249,24 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         datetime_to_process: datetime,
         fwi_param: FWIParameter,
         run_type: RunType,
-        previous_base_run_type: RunType | None = None,
+        weather_keys: Mapping[SFMSInterpolatedWeatherParameter, S3Key],
+        index_keys: Mapping[FWIParameter, S3Key],
     ) -> FWIInputs:
-        """
-        Build FWIInputs for one index calculation.
-
-        Dependency keys vary by requested index:
-        - FFMC, DMC, DC: yesterday's same index using previous_base_run_type
-        - ISI: same-day FFMC for run_type + same-day wind speed
-        - BUI: same-day DMC/DC for run_type
-        - FWI: same-day ISI/BUI for run_type
+        """Build FWIInputs for one index calculation from the rasters it reads.
 
         :param datetime_to_process: UTC datetime being processed
         :param fwi_param: Which FWI parameter to calculate
-        :param run_type: Run type for same-day weather and output keys
-        :param previous_base_run_type: Run type for previous-day FFMC/DMC/DC seeds
+        :param run_type: Run type for the output key
+        :param weather_keys: The run's same-day weather rasters
+        :param index_keys: The index rasters the calculation reads
         :return: FWIInputs ready for FWIProcessor
         """
         assert_all_utc(datetime_to_process)
-        yesterday = datetime_to_process - timedelta(days=1)
-        base_run_type = previous_base_run_type or run_type
-
-        weather_keys = {
-            param: self.gdal_path(self.get_weather_key(datetime_to_process, param, run_type))
-            for param in (
-                SFMSInterpolatedWeatherParameter.TEMP,
-                SFMSInterpolatedWeatherParameter.RH,
-                SFMSInterpolatedWeatherParameter.PRECIP,
-                SFMSInterpolatedWeatherParameter.WIND_SPEED,
-            )
-        }
-
-        if fwi_param in (FWIParameter.FFMC, FWIParameter.DMC, FWIParameter.DC):
-            index_keys = {
-                fwi_param: self.gdal_path(self.get_index_key(yesterday, fwi_param, base_run_type))
-            }
-        elif fwi_param == FWIParameter.ISI:
-            index_keys = {
-                FWIParameter.FFMC: self.gdal_path(
-                    self.get_index_key(datetime_to_process, FWIParameter.FFMC, run_type)
-                )
-            }
-        elif fwi_param == FWIParameter.BUI:
-            index_keys = {
-                FWIParameter.DMC: self.gdal_path(
-                    self.get_index_key(datetime_to_process, FWIParameter.DMC, run_type)
-                ),
-                FWIParameter.DC: self.gdal_path(
-                    self.get_index_key(datetime_to_process, FWIParameter.DC, run_type)
-                ),
-            }
-        elif fwi_param == FWIParameter.FWI:
-            index_keys = {
-                FWIParameter.ISI: self.gdal_path(
-                    self.get_index_key(datetime_to_process, FWIParameter.ISI, run_type)
-                ),
-                FWIParameter.BUI: self.gdal_path(
-                    self.get_index_key(datetime_to_process, FWIParameter.BUI, run_type)
-                ),
-            }
-        else:
-            raise ValueError(f"Unsupported FWI parameter: {fwi_param.value}")
-
-        output_key = self.get_index_key(datetime_to_process, fwi_param, run_type)
         return FWIInputs(
-            weather_keys=weather_keys,
-            index_keys=index_keys,
-            output_key=output_key,
+            weather_keys={
+                param: self.gdal_path(weather_keys[param]) for param in FWI_WEATHER_INPUTS
+            },
+            index_keys={param: self.gdal_path(key) for param, key in index_keys.items()},
+            output_key=self.get_index_key(datetime_to_process, fwi_param, run_type),
             run_type=run_type,
-        )
-
-    def get_actual_fwi_inputs(
-        self, datetime_to_process: datetime, fwi_param: FWIParameter
-    ) -> FWIInputs:
-        """Compatibility wrapper for actual-run FWI inputs."""
-        return self.get_fwi_inputs(datetime_to_process, fwi_param, RunType.ACTUAL)
-
-    def get_forecast_fwi_inputs(
-        self,
-        datetime_to_process: datetime,
-        fwi_param: FWIParameter,
-        previous_base_run_type: RunType = RunType.FORECAST,
-    ) -> FWIInputs:
-        """Compatibility wrapper for forecast-run FWI inputs."""
-        return self.get_fwi_inputs(
-            datetime_to_process,
-            fwi_param,
-            RunType.FORECAST,
-            previous_base_run_type=previous_base_run_type,
         )

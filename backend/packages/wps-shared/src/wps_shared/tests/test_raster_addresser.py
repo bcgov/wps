@@ -43,6 +43,32 @@ def test_gdal_path(addresser: BaseRasterAddresser):
     assert result == f"{addresser.s3_prefix}/{key}"
 
 
+def test_s3_key_strips_the_gdal_prefix(addresser: BaseRasterAddresser):
+    assert addresser.s3_key(f"{addresser.s3_prefix}/sfms/static/bc_mask.tif") == (
+        "sfms/static/bc_mask.tif"
+    )
+
+
+def test_s3_key_passes_plain_keys_through(addresser: BaseRasterAddresser):
+    assert addresser.s3_key("sfms/static/bc_mask.tif") == "sfms/static/bc_mask.tif"
+
+
+def test_s3_key_reverses_gdal_path(addresser: BaseRasterAddresser):
+    key = S3Key("sfms_ng/actual/2024/10/10/ffmc_20241010.tif")
+    assert addresser.s3_key(addresser.gdal_path(key)) == key
+
+
+def test_gdal_prefix_keys_prefixes_each_key_in_order(addresser: BaseRasterAddresser):
+    assert addresser.gdal_prefix_keys(S3Key("a.tif"), S3Key("b/c.tif")) == (
+        f"{addresser.s3_prefix}/a.tif",
+        f"{addresser.s3_prefix}/b/c.tif",
+    )
+
+
+def test_gdal_prefix_keys_with_no_keys_is_empty(addresser: BaseRasterAddresser):
+    assert addresser.gdal_prefix_keys() == ()
+
+
 def test_get_fuel_raster_key(addresser: BaseRasterAddresser):
     result = addresser.get_fuel_raster_key(TEST_DATETIME, 1)
     assert result == f"sfms/static/fuel/{TEST_DATETIME.year}/fbp{TEST_DATETIME.year}_v1.tif"

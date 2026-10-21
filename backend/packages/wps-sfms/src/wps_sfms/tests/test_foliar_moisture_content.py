@@ -154,12 +154,15 @@ async def test_processor_loads_static_inputs_once_and_publishes_each_date_with_m
         side_effect=capture_publish,
     )
 
-    await FoliarMoistureContentProcessor(addresser).process(
+    fmc_keys = await FoliarMoistureContentProcessor(addresser).process(
         s3_client,
         make_dataset_context(datasets, context_calls),
         inputs,
     )
 
+    # neither date existed, so both are processed and none reused
+    assert fmc_keys.processed_keys == inputs.output_keys
+    assert fmc_keys.reused_keys == {}
     assert len(context_calls) == 1
     assert [item["output_key"] for item in captured] == list(inputs.output_keys.values())
     assert all(item["description"] == "foliar_moisture_content" for item in captured)
@@ -312,12 +315,15 @@ async def test_processor_skips_complete_dates_and_processes_missing_dates(
         ),
     )
 
-    await FoliarMoistureContentProcessor(addresser).process(
+    fmc_keys = await FoliarMoistureContentProcessor(addresser).process(
         s3_client,
         make_dataset_context(datasets, context_calls),
         inputs,
     )
 
+    # the existing date is reused and only the missing one is processed
+    assert fmc_keys.processed_keys == {missing_date: inputs.output_keys[missing_date]}
+    assert fmc_keys.reused_keys == {existing_date: inputs.output_keys[existing_date]}
     assert s3_client.all_objects_exist.await_args_list[0].args == (
         inputs.output_keys[existing_date],
         addresser.get_cog_key(inputs.output_keys[existing_date]),
@@ -356,12 +362,15 @@ async def test_processor_does_not_load_static_inputs_when_all_outputs_match(
     publish = mocker.patch(f"{MODULE_PATH}.publish_dataset", new=AsyncMock())
     input_context = MagicMock()
 
-    await FoliarMoistureContentProcessor(addresser).process(
+    fmc_keys = await FoliarMoistureContentProcessor(addresser).process(
         s3_client,
         input_context,
         inputs,
     )
 
+    # the date's raster already exists, so it's reused and nothing is processed
+    assert fmc_keys.processed_keys == {}
+    assert fmc_keys.reused_keys == inputs.output_keys
     input_context.assert_not_called()
     publish.assert_not_awaited()
 

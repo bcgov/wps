@@ -7,7 +7,6 @@ from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FBPParameter,
     FWIParameter,
-    S3Key,
     SFMSInterpolatedWeatherParameter,
 )
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
@@ -79,6 +78,56 @@ class TestGetFoliarMoistureContentInputs:
         assert getattr(addresser, method_name)() == expected_key
 
 
+class TestRunManifestKeys:
+    def test_manifest_key_uses_the_target_date_folder(self, addresser: SFMSNGRasterAddresser):
+        assert (
+            addresser.get_run_manifest_key(
+                RunType.ACTUAL,
+                date(2026, 10, 13),
+                datetime(2026, 10, 13, 20, 45, 0, tzinfo=timezone.utc),
+            )
+            == "sfms_ng/runs/actual/2026/10/13/target-2026-10-13_run-2026-10-13T20-45-00.000000Z.json"
+        )
+
+    def test_forecast_manifest_key_uses_the_forecast_date_folder(
+        self, addresser: SFMSNGRasterAddresser
+    ):
+        # forecast runs process dates after the run datetime; the folder is the forecast date
+        assert (
+            addresser.get_run_manifest_key(
+                RunType.FORECAST,
+                date(2026, 10, 14),
+                datetime(2026, 10, 13, 20, 45, 0, tzinfo=timezone.utc),
+            )
+            == "sfms_ng/runs/forecast/2026/10/14/target-2026-10-14_run-2026-10-13T20-45-00.000000Z.json"
+        )
+
+    def test_manifest_key_zero_pads_the_run_datetime_parts(self, addresser: SFMSNGRasterAddresser):
+        assert (
+            addresser.get_run_manifest_key(
+                RunType.ACTUAL, date(2026, 1, 2), datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
+            )
+            == "sfms_ng/runs/actual/2026/01/02/target-2026-01-02_run-2026-01-02T03-04-05.000000Z.json"
+        )
+
+    def test_manifest_key_preserves_run_datetime_microseconds(
+        self, addresser: SFMSNGRasterAddresser
+    ):
+        assert (
+            addresser.get_run_manifest_key(
+                RunType.ACTUAL,
+                date(2026, 1, 2),
+                datetime(2026, 1, 2, 3, 4, 5, 123456, tzinfo=timezone.utc),
+            )
+            == "sfms_ng/runs/actual/2026/01/02/target-2026-01-02_run-2026-01-02T03-04-05.123456Z.json"
+        )
+
+    def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
+        for_date = date(2026, 10, 13)
+        with pytest.raises(AssertionError, match="is not in UTC"):
+            addresser.get_run_manifest_key(RunType.ACTUAL, for_date, NON_UTC)
+
+
 class TestGetActualWeatherKey:
     @pytest.mark.parametrize(
         "weather_param,expected_key",
@@ -140,87 +189,50 @@ class TestGetActualIndexKey:
             addresser.get_actual_index_key(NON_UTC, FWIParameter.FFMC)
 
 
-class TestGetActualFwiInputs:
-    @pytest.mark.parametrize(
-        "fwi_param,index_key_checks",
-        [
-            (FWIParameter.FFMC, {FWIParameter.FFMC: "2024/04/14/ffmc_20240414.tif"}),
-            (FWIParameter.DMC, {FWIParameter.DMC: "2024/04/14/dmc_20240414.tif"}),
-            (FWIParameter.DC, {FWIParameter.DC: "2024/04/14/dc_20240414.tif"}),
-            (FWIParameter.ISI, {FWIParameter.FFMC: "2024/04/15/ffmc_20240415.tif"}),
-            (
-                FWIParameter.BUI,
-                {
-                    FWIParameter.DMC: "2024/04/15/dmc_20240415.tif",
-                    FWIParameter.DC: "2024/04/15/dc_20240415.tif",
-                },
-            ),
-            (
-                FWIParameter.FWI,
-                {
-                    FWIParameter.ISI: "2024/04/15/isi_20240415.tif",
-                    FWIParameter.BUI: "2024/04/15/bui_20240415.tif",
-                },
-            ),
-        ],
-    )
-    def test_all_params(
-        self,
-        addresser: SFMSNGRasterAddresser,
-        fwi_param: FWIParameter,
-        index_key_checks: dict[FWIParameter, str],
-    ):
-        s3 = addresser.s3_prefix
-        p = fwi_param.value
-        result = addresser.get_actual_fwi_inputs(TEST_DATETIME, fwi_param)
+class TestGetFwiInputs:
+    WEATHER = {
+        param: f"sfms_ng/actual/2024/04/15/{param.value}_20240415.tif"
+        for param in SFMSInterpolatedWeatherParameter
+    }
+    INDEX_KEYS = {
+        FWIParameter.DMC: "sfms_ng/actual/2024/04/15/dmc_20240415.tif",
+        FWIParameter.DC: "sfms_ng/actual/2024/04/15/dc_20240415.tif",
+    }
 
-        assert (
-            result.weather_keys[SFMSInterpolatedWeatherParameter.TEMP]
-            == f"{s3}/sfms_ng/actual/2024/04/15/temperature_20240415.tif"
+    def test_reads_the_given_index_rasters_and_fwi_weather(self, addresser: SFMSNGRasterAddresser):
+        result = addresser.get_fwi_inputs(
+            TEST_DATETIME, FWIParameter.BUI, RunType.ACTUAL, self.WEATHER, self.INDEX_KEYS
         )
-        assert (
-            result.weather_keys[SFMSInterpolatedWeatherParameter.RH]
-            == f"{s3}/sfms_ng/actual/2024/04/15/relative_humidity_20240415.tif"
-        )
-        assert (
-            result.weather_keys[SFMSInterpolatedWeatherParameter.PRECIP]
-            == f"{s3}/sfms_ng/actual/2024/04/15/precipitation_20240415.tif"
-        )
-        assert (
-            result.weather_keys[SFMSInterpolatedWeatherParameter.WIND_SPEED]
-            == f"{s3}/sfms_ng/actual/2024/04/15/wind_speed_20240415.tif"
-        )
-        for index_param, expected_suffix in index_key_checks.items():
-            assert result.index_keys[index_param] == f"{s3}/sfms_ng/actual/{expected_suffix}"
-        assert result.output_key == f"sfms_ng/actual/2024/04/15/{p}_20240415.tif"
+
+        assert result.index_keys == {
+            param: addresser.gdal_path(key) for param, key in self.INDEX_KEYS.items()
+        }
+        # wind direction is interpolated but no FWI index reads it
+        assert result.weather_keys == {
+            param: addresser.gdal_path(self.WEATHER[param])
+            for param in (
+                SFMSInterpolatedWeatherParameter.TEMP,
+                SFMSInterpolatedWeatherParameter.RH,
+                SFMSInterpolatedWeatherParameter.PRECIP,
+                SFMSInterpolatedWeatherParameter.WIND_SPEED,
+            )
+        }
+        assert result.output_key == "sfms_ng/actual/2024/04/15/bui_20240415.tif"
         assert result.run_type == RunType.ACTUAL
 
-    def test_gdal_prefix_on_inputs_not_output(self, addresser: SFMSNGRasterAddresser):
-        s3 = addresser.s3_prefix
-        result = addresser.get_actual_fwi_inputs(TEST_DATETIME, FWIParameter.DMC)
+    def test_output_key_uses_the_run_type(self, addresser: SFMSNGRasterAddresser):
+        result = addresser.get_fwi_inputs(
+            TEST_DATETIME, FWIParameter.BUI, RunType.FORECAST, self.WEATHER, self.INDEX_KEYS
+        )
 
-        for weather_key in result.weather_keys.values():
-            assert weather_key.startswith(s3)
-        for index_key in result.index_keys.values():
-            assert index_key.startswith(s3)
-        assert not result.output_key.startswith(s3)
-
-    def test_prev_fwi_key_uses_yesterday(self, addresser: SFMSNGRasterAddresser):
-        result = addresser.get_actual_fwi_inputs(TEST_DATETIME, FWIParameter.DC)
-
-        dc_dependency_key = result.index_keys[FWIParameter.DC]
-        assert "2024/04/14" in dc_dependency_key
-        assert "2024/04/15" not in dc_dependency_key
-
-    def test_output_key_uses_actual_run_type(self, addresser: SFMSNGRasterAddresser):
-        result = addresser.get_actual_fwi_inputs(TEST_DATETIME, FWIParameter.DMC)
-
-        assert "actual" in result.output_key
-        assert "forecast" not in result.output_key
+        assert result.output_key == "sfms_ng/forecast/2024/04/15/bui_20240415.tif"
+        assert result.run_type == RunType.FORECAST
 
     def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
+        weather, index_keys = self.WEATHER, self.INDEX_KEYS
+
         with pytest.raises(AssertionError, match="is not in UTC"):
-            addresser.get_actual_fwi_inputs(NON_UTC, FWIParameter.DMC)
+            addresser.get_fwi_inputs(NON_UTC, FWIParameter.BUI, RunType.ACTUAL, weather, index_keys)
 
 
 class TestPrimaryFireBehaviourInputs:
@@ -256,6 +268,12 @@ class TestPrimaryFireBehaviourInputs:
             )
         )
         fmc_key = addresser.gdal_path(addresser.get_fmc_key(TEST_DATETIME.date()))
+        ffmc_key = addresser.gdal_path(
+            addresser.get_index_key(TEST_DATETIME, FWIParameter.FFMC, run_type)
+        )
+        bui_key = addresser.gdal_path(
+            addresser.get_index_key(TEST_DATETIME, FWIParameter.BUI, run_type)
+        )
         slope_key = addresser.gdal_path(addresser.get_slope_key())
         aspect_key = addresser.gdal_path(addresser.get_aspect_key())
 
@@ -264,6 +282,8 @@ class TestPrimaryFireBehaviourInputs:
             run_type,
             fuel_key,
             percent_conifer_key,
+            ffmc_key,
+            bui_key,
             wind_speed_key,
             wind_direction_key,
             fmc_key,
@@ -272,8 +292,8 @@ class TestPrimaryFireBehaviourInputs:
         )
 
         assert result.fuel_key == fuel_key
-        assert result.ffmc_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/ffmc_20240415.tif")
-        assert result.bui_key.endswith(f"sfms_ng/{run_type.value}/2024/04/15/bui_20240415.tif")
+        assert result.ffmc_key == ffmc_key
+        assert result.bui_key == bui_key
         assert result.wind_speed_key == wind_speed_key
         assert result.wind_direction_key == wind_direction_key
         assert result.slope_key == slope_key
@@ -299,6 +319,8 @@ class TestPrimaryFireBehaviourInputs:
                 RunType.ACTUAL,
                 fuel_key,
                 percent_conifer_key,
+                "ffmc",
+                "bui",
                 "wind-speed",
                 "wind-direction",
                 "fmc",
@@ -354,59 +376,3 @@ class TestGetForecastKeys:
     )
     def test_forecast_index_params(self, addresser: SFMSNGRasterAddresser, fwi_param, expected_key):
         assert addresser.get_forecast_index_key(TEST_DATETIME, fwi_param) == expected_key
-
-
-class TestGetForecastFwiInputs:
-    @pytest.mark.parametrize(
-        "fwi_param,index_key_checks",
-        [
-            (FWIParameter.FFMC, {FWIParameter.FFMC: "actual/2024/04/14/ffmc_20240414.tif"}),
-            (FWIParameter.DMC, {FWIParameter.DMC: "actual/2024/04/14/dmc_20240414.tif"}),
-            (FWIParameter.DC, {FWIParameter.DC: "actual/2024/04/14/dc_20240414.tif"}),
-            (FWIParameter.ISI, {FWIParameter.FFMC: "forecast/2024/04/15/ffmc_20240415.tif"}),
-            (
-                FWIParameter.BUI,
-                {
-                    FWIParameter.DMC: "forecast/2024/04/15/dmc_20240415.tif",
-                    FWIParameter.DC: "forecast/2024/04/15/dc_20240415.tif",
-                },
-            ),
-            (
-                FWIParameter.FWI,
-                {
-                    FWIParameter.ISI: "forecast/2024/04/15/isi_20240415.tif",
-                    FWIParameter.BUI: "forecast/2024/04/15/bui_20240415.tif",
-                },
-            ),
-        ],
-    )
-    def test_day_one_can_seed_from_actuals(
-        self,
-        addresser: SFMSNGRasterAddresser,
-        fwi_param: FWIParameter,
-        index_key_checks: dict[FWIParameter, str],
-    ):
-        s3 = addresser.s3_prefix
-        result = addresser.get_forecast_fwi_inputs(
-            TEST_DATETIME, fwi_param, previous_base_run_type=RunType.ACTUAL
-        )
-
-        assert (
-            result.weather_keys[SFMSInterpolatedWeatherParameter.TEMP]
-            == f"{s3}/sfms_ng/forecast/2024/04/15/temperature_20240415.tif"
-        )
-        for index_param, expected_suffix in index_key_checks.items():
-            assert result.index_keys[index_param] == f"{s3}/sfms_ng/{expected_suffix}"
-        assert result.output_key == f"sfms_ng/forecast/2024/04/15/{fwi_param.value}_20240415.tif"
-        assert result.run_type == RunType.FORECAST
-
-    def test_chained_forecasts_seed_from_previous_forecast(self, addresser: SFMSNGRasterAddresser):
-        result = addresser.get_forecast_fwi_inputs(TEST_DATETIME, FWIParameter.DMC)
-
-        dmc_dependency_key = result.index_keys[FWIParameter.DMC]
-        assert "forecast/2024/04/14/dmc_20240414.tif" in dmc_dependency_key
-        assert "actual" not in dmc_dependency_key
-
-    def test_non_utc_raises(self, addresser: SFMSNGRasterAddresser):
-        with pytest.raises(AssertionError, match="is not in UTC"):
-            addresser.get_forecast_fwi_inputs(NON_UTC, FWIParameter.DMC)
