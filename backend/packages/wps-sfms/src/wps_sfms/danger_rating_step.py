@@ -15,7 +15,6 @@ async def interpolate_danger_rating(
 ) -> S3Key:
     """Publish the station danger rating raster and record it in the run manifest."""
     mask_path = context.raster_addresser.get_mask_key()
-    context.manifest.record_static_rasters({"mask": mask_path})
     output_key = context.raster_addresser.get_danger_rating_key(
         context.datetime_to_process, context.run_type
     )
