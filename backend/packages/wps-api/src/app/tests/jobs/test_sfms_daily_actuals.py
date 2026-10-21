@@ -17,6 +17,7 @@ from app.jobs.sfms_daily_actuals import (
     main,
     run_sfms_daily_actuals,
 )
+from app.tests.conftest import create_mock_sfms_actuals
 from app.tests.jobs.sfms_daily_job_fixtures import (
     MockDailySFMSDeps,
     make_mock_daily_sfms_dependencies,
@@ -157,6 +158,22 @@ class TestRunSfmsDailyActuals:
 
         with pytest.raises(RuntimeError, match="No station observations found"):
             await run_sfms_daily_actuals(target_date)
+
+    @pytest.mark.anyio
+    async def test_missing_danger_ratings_do_not_stop_actuals(
+        self, mock_dependencies: MockDailySFMSDeps
+    ):
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
+            return_value=create_mock_sfms_actuals()
+        )
+
+        await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))
+
+        mock_dependencies.danger_rating_processor.process.assert_not_awaited()
+        mock_dependencies.primary_fbp_processor.process.assert_awaited_once()
+        manifest = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
+        assert manifest["status"] == "success"
+        assert "danger_rating_raster" not in manifest["output"]
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailySFMSDeps):

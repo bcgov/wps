@@ -18,7 +18,7 @@ TEST_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
 
 
 class TestScalarFieldBuilders:
-    def test_build_danger_rating_field_includes_missing_as_zero(self):
+    def test_build_danger_rating_field_excludes_missing_and_keeps_real_zero(self):
         stations = [
             SFMSDaily(
                 code=1,
@@ -35,12 +35,20 @@ class TestScalarFieldBuilders:
                 lat=50.0,
                 lon=-124.0,
             ),
+            SFMSDaily(
+                code=3,
+                for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
+                lat=51.0,
+                lon=-125.0,
+                danger_rating=0,
+            ),
         ]
 
         field = build_danger_rating_field(stations)
 
-        np.testing.assert_array_equal(field.lats, [49.0, 50.0])
-        np.testing.assert_array_equal(field.lons, [-123.0, -124.0])
+        np.testing.assert_array_equal(field.lats, [49.0, 51.0])
+        np.testing.assert_array_equal(field.lons, [-123.0, -125.0])
         np.testing.assert_array_equal(field.values, [4.0, 0.0])
         assert field.values.dtype == np.float32
 
@@ -55,7 +63,9 @@ class TestScalarFieldBuilders:
 
         field = build_danger_rating_field([station])
 
-        np.testing.assert_array_equal(field.values, [0.0])
+        assert field.lats.size == 0
+        assert field.lons.size == 0
+        assert field.values.size == 0
 
     def test_build_attribute_field_filters_missing_values(self):
         actuals = [

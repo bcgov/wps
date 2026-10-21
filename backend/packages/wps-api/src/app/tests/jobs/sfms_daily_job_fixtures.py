@@ -77,9 +77,9 @@ def make_mock_daily_sfms_dependencies(
     mock_session.__aexit__ = AsyncMock(return_value=None)
     mocker.patch(f"{module_path}.ClientSession", return_value=mock_session)
 
-    mock_wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
-        return_value=create_mock_sfms_actuals()
-    )
+    station_dailies = create_mock_sfms_actuals()
+    station_dailies[0].danger_rating = 4
+    mock_wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(return_value=station_dailies)
     mocker.patch(f"{module_path}.WfwxApi", return_value=mock_wfwx_api)
 
     fuel_type_raster = MagicMock(year=2024, object_store_path="sfms/fuel/2024/fuel.tif")
