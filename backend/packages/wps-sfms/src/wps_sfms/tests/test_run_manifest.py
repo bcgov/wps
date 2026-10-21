@@ -30,6 +30,7 @@ def a_manifest() -> SFMSRunManifest:
     """An actual-run manifest for one target date."""
     return SFMSRunManifest(
         SFMSNGRasterAddresser(),
+        sfms_run_id=7,
         run_type=RunType.ACTUAL,
         for_date=FOR_DATE,
         run_datetime=RUN_DATETIME,
@@ -119,6 +120,7 @@ def test_key_uses_the_run_type_and_target_date_folder():
 def test_forecast_key_uses_the_forecast_date_folder():
     manifest = SFMSRunManifest(
         SFMSNGRasterAddresser(),
+        sfms_run_id=7,
         run_type=RunType.FORECAST,
         for_date=date(2026, 10, 14),
         run_datetime=RUN_DATETIME,
@@ -133,6 +135,7 @@ def test_forecast_key_uses_the_forecast_date_folder():
 def test_key_rejects_non_utc_run_datetime():
     manifest = SFMSRunManifest(
         SFMSNGRasterAddresser(),
+        sfms_run_id=7,
         run_type=RunType.ACTUAL,
         for_date=FOR_DATE,
         run_datetime=datetime(2026, 10, 13, 20, 45, tzinfo=timezone(timedelta(hours=-7))),
@@ -151,6 +154,7 @@ def test_manifest_json_follows_the_version_1_schema(bucket):
 
     assert payload == {
         "version": MANIFEST_SCHEMA_VERSION,
+        "sfms_run_id": 7,
         "run_datetime": "2026-10-13T20:45:00Z",
         "run_type": "actual",
         "for_date": "2026-10-13",
@@ -273,6 +277,7 @@ async def test_write_uploads_the_manifest_json(bucket):
     )
     payload = json.loads(body)
     assert payload["version"] == MANIFEST_SCHEMA_VERSION
+    assert payload["sfms_run_id"] == 7
     assert payload["status"] == "success"
     assert payload["run_datetime"] == "2026-10-13T20:45:00Z"
     assert payload["run_type"] == "actual"

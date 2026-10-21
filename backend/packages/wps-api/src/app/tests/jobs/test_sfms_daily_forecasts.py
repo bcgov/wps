@@ -282,6 +282,8 @@ class TestRunSfmsDailyForecasts:
 
     @pytest.mark.anyio
     async def test_writes_a_manifest_per_forecast_date(self, mock_dependencies: MockDailySFMSDeps):
+        # each forecast date saves its own sfms_run row
+        mock_dependencies.save_sfms_run.side_effect = [11, 12, 13]
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
         await run_sfms_daily_forecasts(target_date)
@@ -298,7 +300,13 @@ class TestRunSfmsDailyForecasts:
             "sfms_ng/runs/forecast/2024/07/06/target-2024-07-06_run-2020-05-21T15-50-13.962000Z.json",
             "sfms_ng/runs/forecast/2024/07/07/target-2024-07-07_run-2020-05-21T15-50-13.962000Z.json",
         ]
-        payload = json.loads(manifest_calls[0].kwargs["body"])
+        payloads = [json.loads(call.kwargs["body"]) for call in manifest_calls]
+        assert {payload["for_date"]: payload["sfms_run_id"] for payload in payloads} == {
+            "2024-07-05": 11,
+            "2024-07-06": 12,
+            "2024-07-07": 13,
+        }
+        payload = payloads[0]
         assert payload["run_type"] == "forecast"
         assert payload["for_date"] == "2024-07-05"
         assert payload["input"]["station_codes"] == [100, 101]

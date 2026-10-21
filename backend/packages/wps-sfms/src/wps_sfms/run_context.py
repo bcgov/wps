@@ -93,6 +93,7 @@ class SFMSRunContext:
         """
         manifest = SFMSRunManifest(
             raster_addresser,
+            sfms_run_id=sfms_run_id,
             run_type=run_type,
             for_date=datetime_to_process.date(),
             run_datetime=run_datetime,

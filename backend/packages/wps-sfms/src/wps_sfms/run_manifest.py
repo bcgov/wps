@@ -85,6 +85,7 @@ class SFMSRunManifest(BaseModel):
     """
 
     version: int = MANIFEST_SCHEMA_VERSION
+    sfms_run_id: int
     run_datetime: datetime
     run_type: RunType
     for_date: date

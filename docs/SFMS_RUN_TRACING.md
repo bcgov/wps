@@ -45,8 +45,9 @@ Each run type's folder for a target date collects that type's runs of the date: 
 folder holds every forecast run that covered it, and the `actual` folder its actual run and any
 re-runs and backfills. Each lands under its own run datetime, so none overwrites another, and the
 fixed-width names list in the order the runs happened. A manifest's
-`run_datetime` is the same value the run stored on its `sfms_run` row, so the two can be joined
-on it.
+`sfms_run_id` is its run's `sfms_run.id`, so it joins directly to that row and to the run's
+`sfms_run_log` rows. Its `run_datetime` is also the value stored on that row, which identifies the
+run where the id doesn't, such as against another environment's database.
 
 Manifests are written when a run reaches a terminal state. A failed run's manifest contains the
 inputs recorded so far and outputs from steps that completed successfully, plus the failing step
@@ -61,6 +62,7 @@ versions can add to them.
 ```json
 {
   "version": 1,
+  "sfms_run_id": 4211,
   "run_datetime": "2026-10-13T20:45:00Z",
   "run_type": "actual",
   "for_date": "2026-10-13",
@@ -130,6 +132,7 @@ reused the FMC raster an earlier run had calculated for the date.
 | Field          | Type   | Notes                                                                                            |
 | -------------- | ------ | ------------------------------------------------------------------------------------------------ |
 | `version`      | int    | Schema version. `1` for the layout above; unknown top-level fields should be ignored by parsers. |
+| `sfms_run_id`  | int    | The run's `sfms_run.id`, so the manifest joins to its `sfms_run` row and `sfms_run_log` rows.    |
 | `run_datetime` | string | ISO 8601 UTC instant the run was saved. Also names the manifest's file.                          |
 | `run_type`     | string | `actual` or `forecast`.                                                                          |
 | `for_date`     | string | ISO date the run's rasters are for.                                                              |

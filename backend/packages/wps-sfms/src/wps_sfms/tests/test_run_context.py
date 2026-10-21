@@ -37,6 +37,8 @@ class TestSFMSRunContext:
         assert run.datetime_to_process == datetime(2026, 6, 1, 20, tzinfo=timezone.utc)
         assert run.run_type == RunType.FORECAST
         assert run.sfms_run_id == 42
+        # the manifest joins to the run's sfms_run row by its id
+        assert run.manifest.sfms_run_id == 42
         assert run.manifest.run_type == RunType.FORECAST
         assert run.manifest.for_date == date(2026, 6, 1)
         assert run.manifest.run_datetime == RUN_DATETIME
@@ -46,12 +48,14 @@ class TestSFMSRunContext:
         [
             SFMSRunManifest(
                 MagicMock(),
+                sfms_run_id=42,
                 run_type=RunType.FORECAST,
                 for_date=date(2025, 7, 4),
                 run_datetime=RUN_DATETIME,
             ),
             SFMSRunManifest(
                 MagicMock(),
+                sfms_run_id=42,
                 run_type=RunType.ACTUAL,
                 for_date=date(2025, 7, 5),
                 run_datetime=RUN_DATETIME,
