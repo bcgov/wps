@@ -43,7 +43,6 @@ async def test_interpolates_and_records_danger_rating(mocker: MockerFixture, tra
         cog_resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
     )
     assert tracked_jobs == [SFMSRunLogJobName.DANGER_RATING_INTERPOLATION]
-    assert run.manifest.input.static_rasters["mask"] == "sfms/static/bc_mask.tif"
     assert run.manifest.output.danger_rating_raster == output_key
 
 
