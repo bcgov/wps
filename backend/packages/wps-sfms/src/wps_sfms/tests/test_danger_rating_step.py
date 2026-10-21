@@ -50,6 +50,7 @@ async def test_interpolates_and_records_danger_rating(mocker: MockerFixture, tra
 @pytest.mark.anyio
 async def test_skips_when_no_stations_have_danger_rating(mocker: MockerFixture, tracked_jobs):
     constructor = mocker.patch("wps_sfms.danger_rating_step.DangerRatingInterpolator")
+    chatops = mocker.patch("wps_sfms.danger_rating_step.send_chatops_notification")
     run = a_run()
 
     result = await interpolate_danger_rating(run, station_weather())
@@ -59,6 +60,10 @@ async def test_skips_when_no_stations_have_danger_rating(mocker: MockerFixture, 
     run.raster_addresser.get_danger_rating_key.assert_not_called()
     assert tracked_jobs == []
     assert run.manifest.output.danger_rating_raster is None
+    message, reason = chatops.call_args.args
+    assert message == "Could not generate SFMS danger rating raster for actual 2025-07-04"
+    assert str(reason) == "No stations have a danger rating"
+    assert chatops.call_args.kwargs == {"severity": "warning"}
 
 
 @pytest.mark.anyio

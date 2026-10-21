@@ -2,6 +2,7 @@
 
 import logging
 
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.schemas.sfms import SFMSDaily
@@ -20,7 +21,13 @@ async def interpolate_danger_rating(
     """Publish the station danger rating raster and record it in the run manifest."""
     field = build_danger_rating_field(station_weather)
     if field.values.size == 0:
-        logger.info("Skipping danger rating interpolation: no stations have a rating")
+        message = (
+            f"Could not generate SFMS danger rating raster for "
+            f"{context.run_type.value} {context.datetime_to_process.date()}"
+        )
+        reason = ValueError("No stations have a danger rating")
+        logger.warning("%s: %s", message, reason)
+        send_chatops_notification(message, reason, severity="warning")
         return None
 
     mask_path = context.raster_addresser.get_mask_key()

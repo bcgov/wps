@@ -161,8 +161,9 @@ class TestRunSfmsDailyActuals:
 
     @pytest.mark.anyio
     async def test_missing_danger_ratings_do_not_stop_actuals(
-        self, mock_dependencies: MockDailySFMSDeps
+        self, mock_dependencies: MockDailySFMSDeps, mocker: MockerFixture
     ):
+        chatops = mocker.patch("wps_sfms.danger_rating_step.send_chatops_notification")
         mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
             return_value=create_mock_sfms_actuals()
         )
@@ -174,6 +175,7 @@ class TestRunSfmsDailyActuals:
         manifest = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
         assert manifest["status"] == "success"
         assert "danger_rating_raster" not in manifest["output"]
+        chatops.assert_called_once()
 
     @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailySFMSDeps):
