@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, call
 
 import pytest
 from pytest_mock import MockerFixture
+from wps_sfms.processors.foliar_moisture_content import FoliarMoistureContentKeys
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.geospatial.wps_dataset import multi_wps_dataset_context
 from wps_shared.sfms.raster_addresser import FWIParameter
@@ -21,6 +22,7 @@ from app.jobs.sfms_daily_forecasts import (
 )
 from app.tests.jobs.sfms_daily_job_fixtures import (
     MockDailySFMSDeps,
+    fmc_key,
     make_mock_daily_sfms_dependencies,
 )
 
@@ -195,6 +197,42 @@ class TestRunSfmsDailyForecasts:
         )
 
     @pytest.mark.anyio
+    async def test_records_fmc_as_output_or_reused_per_forecast_date(
+        self, mock_dependencies: MockDailySFMSDeps
+    ):
+        # 07-05's FMC is new, while 07-06 and 07-07 were calculated by an earlier forecast run
+        calculated = {date(2024, 7, 5)}
+        fmc_dates = iter((date(2024, 7, 5), date(2024, 7, 6), date(2024, 7, 7)))
+
+        def process(*_args) -> FoliarMoistureContentKeys:
+            target_date = next(fmc_dates)
+            keys = {target_date: fmc_key(target_date)}
+            if target_date in calculated:
+                return FoliarMoistureContentKeys(processed_keys=keys, reused_keys={})
+            return FoliarMoistureContentKeys(processed_keys={}, reused_keys=keys)
+
+        mock_dependencies.fmc_processor.process.side_effect = process
+
+        await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
+
+        manifests = {
+            manifest["for_date"]: manifest
+            for manifest in (
+                json.loads(call.kwargs["body"])
+                for call in mock_dependencies.s3_client.put_object.await_args_list
+                if call.kwargs["key"].startswith("sfms_ng/runs/")
+            )
+        }
+        assert manifests["2024-07-05"]["output"]["fmc_raster"] == fmc_key(date(2024, 7, 5))
+        assert "fmc_raster" not in manifests["2024-07-05"]["reused"]
+        for reused_date in (date(2024, 7, 6), date(2024, 7, 7)):
+            manifest = manifests[reused_date.isoformat()]
+            assert manifest["reused"]["fmc_raster"] == fmc_key(reused_date)
+            assert "fmc_raster" not in manifest["output"]
+            # FBP still read the reused raster
+            assert manifest["input"]["fmc_raster"] == fmc_key(reused_date)
+
+    @pytest.mark.anyio
     async def test_saves_forecast_runs(self, mock_dependencies: MockDailySFMSDeps):
         target_date = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
@@ -304,7 +342,9 @@ class TestRunSfmsDailyForecasts:
         )
         run_datetime = datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc)
 
-        with pytest.raises(RuntimeError, match="Missing previous-day seeds for forecast 2024-07-06"):
+        with pytest.raises(
+            RuntimeError, match="Missing previous-day seeds for forecast 2024-07-06"
+        ):
             await run_sfms_daily_forecasts(run_datetime)
 
         manifests = {

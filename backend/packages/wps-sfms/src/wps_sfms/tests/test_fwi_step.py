@@ -5,16 +5,18 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
+from wps_shared.db.models.sfms_run import SFMSRunLogJobName
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FWIParameter,
 )
 
-from wps_sfms.fwi_step import calculate_fwi, missing_seed_keys
+from wps_sfms.fwi_step import calculate_fwi, interpolate_fwi, missing_seed_keys
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_sfms.tests.run_test_utils import (
     WEATHER_KEYS,
     a_run,
+    station_weather,
 )
 
 # manifest keys strip this bucket's GDAL prefix
@@ -125,6 +127,54 @@ async def test_fwi_calculation_step_skips_fwi_when_seeds_are_missing(mocker: Moc
     fwi_processor.calculate_index.assert_not_awaited()
     assert run.manifest.input.seed_rasters == {}
     assert run.manifest.output.fwi == {}
+
+
+@pytest.mark.anyio
+async def test_fwi_interpolation_step_derives_isi_bui_and_fwi_from_the_interpolated_codes(
+    mocker: MockerFixture, tracked_jobs
+):
+    addresser = MagicMock()
+    stub_fwi_addresser(addresser)
+    addresser.get_mask_key.return_value = "/vsis3/some bucket/sfms/static/bc_mask.tif"
+    interpolator = mocker.patch("wps_sfms.fwi_step.Interpolator").return_value
+    interpolator.process = AsyncMock()
+    fwi_processor = MagicMock()
+    fwi_processor.calculate_index = AsyncMock()
+    mocker.patch("wps_sfms.fwi_step.FWIProcessor", return_value=fwi_processor)
+    run = a_run(addresser=addresser)
+
+    fwi_keys = await interpolate_fwi(run, station_weather(), WEATHER_KEYS)
+
+    def today(param: FWIParameter) -> str:
+        return f"sfms_ng/actual/2025/07/04/{param.value}_20250704.tif"
+
+    assert fwi_keys == {param: today(param) for param in FWIParameter}
+    # FFMC, DMC and DC are reset from station weather, then ISI, BUI and FWI derive from them
+    assert tracked_jobs == [
+        SFMSRunLogJobName.FFMC_INTERPOLATION,
+        SFMSRunLogJobName.DMC_INTERPOLATION,
+        SFMSRunLogJobName.DC_INTERPOLATION,
+        SFMSRunLogJobName.ISI_CALCULATION,
+        SFMSRunLogJobName.BUI_CALCULATION,
+        SFMSRunLogJobName.FWI_CALCULATION,
+    ]
+    isi_inputs, bui_inputs, fwi_inputs = (
+        call.args[3] for call in fwi_processor.calculate_index.await_args_list
+    )
+    gdal = "/vsis3/some bucket/"
+    assert isi_inputs.index_keys == {FWIParameter.FFMC: gdal + today(FWIParameter.FFMC)}
+    assert bui_inputs.index_keys == {
+        FWIParameter.DMC: gdal + today(FWIParameter.DMC),
+        FWIParameter.DC: gdal + today(FWIParameter.DC),
+    }
+    assert fwi_inputs.index_keys == {
+        FWIParameter.ISI: gdal + today(FWIParameter.ISI),
+        FWIParameter.BUI: gdal + today(FWIParameter.BUI),
+    }
+    # no previous-day seeds are read when the codes are interpolated
+    assert run.manifest.input.seed_rasters == {}
+    assert run.manifest.input.static_rasters == {"mask": "sfms/static/bc_mask.tif"}
+    assert run.manifest.output.fwi == {param.value: today(param) for param in FWIParameter}
 
 
 @pytest.mark.anyio

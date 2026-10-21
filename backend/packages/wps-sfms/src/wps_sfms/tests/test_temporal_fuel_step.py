@@ -115,14 +115,19 @@ def stored_raster(version: int) -> MagicMock:
     )
 
 
-async def resolve(deps) -> tuple[str, SFMSRunContext]:
-    """Run the temporal fuel step for the target date; return its grid path and the run."""
-    run = a_run(
+def target_date_run(deps) -> SFMSRunContext:
+    """A run of the temporal fuel step's target date, over the fixture's dependencies."""
+    return a_run(
         TARGET_DATE,
         addresser=deps.addresser,
         s3_client=deps.s3_client,
         fuel_type_raster=deps.fuel_type_raster,
     )
+
+
+async def resolve(deps) -> tuple[str, SFMSRunContext]:
+    """Run the temporal fuel step for the target date; return its grid path and the run."""
+    run = target_date_run(deps)
     return await resolve_temporal_fuel(run), run
 
 
@@ -225,11 +230,14 @@ async def test_temporal_fuel_step_rebuilds_unverified_raster(
     patch_db(mocker, existing=stored_raster(version=2), latest_version=2)
     deps.s3_client.get_fuel_raster.side_effect = stored_raster_error
 
-    path, _run = await resolve(deps)
+    path, run = await resolve(deps)
 
     assert path == "/vsis3/some bucket/temporal/3.tif"
     deps.publish.assert_awaited_once()
     assert deps.session.add.call_args.args[0].version == 3
+    # a matching row existed, but its grid couldn't be trusted, so this run built the next version
+    assert run.manifest.output.fuel_raster == "temporal/3.tif"
+    assert run.manifest.reused.fuel_raster is None
 
 
 @pytest.mark.anyio
@@ -242,10 +250,17 @@ async def test_temporal_fuel_step_raises_unexpected_storage_errors(
         {"Error": {"Code": "AccessDenied"}}, "GetObject"
     )
 
+    run = target_date_run(deps)
+
     with pytest.raises(ClientError, match="AccessDenied"):
-        await resolve(deps)
+        await resolve_temporal_fuel(run)
 
     deps.publish.assert_not_awaited()
+    # the step failed before resolving a grid, so it's recorded nowhere
+    manifest = run.manifest
+    assert manifest.input.fuel_raster.temporal is None
+    assert manifest.output.fuel_raster is None
+    assert manifest.reused.fuel_raster is None
 
 
 @pytest.mark.anyio

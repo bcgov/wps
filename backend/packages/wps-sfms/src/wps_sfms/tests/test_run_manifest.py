@@ -28,7 +28,12 @@ def bucket(monkeypatch):
 
 def a_manifest() -> SFMSRunManifest:
     """An actual-run manifest for one target date."""
-    return SFMSRunManifest(SFMSNGRasterAddresser(), run_type=RunType.ACTUAL, for_date=FOR_DATE, run_datetime=RUN_DATETIME)
+    return SFMSRunManifest(
+        SFMSNGRasterAddresser(),
+        run_type=RunType.ACTUAL,
+        for_date=FOR_DATE,
+        run_datetime=RUN_DATETIME,
+    )
 
 
 def record_everything(manifest: SFMSRunManifest) -> None:
@@ -263,7 +268,9 @@ async def test_write_uploads_the_manifest_json(bucket):
 
     key = s3_client.put_object.await_args.kwargs["key"]
     body = s3_client.put_object.await_args.kwargs["body"]
-    assert key == ("sfms_ng/runs/actual/2026/10/13/target-2026-10-13_run-2026-10-13T20-45-00.000000Z.json")
+    assert key == (
+        "sfms_ng/runs/actual/2026/10/13/target-2026-10-13_run-2026-10-13T20-45-00.000000Z.json"
+    )
     payload = json.loads(body)
     assert payload["version"] == MANIFEST_SCHEMA_VERSION
     assert payload["status"] == "success"
@@ -271,3 +278,48 @@ async def test_write_uploads_the_manifest_json(bucket):
     assert payload["run_type"] == "actual"
     assert payload["for_date"] == "2026-10-13"
     assert payload["input"]["station_codes"] == [122]
+
+
+@pytest.mark.anyio
+async def test_failed_write_raises_and_leaves_the_manifest_running(bucket):
+    manifest = a_manifest()
+    s3_client = MagicMock()
+    s3_client.put_object = AsyncMock(side_effect=RuntimeError("s3 down"))
+
+    with pytest.raises(RuntimeError, match="s3 down"):
+        await manifest.write(s3_client)
+
+    # not marked successful, since nothing was written
+    assert manifest.status == "running"
+
+
+FMC_KEY = "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif"
+FUEL_KEY = "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif"
+
+
+def test_calculated_and_built_rasters_are_inputs_and_outputs(bucket):
+    manifest = a_manifest()
+
+    manifest.record_fmc_raster(FMC_KEY)
+    manifest.record_temporal_fuel_raster(f"/vsis3/some bucket/{FUEL_KEY}")
+
+    assert manifest.input.fmc_raster == FMC_KEY
+    assert manifest.input.fuel_raster.temporal == FUEL_KEY
+    assert manifest.output.fmc_raster == FMC_KEY
+    assert manifest.output.fuel_raster == FUEL_KEY
+    payload = json.loads(manifest.model_dump_json(indent=2, exclude_none=True))
+    assert payload["reused"] == {}
+
+
+def test_reused_rasters_are_inputs_and_reused_not_outputs(bucket):
+    manifest = a_manifest()
+
+    manifest.record_reused_fmc_raster(FMC_KEY)
+    manifest.record_reused_temporal_fuel_raster(f"/vsis3/some bucket/{FUEL_KEY}")
+
+    assert manifest.input.fmc_raster == FMC_KEY
+    assert manifest.input.fuel_raster.temporal == FUEL_KEY
+    payload = json.loads(manifest.model_dump_json(indent=2, exclude_none=True))
+    assert payload["reused"] == {"fmc_raster": FMC_KEY, "fuel_raster": FUEL_KEY}
+    assert "fmc_raster" not in payload["output"]
+    assert "fuel_raster" not in payload["output"]
