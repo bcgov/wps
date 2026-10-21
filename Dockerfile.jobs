@@ -27,6 +27,7 @@ USER $USERNAME
 # Copy workspace configuration and package manifests
 COPY ./backend/pyproject.toml /app/
 COPY ./backend/uv.lock /app/
+COPY ./backend/.python-version /app/
 COPY ./backend/packages/wps-jobs/pyproject.toml /app/packages/wps-jobs/
 COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
@@ -46,6 +47,9 @@ RUN chmod -R a-w /app/packages/wps-shared/src \
 
 # Switch back to non-root user
 USER $USERNAME
+
+# Fail the build if the base image's python3 doesn't match .python-version, instead of downloading one
+ENV UV_PYTHON_DOWNLOADS=never
 
 # Install dependencies using uv
 RUN uv sync --frozen --no-dev --package wps-jobs

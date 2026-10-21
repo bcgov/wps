@@ -28,6 +28,7 @@ WORKDIR /app
 # Copy workspace configuration and package manifests
 COPY ./backend/pyproject.toml /app/
 COPY ./backend/uv.lock /app/
+COPY ./backend/.python-version /app/
 COPY ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
 COPY ./backend/packages/cffdrs-vec/pyproject.toml /app/packages/cffdrs-vec/
 COPY ./backend/packages/cffdrs-vec/src /app/packages/cffdrs-vec/src
@@ -56,6 +57,9 @@ RUN chmod 444 /app/pyproject.toml /app/uv.lock \
 
 # Switch back to non-root user
 USER $USERNAME
+
+# Fail the build if the base image's python3 doesn't match .python-version, instead of downloading one
+ENV UV_PYTHON_DOWNLOADS=never
 
 # Install dependencies using uv, including setuptools for GDAL build and GDAL itself
 RUN uv sync --frozen --no-dev --package wps-api && \
