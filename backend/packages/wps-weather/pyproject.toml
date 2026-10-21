@@ -3,7 +3,7 @@ name = "wps-weather"
 version = "0.1.0"
 description = "Wildfire Predictive Services Unit Weather Maps"
 authors = []
-requires-python = ">=3.12.3,<4.0"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "wps_shared",
     "numpy==2.3.*",

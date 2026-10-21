@@ -33,7 +33,7 @@ USER ${USERNAME}
 
 
 # Copy workspace files (cache layer)
-COPY ./backend/pyproject.toml ./backend/uv.lock ./
+COPY ./backend/pyproject.toml ./backend/uv.lock ./backend/.python-version ./
 COPY ./backend/packages/wps-shared/pyproject.toml ./packages/wps-shared/
 COPY ./backend/packages/wps-wf1/pyproject.toml   ./packages/wps-wf1/
 COPY ./backend/packages/wps-weather/pyproject.toml ./packages/wps-weather/
@@ -54,6 +54,9 @@ RUN chmod 444 ./pyproject.toml ./uv.lock \
 
 # Switch back to non-root user
 USER $USERNAME
+
+# Fail the build if the base image's python3 doesn't match .python-version, instead of downloading one
+ENV UV_PYTHON_DOWNLOADS=never
 
 # Install locked deps + workspace packages
 RUN uv sync --frozen --no-dev --package wps-weather

@@ -20,7 +20,7 @@ runs:
       uses: actions/cache@v6
       with:
         path: ~/work/wps/wps/backend/.venv
-        key: ${{ runner.os }}-venv-uv-0.9.11-${{ hashFiles('**/uv.lock') }}
+        key: ${{ runner.os }}-venv-uv-${{ hashFiles('backend/.python-version', '**/uv.lock') }}
 
     - name: Install JDK
       if: inputs.install-jdk == 'true' && steps.cache-venv.outputs.cache-hit != 'true'

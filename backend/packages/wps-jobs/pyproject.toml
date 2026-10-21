@@ -3,7 +3,7 @@ name = "wps-jobs"
 version = "0.1.0"
 description = "Wildfire Predictive Services Unit Jobs"
 authors = [{ name = "Darren Boss", email = "darren.boss@gov.bc.ca" }]
-requires-python = ">=3.12.3,<4.0"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "wps-shared",
     "scipy>=1.15.2,<2",
