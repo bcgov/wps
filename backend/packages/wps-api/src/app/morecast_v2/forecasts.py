@@ -335,7 +335,7 @@ def transform_morecastforecastoutput_to_weatherindeterminate(
     """
     weather_indeterminates: List[WeatherIndeterminate] = []
     for output in forecast_outputs:
-        station = next(s for s in wfwx_stations if s.code == output.station_code)
+        station = next((s for s in wfwx_stations if s.code == output.station_code), None)
 
         weather_indeterminates.append(
             WeatherIndeterminate(
