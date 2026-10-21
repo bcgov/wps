@@ -19,7 +19,6 @@ async def calculate_fmc(context: SFMSRunContext) -> S3Key:
     fmc_inputs = context.raster_addresser.get_fmc_inputs(
         [target_date], context.base_fuel_raster_path
     )
-    context.manifest.record_fmc_static_inputs(fmc_inputs)
     # each forecast date reopens the static rasters; batch dates in one processor call
     # if FMC time matters
     fmc_keys = await context.track(
@@ -34,5 +33,7 @@ async def calculate_fmc(context: SFMSRunContext) -> S3Key:
         context.manifest.record_reused_fmc_raster(fmc_key)
     else:
         fmc_key = fmc_keys.processed_keys[target_date]
+        # only a run that calculates FMC reads its static inputs
+        context.manifest.record_fmc_static_inputs(fmc_inputs)
         context.manifest.record_fmc_raster(fmc_key)
     return fmc_key

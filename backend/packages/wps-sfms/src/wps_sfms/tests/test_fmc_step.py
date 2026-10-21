@@ -33,12 +33,8 @@ async def test_fmc_step_records_its_failure(mocker: MockerFixture, tracked_jobs)
         await calculate_fmc(run)
 
     assert run.manifest.failed_step == SFMSRunLogJobName.FOLIAR_MOISTURE_CONTENT.value
-    # its inputs were recorded before the calculation, its output only on success
-    assert run.manifest.input.static_rasters == {
-        "elevation": "sfms_ng/static/bc_elevation.tif",
-        "latitude": "sfms_ng/static/latitude.tif",
-        "longitude": "sfms_ng/static/longitude.tif",
-    }
+    # nothing is recorded until the step knows whether it calculated or reused FMC
+    assert run.manifest.input.static_rasters == {}
     assert run.manifest.input.fmc_raster is None
     assert run.manifest.output.fmc_raster is None
     assert run.manifest.reused.fmc_raster is None
@@ -74,6 +70,12 @@ async def test_fmc_step_records_a_calculated_raster_as_its_output(
     assert run.manifest.input.fmc_raster == "sfms_ng/fmc/fmc_20250704.tif"
     assert run.manifest.output.fmc_raster == "sfms_ng/fmc/fmc_20250704.tif"
     assert run.manifest.reused.fmc_raster is None
+    # the calculation read the static inputs
+    assert run.manifest.input.static_rasters == {
+        "elevation": "sfms_ng/static/bc_elevation.tif",
+        "latitude": "sfms_ng/static/latitude.tif",
+        "longitude": "sfms_ng/static/longitude.tif",
+    }
 
 
 @pytest.mark.anyio
@@ -93,3 +95,5 @@ async def test_fmc_step_records_an_existing_raster_as_reused(mocker: MockerFixtu
     assert run.manifest.input.fmc_raster == "sfms_ng/fmc/fmc_20250704.tif"
     assert run.manifest.reused.fmc_raster == "sfms_ng/fmc/fmc_20250704.tif"
     assert run.manifest.output.fmc_raster is None
+    # a reused raster's static inputs weren't read by this run
+    assert run.manifest.input.static_rasters == {}

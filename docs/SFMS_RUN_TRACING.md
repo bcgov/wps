@@ -41,9 +41,10 @@ and that day's forecast run, processing 2026-10-14, writes:
 sfms_ng/runs/forecast/2026/10/14/target-2026-10-14_run-2026-10-13T21-15-00.000000Z.json
 ```
 
-A target date's folder collects every run that produced it: each forecast run that covered it, its
-actual run, and any re-runs and backfills. Each lands under its own run datetime, so none overwrites
-another, and the fixed-width names list in the order the runs happened. A manifest's
+Each run type's folder for a target date collects that type's runs of the date: the `forecast`
+folder holds every forecast run that covered it, and the `actual` folder its actual run and any
+re-runs and backfills. Each lands under its own run datetime, so none overwrites another, and the
+fixed-width names list in the order the runs happened. A manifest's
 `run_datetime` is the same value the run stored on its `sfms_run` row, so the two can be joined
 on it.
 
@@ -79,9 +80,6 @@ versions can add to them.
     "static_rasters": {
       "dem": "sfms/static/bc_elevation.tif",
       "mask": "sfms/static/bc_mask.tif",
-      "elevation": "sfms_ng/static/bc_elevation.tif",
-      "latitude": "sfms_ng/static/latitude.tif",
-      "longitude": "sfms_ng/static/longitude.tif",
       "slope": "sfms_ng/static/bc_slope.tif",
       "aspect": "sfms_ng/static/bc_aspect.tif"
     },
@@ -132,7 +130,7 @@ reused the FMC raster an earlier run had calculated for the date.
 | Field          | Type   | Notes                                                                                            |
 | -------------- | ------ | ------------------------------------------------------------------------------------------------ |
 | `version`      | int    | Schema version. `1` for the layout above; unknown top-level fields should be ignored by parsers. |
-| `run_datetime` | string | ISO 8601 UTC instant the run was saved. Also names the manifest's folder and file.               |
+| `run_datetime` | string | ISO 8601 UTC instant the run was saved. Also names the manifest's file.                          |
 | `run_type`     | string | `actual` or `forecast`.                                                                          |
 | `for_date`     | string | ISO date the run's rasters are for.                                                              |
 | `status`       | string | `success` or `failed`; manifests are written only for terminal runs whose `sfms_run` row was committed, so every manifest joins to one. |
@@ -164,7 +162,7 @@ records no temporal fuel grid in `input`, `output` or `reused`.
 | `station_codes`  | The station codes whose daily weather the run interpolated from WF1.                                                            |
 | `fuel_raster`    | `base`: the base fuel grid selected for the run's year. `temporal`: the dated temporal fuel grid FBP ran on. `percent_conifer`: the percent-conifer raster paired with the base grid's year. |
 | `seed_rasters`   | Previous-day FFMC/DMC/DC rasters the run calculated FWI forward from. An empty object on April/May Monday re-interpolation days, which interpolate the base indices from stations instead, and for the derived ISI/BUI/FWI calculations that follow them. |
-| `static_rasters` | Static rasters by role: `dem` and `mask` for interpolation, `elevation`, `latitude` and `longitude` for FMC, `slope` and `aspect` for primary FBP. `dem` is the legacy SFMS elevation raster and is distinct from `elevation`. |
+| `static_rasters` | Static rasters by role: `dem` and `mask` for interpolation, `elevation`, `latitude` and `longitude` for FMC when the run calculated it rather than reusing it, `slope` and `aspect` for primary FBP. `dem` is the legacy SFMS elevation raster and is distinct from `elevation`. |
 | `julian_rasters` | The green-up and grass curing rasters the temporal fuel grid was built from, keyed by name. These are the **archive** keys (`sfms_ng/static/julian/archive/{name}/{sha256}.tif`), because the live `sfms_ng/static/julian/{name}.tif` keys are replaced over time and an archive key is the content-addressed copy of the exact bytes the grid was built from. |
 | `fmc_raster`     | The shared FMC raster for the target date that primary FBP read, whether the run calculated it or reused it.                     |
 
