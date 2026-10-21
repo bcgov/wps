@@ -191,16 +191,14 @@ class FoliarMoistureContentProcessor:
             inputs.fuel_key,
             inputs.output_keys,
         )
-        fmc_keys = FoliarMoistureContentKeys(
-            processed_keys=outputs_to_process,
-            reused_keys={
-                target_date: output_key
-                for target_date, output_key in inputs.output_keys.items()
-                if target_date not in outputs_to_process
-            },
-        )
+        reused_keys = {
+            target_date: output_key
+            for target_date, output_key in inputs.output_keys.items()
+            if target_date not in outputs_to_process
+        }
+        # every date already exists, so the static inputs aren't loaded
         if not outputs_to_process:
-            return fmc_keys
+            return FoliarMoistureContentKeys(processed_keys={}, reused_keys=reused_keys)
 
         with gdal_s3_context():
             await self._raster_dependencies.assert_keys_exist(
@@ -234,4 +232,4 @@ class FoliarMoistureContentProcessor:
                             published.output_key,
                             published.cog_key,
                         )
-        return fmc_keys
+        return FoliarMoistureContentKeys(processed_keys=outputs_to_process, reused_keys=reused_keys)
