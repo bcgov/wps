@@ -3,7 +3,7 @@ name = "wps-api"
 version = "0.1.0"
 description = "Wildfire Predictive Services Unit API"
 authors = [{ name = "Sybrand Strauss", email = "sybrand.strauss@gov.bc.ca" }]
-requires-python = ">=3.14,<3.15"
+requires-python = ">=3.15,<3.16"
 dependencies = [
     "wps-shared",
     "wps-sfms",
