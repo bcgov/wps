@@ -32,6 +32,7 @@ class SFMSRunLogJobName(str, enum.Enum):
     FWI_CALCULATION = "fwi_calculation"
 
     # FBP
+    FOLIAR_MOISTURE_CONTENT = "foliar_moisture_content"
     TEMPORAL_FUEL = "temporal_fuel"
     PRIMARY_FBP_CALCULATION = "primary_fbp_calculation"
 

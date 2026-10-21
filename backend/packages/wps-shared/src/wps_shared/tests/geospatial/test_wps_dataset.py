@@ -610,19 +610,65 @@ def test_export_to_geotiff():
     ds_1 = None
 
 
-def test_latitude_array():
+def test_latitude_array_from_projected_raster():
     lats_3005_tif = os.path.join(os.path.dirname(__file__), "3005_lats.tif")
+    with WPSDataset(ds_path=lats_3005_tif) as dataset:
+        actual = dataset.generate_latitude_array()
+        valid_mask = np.ones(actual.shape, dtype=bool)
+        expected, _, rows, columns = dataset.get_lat_lon_coords(valid_mask)
+
+    assert np.all(expected > 0)
+    # the upper left pixel centre of the EPSG:3005 fixture is about 59.9877 degrees north
+    assert actual[0, 0] == pytest.approx(59.9877, abs=1e-4)
+    np.testing.assert_allclose(actual[rows, columns], expected, rtol=0, atol=1e-10)
+
+
+def test_latitude_array_from_geographic_raster():
     lats_4326_tif = os.path.join(os.path.dirname(__file__), "4326_lats.tif")
-    with (
-        WPSDataset(ds_path=lats_3005_tif) as lats_3005_ds,
-        WPSDataset(ds_path=lats_4326_tif) as lats_4326_ds,
-    ):
-        output_ds: WPSDataset = lats_3005_ds.warp_to_match(lats_4326_ds, "/vsimem/test_lats.tif")
-        original_ds = gdal.Open(lats_4326_tif)
-        original_lats = original_ds.GetRasterBand(1).ReadAsArray()
-        warped_lats = output_ds.generate_latitude_array()
-        assert np.all(original_lats == warped_lats) == True
-        output_ds = None
+    with WPSDataset(ds_path=lats_4326_tif) as dataset:
+        geotransform = dataset.ds.GetGeoTransform()
+        rows, columns = np.indices((dataset.ds.RasterYSize, dataset.ds.RasterXSize))
+        expected = (
+            geotransform[3] + (columns + 0.5) * geotransform[4] + (rows + 0.5) * geotransform[5]
+        )
+        actual = dataset.generate_latitude_array()
+
+    np.testing.assert_allclose(actual, expected, rtol=0, atol=1e-10)
+
+
+def test_latitude_array_uses_pixel_centers_for_rotated_grid_including_nodata():
+    dataset = gdal.GetDriverByName("MEM").Create("", 3, 2, 1, gdal.GDT_Float32)
+    dataset.SetGeoTransform((-125, 0.1, 0.01, 51, 0.02, -0.1))
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    dataset.SetProjection(srs.ExportToWkt())
+    dataset.GetRasterBand(1).SetNoDataValue(-9999)
+    dataset.GetRasterBand(1).WriteArray(np.array([[-9999, 1, 1], [1, 1, 1]]))
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_dataset:
+        actual = wps_dataset.generate_latitude_array()
+
+    np.testing.assert_allclose(
+        actual, [[50.96, 50.98, 51], [50.86, 50.88, 50.9]], rtol=0, atol=1e-10
+    )
+    assert actual[0, 0] == pytest.approx(50.96)
+
+
+def test_latitude_array_rejects_nonfinite_transform_results(monkeypatch):
+    dataset = gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Float32)
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    dataset.SetProjection(srs.ExportToWkt())
+
+    class InvalidTransform:
+        def TransformPoints(self, coordinates):
+            return [(0, float("inf"), 0) for _ in coordinates]
+
+    monkeypatch.setattr(osr, "CoordinateTransformation", lambda *_: InvalidTransform())
+
+    with WPSDataset(ds_path=None, ds=dataset) as wps_dataset:
+        with pytest.raises(ValueError, match="non-finite values in row 0"):
+            wps_dataset.generate_latitude_array()
 
 
 def test_get_nodata_mask():
@@ -721,6 +767,23 @@ def test_multi_wps_dataset_context(mocker):
 
 class TestGetLatLonCoords:
     """Tests for get_lat_lon_coords method."""
+
+    def test_rotated_geotransform_uses_pixel_centers(self):
+        ds = gdal.GetDriverByName("MEM").Create("", 2, 2, 1, gdal.GDT_Float32)
+        ds.SetGeoTransform((-125, 0.1, 0.01, 51, 0.02, -0.1))
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(4326)
+        ds.SetProjection(srs.ExportToWkt())
+
+        with WPSDataset(ds_path=None, ds=ds) as wps_ds:
+            lats, lons, rows, columns = wps_ds.get_lat_lon_coords()
+
+        np.testing.assert_array_equal(rows, [0, 0, 1, 1])
+        np.testing.assert_array_equal(columns, [0, 1, 0, 1])
+        np.testing.assert_allclose(lats, [50.96, 50.98, 50.86, 50.88], rtol=0, atol=1e-10)
+        np.testing.assert_allclose(
+            lons, [-124.945, -124.845, -124.935, -124.835], rtol=0, atol=1e-10
+        )
 
     def test_wgs84_coords_returned_correctly(self):
         """Test that WGS84 dataset returns correct lat/lon coordinates."""

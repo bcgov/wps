@@ -18,34 +18,39 @@ latest.
 Manifests live in the same object store as the rasters they describe, under the SFMSNG root:
 
 ```
-sfms_ng/runs/{run_datetime yyyy/mm/dd}/{run_type}/{for_date}_{run_datetime}_run.json
+sfms_ng/runs/{run_type}/{for_date yyyy/mm/dd}/target-{for_date}_run-{run_datetime}.json
 ```
 
 - `run_type` is `actual` or `forecast`.
-- `yyyy/mm/dd` is the **run datetime's** date (UTC) — not the target date.
-- `for_date` is the run's target date, ISO `YYYY-MM-DD`.
-- the `run_datetime` in the file name is the same UTC datetime, compacted to
-  `YYYYMMDDThhmmssffffffZ` (including six microsecond digits).
+- `yyyy/mm/dd` is the **target date**, mirroring the rasters' `sfms_ng/{run_type}/yyyy/mm/dd/`
+  layout, so a raster's manifests sit at the parallel path.
+- `for_date` is the run's target date, ISO `YYYY-MM-DD`, repeated in the file name so a manifest
+  still says which date it describes outside its folder.
+- `run_datetime` is the UTC datetime the run was saved, as ISO 8601 with `-` in place of `:` and
+  six microsecond digits (`YYYY-MM-DDThh-mm-ss.ffffffZ`).
 
 For example, an actuals run for 2026-10-13 that started at 20:45:00 UTC writes:
 
 ```
-sfms_ng/runs/2026/10/13/actual/2026-10-13_20261013T204500000000Z_run.json
+sfms_ng/runs/actual/2026/10/13/target-2026-10-13_run-2026-10-13T20-45-00.000000Z.json
 ```
 
 and that day's forecast run, processing 2026-10-14, writes:
 
 ```
-sfms_ng/runs/2026/10/13/forecast/2026-10-14_20261013T211500000000Z_run.json
+sfms_ng/runs/forecast/2026/10/14/target-2026-10-14_run-2026-10-13T21-15-00.000000Z.json
 ```
 
-Because the folder is the run datetime, re-runs and backfills of the same target date never
-overwrite an earlier manifest: each run lands under its own run datetime. A manifest's
-`run_datetime` is the same value the run stored on its `sfms_run` row, so the two can be joined
-on it.
+Each run type's folder for a target date collects that type's runs of the date: the `forecast`
+folder holds every forecast run that covered it, and the `actual` folder its actual run and any
+re-runs and backfills. Each lands under its own run datetime, so none overwrites another, and the
+fixed-width names list in the order the runs happened. A manifest's
+`sfms_run_id` is its run's `sfms_run.id`, so it joins directly to that row and to the run's
+`sfms_run_log` rows. Its `run_datetime` is also the value stored on that row, which identifies the
+run where the id doesn't, such as against another environment's database.
 
 Manifests are written when a run reaches a terminal state. A failed run's manifest contains the
-inputs recorded so far and outputs from stages that completed successfully, plus the failing stage
+inputs recorded so far and outputs from steps that completed successfully, plus the failing step
 and exception type. Failures before an `SFMSRunContext` is created have no run manifest.
 
 ## Schema
@@ -57,6 +62,7 @@ versions can add to them.
 ```json
 {
   "version": 1,
+  "sfms_run_id": 4211,
   "run_datetime": "2026-10-13T20:45:00Z",
   "run_type": "actual",
   "for_date": "2026-10-13",
@@ -66,7 +72,7 @@ versions can add to them.
     "fuel_raster": {
       "base": "sfms/static/fuel/2026/fbp2026_v1.tif",
       "temporal": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
-      "pc": "sfms/static/m12_2026.tif"
+      "percent_conifer": "sfms/static/m12_2026.tif"
     },
     "seed_rasters": {
       "ffmc": "sfms_ng/actual/2026/10/12/ffmc_20261012.tif",
@@ -76,9 +82,6 @@ versions can add to them.
     "static_rasters": {
       "dem": "sfms/static/bc_elevation.tif",
       "mask": "sfms/static/bc_mask.tif",
-      "elevation": "sfms_ng/static/bc_elevation.tif",
-      "latitude": "sfms_ng/static/latitude.tif",
-      "longitude": "sfms_ng/static/longitude.tif",
       "slope": "sfms_ng/static/bc_slope.tif",
       "aspect": "sfms_ng/static/bc_aspect.tif"
     },
@@ -114,25 +117,33 @@ versions can add to them.
       "cfb": "sfms_ng/actual/2026/10/13/cfb_20261013.tif"
     },
     "fuel_raster": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
+    "danger_rating_raster": "sfms_ng/actual/2026/10/13/danger_rating_20261013.tif"
+  },
+  "reused": {
     "fmc_raster": "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif"
   }
 }
 ```
+
+In this example the run built version 2 of the date's temporal fuel grid, so it is an output, and
+reused the FMC raster an earlier run had calculated for the date.
 
 ### Fields
 
 | Field          | Type   | Notes                                                                                            |
 | -------------- | ------ | ------------------------------------------------------------------------------------------------ |
 | `version`      | int    | Schema version. `1` for the layout above; unknown top-level fields should be ignored by parsers. |
-| `run_datetime` | string | ISO 8601 UTC instant the run was saved. Also names the manifest's folder and file.               |
+| `sfms_run_id`  | int    | The run's `sfms_run.id`, so the manifest joins to its `sfms_run` row and `sfms_run_log` rows.    |
+| `run_datetime` | string | ISO 8601 UTC instant the run was saved. Also names the manifest's file.                          |
 | `run_type`     | string | `actual` or `forecast`.                                                                          |
 | `for_date`     | string | ISO date the run's rasters are for.                                                              |
 | `status`       | string | `success` or `failed`; manifests are written only for terminal runs whose `sfms_run` row was committed, so every manifest joins to one. |
-| `failed_stage` | string | Present for failed runs; the stage that raised.                                                  |
+| `failed_step`  | string | Present for failed runs; the step that raised.                                                   |
 | `failure_type` | string | Present for failed runs; the exception class.                                                    |
 | `failure_message` | string | Optional, truncated exception message for failed runs.                                       |
 | `input`        | object | What the run read. See below.                                                                    |
 | `output`       | object | What the run wrote, by product. See below.                                                       |
+| `reused`       | object | Rasters the run would otherwise have produced, but which already existed. See below.             |
 
 Every raster path is a plain object store key in the same bucket as the manifest, not a GDAL
 `/vsis3/{bucket}/` path; a reader that wants the GDAL path prefixes the key with `/vsis3/{bucket}/`.
@@ -144,20 +155,20 @@ per version, so once a manifest records their keys, those keys keep naming the s
 Only sections the run actually used are present. A field is absent — not null — when the run did
 not record it, and groups that were recorded are objects keyed by parameter name. For example, a
 run whose FWI calculation was skipped for missing previous-day rasters has `status` `failed` with
-`failed_stage` `fwi_seed_check`, records `input.station_codes`, `input.fuel_raster.base` and
+`failed_step` `fwi_seed_check`, records `input.station_codes`, `input.fuel_raster.base` and
 `output.weather`, leaves `input.seed_rasters`, `output.fwi` and `output.fbp` as empty objects, and
-omits `output.fuel_raster`.
+records no temporal fuel grid in `input`, `output` or `reused`.
 
 #### `input`
 
 | Field            | Contents                                                                                                                        |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `station_codes`  | The station codes whose daily weather the run interpolated from WF1.                                                            |
-| `fuel_raster`    | `base`: the base fuel grid selected for the run's year. `temporal`: the dated temporal fuel grid FBP ran on. `pc`: the percent-conifer raster paired with the base grid's year. |
+| `fuel_raster`    | `base`: the base fuel grid selected for the run's year. `temporal`: the dated temporal fuel grid FBP ran on. `percent_conifer`: the percent-conifer raster paired with the base grid's year. |
 | `seed_rasters`   | Previous-day FFMC/DMC/DC rasters the run calculated FWI forward from. An empty object on April/May Monday re-interpolation days, which interpolate the base indices from stations instead, and for the derived ISI/BUI/FWI calculations that follow them. |
-| `static_rasters` | Static rasters by role: `dem` and `mask` for interpolation, `elevation`, `latitude` and `longitude` for FMC, `slope` and `aspect` for primary FBP. `dem` is the legacy SFMS elevation raster and is distinct from `elevation`. |
+| `static_rasters` | Static rasters by role: `dem` and `mask` for interpolation, `elevation`, `latitude` and `longitude` for FMC when the run calculated it rather than reusing it, `slope` and `aspect` for primary FBP. `dem` is the legacy SFMS elevation raster and is distinct from `elevation`. |
 | `julian_rasters` | The green-up and grass curing rasters the temporal fuel grid was built from, keyed by name. These are the **archive** keys (`sfms_ng/static/julian/archive/{name}/{sha256}.tif`), because the live `sfms_ng/static/julian/{name}.tif` keys are replaced over time and an archive key is the content-addressed copy of the exact bytes the grid was built from. |
-| `fmc_raster`     | The shared FMC raster for the target date. Listed twice: it is an input to primary FBP, and it is a product of the run.         |
+| `fmc_raster`     | The shared FMC raster for the target date that primary FBP read, whether the run calculated it or reused it.                     |
 
 #### `output`
 
@@ -167,12 +178,25 @@ Rasters the run wrote, grouped by product:
   `relative_humidity`, `wind_speed`, `wind_direction`, `precipitation`).
 - `fwi`: FWI indices, keyed by parameter (`ffmc`, `dmc`, `dc`, `isi`, `bui`, `fwi`).
 - `fbp`: primary FBP products, keyed by parameter (`sfc`, `ros`, `hfi`, `tfc`, `cfb`).
-- `fuel_raster`: the dated temporal fuel grid, also listed as `input.fuel_raster.temporal`
-  because primary FBP consumes it.
-- `fmc_raster`: the shared FMC raster for the target date, also listed as `input.fmc_raster`.
+- `fuel_raster`: the dated temporal fuel grid, when the run built a new version of it.
+- `fmc_raster`: the shared FMC raster for the target date, when the run calculated it.
+- `danger_rating_raster`: the station danger rating raster, when interpolation completed.
 
 Each published raster also has a cloud-optimized copy at the same key with `_cog.tif` in place
 of `.tif` (see `SFMSNGRasterAddresser.get_cog_key`).
+
+#### `reused`
+
+Rasters the run would otherwise have produced, but which an earlier run already had. A date is
+processed by several forecast runs and then its actual run, and only the first to process it
+produces these, so most runs reuse them:
+
+- `fuel_raster`: the temporal fuel grid, when a stored version was built from the same base fuel
+  grid and Julian rasters and still matches its recorded hash.
+- `fmc_raster`: the FMC raster for the target date, when it already existed.
+
+Each is in either `output` or `reused`, never both, and is always also in `input`, since primary
+FBP reads it either way.
 
 ## Changing the schema
 

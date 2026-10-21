@@ -57,8 +57,9 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
   - Right before primary FBP, each actual and forecast run builds, or reuses, one temporal fuel
     grid per processed date from the base fuel grid and four Julian-date rasters. It runs as the
     `temporal_fuel` job, after weather and FWI, so a failure can't stop the weather and FWI
-    rasters from being written. Like every tracked SFMS job, a failure rolls back the run's
-    `sfms_run` and `sfms_run_log` rows; the job exits with an error and alerts chatops instead.
+    rasters from being written. Like every tracked SFMS job, its run log row commits on its own:
+    a failure leaves the run's `sfms_run` row with a FAILED `temporal_fuel` log and a failure
+    manifest, and the job exits with an error and alerts chatops.
     The Julian-date rasters must be uploaded manually; the step fails with "Missing Julian date
     rasters" otherwise:
     - `sfms_ng/static/julian/green_up_on.tif`: day of year green-up starts, per pixel.

@@ -11,7 +11,7 @@ on:
 
 jobs:
   zap_scan_ocp4:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     name: Scan the web application in OCP4
     steps:
       - name: Checkout
