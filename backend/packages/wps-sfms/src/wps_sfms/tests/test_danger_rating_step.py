@@ -35,7 +35,8 @@ async def test_interpolates_and_records_danger_rating(mocker: MockerFixture, tra
 
     assert output_key == "sfms_ng/forecast/2025/07/04/danger_rating_20250704.tif"
     field = constructor.call_args.args[1]
-    assert field.values.tolist() == [4.0, 0.0]
+    assert field.values.tolist() == [4.0]
+    assert field.lats.tolist() == [49.0]
     processor.process.assert_awaited_once_with(
         run.s3_client,
         run.base_fuel_raster_path,
@@ -47,14 +48,30 @@ async def test_interpolates_and_records_danger_rating(mocker: MockerFixture, tra
 
 
 @pytest.mark.anyio
+async def test_skips_when_no_stations_have_danger_rating(mocker: MockerFixture, tracked_jobs):
+    constructor = mocker.patch("wps_sfms.danger_rating_step.DangerRatingInterpolator")
+    run = a_run()
+
+    result = await interpolate_danger_rating(run, station_weather())
+
+    assert result is None
+    constructor.assert_not_called()
+    run.raster_addresser.get_danger_rating_key.assert_not_called()
+    assert tracked_jobs == []
+    assert run.manifest.output.danger_rating_raster is None
+
+
+@pytest.mark.anyio
 async def test_failure_does_not_record_output(mocker: MockerFixture, tracked_jobs):
     processor = MagicMock()
     processor.process = AsyncMock(side_effect=RuntimeError("interpolation failed"))
     mocker.patch("wps_sfms.danger_rating_step.DangerRatingInterpolator", return_value=processor)
     run = a_run()
+    stations = station_weather()
+    stations[0].danger_rating = 4
 
     with pytest.raises(RuntimeError, match="interpolation failed"):
-        await interpolate_danger_rating(run, station_weather())
+        await interpolate_danger_rating(run, stations)
 
     assert run.manifest.output.danger_rating_raster is None
     assert run.manifest.failed_step == "danger_rating_interpolation"
