@@ -330,3 +330,37 @@ def test_process_prediction_existing_prediction_is_updated(
     assert existing_prediction.delta_precip == pytest.approx(2.0)
     assert existing_prediction.update_date == datetime(2023, 9, 7, 13, 0, 0)
     mock_session.add.assert_called_with(existing_prediction)
+
+
+@pytest.mark.parametrize(
+    "wind_direction_at_1800,wind_direction_at_2100,expected_direction",
+    [
+        # 350 and 10 are 20 degrees apart across north. Two-thirds of the way:
+        # 350 + 20 * 2/3 = 1090/3; wrap 360 degrees to get 10/3.
+        (350.0, 10.0, 10 / 3),
+        # Unwrap 10 as 370, then interpolate two-thirds toward 350:
+        # 370 + (350 - 370) * 2/3 = 1070/3 degrees.
+        (10.0, 350.0, 1070 / 3),
+    ],
+)
+@patch("weather_model_jobs.common_model_fetchers.interpolate_between_two_points", new=MagicMock())
+def test_interpolated_bias_adjusted_wdir_wraps_through_north(
+    processor,
+    mock_machine,
+    mock_station_prediction,
+    wind_direction_at_1800,
+    wind_direction_at_2100,
+    expected_direction,
+):
+    mock_station_prediction.prediction_timestamp = NON_ACCUMULATING_HOUR_TIMESTAMP
+    # The method is called at 1800 and then 2100; side_effect supplies the matching directions in order.
+    mock_machine.predict_wind_direction.side_effect = [
+        wind_direction_at_1800,
+        wind_direction_at_2100,
+    ]
+
+    processor._add_interpolated_bias_adjustments_to_prediction(
+        mock_station_prediction, mock_machine
+    )
+
+    assert mock_station_prediction.bias_adjusted_wdir == pytest.approx(expected_direction)
