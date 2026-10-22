@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
+from wps_sfms.processors.danger_rating import DangerRatingInterpolator
 from wps_sfms.processors.foliar_moisture_content import (
     FoliarMoistureContentKeys,
     FoliarMoistureContentProcessor,
@@ -173,10 +174,10 @@ def make_mock_daily_sfms_dependencies(
     mocker.patch("wps_sfms.weather_step.Interpolator", return_value=interpolation_processor)
     mocker.patch("wps_sfms.fwi_step.Interpolator", return_value=interpolation_processor)
 
-    danger_rating_processor = MagicMock(spec=Interpolator)
+    danger_rating_processor = MagicMock(spec=DangerRatingInterpolator)
     danger_rating_processor.process = AsyncMock(return_value="danger_rating.tif")
     mocker.patch(
-        "wps_sfms.danger_rating_step.Interpolator",
+        "wps_sfms.danger_rating_step.DangerRatingInterpolator",
         return_value=danger_rating_processor,
     )
 
