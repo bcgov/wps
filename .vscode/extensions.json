@@ -1,9 +1,15 @@
 {
     "recommendations": [
+        "biomejs.biome",
         "charliermarsh.ruff",
+        "github.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "biomejs.biome",
-        "esbenp.prettier-vscode"
+        "njpwerner.autodocstring",
+        "SonarSource.sonarlint-vscode",
+        "streetsidesoftware.code-spell-checker",
+        "tamasfe.even-better-toml",
+        "vitest.explorer"
     ]
 }

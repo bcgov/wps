@@ -8,16 +8,15 @@ if ! command -v code >/dev/null 2>&1; then
   exit 1
 fi
 
+# Recommended extensions are listed in .vscode/extensions.json
+EXTENSIONS_JSON="$(dirname "$0")/../.vscode/extensions.json"
+grep -o '"[A-Za-z0-9-]*\.[A-Za-z0-9.-]*"' "$EXTENSIONS_JSON" | tr -d '"' | xargs -n1 code --install-extension
+
+# Optional extensions for specific parts of the repo (mobile, R, notebooks, etc.)
 code --install-extension alexkrechik.cucumberautocomplete
-code --install-extension biomejs.biome
-code --install-extension charliermarsh.ruff
+code --install-extension bruno-api-client.bruno
 code --install-extension deque-systems.vscode-axe-linter
 code --install-extension esbenp.prettier-vscode
-code --install-extension github.vscode-github-actions
-code --install-extension ms-azuretools.vscode-docker
-code --install-extension ms-python.isort
-code --install-extension ms-python.python
-code --install-extension ms-python.vscode-pylance
 code --install-extension ms-toolsai.jupyter
 code --install-extension ms-toolsai.jupyter-keymap
 code --install-extension ms-toolsai.jupyter-renderers
@@ -27,10 +26,4 @@ code --install-extension ms-vscode-remote.remote-containers
 code --install-extension ms-vscode.makefile-tools
 code --install-extension REditorSupport.r
 code --install-extension shd101wyy.markdown-preview-enhanced
-code --install-extension SonarSource.sonarlint-vscode
-code --install-extension tamasfe.even-better-toml
-code --install-extension streetsidesoftware.code-spell-checker
-code --install-extension njpwerner.autodocstring
-code --install-extension vitest.explorer
 code --install-extension swiftlang.swift-vscode
-code --install-extension bruno-api-client.bruno
