@@ -14,6 +14,8 @@
         "--import-mode=importlib"
     ],
     "python.languageServer": "Pylance",
+    // Off for now: "basic" reports ~1.7k existing type errors in the backend.
+    // We should turn this on and ratchet it up ("basic" -> "standard") as we fix them.
     "python.analysis.typeCheckingMode": "off",
     "python.analysis.extraPaths": [
         "${workspaceFolder}/backend/packages/wps-api/src",
