@@ -24,7 +24,7 @@ def reproject_raster_to_3857(input_path: str, output_path: str) -> str:
     """reproject using nearest neighbour to preserve categorical fuel codes."""
     with gdal.ExceptionMgr(), gdal.Open(input_path) as source:
         transform = source.GetGeoTransform()
-        with gdal.Warp(
+        gdal.Warp(
             output_path,
             source,
             dstSRS="EPSG:3857",
@@ -35,8 +35,7 @@ def reproject_raster_to_3857(input_path: str, output_path: str) -> str:
             yRes=abs(transform[5]),
             resampleAlg=gdal.GRA_NearestNeighbour,
             format="GTiff",
-        ):
-            pass
+        ).Close()
 
     logger.info("Reprojection complete. Output saved to: %s", output_path)
     return output_path
@@ -46,8 +45,7 @@ def generate_cloud_optimized_geotiff(input_path: str, output_path: str) -> None:
     """create a COG with nearest neighbour overviews for categorical fuel codes."""
     options = ["COMPRESS=LZW", "OVERVIEWS=IGNORE_EXISTING", "RESAMPLING=NEAREST"]
     with gdal.ExceptionMgr(), gdal.Open(input_path) as source:
-        with gdal.GetDriverByName("COG").CreateCopy(output_path, source, options=options):
-            pass
+        gdal.GetDriverByName("COG").CreateCopy(output_path, source, options=options).Close()
     logger.info("COG created at %s", output_path)
 
 
