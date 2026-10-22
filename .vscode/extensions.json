@@ -1,0 +1,16 @@
+{
+    "recommendations": [
+        "biomejs.biome",
+        "bruno-api-client.bruno",
+        "charliermarsh.ruff",
+        "github.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "njpwerner.autodocstring",
+        "SonarSource.sonarlint-vscode",
+        "streetsidesoftware.code-spell-checker",
+        "tamasfe.even-better-toml",
+        "vitest.explorer"
+    ]
+}
