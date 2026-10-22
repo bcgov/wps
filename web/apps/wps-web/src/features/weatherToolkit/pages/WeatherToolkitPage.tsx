@@ -14,7 +14,7 @@ import { ModelRunHour, ModelType, modelRegistry } from '@/features/weatherToolki
 
 const WeatherToolkitPage = () => {
   const [currentHour, setCurrentHour] = useState<number>(0)
-  const [model, setModel] = useState<ModelType>(ModelType.GDPS)
+  const [model, setModel] = useState<ModelType>(ModelType.RDPS)
   const [modelRunDate, setModelRunDate] = useState<DateTime>(DateTime.utc())
   const [modelRunHour, setModelRunHour] = useState<ModelRunHour>(ModelRunHour.ZERO)
   const [isChartExpanded, setIsChartExpanded] = useState<boolean>(false)
