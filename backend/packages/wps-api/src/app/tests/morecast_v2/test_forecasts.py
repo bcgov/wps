@@ -13,9 +13,11 @@ from app.morecast_v2.forecasts import (
     filter_for_api_forecasts,
     get_forecasts,
     get_fwi_values,
+    transform_morecastforecastoutput_to_weatherindeterminate,
 )
 from wps_shared.schemas.morecast_v2 import (
     MoreCastForecastInput,
+    MoreCastForecastOutput,
     StationDailyFromWF1,
     WF1ForecastRecordType,
     WF1PostForecast,
@@ -355,3 +357,13 @@ def test_calculate_fwi_values_missing_weather():
     assert result.fine_fuel_moisture_code is None
     assert result.fire_weather_index is None
     assert result.initial_spread_index is None
+
+
+def test_transform_morecastforecastoutput_to_weatherindeterminate_station_not_in_wfwx():
+    output = MoreCastForecastOutput(
+        **morecast_input_1.model_dump(exclude={"station_code"}), station_code=999, update_timestamp=0
+    )
+    result = transform_morecastforecastoutput_to_weatherindeterminate([output], wfwx_weather_stations)
+    assert len(result) == 1
+    assert result[0].station_code == 999
+    assert result[0].station_name == ""
