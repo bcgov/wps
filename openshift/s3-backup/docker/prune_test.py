@@ -1,8 +1,9 @@
 """ Tests for prune.py
 """
-from datetime import datetime, timedelta
 import unittest
-from prune import decide_files_to_keep, decide_files_to_delete
+from datetime import datetime, timedelta
+
+from prune import decide_files_to_delete, decide_files_to_keep
 
 
 def file_generator():
@@ -46,9 +47,7 @@ class TestRollingPrune(unittest.TestCase):
 
     def test_a_number_of_days_after_failing_to_run(self):
         """ Check that if pruning hasn't been running for a while, it prunes correctly """
-        files = []
-        for file in file_generator():
-            files.append(file)
+        files = list(file_generator())
 
         files = list(set(files).difference(decide_files_to_delete(files.copy())))
 
@@ -161,7 +160,7 @@ class TestPrune(unittest.TestCase):
         self.assertEqual(len(files_to_delete), 0)
         files_set = set(files)
         delete_set = set(files_to_delete)
-        keep_set = set([files[0], files[1], files[2], files[3]])
+        keep_set = {files[0], files[1], files[2], files[3]}
         self.assertEqual(files_set.difference(keep_set), delete_set)
 
 
