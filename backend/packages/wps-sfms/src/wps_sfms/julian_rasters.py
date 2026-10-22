@@ -2,7 +2,6 @@
 archived by content hash so each grid's exact inputs survive the live keys being replaced."""
 
 import asyncio
-import hashlib
 import logging
 from collections.abc import Generator, Iterator
 from contextlib import contextmanager
@@ -13,6 +12,7 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import S3Key
 from wps_shared.utils.s3_client import S3Client
 
+from wps_sfms.raster_archive import archive_if_missing, content_hash
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 logger = logging.getLogger(__name__)
@@ -106,12 +106,12 @@ async def read_julian_rasters(
     all_bytes = await asyncio.gather(*(s3_client.read_object(key) for key in source_keys))
     julian_rasters = {}
     for name, raster_bytes in zip(names, all_bytes):
-        content_hash = hashlib.sha256(raster_bytes).hexdigest()
+        raster_hash = content_hash(raster_bytes)
         julian_rasters[name] = JulianRaster(
             name=name,
             raster_bytes=raster_bytes,
-            content_hash=content_hash,
-            archive_key=raster_addresser.get_julian_archive_key(name, content_hash),
+            content_hash=raster_hash,
+            archive_key=raster_addresser.get_julian_archive_key(name, raster_hash),
         )
     return JulianRasters(**julian_rasters)
 
@@ -119,15 +119,14 @@ async def read_julian_rasters(
 async def ensure_julian_archives(s3_client: S3Client, julian_rasters: JulianRasters) -> None:
     """Archive the exact Julian rasters by content hash, since the live keys get replaced over
     time. Only missing archives are written; an existing one already holds the same bytes."""
-    archived = await asyncio.gather(
-        *(s3_client.object_exists(raster.archive_key) for raster in julian_rasters)
+    written = await asyncio.gather(
+        *(
+            archive_if_missing(s3_client, raster.archive_key, raster.raster_bytes)
+            for raster in julian_rasters
+        )
     )
-    missing = [raster for raster, exists in zip(julian_rasters, archived) if not exists]
-    if not missing:
-        return
-    await asyncio.gather(
-        *(s3_client.put_object(raster.archive_key, raster.raster_bytes) for raster in missing)
-    )
-    logger.info(
-        "Archived Julian date rasters: %s", ", ".join(raster.archive_key for raster in missing)
-    )
+    archived = [
+        raster.archive_key for raster, was_written in zip(julian_rasters, written) if was_written
+    ]
+    if archived:
+        logger.info("Archived Julian date rasters: %s", ", ".join(archived))
