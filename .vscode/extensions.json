@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "biomejs.biome",
+        "bruno-api-client.bruno",
         "charliermarsh.ruff",
         "github.vscode-github-actions",
         "ms-azuretools.vscode-docker",

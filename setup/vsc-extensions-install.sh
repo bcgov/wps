@@ -14,7 +14,6 @@ grep -o '"[A-Za-z0-9-]*\.[A-Za-z0-9.-]*"' "$EXTENSIONS_JSON" | tr -d '"' | xargs
 
 # Optional extensions for specific parts of the repo (mobile, R, notebooks, etc.)
 code --install-extension alexkrechik.cucumberautocomplete
-code --install-extension bruno-api-client.bruno
 code --install-extension deque-systems.vscode-axe-linter
 code --install-extension esbenp.prettier-vscode
 code --install-extension ms-toolsai.jupyter
