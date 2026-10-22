@@ -1,5 +1,5 @@
 import type WebGLTileLayer from 'ol/layer/WebGLTile'
-import { FUEL_TYPE_COLORS, RASTER_CONFIG, type RasterType } from './rasterConfig'
+import { FUEL_TYPE_COLOURS, RASTER_CONFIG, type RasterType } from './rasterConfig'
 import { isNodataValue } from './sfmsFeatureStylers'
 
 export type RasterData = Float32Array | Uint8Array | null
@@ -45,7 +45,7 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
 
   // For fuel type, convert numeric value to fuel code
   if (rasterType === 'fuel') {
-    const fuelType = FUEL_TYPE_COLORS.find(f => f.value === Math.round(rawValue))
+    const fuelType = FUEL_TYPE_COLOURS.find(f => f.value === Math.round(rawValue))
     return {
       value: fuelType ? fuelType.fuelCode : null,
       label: defaultLabel

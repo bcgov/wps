@@ -4,7 +4,7 @@ import type RenderFeature from 'ol/render/Feature'
 import Fill from 'ol/style/Fill'
 import Style from 'ol/style/Style'
 import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
-import { type ColorBreak, FUEL_TYPE_COLORS, RASTER_COLOR_BREAKS, type SFMSNGRasterType } from './rasterConfig'
+import { type ColourBreak, FUEL_TYPE_COLOURS, RASTER_COLOUR_BREAKS, type SFMSNGRasterType } from './rasterConfig'
 
 export const SNOW_FILL = 'rgba(255, 255, 255, 1)'
 export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
@@ -86,19 +86,7 @@ const transparentWhenAlphaBandIsZero = (): ColourCases => [
 export const fuelCOGColourExpression = () => {
   const colourCases: ColourCases = transparentWhenAlphaBandIsZero()
 
-  // Handle nodata values - make them transparent
-  // 99 = non-fuel areas, 102 = water/non-vegetated, -10000 = primary nodata
-  colourCases.push(
-    ['==', ['band', RASTER_BAND], 99],
-    [0, 0, 0, 0],
-    ['==', ['band', RASTER_BAND], 102],
-    [0, 0, 0, 0],
-    ['==', ['band', RASTER_BAND], -10000],
-    [0, 0, 0, 0]
-  )
-
-  // Add color cases for valid fuel types (1-14)
-  FUEL_TYPE_COLORS.forEach(({ value, rgb }) => {
+  FUEL_TYPE_COLOURS.forEach(({ value, rgb }) => {
     const [r, g, b] = rgb
     colourCases.push(['==', ['band', RASTER_BAND], value], [r, g, b, 1])
   })
@@ -111,7 +99,7 @@ export const fuelCOGColourExpression = () => {
 
 // Generate color expression dynamically from color breaks
 export const getSFMSNGRasterColourExpression = (rasterType: SFMSNGRasterType) => {
-  const colorBreaks = RASTER_COLOR_BREAKS[rasterType]
+  const colourBreaks = RASTER_COLOUR_BREAKS[rasterType]
   const expression: Array<string | ColourCaseCondition | ColourCaseColour> = [
     'case',
     ...transparentWhenAlphaBandIsZero()
@@ -127,14 +115,14 @@ export const getSFMSNGRasterColourExpression = (rasterType: SFMSNGRasterType) =>
   )
 
   // Dynamically build expression from color breaks
-  colorBreaks.forEach((colorBreak: ColorBreak) => {
-    const [r, g, b] = colorBreak.color.match(/\d+/g)!.map(Number)
+  colourBreaks.forEach((colourBreak: ColourBreak) => {
+    const [r, g, b] = colourBreak.colour.match(/\d+/g)!.map(Number)
 
-    if (colorBreak.max === null) {
+    if (colourBreak.max === null) {
       // Last break (no max) - use >= min
-      expression.push(['>=', ['band', RASTER_BAND], colorBreak.min], [r, g, b, 1])
+      expression.push(['>=', ['band', RASTER_BAND], colourBreak.min], [r, g, b, 1])
     } else {
-      expression.push(['<', ['band', RASTER_BAND], colorBreak.max], [r, g, b, 1])
+      expression.push(['<', ['band', RASTER_BAND], colourBreak.max], [r, g, b, 1])
     }
   })
 
