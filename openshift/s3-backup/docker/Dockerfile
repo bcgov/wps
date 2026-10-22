@@ -26,6 +26,8 @@ COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /bin/
 # Install locked dependencies into a venv and put it first on PATH, so the
 # scripts' plain `python3` calls pick it up.
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+# Use the base image's python3; fail the build rather than download another.
+ENV UV_PYTHON_DOWNLOADS=never
 ENV PATH="/opt/venv/bin:$PATH"
 COPY pyproject.toml uv.lock /tmp/
 RUN cd /tmp && uv sync --locked --no-dev
