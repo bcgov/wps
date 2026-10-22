@@ -100,18 +100,18 @@ async def test_primary_fbp_step_runs_one_tracked_primary_calculation(
     addresser.get_primary_fire_behaviour_inputs.assert_called_once_with(
         datetime_to_process,
         RunType.ACTUAL,
-        "/vsis3/some bucket/fuel.tif",
-        "/vsis3/some bucket/sfms/static/m12_2025.tif",
+        fuel_key="/vsis3/some bucket/fuel.tif",
+        percent_conifer_key="/vsis3/some bucket/sfms/static/m12_2025.tif",
         # FBP reads the archived grass curing raster, the exact bytes that were hashed
-        f"/vsis3/some bucket/{GRASS_CURING_KEY}",
+        grass_curing_key=f"/vsis3/some bucket/{GRASS_CURING_KEY}",
         # FFMC, BUI, wind and FMC are the raster keys the step was handed
-        "/vsis3/some bucket/sfms_ng/actual/2025/07/04/ffmc_20250704.tif",
-        "/vsis3/some bucket/sfms_ng/actual/2025/07/04/bui_20250704.tif",
-        "/vsis3/some bucket/sfms_ng/actual/2025/07/04/wind_speed_20250704.tif",
-        "/vsis3/some bucket/sfms_ng/actual/2025/07/04/wind_direction_20250704.tif",
-        "/vsis3/some bucket/sfms_ng/static/fmc/2025/07/04/fmc_20250704.tif",
-        "/vsis3/some bucket/sfms_ng/static/bc_slope.tif",
-        "/vsis3/some bucket/sfms_ng/static/bc_aspect.tif",
+        ffmc_key="/vsis3/some bucket/sfms_ng/actual/2025/07/04/ffmc_20250704.tif",
+        bui_key="/vsis3/some bucket/sfms_ng/actual/2025/07/04/bui_20250704.tif",
+        wind_speed_key="/vsis3/some bucket/sfms_ng/actual/2025/07/04/wind_speed_20250704.tif",
+        wind_direction_key="/vsis3/some bucket/sfms_ng/actual/2025/07/04/wind_direction_20250704.tif",
+        fmc_key="/vsis3/some bucket/sfms_ng/static/fmc/2025/07/04/fmc_20250704.tif",
+        slope_key="/vsis3/some bucket/sfms_ng/static/bc_slope.tif",
+        aspect_key="/vsis3/some bucket/sfms_ng/static/bc_aspect.tif",
     )
     primary_processor_class.assert_called_once_with(datetime_to_process)
     primary_processor.process.assert_awaited_once()

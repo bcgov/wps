@@ -87,7 +87,7 @@ class TestRunSfmsDailyActuals:
         mock_dependencies.find_temporal_fuel.assert_awaited_once()
         assert mock_dependencies.find_temporal_fuel.call_args.args[1] == date(2024, 7, 4)
         fbp_call = mock_dependencies.addresser.get_primary_fire_behaviour_inputs.call_args
-        assert fbp_call.args[2] == "/vsis3/test-bucket/temporal/2024-07-04.tif"
+        assert fbp_call.kwargs["fuel_key"] == "/vsis3/test-bucket/temporal/2024-07-04.tif"
 
     @pytest.mark.anyio
     async def test_processes_shared_fmc_for_target_date(self, mock_dependencies: MockDailySFMSDeps):

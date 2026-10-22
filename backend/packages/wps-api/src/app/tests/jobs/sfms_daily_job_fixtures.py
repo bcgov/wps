@@ -120,7 +120,7 @@ def make_mock_daily_sfms_dependencies(
         addresser, *args
     )
     addresser.get_primary_fire_behaviour_inputs.side_effect = (
-        lambda datetime_to_process, run_type, *_args: MagicMock(
+        lambda datetime_to_process, run_type, **_kwargs: MagicMock(
             output_keys={
                 parameter: raster_key(datetime_to_process, parameter, run_type)
                 for parameter in FBPParameter

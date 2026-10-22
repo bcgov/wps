@@ -230,6 +230,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         self,
         datetime_to_process: datetime,
         run_type: RunType,
+        *,
         fuel_key: GDALPath,
         percent_conifer_key: GDALPath,
         grass_curing_key: GDALPath,

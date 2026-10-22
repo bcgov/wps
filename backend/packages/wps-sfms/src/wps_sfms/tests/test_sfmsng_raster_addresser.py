@@ -298,16 +298,16 @@ class TestPrimaryFireBehaviourInputs:
         result = addresser.get_primary_fire_behaviour_inputs(
             TEST_DATETIME,
             run_type,
-            fuel_key,
-            percent_conifer_key,
-            grass_curing_key,
-            ffmc_key,
-            bui_key,
-            wind_speed_key,
-            wind_direction_key,
-            fmc_key,
-            slope_key,
-            aspect_key,
+            fuel_key=fuel_key,
+            percent_conifer_key=percent_conifer_key,
+            grass_curing_key=grass_curing_key,
+            ffmc_key=ffmc_key,
+            bui_key=bui_key,
+            wind_speed_key=wind_speed_key,
+            wind_direction_key=wind_direction_key,
+            fmc_key=fmc_key,
+            slope_key=slope_key,
+            aspect_key=aspect_key,
         )
 
         assert result.fuel_key == fuel_key
@@ -337,16 +337,16 @@ class TestPrimaryFireBehaviourInputs:
             addresser.get_primary_fire_behaviour_inputs(
                 NON_UTC,
                 RunType.ACTUAL,
-                fuel_key,
-                percent_conifer_key,
-                "grass-curing",
-                "ffmc",
-                "bui",
-                "wind-speed",
-                "wind-direction",
-                "fmc",
-                "slope",
-                "aspect",
+                fuel_key=fuel_key,
+                percent_conifer_key=percent_conifer_key,
+                grass_curing_key="grass-curing",
+                ffmc_key="ffmc",
+                bui_key="bui",
+                wind_speed_key="wind-speed",
+                wind_direction_key="wind-direction",
+                fmc_key="fmc",
+                slope_key="slope",
+                aspect_key="aspect",
             )
 
 

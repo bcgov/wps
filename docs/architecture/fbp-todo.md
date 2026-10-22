@@ -40,7 +40,7 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
   - Each run archives the grid by content hash, so FBP reads, and the run manifest names, the
     exact grid used even after the live key is replaced.
   - A dynamic source (station interpolation, NDVI) and its update cadence still need to be
-    determined; that grid will need storing by date rather than as one static key.
+    determined; that grid will probably need storing by date rather than as one static key.
 - [x] Generate one shared Foliar Moisture Content (FMC) raster per calendar date from the
       SFMSNG elevation, latitude, and longitude grids.
   - Actual jobs ensure their target date exists; forecast jobs ensure their three processed
