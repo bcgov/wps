@@ -14,15 +14,26 @@ from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 
 
-def test_danger_rating_interpolator_rounds_caps_and_preserves_nodata(mocker):
-    nodata = SFMS_NO_DATA
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (1.0, 1),
+        (1.49, 1),
+        (1.5, 2),
+        (2.5, 3),
+        (3.5, 4),
+        (4.49, 4),
+        (4.5, 5),
+        (5.0, 5),
+    ],
+)
+def test_danger_rating_interpolator_classifies_value(mocker, value, expected):
     georeference = Georeference((0, 1, 0, 0, 0, -1), "")
     source = WPSDataset.from_array(
-        np.array([[-1.0, 0.0, 0.49, 0.5, 1.5, 4.49, 4.5, 5.5, 9.0, nodata]], dtype=np.float32),
+        np.array([[value, SFMS_NO_DATA]], dtype=np.float32),
         georeference,
-        nodata_value=nodata,
+        nodata_value=SFMS_NO_DATA,
     )
-    source.chunk_size = 3
     mocker.patch("wps_sfms.processors.idw.Interpolator.interpolate", return_value=source)
     field = ScalarField(np.array([49.0]), np.array([-123.0]), np.array([1.0]))
 
@@ -31,7 +42,7 @@ def test_danger_rating_interpolator_rounds_caps_and_preserves_nodata(mocker):
         assert band.DataType == gdal.GDT_Float32
         np.testing.assert_array_equal(
             result.read_array(),
-            np.array([[0, 0, 0, 1, 2, 4, 5, 5, 5, nodata]], dtype=np.float32),
+            np.array([[expected, SFMS_NO_DATA]], dtype=np.float32),
         )
         assert result.require_nodata_value() == pytest.approx(SFMS_NO_DATA)
         assert result.georeference == georeference
