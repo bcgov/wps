@@ -13,6 +13,7 @@
         "--tb=short",
         "--import-mode=importlib"
     ],
+    "python.languageServer": "Pylance",
     "python.analysis.typeCheckingMode": "off",
     "python.analysis.extraPaths": [
         "${workspaceFolder}/backend/packages/wps-api/src",
