@@ -295,29 +295,4 @@ The following is a list of required software applications and packages. Some of 
 
 ### Recommended VS Code Extensions
 
-The extensions listed here are shown exactly as they appear in the VS Code Extensions marketplace.
-
-- Copy without formatting
-- Dev Containers
-- Docker
-- ESLint
-- GitLens - Git supercharged
-- Jupyter
-- Jupyter Cell Tags
-- Jupyter Keymap
-- Jupyter Notebook Renderers
-- Jupyter Slide Show
-- Makefile Tools
-- Markdown All in One
-- markdownlint
-- Markdown Preview Enhanced
-- Markdown+Math
-- Math to Image
-- Prettier - Code formatter
-- Pylance
-- Python
-- Rainbow Brackets
-- Remote - SSH
-- Ruff
-- SonarLint
-- VS Code Counter
+Recommended extensions are listed in `.vscode/extensions.json`. VS Code prompts to install them when you open the repo, or run "Extensions: Show Recommended Extensions" and choose "Install Workspace Recommended Extensions".
