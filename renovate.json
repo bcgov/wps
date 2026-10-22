@@ -3,7 +3,7 @@
     "github>bcgov/renovate-config#2026.9.26"
   ],
   "ignorePaths": [
-    "openshift/s3-backup/docker/poetry.lock"
+    "openshift/s3-backup/docker/uv.lock"
   ],
   "ignoreDeps": [
     "@psu/cffdrs_ts",
