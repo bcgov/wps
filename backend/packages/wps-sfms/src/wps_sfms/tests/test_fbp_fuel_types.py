@@ -92,13 +92,18 @@ def test_cffdrs_codes_rejects_unexpected_values(fuel: np.ndarray, match: str):
         NATIONAL_FUEL_TYPES.cffdrs_codes(fuel)
 
 
-def test_masks_select_non_fuel_and_mixedwood_grid_values():
-    fuel = np.array([[1, 40, 50, 70, 101, 102, np.nan]], dtype=np.float32)
+def test_masks_select_non_fuel_mixedwood_and_grass_grid_values():
+    fuel = np.array([[1, 40, 50, 31, 32, 101, 102, np.nan]], dtype=np.float32)
 
     np.testing.assert_array_equal(
         NATIONAL_FUEL_TYPES.non_combustible_mask(fuel),
-        [[False, False, False, False, True, True, False]],
+        [[False, False, False, False, False, True, True, False]],
     )
     np.testing.assert_array_equal(
-        NATIONAL_FUEL_TYPES.mixedwood_mask(fuel), [[False, True, True, False, False, False, False]]
+        NATIONAL_FUEL_TYPES.mixedwood_mask(fuel),
+        [[False, True, True, False, False, False, False, False]],
+    )
+    np.testing.assert_array_equal(
+        NATIONAL_FUEL_TYPES.grass_mask(fuel),
+        [[False, False, False, True, True, False, False, False]],
     )

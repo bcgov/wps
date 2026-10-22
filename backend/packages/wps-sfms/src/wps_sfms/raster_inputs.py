@@ -40,6 +40,7 @@ class PrimaryFireBehaviourInputs:
     slope_key: GDALPath
     aspect_key: GDALPath
     percent_conifer_key: GDALPath
+    grass_curing_key: GDALPath
     fmc_key: GDALPath
     output_keys: Mapping[FBPParameter, S3Key]
     run_type: RunType

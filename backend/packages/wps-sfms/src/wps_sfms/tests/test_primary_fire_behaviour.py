@@ -37,6 +37,7 @@ def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehav
         "slope": np.full(shape, 5.0),
         "aspect": np.full(shape, 50.0),
         "percent_conifer": np.full(shape, 50.0),
+        "grass_curing": np.full(shape, 65.0),
         "fmc": np.full(shape, 100.0),
     }
     defaults.update(overrides)
@@ -59,6 +60,7 @@ def make_inputs() -> PrimaryFireBehaviourInputs:
         slope_key="/vsis3/test/slope.tif",
         aspect_key="/vsis3/test/aspect.tif",
         percent_conifer_key="/vsis3/test/percent_conifer.tif",
+        grass_curing_key="/vsis3/test/grass_curing.tif",
         fmc_key="/vsis3/test/fmc.tif",
         output_keys={
             FBPParameter.SFC: "sfms_ng/actual/2024/07/04/sfc_20240704.tif",
@@ -83,6 +85,7 @@ def make_dataset_context(datasets: PrimaryFireBehaviourDatasets, reverse: bool =
             datasets.slope,
             datasets.aspect,
             datasets.percent_conifer,
+            datasets.grass_curing,
             datasets.fmc,
         ]
         for dataset, key in zip(input_datasets, keys, strict=True):
@@ -141,6 +144,42 @@ def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
     calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), NATIONAL_FUEL_TYPES)
 
     np.testing.assert_array_equal(primary_fbp.call_args.args[14], np.array([0.0]))
+
+
+def test_grass_curing_raster_matches_cffdrs_reference():
+    # 32 is O1b standing grass, the only fuel types whose spread depends on curing
+    datasets = make_datasets(np.array([[32.0]]), grass_curing=np.array([[80.0]]))
+
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
+
+    expected = cffdrs.fire_behaviour_prediction.fire_behaviour_prediction(
+        cffdrs.models.FBPInput(
+            fuel_type="O1B",
+            ffmc=90.0,
+            bui=60.0,
+            ws=10.0,
+            wd=0.0,
+            gs=5.0,
+            aspect=50.0,
+            pc=50.0,
+            cc=80.0,
+            fmc=100.0,
+            isi=0.0,
+            lat=0.0,
+            lon=0.0,
+            elv=0.0,
+        ),
+        "Primary",
+    )
+    assert result.ros[0, 0] == pytest.approx(expected.ros, rel=1e-3)
+    assert result.hfi[0, 0] == pytest.approx(expected.hfi, rel=1e-3)
+
+
+def test_missing_grass_curing_on_grass_pixel_fails():
+    datasets = make_datasets(np.array([[32.0]]), grass_curing=np.array([[TEST_INPUT_NODATA]]))
+
+    with pytest.raises(ValueError, match="Grass curing raster"):
+        calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
 
 @pytest.mark.parametrize(
@@ -472,5 +511,6 @@ async def test_processor_rejects_missing_dependency():
         inputs.slope_key,
         inputs.aspect_key,
         inputs.percent_conifer_key,
+        inputs.grass_curing_key,
         inputs.fmc_key,
     )

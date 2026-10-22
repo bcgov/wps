@@ -12,6 +12,7 @@ from wps_shared.sfms.raster_addresser import (
 )
 from wps_shared.utils.s3_client import S3Client
 
+from wps_sfms.grass_curing_raster import archive_grass_curing_raster
 from wps_sfms.processors.primary_fire_behaviour import PrimaryFireBehaviourProcessor
 from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
 from wps_sfms.run_context import FWIKeys, SFMSRunContext, WeatherKeys
@@ -46,11 +47,14 @@ async def calculate_primary_fbp(
             context.fuel_type_raster.year, raster_addresser, context.s3_client
         )
         context.manifest.record_percent_conifer_raster(percent_conifer_path)
+        grass_curing_key = await archive_grass_curing_raster(context.s3_client, raster_addresser)
+        context.manifest.record_static_rasters({"grass_curing": grass_curing_key})
         inputs = raster_addresser.get_primary_fire_behaviour_inputs(
             context.datetime_to_process,
             context.run_type,
             temporal_fuel_path,
             percent_conifer_path,
+            raster_addresser.gdal_path(grass_curing_key),
             raster_addresser.gdal_path(fwi_keys[FWIParameter.FFMC]),
             raster_addresser.gdal_path(fwi_keys[FWIParameter.BUI]),
             raster_addresser.gdal_path(weather_keys[SFMSInterpolatedWeatherParameter.WIND_SPEED]),

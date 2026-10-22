@@ -25,6 +25,8 @@ from wps_sfms.tests.run_test_utils import (
 # manifest keys strip this bucket's GDAL prefix
 pytestmark = pytest.mark.usefixtures("some_bucket")
 
+GRASS_CURING_KEY = "sfms_ng/static/archive/percent_grass_curing_65/abc123.tif"
+
 
 @pytest.mark.anyio
 async def test_resolve_percent_conifer_path_uses_fuel_raster_year():
@@ -80,6 +82,10 @@ async def test_primary_fbp_step_runs_one_tracked_primary_calculation(
         "wps_sfms.fbp_step._resolve_percent_conifer_path",
         new=AsyncMock(return_value="/vsis3/some bucket/sfms/static/m12_2025.tif"),
     )
+    archive_grass_curing = mocker.patch(
+        "wps_sfms.fbp_step.archive_grass_curing_raster",
+        new=AsyncMock(return_value=GRASS_CURING_KEY),
+    )
     primary_processor = MagicMock()
     primary_processor.process = AsyncMock()
     primary_processor_class = mocker.patch(
@@ -90,11 +96,14 @@ async def test_primary_fbp_step_runs_one_tracked_primary_calculation(
     await calculate_primary_fbp(run, "/vsis3/some bucket/fuel.tif", FMC_KEY, WEATHER_KEYS, FWI_KEYS)
 
     resolve_percent_conifer.assert_awaited_once_with(2025, addresser, s3_client)
+    archive_grass_curing.assert_awaited_once_with(s3_client, addresser)
     addresser.get_primary_fire_behaviour_inputs.assert_called_once_with(
         datetime_to_process,
         RunType.ACTUAL,
         "/vsis3/some bucket/fuel.tif",
         "/vsis3/some bucket/sfms/static/m12_2025.tif",
+        # FBP reads the archived grass curing raster, the exact bytes that were hashed
+        f"/vsis3/some bucket/{GRASS_CURING_KEY}",
         # FFMC, BUI, wind and FMC are the raster keys the step was handed
         "/vsis3/some bucket/sfms_ng/actual/2025/07/04/ffmc_20250704.tif",
         "/vsis3/some bucket/sfms_ng/actual/2025/07/04/bui_20250704.tif",
@@ -110,11 +119,13 @@ async def test_primary_fbp_step_runs_one_tracked_primary_calculation(
     assert primary_processor.process.await_args.args[2] is primary_inputs
     assert tracked_jobs == [SFMSRunLogJobName.PRIMARY_FBP_CALCULATION]
 
-    # the manifest records the percent-conifer and terrain rasters FBP read, and its outputs
+    # the manifest records the percent-conifer, terrain and grass curing rasters FBP read, and
+    # its outputs
     assert run.manifest.input.fuel_raster.percent_conifer == "sfms/static/m12_2025.tif"
     assert run.manifest.input.static_rasters == {
         "slope": "sfms_ng/static/bc_slope.tif",
         "aspect": "sfms_ng/static/bc_aspect.tif",
+        "grass_curing": GRASS_CURING_KEY,
     }
     assert run.manifest.output.fbp == {
         parameter.value: key for parameter, key in fbp_output_keys.items()
@@ -133,6 +144,10 @@ async def test_primary_fbp_step_records_its_inputs_but_no_outputs_when_it_fails(
         "wps_sfms.fbp_step._resolve_percent_conifer_path",
         new=AsyncMock(return_value="/vsis3/some bucket/sfms/static/m12_2025.tif"),
     )
+    mocker.patch(
+        "wps_sfms.fbp_step.archive_grass_curing_raster",
+        new=AsyncMock(return_value=GRASS_CURING_KEY),
+    )
     processor = mocker.patch("wps_sfms.fbp_step.PrimaryFireBehaviourProcessor").return_value
     processor.process = AsyncMock(side_effect=RuntimeError("fbp failed"))
     run = a_run(addresser=addresser)
@@ -146,6 +161,7 @@ async def test_primary_fbp_step_records_its_inputs_but_no_outputs_when_it_fails(
     assert run.manifest.input.static_rasters == {
         "slope": "sfms_ng/static/bc_slope.tif",
         "aspect": "sfms_ng/static/bc_aspect.tif",
+        "grass_curing": GRASS_CURING_KEY,
     }
     assert run.manifest.input.fuel_raster.percent_conifer == "sfms/static/m12_2025.tif"
     assert run.manifest.output.fbp == {}

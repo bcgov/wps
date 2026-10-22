@@ -12,6 +12,7 @@ from wps_shared.sfms.national_fuel_lookup import NATIONAL_FUEL_CODES
 NODATA_FUEL_TYPE_CODE = -1
 NON_FUEL_TYPE = "NF"
 PERCENT_CONIFER_FUEL_TYPES = frozenset({"M1", "M2"})
+GRASS_FUEL_TYPES = frozenset({"O1A", "O1B"})
 GRASS_FUEL_LOAD = 0.35
 
 
@@ -77,6 +78,10 @@ class CFFDRSFuelTypes:
     def mixedwood_mask(self, fuel: np.ndarray) -> np.ndarray:
         """Return where ``fuel`` is M1 or M2, the fuel types that need percent conifer."""
         return self._mask(fuel, PERCENT_CONIFER_FUEL_TYPES)
+
+    def grass_mask(self, fuel: np.ndarray) -> np.ndarray:
+        """Return where ``fuel`` is O1a or O1b, the fuel types that need grass curing."""
+        return self._mask(fuel, GRASS_FUEL_TYPES)
 
     def _mask(self, fuel: np.ndarray, fuel_types: Set[str]) -> np.ndarray:
         grid_values = [value for value, ft in self.by_grid_value.items() if ft in fuel_types]
