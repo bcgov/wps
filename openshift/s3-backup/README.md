@@ -1,8 +1,8 @@
 # S3 Backup Image
 
-Uses postgres-12, centos base image: https://hub.docker.com/r/centos/postgresql-12-centos7
-Installs single dependency, the AWS cli.
-Copys and runs driver script
+Uses the official Debian-based postgres 16 image (https://hub.docker.com/_/postgres) so `pg_dump` matches the database's major version.
+Installs the AWS CLI, and the Python dependencies for `prune.py` with uv.
+Copies and runs the driver script.
 
 ## Building
 
