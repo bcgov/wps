@@ -11,7 +11,7 @@ vi.mock('@/features/weatherToolkit/hooks/useWxChartCache', () => ({
 }))
 
 vi.mock('@/features/weatherToolkit/components/SidePanel', () => ({
-  default: () => <div data-testid="side-panel" />
+  default: ({ model }: { model: ModelType }) => <div data-testid="side-panel" data-model={model} />
 }))
 
 vi.mock('@/features/weatherToolkit/components/ChartPanel', () => ({
@@ -57,6 +57,11 @@ describe('WeatherToolkitPage', () => {
       expect(screen.getByTestId('footer')).toBeInTheDocument()
     })
 
+    it('defaults to the RDPS model', () => {
+      render(<WeatherToolkitPage />)
+      expect(screen.getByTestId('side-panel')).toHaveAttribute('data-model', ModelType.RDPS)
+    })
+
     it('hides the header when the chart is expanded', async () => {
       render(<WeatherToolkitPage />)
       await userEvent.click(screen.getByRole('button', { name: 'Toggle expand' }))
@@ -85,8 +90,8 @@ describe('WeatherToolkitPage', () => {
   })
 
   describe('arrow key navigation', () => {
-    const gdpsInterval = modelRegistry[ModelType.GDPS].interval
-    const gdpsMaxHour = modelRegistry[ModelType.GDPS].maxHour
+    const rdpsInterval = modelRegistry[ModelType.RDPS].interval
+    const rdpsMaxHour = modelRegistry[ModelType.RDPS].maxHour
 
     it('starts at hour 0', () => {
       render(<WeatherToolkitPage />)
@@ -96,7 +101,7 @@ describe('WeatherToolkitPage', () => {
     it('increments currentHour by the model interval on ArrowRight', () => {
       render(<WeatherToolkitPage />)
       fireEvent.keyDown(document, { key: 'ArrowRight' })
-      expect(currentHour()).toBe(gdpsInterval)
+      expect(currentHour()).toBe(rdpsInterval)
     })
 
     it('decrements currentHour by the model interval on ArrowLeft', () => {
@@ -104,7 +109,7 @@ describe('WeatherToolkitPage', () => {
       fireEvent.keyDown(document, { key: 'ArrowRight' })
       fireEvent.keyDown(document, { key: 'ArrowRight' })
       fireEvent.keyDown(document, { key: 'ArrowLeft' })
-      expect(currentHour()).toBe(gdpsInterval)
+      expect(currentHour()).toBe(rdpsInterval)
     })
 
     it('does not decrement below 0', () => {
@@ -115,11 +120,11 @@ describe('WeatherToolkitPage', () => {
 
     it('does not increment past the model maxHour', () => {
       render(<WeatherToolkitPage />)
-      const steps = gdpsMaxHour / gdpsInterval + 5
+      const steps = rdpsMaxHour / rdpsInterval + 5
       for (let i = 0; i < steps; i++) {
         fireEvent.keyDown(document, { key: 'ArrowRight' })
       }
-      expect(currentHour()).toBe(gdpsMaxHour)
+      expect(currentHour()).toBe(rdpsMaxHour)
     })
 
     it('does not respond to other keys', () => {

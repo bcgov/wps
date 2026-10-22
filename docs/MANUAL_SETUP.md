@@ -111,14 +111,12 @@ The weather-model tests need the ecCodes library:
 brew install eccodes
 ```
 
-##### Python (pyenv) and uv
+##### Python and uv
 
-Match the latest version of python in our production environment (as of writing, 3.12.3):
+The python version is pinned in `backend/.python-version` to match production. uv reads it and
+downloads that python automatically on the first `uv sync`, so there's no separate python install:
 
 ```bash
-brew install pyenv
-pyenv install 3.12.3
-pyenv global 3.12.3
 brew install uv
 ```
 

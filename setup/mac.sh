@@ -68,12 +68,7 @@ else
   ) || echo "WARNING: wkhtmltopdf install failed (optional; only needed for HFI PDF generation). Continuing."
 fi
 
-### pyenv + python
-brew install pyenv
-pyenv install -s 3.12.3
-pyenv global 3.12.3
-
-### uv
+### uv (python itself comes from backend/.python-version; uv downloads it on first sync)
 brew install uv
 
 ### postgres + postgis
