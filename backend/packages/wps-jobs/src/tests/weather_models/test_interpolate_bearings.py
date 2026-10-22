@@ -25,6 +25,10 @@ target_time = datetime.fromisoformat("2020-09-03T20:00:00.000000+00:00")
         (91, 91, 91),
         # Between two angles that extend past 360
         (300, 60, 20.0),
+        # Across north, 350 to 10 (20 degrees apart)
+        (350, 10, 3.3333333333333144),
+        # Across north in the other direction, 10 to 350 (20 degrees apart)
+        (10, 350, 356.6666666666667),
     ],
 )
 def test_interpol_b(direction_a, direction_b, result):
