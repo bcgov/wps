@@ -146,15 +146,18 @@ def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
     np.testing.assert_array_equal(primary_fbp.call_args.args[14], np.array([0.0]))
 
 
-def test_grass_curing_raster_matches_cffdrs_reference():
-    # 32 is O1b standing grass, the only fuel types whose spread depends on curing
-    datasets = make_datasets(np.array([[32.0]]), grass_curing=np.array([[80.0]]))
+# O1a and O1b are the only fuel types whose spread depends on curing
+@pytest.mark.parametrize("fuel_type", ["O1A", "O1B"])
+def test_grass_curing_raster_matches_cffdrs_reference(fuel_type: str):
+    datasets = make_datasets(
+        np.array([NATIONAL_FUEL_TYPES.grid_values(fuel_type)]), grass_curing=np.array([[80.0]])
+    )
 
     result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
 
     expected = cffdrs.fire_behaviour_prediction.fire_behaviour_prediction(
         cffdrs.models.FBPInput(
-            fuel_type="O1B",
+            fuel_type=fuel_type,
             ffmc=90.0,
             bui=60.0,
             ws=10.0,
@@ -176,10 +179,34 @@ def test_grass_curing_raster_matches_cffdrs_reference():
 
 
 def test_missing_grass_curing_on_grass_pixel_fails():
-    datasets = make_datasets(np.array([[32.0]]), grass_curing=np.array([[TEST_INPUT_NODATA]]))
+    datasets = make_datasets(
+        np.array([NATIONAL_FUEL_TYPES.grid_values("O1B")]),
+        grass_curing=np.array([[TEST_INPUT_NODATA]]),
+    )
 
     with pytest.raises(ValueError, match="Grass curing raster"):
         calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
+
+
+def test_missing_grass_curing_off_grass_passes_zero_curing(mocker: MockerFixture):
+    primary_fbp = mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.vectorized_primary_fire_behaviour_prediction",
+        return_value=SimpleNamespace(
+            sfc=np.array([1.0]),
+            ros=np.array([2.0]),
+            hfi=np.array([3.0]),
+            tfc=np.array([4.0]),
+            cfb=np.array([0.5]),
+        ),
+    )
+    datasets = make_datasets(
+        np.array([NATIONAL_FUEL_TYPES.grid_values("C2")]),
+        grass_curing=np.array([[TEST_INPUT_NODATA]]),
+    )
+
+    calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
+
+    np.testing.assert_array_equal(primary_fbp.call_args.args[9], np.array([0.0]))
 
 
 @pytest.mark.parametrize(

@@ -83,9 +83,12 @@ class CFFDRSFuelTypes:
         """Return where ``fuel`` is O1a or O1b, the fuel types that need grass curing."""
         return self._mask(fuel, GRASS_FUEL_TYPES)
 
+    def grid_values(self, *fuel_types: str) -> list[int]:
+        """Return the grid values classified as any of ``fuel_types``, e.g. ``[101, 102]`` for NF."""
+        return [value for value, ft in self.by_grid_value.items() if ft in fuel_types]
+
     def _mask(self, fuel: np.ndarray, fuel_types: Set[str]) -> np.ndarray:
-        grid_values = [value for value, ft in self.by_grid_value.items() if ft in fuel_types]
-        return np.isin(fuel, grid_values)
+        return np.isin(fuel, self.grid_values(*fuel_types))
 
 
 # CFFDRS fuel types for the national grid values that temporal fuel rasters store
