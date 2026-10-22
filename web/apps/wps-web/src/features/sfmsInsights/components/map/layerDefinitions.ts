@@ -117,7 +117,7 @@ export const getFuelGridCOG = (token?: string) => {
   return new GeoTIFF({
     sources: [
       {
-        url,
+        url
       }
     ],
     sourceOptions: {
