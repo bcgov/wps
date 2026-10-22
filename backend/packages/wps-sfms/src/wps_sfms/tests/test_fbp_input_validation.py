@@ -31,10 +31,11 @@ def test_invalid_percent_conifer_is_ignored_outside_mixedwood():
 
 @pytest.mark.parametrize("grass_curing", [np.nan, -1, 101])
 def test_invalid_grass_curing_on_grass_fails(grass_curing: float):
+    values = np.array([[grass_curing]], dtype=np.float32)
+    grass_mask = np.array([[True]])
+
     with pytest.raises(ValueError, match="grass pixels"):
-        validate_grass_curing(
-            grass_curing=np.array([[grass_curing]], dtype=np.float32), grass_mask=np.array([[True]])
-        )
+        validate_grass_curing(grass_curing=values, grass_mask=grass_mask)
 
 
 def test_invalid_grass_curing_is_ignored_outside_grass():

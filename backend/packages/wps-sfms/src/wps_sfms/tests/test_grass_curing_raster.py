@@ -44,8 +44,9 @@ async def test_existing_archive_is_not_rewritten():
 @pytest.mark.anyio
 async def test_missing_live_raster_raises():
     client = s3_client()
+    addresser = SFMSNGRasterAddresser()
 
     with pytest.raises(RuntimeError, match="Missing grass curing raster"):
-        await archive_grass_curing_raster(client, SFMSNGRasterAddresser())
+        await archive_grass_curing_raster(client, addresser)
 
     client.read_object.assert_not_awaited()
