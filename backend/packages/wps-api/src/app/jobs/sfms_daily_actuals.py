@@ -13,6 +13,7 @@ import sys
 from datetime import UTC, datetime, timedelta
 
 from aiohttp import ClientSession
+from wps_sfms.danger_rating_step import interpolate_danger_rating
 from wps_sfms.fbp_step import calculate_primary_fbp
 from wps_sfms.fmc_step import calculate_fmc
 from wps_sfms.fwi_step import calculate_fwi, interpolate_fwi
@@ -96,6 +97,7 @@ async def run_sfms_daily_actuals(target_date: datetime) -> None:
         try:
             fmc_key = await calculate_fmc(ctx)
             weather_keys = await interpolate_weather(ctx, sfms_actuals)
+            await interpolate_danger_rating(ctx, sfms_actuals)
             if is_fwi_interpolation_day(datetime_to_process):
                 fwi_keys = await interpolate_fwi(ctx, sfms_actuals, weather_keys)
             else:

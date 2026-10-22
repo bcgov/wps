@@ -133,6 +133,7 @@ class TestSfmsDailyMapper:
             fineFuelMoistureCode=85.0,
             duffMoistureCode=30.0,
             droughtCode=200.0,
+            dangerForest=3,
         )
 
         result = sfms_daily_mapper([raw])
@@ -154,7 +155,16 @@ class TestSfmsDailyMapper:
             ffmc=85.0,
             dmc=30.0,
             dc=200.0,
+            danger_rating=3,
         )
+
+    @pytest.mark.parametrize("danger_fields", [{}, {"dangerForest": None}])
+    def test_maps_missing_or_null_danger_rating(self, danger_fields):
+        raw = _make_raw_daily(100, **danger_fields)
+
+        result = sfms_daily_mapper([raw])
+
+        assert result[0].danger_rating is None
 
     def test_maps_none_weather_fields(self):
         raw = _make_raw_daily(100)
@@ -236,6 +246,7 @@ class TestSfmsDailyMapper:
             fineFuelMoistureCode=85.0,
             duffMoistureCode=30.0,
             droughtCode=200.0,
+            dangerForest=4,
         )
 
         result = sfms_daily_mapper([raw])
@@ -257,6 +268,7 @@ class TestSfmsDailyMapper:
         assert forecast.ffmc == approx(85.0)
         assert forecast.dmc == approx(30.0)
         assert forecast.dc == approx(200.0)
+        assert forecast.danger_rating == 4
 
     @pytest.mark.parametrize("record_type", ["ACTUAL", "MANUAL", "FORECAST"])
     def test_computes_missing_dewpoint_for_every_record_type(self, record_type):

@@ -8,6 +8,7 @@ from wps_shared.schemas.sfms import SFMSDaily
 
 from wps_sfms.interpolation.field import (
     build_attribute_field,
+    build_danger_rating_field,
     build_dewpoint_field,
     build_temperature_field,
     build_wind_vector_field,
@@ -17,6 +18,55 @@ TEST_FOR_DATETIME = datetime(2025, 7, 15, 20, tzinfo=timezone.utc)
 
 
 class TestScalarFieldBuilders:
+    def test_build_danger_rating_field_excludes_missing_and_keeps_lowest_class(self):
+        stations = [
+            SFMSDaily(
+                code=1,
+                for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
+                lat=49.0,
+                lon=-123.0,
+                danger_rating=4,
+            ),
+            SFMSDaily(
+                code=2,
+                for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
+                lat=50.0,
+                lon=-124.0,
+            ),
+            SFMSDaily(
+                code=3,
+                for_datetime=TEST_FOR_DATETIME,
+                run_type=RunTypeEnum.actual,
+                lat=51.0,
+                lon=-125.0,
+                danger_rating=1,
+            ),
+        ]
+
+        field = build_danger_rating_field(stations)
+
+        np.testing.assert_array_equal(field.lats, [49.0, 51.0])
+        np.testing.assert_array_equal(field.lons, [-123.0, -125.0])
+        np.testing.assert_array_equal(field.values, [4.0, 1.0])
+        assert field.values.dtype == np.float32
+
+    def test_build_danger_rating_field_with_only_missing_values(self):
+        station = SFMSDaily(
+            code=1,
+            for_datetime=TEST_FOR_DATETIME,
+            run_type=RunTypeEnum.actual,
+            lat=49.0,
+            lon=-123.0,
+        )
+
+        field = build_danger_rating_field([station])
+
+        assert field.lats.size == 0
+        assert field.lons.size == 0
+        assert field.values.size == 0
+
     def test_build_attribute_field_filters_missing_values(self):
         actuals = [
             SFMSDaily(

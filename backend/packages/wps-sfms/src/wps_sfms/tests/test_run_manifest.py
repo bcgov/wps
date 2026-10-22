@@ -82,6 +82,9 @@ def record_everything(manifest: SFMSRunManifest) -> None:
         manifest.record_raster_output(
             weather_param, f"sfms_ng/actual/2026/10/13/{weather_param.value}_20261013.tif"
         )
+    manifest.record_danger_rating_raster(
+        "/vsis3/some bucket/sfms_ng/actual/2026/10/13/danger_rating_20261013.tif"
+    )
     for fwi_param in FWIParameter:
         manifest.record_raster_output(
             fwi_param, f"sfms_ng/actual/2026/10/13/{fwi_param.value}_20261013.tif"
@@ -202,6 +205,7 @@ def test_manifest_json_follows_the_version_1_schema(bucket):
                 for param in FBPParameter
             },
             "fuel_raster": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
+            "danger_rating_raster": "sfms_ng/actual/2026/10/13/danger_rating_20261013.tif",
         },
         "reused": {
             "fmc_raster": "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif",

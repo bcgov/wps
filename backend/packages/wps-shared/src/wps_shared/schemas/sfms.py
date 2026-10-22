@@ -38,6 +38,7 @@ class SFMSDaily(BaseModel):
     ffmc: Optional[float] = None
     dmc: Optional[float] = None
     dc: Optional[float] = None
+    danger_rating: Optional[int] = None
 
 
 class SFMSRunBounds(BaseModel):

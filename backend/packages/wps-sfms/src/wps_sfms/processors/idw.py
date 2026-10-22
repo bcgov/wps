@@ -16,6 +16,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
 from wps_sfms.publish import publish_dataset
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.spatial_interpolation import idw_interpolation
 from wps_shared.utils.s3 import set_s3_gdal_config
@@ -109,6 +110,8 @@ class RasterProcessor(ABC):
         s3_client: S3Client,
         reference_raster_path: str,
         output_key: str,
+        *,
+        cog_resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
     ) -> str:
         """
         Interpolate station observations to a raster and upload to S3.
@@ -116,13 +119,16 @@ class RasterProcessor(ABC):
         :param s3_client: S3Client instance for uploading results
         :param reference_raster_path: Path to reference raster (defines grid properties)
         :param output_key: S3 key where the resulting raster will be uploaded
+        :param cog_resample_alg: resampling method for the COG
         :return: S3 key of uploaded raster
         """
         set_s3_gdal_config()
         logger.info("Starting interpolation, output: %s", output_key)
 
         with self.interpolate(reference_raster_path) as dataset:
-            published = await publish_dataset(s3_client, dataset, output_key)
+            published = await publish_dataset(
+                s3_client, dataset, output_key, cog_resample_alg=cog_resample_alg
+            )
 
         logger.info(
             "Interpolation complete: %s (COG: %s)",

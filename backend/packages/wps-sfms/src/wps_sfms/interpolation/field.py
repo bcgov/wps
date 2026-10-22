@@ -125,6 +125,10 @@ def build_dc_field(actuals: List[SFMSDaily]) -> ScalarField:
     return build_attribute_field(actuals, "dc")
 
 
+def build_danger_rating_field(actuals: List[SFMSDaily]) -> ScalarField:
+    return build_attribute_field(actuals, "danger_rating")
+
+
 def build_wind_vector_field(actuals: List[SFMSDaily]) -> WindVectorField:
     valid = [s for s in actuals if s.wind_speed is not None and s.wind_direction is not None]
     if not valid:

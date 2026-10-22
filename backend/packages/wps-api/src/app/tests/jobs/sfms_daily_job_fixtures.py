@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
+from wps_sfms.processors.danger_rating import DangerRatingInterpolator
 from wps_sfms.processors.foliar_moisture_content import (
     FoliarMoistureContentKeys,
     FoliarMoistureContentProcessor,
@@ -46,6 +47,7 @@ class MockDailySFMSDeps(NamedTuple):
     wind_speed_processor: MagicMock
     wind_direction_processor: MagicMock
     interpolation_processor: MagicMock
+    danger_rating_processor: MagicMock
     fwi_processor: MagicMock
     primary_fbp_processor: MagicMock
     find_temporal_fuel: AsyncMock
@@ -75,9 +77,9 @@ def make_mock_daily_sfms_dependencies(
     mock_session.__aexit__ = AsyncMock(return_value=None)
     mocker.patch(f"{module_path}.ClientSession", return_value=mock_session)
 
-    mock_wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
-        return_value=create_mock_sfms_actuals()
-    )
+    station_dailies = create_mock_sfms_actuals()
+    station_dailies[0].danger_rating = 4
+    mock_wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(return_value=station_dailies)
     mocker.patch(f"{module_path}.WfwxApi", return_value=mock_wfwx_api)
 
     fuel_type_raster = MagicMock(year=2024, object_store_path="sfms/fuel/2024/fuel.tif")
@@ -110,6 +112,9 @@ def make_mock_daily_sfms_dependencies(
     addresser.get_weather_key.side_effect = raster_key
     addresser.get_index_key.side_effect = raster_key
     addresser.get_fbp_key.side_effect = raster_key
+    addresser.get_danger_rating_key.side_effect = lambda datetime_utc, run_type: (
+        f"sfms_ng/{run_type.value}/{datetime_utc:%Y/%m/%d}/danger_rating_{datetime_utc:%Y%m%d}.tif"
+    )
     # the real FWI input builder, over the mocked key helpers
     addresser.get_fwi_inputs.side_effect = lambda *args: SFMSNGRasterAddresser.get_fwi_inputs(
         addresser, *args
@@ -168,6 +173,13 @@ def make_mock_daily_sfms_dependencies(
     # the weather step interpolates precipitation, the FWI step Monday FFMC, DMC and DC
     mocker.patch("wps_sfms.weather_step.Interpolator", return_value=interpolation_processor)
     mocker.patch("wps_sfms.fwi_step.Interpolator", return_value=interpolation_processor)
+
+    danger_rating_processor = MagicMock(spec=DangerRatingInterpolator)
+    danger_rating_processor.process = AsyncMock(return_value="danger_rating.tif")
+    mocker.patch(
+        "wps_sfms.danger_rating_step.DangerRatingInterpolator",
+        return_value=danger_rating_processor,
+    )
 
     fwi_processor = MagicMock(spec=FWIProcessor)
     fwi_processor.calculate_index = AsyncMock(return_value=None)
@@ -230,6 +242,7 @@ def make_mock_daily_sfms_dependencies(
         wind_speed_processor=wind_speed_processor,
         wind_direction_processor=wind_direction_processor,
         interpolation_processor=interpolation_processor,
+        danger_rating_processor=danger_rating_processor,
         fwi_processor=fwi_processor,
         primary_fbp_processor=primary_fbp_processor,
         find_temporal_fuel=find_temporal_fuel,
