@@ -13,6 +13,7 @@
         "--tb=short",
         "--import-mode=importlib"
     ],
+    "python.analysis.typeCheckingMode": "basic",
     "python.analysis.extraPaths": [
         "${workspaceFolder}/backend/packages/wps-api/src",
         "${workspaceFolder}/backend/packages/wps-jobs/src",
@@ -20,6 +21,9 @@
         "${workspaceFolder}/backend/packages/wps-sfms/src",
         "${workspaceFolder}/backend/packages/wps-wf1/src",
     ],
+    // Use the ruff pinned in the selected interpreter's environment (uv.lock),
+    // not the version bundled with the extension, so editor problems match CI.
+    "ruff.importStrategy": "fromEnvironment",
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
