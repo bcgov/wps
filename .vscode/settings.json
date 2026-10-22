@@ -13,6 +13,10 @@
         "--tb=short",
         "--import-mode=importlib"
     ],
+    "python.languageServer": "Pylance",
+    // Off for now: "basic" reports ~1.7k existing type errors in the backend.
+    // We should turn this on and ratchet it up ("basic" -> "standard") as we fix them.
+    "python.analysis.typeCheckingMode": "off",
     "python.analysis.extraPaths": [
         "${workspaceFolder}/backend/packages/wps-api/src",
         "${workspaceFolder}/backend/packages/wps-jobs/src",
@@ -20,6 +24,9 @@
         "${workspaceFolder}/backend/packages/wps-sfms/src",
         "${workspaceFolder}/backend/packages/wps-wf1/src",
     ],
+    // Use the ruff pinned in the selected interpreter's environment (uv.lock),
+    // not the version bundled with the extension, so editor problems match CI.
+    "ruff.importStrategy": "fromEnvironment",
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
