@@ -95,6 +95,15 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/{fwi_param.value}_{date_str}.tif"
         )
 
+    def get_danger_rating_key(self, datetime_utc: datetime, run_type: RunType) -> S3Key:
+        """S3 key for a station interpolated danger rating raster."""
+        assert_all_utc(datetime_utc)
+        date = datetime_utc.date()
+        date_str = date.strftime("%Y%m%d")
+        return S3Key(
+            f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/danger_rating_{date_str}.tif"
+        )
+
     def get_actual_index_key(self, datetime_utc: datetime, fwi_param: FWIParameter) -> S3Key:
         """Compatibility wrapper for actual FWI index raster keys."""
         return self.get_index_key(datetime_utc, fwi_param, RunType.ACTUAL)

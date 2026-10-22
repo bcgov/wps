@@ -65,6 +65,7 @@ class SFMSRunOutputs(BaseModel):
     fbp: dict[str, str] = Field(default_factory=dict)
     fuel_raster: str | None = None
     fmc_raster: str | None = None
+    danger_rating_raster: str | None = None
 
 
 class SFMSRunReused(BaseModel):
@@ -169,6 +170,10 @@ class SFMSRunManifest(BaseModel):
         fmc_key = self._object_store_key(key)
         self.input.fmc_raster = fmc_key
         self.output.fmc_raster = fmc_key
+
+    def record_danger_rating_raster(self, key: str) -> None:
+        """Record the station danger rating raster published for this run."""
+        self.output.danger_rating_raster = self._object_store_key(key)
 
     def record_reused_fmc_raster(self, key: str) -> None:
         """Record the FMC raster the run reused from an earlier run, as an input."""

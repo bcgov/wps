@@ -116,7 +116,8 @@ versions can add to them.
       "tfc": "sfms_ng/actual/2026/10/13/tfc_20261013.tif",
       "cfb": "sfms_ng/actual/2026/10/13/cfb_20261013.tif"
     },
-    "fuel_raster": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif"
+    "fuel_raster": "sfms_ng/fuel/temporal/2026/10/13/2/fbp2026_10_13_2.tif",
+    "danger_rating_raster": "sfms_ng/actual/2026/10/13/danger_rating_20261013.tif"
   },
   "reused": {
     "fmc_raster": "sfms_ng/static/fmc/2026/10/13/fmc_20261013.tif"
@@ -179,6 +180,7 @@ Rasters the run wrote, grouped by product:
 - `fbp`: primary FBP products, keyed by parameter (`sfc`, `ros`, `hfi`, `tfc`, `cfb`).
 - `fuel_raster`: the dated temporal fuel grid, when the run built a new version of it.
 - `fmc_raster`: the shared FMC raster for the target date, when the run calculated it.
+- `danger_rating_raster`: the station danger rating raster, when interpolation completed.
 
 Each published raster also has a cloud-optimized copy at the same key with `_cog.tif` in place
 of `.tif` (see `SFMSNGRasterAddresser.get_cog_key`).

@@ -92,4 +92,3 @@ async def _resolve_percent_conifer_path(
     raise RuntimeError(
         f"No percent-conifer raster found for fuel-grid year {fuel_raster_year}: {key}"
     )
-

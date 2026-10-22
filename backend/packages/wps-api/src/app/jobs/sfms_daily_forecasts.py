@@ -13,6 +13,7 @@ import sys
 from datetime import UTC, date, datetime, timedelta
 
 from aiohttp import ClientSession
+from wps_sfms.danger_rating_step import interpolate_danger_rating
 from wps_sfms.fbp_step import calculate_primary_fbp
 from wps_sfms.fmc_step import calculate_fmc
 from wps_sfms.fwi_step import calculate_fwi, missing_seed_keys
@@ -153,6 +154,7 @@ async def run_sfms_daily_forecasts(run_datetime: datetime) -> None:
             try:
                 fmc_key = await calculate_fmc(ctx)
                 weather_keys = await interpolate_weather(ctx, sfms_forecasts)
+                await interpolate_danger_rating(ctx, sfms_forecasts)
                 fwi_keys = await calculate_fwi(ctx, weather_keys)
                 # the actual seeds were checked up front and each later date seeds from the one
                 # before it, so missing seeds here mean they changed mid-run

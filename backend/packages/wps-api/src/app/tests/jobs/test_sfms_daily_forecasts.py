@@ -20,6 +20,7 @@ from app.jobs.sfms_daily_forecasts import (
     run_datetime_for_cli_date,
     run_sfms_daily_forecasts,
 )
+from app.tests.conftest import create_mock_sfms_actuals
 from app.tests.jobs.sfms_daily_job_fixtures import (
     MockDailySFMSDeps,
     fmc_key,
@@ -109,6 +110,28 @@ class TestRunSfmsDailyForecasts:
         assert mock_dependencies.primary_fbp_processor.process.call_count == 3
         mock_dependencies.get_fuel_type_raster_by_year.assert_awaited_once()
         assert mock_dependencies.get_fuel_type_raster_by_year.call_args.args[1] == 2024
+
+    @pytest.mark.anyio
+    async def test_missing_danger_ratings_do_not_stop_forecasts(
+        self, mock_dependencies: MockDailySFMSDeps, mocker: MockerFixture
+    ):
+        chatops = mocker.patch("wps_sfms.danger_rating_step.send_chatops_notification")
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
+            return_value=create_mock_sfms_actuals()
+        )
+
+        await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
+
+        mock_dependencies.danger_rating_processor.process.assert_not_awaited()
+        assert mock_dependencies.primary_fbp_processor.process.await_count == 3
+        manifests = [
+            json.loads(call.kwargs["body"])
+            for call in mock_dependencies.s3_client.put_object.await_args_list
+        ]
+        assert len(manifests) == 3
+        assert all(manifest["status"] == "success" for manifest in manifests)
+        assert all("danger_rating_raster" not in manifest["output"] for manifest in manifests)
+        assert chatops.call_count == 3
 
     @pytest.mark.anyio
     async def test_first_date_failure_stops_the_batch(self, mock_dependencies: MockDailySFMSDeps):
@@ -320,6 +343,9 @@ class TestRunSfmsDailyForecasts:
         assert payload["input"]["fmc_raster"] == "sfms_ng/static/fmc/2024/07/05/fmc_20240705.tif"
         assert payload["output"]["weather"]["temperature"] == (
             "sfms_ng/forecast/2024/07/05/temperature_20240705.tif"
+        )
+        assert payload["output"]["danger_rating_raster"] == (
+            "sfms_ng/forecast/2024/07/05/danger_rating_20240705.tif"
         )
         assert payload["output"]["fbp"]["hfi"] == "sfms_ng/forecast/2024/07/05/hfi_20240705.tif"
 

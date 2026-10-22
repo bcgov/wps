@@ -17,6 +17,7 @@ from app.jobs.sfms_daily_actuals import (
     main,
     run_sfms_daily_actuals,
 )
+from app.tests.conftest import create_mock_sfms_actuals
 from app.tests.jobs.sfms_daily_job_fixtures import (
     MockDailySFMSDeps,
     make_mock_daily_sfms_dependencies,
@@ -159,15 +160,33 @@ class TestRunSfmsDailyActuals:
             await run_sfms_daily_actuals(target_date)
 
     @pytest.mark.anyio
+    async def test_missing_danger_ratings_do_not_stop_actuals(
+        self, mock_dependencies: MockDailySFMSDeps, mocker: MockerFixture
+    ):
+        chatops = mocker.patch("wps_sfms.danger_rating_step.send_chatops_notification")
+        mock_dependencies.wfwx_api.get_sfms_daily_weather_all_stations = AsyncMock(
+            return_value=create_mock_sfms_actuals()
+        )
+
+        await run_sfms_daily_actuals(datetime(2024, 7, 4, tzinfo=timezone.utc))
+
+        mock_dependencies.danger_rating_processor.process.assert_not_awaited()
+        mock_dependencies.primary_fbp_processor.process.assert_awaited_once()
+        manifest = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
+        assert manifest["status"] == "success"
+        assert "danger_rating_raster" not in manifest["output"]
+        chatops.assert_called_once()
+
+    @pytest.mark.anyio
     async def test_logs_success_status(self, mock_dependencies: MockDailySFMSDeps):
         """Test that successful jobs are updated to success status."""
-        records = [MagicMock() for _ in range(14)]
+        records = [MagicMock() for _ in range(15)]
         mock_dependencies.db_session.get = AsyncMock(side_effect=records)
 
         target_date = datetime(2024, 7, 4, tzinfo=timezone.utc)
         await run_sfms_daily_actuals(target_date)
 
-        assert mock_dependencies.db_session.get.call_count == 14
+        assert mock_dependencies.db_session.get.call_count == 15
         for record in records:
             assert record.status == SFMSRunLogStatus.SUCCESS
             assert record.completed_at is not None
@@ -324,6 +343,9 @@ class TestRunSfmsDailyActuals:
             "sfms_ng/actual/2024/07/04/temperature_20240704.tif"
         )
         assert payload["output"]["fwi"]["fwi"] == "sfms_ng/actual/2024/07/04/fwi_20240704.tif"
+        assert payload["output"]["danger_rating_raster"] == (
+            "sfms_ng/actual/2024/07/04/danger_rating_20240704.tif"
+        )
         assert payload["output"]["fbp"]["hfi"] == "sfms_ng/actual/2024/07/04/hfi_20240704.tif"
         assert payload["output"]["fmc_raster"] == "sfms_ng/static/fmc/2024/07/04/fmc_20240704.tif"
         # the fixture's temporal fuel grid already exists, so the run reuses it
@@ -342,6 +364,9 @@ class TestRunSfmsDailyActuals:
         payload = json.loads(mock_dependencies.s3_client.put_object.await_args.kwargs["body"])
         assert payload["output"]["weather"]["temperature"] == (
             "sfms_ng/actual/2024/07/04/temperature_20240704.tif"
+        )
+        assert payload["output"]["danger_rating_raster"] == (
+            "sfms_ng/actual/2024/07/04/danger_rating_20240704.tif"
         )
         assert payload["output"]["fwi"] == {}
         assert payload["output"]["fbp"] == {}
@@ -399,6 +424,7 @@ class TestFWIBranches:
             SFMSRunLogJobName.WIND_SPEED_INTERPOLATION,
             SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION,
             SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+            SFMSRunLogJobName.DANGER_RATING_INTERPOLATION,
             SFMSRunLogJobName.FFMC_CALCULATION,
             SFMSRunLogJobName.DMC_CALCULATION,
             SFMSRunLogJobName.DC_CALCULATION,
@@ -424,6 +450,7 @@ class TestFWIBranches:
             SFMSRunLogJobName.WIND_SPEED_INTERPOLATION,
             SFMSRunLogJobName.WIND_DIRECTION_INTERPOLATION,
             SFMSRunLogJobName.PRECIPITATION_INTERPOLATION,
+            SFMSRunLogJobName.DANGER_RATING_INTERPOLATION,
             SFMSRunLogJobName.FFMC_INTERPOLATION,
             SFMSRunLogJobName.DMC_INTERPOLATION,
             SFMSRunLogJobName.DC_INTERPOLATION,
