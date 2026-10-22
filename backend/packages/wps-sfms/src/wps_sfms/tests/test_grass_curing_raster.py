@@ -8,8 +8,8 @@ from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 RASTER_BYTES = b"grass curing tif"
 CONTENT_HASH = hashlib.sha256(RASTER_BYTES).hexdigest()
-LIVE_KEY = "sfms_ng/static/percent_grass_curing_65.tif"
-ARCHIVE_KEY = f"sfms_ng/static/archive/percent_grass_curing_65/{CONTENT_HASH}.tif"
+LIVE_KEY = "sfms_ng/static/percent_grass_curing.tif"
+ARCHIVE_KEY = f"sfms_ng/static/archive/percent_grass_curing/{CONTENT_HASH}.tif"
 
 
 def s3_client(*existing_keys: str) -> MagicMock:

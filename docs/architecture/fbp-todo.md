@@ -35,7 +35,7 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
     rather than silently use a generic percentage.
 - [x] Identify, retain, and align an initial percent-grass-curing (`cc`) raster source.
   - It is only meaningful for O1A/O1B pixels. Primary FBP reads the static
-    `sfms_ng/static/percent_grass_curing_65.tif` grid, currently 65% everywhere, which
+    `sfms_ng/static/percent_grass_curing.tif` grid, currently 65% everywhere, which
     matters more now that the temporal fuel grid makes grass O1B (standing) from June to December.
   - Each run archives the grid by content hash, so FBP reads, and the run manifest names, the
     exact grid used even after the live key is replaced.

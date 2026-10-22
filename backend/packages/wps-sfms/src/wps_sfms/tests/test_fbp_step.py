@@ -25,7 +25,7 @@ from wps_sfms.tests.run_test_utils import (
 # manifest keys strip this bucket's GDAL prefix
 pytestmark = pytest.mark.usefixtures("some_bucket")
 
-GRASS_CURING_KEY = "sfms_ng/static/archive/percent_grass_curing_65/abc123.tif"
+GRASS_CURING_KEY = "sfms_ng/static/archive/percent_grass_curing/abc123.tif"
 
 
 @pytest.mark.anyio

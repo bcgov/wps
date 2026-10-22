@@ -334,7 +334,7 @@ class TestRunSfmsDailyActuals:
             "mask": "sfms/static/bc_mask.tif",
             "slope": "sfms_ng/static/bc_slope.tif",
             "aspect": "sfms_ng/static/bc_aspect.tif",
-            "grass_curing": "sfms_ng/static/archive/percent_grass_curing_65/abc123.tif",
+            "grass_curing": "sfms_ng/static/archive/percent_grass_curing/abc123.tif",
             "elevation": "sfms_ng/static/bc_elevation.tif",
             "latitude": "sfms_ng/static/latitude.tif",
             "longitude": "sfms_ng/static/longitude.tif",

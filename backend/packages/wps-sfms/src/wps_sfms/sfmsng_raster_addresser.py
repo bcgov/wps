@@ -30,7 +30,7 @@ RUN_DATETIME_FILENAME_FORMAT = "%Y-%m-%dT%H-%M-%S.%fZ"
 
 # the S3 object name under static/ and static/archive/, so renaming it changes where the grass
 # curing raster is read from and archived to
-GRASS_CURING_RASTER_NAME = "percent_grass_curing_65"
+GRASS_CURING_RASTER_NAME = "percent_grass_curing"
 
 FWI_WEATHER_INPUTS = (
     SFMSInterpolatedWeatherParameter.TEMP,

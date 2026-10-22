@@ -44,7 +44,7 @@ class TestTemporalFuelKeys:
     def test_grass_curing_archive_key_is_addressed_by_hash(self, addresser: SFMSNGRasterAddresser):
         assert (
             addresser.get_grass_curing_archive_key("abc123")
-            == "sfms_ng/static/archive/percent_grass_curing_65/abc123.tif"
+            == "sfms_ng/static/archive/percent_grass_curing/abc123.tif"
         )
 
     def test_temporal_fuel_keys_are_dated_and_versioned(self, addresser: SFMSNGRasterAddresser):
@@ -86,7 +86,7 @@ class TestGetFoliarMoistureContentInputs:
             ("get_latitude_key", "sfms_ng/static/latitude.tif"),
             ("get_longitude_key", "sfms_ng/static/longitude.tif"),
             ("get_elevation_key", "sfms_ng/static/bc_elevation.tif"),
-            ("get_grass_curing_key", "sfms_ng/static/percent_grass_curing_65.tif"),
+            ("get_grass_curing_key", "sfms_ng/static/percent_grass_curing.tif"),
         ],
     )
     def test_static_lookup_helpers(

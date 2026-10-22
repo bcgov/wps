@@ -84,7 +84,7 @@ versions can add to them.
       "mask": "sfms/static/bc_mask.tif",
       "slope": "sfms_ng/static/bc_slope.tif",
       "aspect": "sfms_ng/static/bc_aspect.tif",
-      "grass_curing": "sfms_ng/static/archive/percent_grass_curing_65/5e8d0f3a.tif"
+      "grass_curing": "sfms_ng/static/archive/percent_grass_curing/5e8d0f3a.tif"
     },
     "julian_rasters": {
       "green_up_on": "sfms_ng/static/julian/archive/green_up_on/9f2c1ab4.tif",

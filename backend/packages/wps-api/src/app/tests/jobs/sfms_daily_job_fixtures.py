@@ -193,7 +193,7 @@ def make_mock_daily_sfms_dependencies(
     mocker.patch(
         "wps_sfms.fbp_step.archive_grass_curing_raster",
         new_callable=AsyncMock,
-        return_value="sfms_ng/static/archive/percent_grass_curing_65/abc123.tif",
+        return_value="sfms_ng/static/archive/percent_grass_curing/abc123.tif",
     )
 
     db_session = MagicMock(spec=AsyncSession)
