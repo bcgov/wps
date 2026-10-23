@@ -51,9 +51,9 @@ def interpolate_bearing(
     time_a: datetime,
     time_b: datetime,
     target_time: datetime,
-    direction_a: float,
-    direction_b: float,
-) -> float:
+    direction_a: Optional[float],
+    direction_b: Optional[float],
+) -> Optional[float]:
     """Interpolate between two bearings, along the acute angle between the two bearings.
 
     params:
@@ -63,6 +63,11 @@ def interpolate_bearing(
     :direction_a: Bearing (in degrees) at time_a, within the range [0,360)
     :direction_b: Bearing (in degrees) at time b, within the range [0,360)
     """
+    # A direction can be missing if its bias-adjustment prediction is unavailable.
+    # Missing values cannot be interpolated, so return None.
+    if direction_a is None or direction_b is None:
+        return None
+
     timestamp_a = time_a.timestamp()
     timestamp_b = time_b.timestamp()
     target_timestamp = target_time.timestamp()
