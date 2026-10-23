@@ -136,13 +136,16 @@ describe('layerDefinitions', () => {
       )
     })
 
-    it.each(['tfc', 'cfb', 'hfi'] as const)('should generate run-specific %s COG paths', rasterType => {
-      const rasterDate = DateTime.fromISO('2025-11-05')
+    it.each(['tfc', 'cfb', 'hfi', 'fire_area_30min'] as const)(
+      'should generate run-specific %s COG paths',
+      rasterType => {
+        const rasterDate = DateTime.fromISO('2025-11-05')
 
-      expect(getSFMSNGRasterPath(rasterDate, rasterType, RunType.FORECAST)).toBe(
-        `sfms_ng/forecast/2025/11/05/${rasterType}_20251105_cog.tif`
-      )
-    })
+        expect(getSFMSNGRasterPath(rasterDate, rasterType, RunType.FORECAST)).toBe(
+          `sfms_ng/forecast/2025/11/05/${rasterType}_20251105_cog.tif`
+        )
+      }
+    )
 
     it('should generate the shared FMC COG path regardless of run type', () => {
       const rasterDate = DateTime.fromISO('2025-11-05')
