@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.14.*"
 
 [manifest]
@@ -4044,7 +4044,6 @@ dependencies = [
     { name = "psycopg2-binary" },
     { name = "redis" },
     { name = "scikit-learn" },
-    { name = "scipy" },
     { name = "shapely" },
     { name = "sqlalchemy" },
     { name = "wps-shared" },
@@ -4070,7 +4069,6 @@ requires-dist = [
     { name = "psycopg2-binary", specifier = ">=2.9.10,<3" },
     { name = "redis", specifier = ">=8,<9" },
     { name = "scikit-learn", specifier = ">=1.6.1,<2" },
-    { name = "scipy", specifier = ">=1.15.2,<2" },
     { name = "shapely", specifier = ">=2.0.5,<3" },
     { name = "sqlalchemy", specifier = ">=2.0.38,<3" },
     { name = "wps-shared", editable = "packages/wps-shared" },

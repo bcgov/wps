@@ -4,15 +4,14 @@ from typing import List
 
 import numpy
 import numpy as np
-from wps_wf1.wfwx_api import get_stations_synchronously
 import wps_shared.db.database
-from wps_shared.schemas.stations import WeatherStation
 import wps_shared.utils.time as time_utils
 from pyproj import Geod
 from sqlalchemy.orm import Session
 from weather_model_jobs.machine_learning import StationMachineLearning
 from weather_model_jobs.utils.interpolate import (
     construct_interpolated_noon_prediction,
+    interpolate_bearing,
     interpolate_between_two_points,
 )
 from wps_shared import config
@@ -31,8 +30,10 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
     WeatherStationModelPrediction,
 )
+from wps_shared.schemas.stations import WeatherStation
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
+from wps_wf1.wfwx_api import get_stations_synchronously
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -151,35 +152,30 @@ class ModelValueProcessor:
     def _add_interpolated_bias_adjustments_to_prediction(
         self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning
     ):
-        # We need to interpolate prediction for 2000 using predictions for 1800 and 2100
+        # The model only has 3-hourly output, so there is no 2000 prediction to bias adjust directly.
+        # Instead, bias adjust the 1800 and 2100 predictions and interpolate between them to get 2000.
+
+        # Datetime constants for the interpolation points
+        time_1800 = station_prediction.prediction_timestamp.replace(hour=18)
+        time_2000 = station_prediction.prediction_timestamp.replace(hour=20)
+        time_2100 = station_prediction.prediction_timestamp.replace(hour=21)
+
         # Predict the temperature
-        temp_at_1800 = machine.predict_temperature(
-            station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp.replace(hour=18)
-        )
-        temp_at_2100 = machine.predict_temperature(
-            station_prediction.tmp_tgl_2, station_prediction.prediction_timestamp.replace(hour=21)
-        )
+        temp_at_1800 = machine.predict_temperature(station_prediction.tmp_tgl_2, time_1800)
+        temp_at_2100 = machine.predict_temperature(station_prediction.tmp_tgl_2, time_2100)
         station_prediction.bias_adjusted_temperature = interpolate_between_two_points(
             18, 21, temp_at_1800, temp_at_2100, 20
         )
         # Predict the rh
-        rh_at_1800 = machine.predict_rh(
-            station_prediction.rh_tgl_2, station_prediction.prediction_timestamp.replace(hour=18)
-        )
-        rh_at_2100 = machine.predict_rh(
-            station_prediction.rh_tgl_2, station_prediction.prediction_timestamp.replace(hour=21)
-        )
+        rh_at_1800 = machine.predict_rh(station_prediction.rh_tgl_2, time_1800)
+        rh_at_2100 = machine.predict_rh(station_prediction.rh_tgl_2, time_2100)
         station_prediction.bias_adjusted_rh = interpolate_between_two_points(
             18, 21, rh_at_1800, rh_at_2100, 20
         )
 
         # Predict the wind speed
-        wind_speed_at_1800 = machine.predict_wind_speed(
-            station_prediction.wind_tgl_10, station_prediction.prediction_timestamp.replace(hour=18)
-        )
-        wind_speed_at_2100 = machine.predict_wind_speed(
-            station_prediction.wind_tgl_10, station_prediction.prediction_timestamp.replace(hour=21)
-        )
+        wind_speed_at_1800 = machine.predict_wind_speed(station_prediction.wind_tgl_10, time_1800)
+        wind_speed_at_2100 = machine.predict_wind_speed(station_prediction.wind_tgl_10, time_2100)
         station_prediction.bias_adjusted_wind_speed = interpolate_between_two_points(
             18, 21, wind_speed_at_1800, wind_speed_at_2100, 20
         )
@@ -189,18 +185,25 @@ class ModelValueProcessor:
             machine.predict_wind_direction(
                 station_prediction.wind_tgl_10,
                 station_prediction.wdir_tgl_10,
-                station_prediction.prediction_timestamp.replace(hour=18),
+                time_1800,
             )
         )
         wind_direction_at_2100 = station_prediction.bias_adjusted_wdir = (
             machine.predict_wind_direction(
                 station_prediction.wind_tgl_10,
                 station_prediction.wdir_tgl_10,
-                station_prediction.prediction_timestamp.replace(hour=21),
+                time_2100,
             )
         )
-        station_prediction.bias_adjusted_wdir = interpolate_between_two_points(
-            18, 21, wind_direction_at_1800, wind_direction_at_2100, 20
+        # Wind direction is circular (350 deg and 10 deg are only 20 deg apart), so a plain linear
+        # interpolation would go the long way round. interpolate_bearing takes the shortest arc.
+        # It needs datetimes (not hour numbers) because it interpolates over timestamps.
+        station_prediction.bias_adjusted_wdir = interpolate_bearing(
+            time_1800,
+            time_2100,
+            time_2000,
+            wind_direction_at_1800,
+            wind_direction_at_2100,
         )
 
         # Predict the 24h precipitation. No interpolation necessary due to the underlying model training.
