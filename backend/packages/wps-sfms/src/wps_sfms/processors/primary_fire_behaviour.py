@@ -14,6 +14,8 @@ from typing import Generator
 
 import numpy as np
 from cffdrs_vec.fbp import (
+    vectorized_crown_base_height,
+    vectorized_crown_fuel_load,
     vectorized_elliptical_fire_area,
     vectorized_primary_fire_behaviour_prediction,
 )
@@ -226,6 +228,11 @@ def calculate_primary_fire_behaviour(
         logger.info("%f seconds to calculate vectorized primary FBP", perf_counter() - start)
 
         start = perf_counter()
+        # The primary FBP call replaces cbh=0 and cfl=0 with the fuel type defaults, but the area
+        # function does not, so apply them here to keep CFB and ROS consistent with the primary call.
+        area_fuel_codes = fuel_type_codes[calculation_mask]
+        area_cbh = vectorized_crown_base_height(area_fuel_codes, cbh, sd, sh)
+        area_cfl = vectorized_crown_fuel_load(area_fuel_codes, cfl)
         # isi = 0 makes the area calculation derive ISI from FFMC and terrain-adjusted wind
         fire_area_30min = vectorized_elliptical_fire_area(
             fuel_type_codes[calculation_mask],
@@ -239,8 +246,8 @@ def calculate_primary_fire_behaviour(
             pdf,
             cc,
             gfl,
-            cbh,
-            cfl,
+            area_cbh,
+            area_cfl,
             fmc[calculation_mask],
             isi,
             time_min=30.0,

@@ -219,6 +219,8 @@ vectorized_surface_fuel_consumption = vectorize(
     _surface_fuel_consumption_mod._surface_fuel_consumption
 )
 vectorized_initial_spread_index = vectorize(_fwi_mod.initial_spread_index)
+vectorized_crown_base_height = vectorize(_crown_base_height_mod._crown_base_height)
+vectorized_crown_fuel_load = vectorize(_crown_fuel_load_mod._crown_fuel_load)
 
 # Composite functions: vectorized from the patched-and-jitted clones above
 vectorized_surface_fire_rate_of_spread = vectorize(_cfb_calc_mod.surface_fire_rate_of_spread)
