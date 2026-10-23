@@ -60,8 +60,8 @@ def interpolate_bearing(
     :time_a: Time of the first bearing.
     :time_b: Time of the 2nd bearing.
     :target_time: Time for which we desire a value.
-    :direction_a: Bearing (in degrees) at time_a, within the range [0,360)
-    :direction_b: Bearing (in degrees) at time b, within the range [0,360)
+    :direction_a: Bearing at time_a, in degrees from 0 to 360.
+    :direction_b: Bearing at time_b, in degrees from 0 to 360.
     """
     # A direction can be missing if its bias-adjustment prediction is unavailable.
     # Missing values cannot be interpolated, so return None.
@@ -98,7 +98,7 @@ def interpolate_bearing(
     # Perform the interpolation and ensure the result is a float.
     interpolated_value = float(np.interp(target_timestamp, x_axis, y_axis))
 
-    # Normalize the result to the [0, 360) degree range.
+    # Normalize the result to the 0 to 360 degree range.
     return interpolated_value % 360
 
 
