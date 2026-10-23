@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 from osgeo import gdal, osr
-from wps_sfms.interpolation.common import SFMS_NO_DATA
 
 from wps_sfms import generate_fuel_cog
+from wps_sfms.interpolation.common import SFMS_NO_DATA
 
 
 @pytest.fixture
