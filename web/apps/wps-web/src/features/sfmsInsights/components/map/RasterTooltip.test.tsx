@@ -18,18 +18,21 @@ describe('RasterTooltip', () => {
     render(<RasterTooltip label="" value={value} pixelCoords={[10, 20]} decimalPlaces={1} />)
 
     expect(screen.getByText(value)).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'Snow cover' })).not.toBeInTheDocument()
   })
 
   it.each(['C-2', 'Non-fuel', 'Water', 'Snow'])('prefixes %s with a snowflake', value => {
     render(<RasterTooltip label="" value={value} pixelCoords={[10, 20]} snowCovered />)
 
-    expect(screen.getByText(`❄️ ${value}`)).toBeInTheDocument()
+    expect(screen.getByText(value)).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Snow cover' })).toBeInTheDocument()
   })
 
   it('prefixes the full weather tooltip and preserves decimal places', () => {
     render(<RasterTooltip label="Temperature" value={4} pixelCoords={[10, 20]} decimalPlaces={1} snowCovered />)
 
-    expect(screen.getByText('❄️ Temperature: 4.0')).toBeInTheDocument()
+    expect(screen.getByText('Temperature: 4.0')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Snow cover' })).toBeInTheDocument()
   })
 
   it('hides weather nodata under snow', () => {

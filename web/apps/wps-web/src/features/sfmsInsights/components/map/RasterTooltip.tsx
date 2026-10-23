@@ -27,11 +27,29 @@ const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0, snowCover
         padding: '4px 8px',
         borderRadius: '4px',
         fontSize: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
         pointerEvents: 'none',
         zIndex: 1000
       }}
     >
-      {snowCovered ? `❄️ ${tooltipText}` : tooltipText}
+      {snowCovered && (
+        <Box
+          component="span"
+          role="img"
+          aria-label="Snow cover"
+          sx={{
+            width: '20px',
+            height: '20px',
+            flexShrink: 0,
+            bgcolor: '#b3e5fc',
+            mask: 'url(/images/snowflake.svg) center / contain no-repeat',
+            WebkitMask: 'url(/images/snowflake.svg) center / contain no-repeat'
+          }}
+        />
+      )}
+      {tooltipText}
     </Box>
   )
 }
