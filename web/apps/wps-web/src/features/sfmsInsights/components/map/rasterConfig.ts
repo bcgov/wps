@@ -30,7 +30,6 @@ export interface ColourBreak {
 export interface FuelTypeColourMapping {
   value: number
   fuelCode: string
-  colour: string
   rgb: [number, number, number]
 }
 
@@ -237,29 +236,29 @@ export const PRECIPITATION_COLOUR_BREAKS: ColourBreak[] = [
 
 // fuel type colours for the existing raster codes
 export const FUEL_TYPE_COLOURS: FuelTypeColourMapping[] = [
-  { value: 1, fuelCode: 'C-1', colour: 'rgb(209, 255, 115)', rgb: [209, 255, 115] },
-  { value: 2, fuelCode: 'C-2', colour: 'rgb(34, 102, 51)', rgb: [34, 102, 51] },
-  { value: 3, fuelCode: 'C-3', colour: 'rgb(131, 199, 149)', rgb: [131, 199, 149] },
-  { value: 4, fuelCode: 'C-4', colour: 'rgb(112, 168, 0)', rgb: [112, 168, 0] },
-  { value: 5, fuelCode: 'C-5', colour: 'rgb(223, 184, 230)', rgb: [223, 184, 230] },
-  { value: 6, fuelCode: 'C-6', colour: 'rgb(172, 102, 237)', rgb: [172, 102, 237] },
-  { value: 7, fuelCode: 'C-7', colour: 'rgb(112, 12, 242)', rgb: [112, 12, 242] },
-  { value: 8, fuelCode: 'D-1/D-2', colour: 'rgb(137, 112, 68)', rgb: [137, 112, 68] },
-  { value: 9, fuelCode: 'S-1', colour: 'rgb(251, 190, 185)', rgb: [251, 190, 185] },
-  { value: 10, fuelCode: 'S-2', colour: 'rgb(247, 104, 161)', rgb: [247, 104, 161] },
-  { value: 11, fuelCode: 'S-3', colour: 'rgb(174, 1, 126)', rgb: [174, 1, 126] },
-  { value: 12, fuelCode: 'O-1a/O-1b', colour: 'rgb(255, 255, 190)', rgb: [255, 255, 190] },
-  { value: 13, fuelCode: 'M-3', colour: 'rgb(255, 211, 127)', rgb: [255, 211, 127] },
-  { value: 14, fuelCode: 'M-1/M-2', colour: 'rgb(255, 211, 127)', rgb: [255, 211, 127] },
-  { value: 99, fuelCode: 'Non-fuel', colour: 'rgb(130, 130, 130)', rgb: [130, 130, 130] },
-  { value: 102, fuelCode: 'Water', colour: 'rgb(115, 223, 255)', rgb: [115, 223, 255] }
+  { value: 1, fuelCode: 'C-1', rgb: [209, 255, 115] },
+  { value: 2, fuelCode: 'C-2', rgb: [34, 102, 51] },
+  { value: 3, fuelCode: 'C-3', rgb: [131, 199, 149] },
+  { value: 4, fuelCode: 'C-4', rgb: [112, 168, 0] },
+  { value: 5, fuelCode: 'C-5', rgb: [223, 184, 230] },
+  { value: 6, fuelCode: 'C-6', rgb: [172, 102, 237] },
+  { value: 7, fuelCode: 'C-7', rgb: [112, 12, 242] },
+  { value: 8, fuelCode: 'D-1/D-2', rgb: [137, 112, 68] },
+  { value: 9, fuelCode: 'S-1', rgb: [251, 190, 185] },
+  { value: 10, fuelCode: 'S-2', rgb: [247, 104, 161] },
+  { value: 11, fuelCode: 'S-3', rgb: [174, 1, 126] },
+  { value: 12, fuelCode: 'O-1a/O-1b', rgb: [255, 255, 190] },
+  { value: 13, fuelCode: 'M-3', rgb: [255, 211, 127] },
+  { value: 14, fuelCode: 'M-1/M-2', rgb: [255, 211, 127] },
+  { value: 99, fuelCode: 'Non-fuel', rgb: [130, 130, 130] },
+  { value: 102, fuelCode: 'Water', rgb: [115, 223, 255] }
 ]
 
 // share the fuel palette between the map and legend
-export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value, fuelCode, colour }) => ({
+export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value, fuelCode, rgb }) => ({
   min: value,
   max: value,
-  colour,
+  colour: `rgb(${rgb.join(', ')})`,
   label: fuelCode
 }))
 
