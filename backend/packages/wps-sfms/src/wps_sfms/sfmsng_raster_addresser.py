@@ -248,6 +248,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
                     FBPParameter.HFI,
                     FBPParameter.TFC,
                     FBPParameter.CFB,
+                    FBPParameter.FIRE_AREA_30MIN,
                 )
             },
             run_type=run_type,
