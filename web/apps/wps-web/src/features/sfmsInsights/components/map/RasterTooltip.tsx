@@ -30,6 +30,8 @@ const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0, snowCover
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
+        minHeight: '20px',
+        boxSizing: 'content-box',
         pointerEvents: 'none',
         zIndex: 1000
       }}
