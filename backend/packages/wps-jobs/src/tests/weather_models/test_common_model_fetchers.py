@@ -341,10 +341,12 @@ def test_process_prediction_existing_prediction_is_updated(
         # Unwrap 10 as 370, then interpolate two-thirds toward 350:
         # 370 + (350 - 370) * 2/3 = 1070/3 degrees.
         (10.0, 350.0, 1070 / 3),
+        # If one bias-adjusted direction is unavailable, there is no value to interpolate.
+        (None, 350.0, None),
     ],
 )
 @patch("weather_model_jobs.common_model_fetchers.interpolate_between_two_points", new=MagicMock())
-def test_interpolated_bias_adjusted_wdir_wraps_through_north(
+def test_interpolated_bias_adjusted_wind_direction(
     processor,
     mock_machine,
     mock_station_prediction,
@@ -363,4 +365,7 @@ def test_interpolated_bias_adjusted_wdir_wraps_through_north(
         mock_station_prediction, mock_machine
     )
 
-    assert mock_station_prediction.bias_adjusted_wdir == pytest.approx(expected_direction)
+    if expected_direction is None:
+        assert mock_station_prediction.bias_adjusted_wdir is None
+    else:
+        assert mock_station_prediction.bias_adjusted_wdir == pytest.approx(expected_direction)
