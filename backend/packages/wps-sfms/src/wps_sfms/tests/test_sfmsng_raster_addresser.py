@@ -2,13 +2,13 @@ from datetime import date, datetime, timezone
 from zoneinfo import ZoneInfo
 
 import pytest
-
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import (
     FBPParameter,
     FWIParameter,
     SFMSInterpolatedWeatherParameter,
 )
+
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 # 2024-04-15 20:00 UTC
@@ -258,7 +258,7 @@ class TestPrimaryFireBehaviourInputs:
         assert addresser.get_percent_dead_conifer_key(2024) == "sfms/static/m34_2024.tif"
 
     @pytest.mark.parametrize("run_type", [RunType.ACTUAL, RunType.FORECAST])
-    def test_builds_same_day_inputs_and_five_output_keys(
+    def test_builds_same_day_inputs_and_six_output_keys(
         self, addresser: SFMSNGRasterAddresser, run_type: RunType
     ):
         fuel_key = addresser.gdal_path(addresser.get_fuel_raster_key(TEST_DATETIME, 3))
@@ -316,6 +316,7 @@ class TestPrimaryFireBehaviourInputs:
             FBPParameter.HFI: f"sfms_ng/{run_type.value}/2024/04/15/hfi_20240415.tif",
             FBPParameter.TFC: f"sfms_ng/{run_type.value}/2024/04/15/tfc_20240415.tif",
             FBPParameter.CFB: f"sfms_ng/{run_type.value}/2024/04/15/cfb_20240415.tif",
+            FBPParameter.FIRE_AREA_30MIN: f"sfms_ng/{run_type.value}/2024/04/15/fire_area_30min_20240415.tif",
         }
         assert result.run_type == run_type
 
