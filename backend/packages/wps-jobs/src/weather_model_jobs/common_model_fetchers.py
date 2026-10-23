@@ -4,17 +4,15 @@ from typing import List
 
 import numpy
 import numpy as np
-from wps_wf1.wfwx_api import get_stations_synchronously
 import wps_shared.db.database
-from wps_shared.schemas.stations import WeatherStation
 import wps_shared.utils.time as time_utils
 from pyproj import Geod
 from sqlalchemy.orm import Session
 from weather_model_jobs.machine_learning import StationMachineLearning
 from weather_model_jobs.utils.interpolate import (
     construct_interpolated_noon_prediction,
-    interpolate_between_two_points,
     interpolate_bearing,
+    interpolate_between_two_points,
 )
 from wps_shared import config
 from wps_shared.db.crud.observations import get_accumulated_precipitation
@@ -32,8 +30,10 @@ from wps_shared.db.models.weather_models import (
     ProcessedModelRunUrl,
     WeatherStationModelPrediction,
 )
+from wps_shared.schemas.stations import WeatherStation
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
+from wps_wf1.wfwx_api import get_stations_synchronously
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -154,7 +154,7 @@ class ModelValueProcessor:
     ):
         # The model only has 3-hourly output, so there is no 2000 prediction to bias adjust directly.
         # Instead, bias adjust the 1800 and 2100 predictions and interpolate between them to get 2000.
-        
+
         # Datetime constants for the interpolation points
         time_1800 = station_prediction.prediction_timestamp.replace(hour=18)
         time_2000 = station_prediction.prediction_timestamp.replace(hour=20)

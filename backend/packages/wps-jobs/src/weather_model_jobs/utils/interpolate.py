@@ -1,11 +1,9 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 from typing import Optional
 
 import numpy as np
-
 from wps_shared.db.models.weather_models import ModelRunPrediction
-
 
 SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")
 
@@ -102,18 +100,28 @@ def interpolate_bearing(
     return interpolated_value % 360
 
 
-def interpolate_wind_direction(prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, target_timestamp: datetime):
+def interpolate_wind_direction(
+    prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, target_timestamp: datetime
+):
     """Interpolate wind direction"""
     if prediction_a.wdir_tgl_10 is None or prediction_b.wdir_tgl_10 is None:
         # There's nothing to interpolate!
         return None
 
-    interpolated_wdir = interpolate_bearing(prediction_a.prediction_timestamp, prediction_b.prediction_timestamp, target_timestamp, prediction_a.wdir_tgl_10, prediction_b.wdir_tgl_10)
+    interpolated_wdir = interpolate_bearing(
+        prediction_a.prediction_timestamp,
+        prediction_b.prediction_timestamp,
+        target_timestamp,
+        prediction_a.wdir_tgl_10,
+        prediction_b.wdir_tgl_10,
+    )
 
     return interpolated_wdir
 
 
-def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, model_keys):
+def construct_interpolated_noon_prediction(
+    prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, model_keys
+):
     """Construct a noon prediction by interpolating."""
     # create a noon prediction. (using utc hour 20, as that is solar noon in B.C.)
     noon_prediction = ModelRunPrediction()
@@ -121,7 +129,9 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, pre
 
     # inherit metadata
     noon_prediction.station_code = prediction_a.station_code
-    noon_prediction.prediction_model_run_timestamp_id = prediction_a.prediction_model_run_timestamp_id
+    noon_prediction.prediction_model_run_timestamp_id = (
+        prediction_a.prediction_model_run_timestamp_id
+    )
 
     # throw timestamps into their own variables.
     timestamp_a = prediction_a.prediction_timestamp.timestamp()
@@ -135,7 +145,9 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, pre
             logger.warning("can't interpolate between None values for %s", key)
             continue
 
-        value = interpolate_between_two_points(timestamp_a, timestamp_b, value_a, value_b, noon_timestamp)
+        value = interpolate_between_two_points(
+            timestamp_a, timestamp_b, value_a, value_b, noon_timestamp
+        )
         assert isinstance(value, float)
         setattr(noon_prediction, key, value)
     if noon_prediction.apcp_sfc_0 is None or prediction_a.apcp_sfc_0 is None:
@@ -143,6 +155,8 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, pre
     else:
         noon_prediction.delta_precip = noon_prediction.apcp_sfc_0 - prediction_a.apcp_sfc_0
 
-    noon_prediction.wdir_tgl_10 = interpolate_wind_direction(prediction_a, prediction_b, noon_prediction.prediction_timestamp)
+    noon_prediction.wdir_tgl_10 = interpolate_wind_direction(
+        prediction_a, prediction_b, noon_prediction.prediction_timestamp
+    )
 
     return noon_prediction

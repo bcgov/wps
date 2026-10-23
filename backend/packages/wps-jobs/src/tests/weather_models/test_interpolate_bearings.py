@@ -1,5 +1,6 @@
-import pytest
 from datetime import datetime
+
+import pytest
 from weather_model_jobs.utils.interpolate import interpolate_bearing
 
 time_a = datetime.fromisoformat("2020-09-03T18:00:00.000000+00:00")
