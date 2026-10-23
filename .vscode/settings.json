@@ -53,7 +53,13 @@
   // binary installed in the web workspace (same pinned version repo-wide).
   "biome.lsp.bin": {
     "darwin-arm64": "./web/node_modules/@biomejs/cli-darwin-arm64/biome",
-    "darwin-x64": "./web/node_modules/@biomejs/cli-darwin-x64/biome"
+    "darwin-x64": "./web/node_modules/@biomejs/cli-darwin-x64/biome",
+    "win32-arm64": "./web/node_modules/@biomejs/cli-win32-arm64/biome.exe",
+    "win32-x64": "./web/node_modules/@biomejs/cli-win32-x64/biome.exe",
+    "linux-arm64": "./web/node_modules/@biomejs/cli-linux-arm64/biome",
+    "linux-x64": "./web/node_modules/@biomejs/cli-linux-x64/biome",
+    "linux-arm64-musl": "./web/node_modules/@biomejs/cli-linux-arm64-musl/biome",
+    "linux-x64-musl": "./web/node_modules/@biomejs/cli-linux-x64-musl/biome"
   },
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome",
