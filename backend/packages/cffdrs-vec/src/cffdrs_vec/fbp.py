@@ -65,7 +65,6 @@ import cffdrs.total_fuel_consumption
 import numpy as np
 from numba import guvectorize, jit, vectorize
 
-
 # expose the codes consumed by the vectorized functions without making callers depend on
 # cffdrs's private module layout or duplicate its zero-based values.
 FUEL_TYPE_CODES = MappingProxyType(dict(_constants_mod.FUEL_TYPE_CODES))
@@ -219,6 +218,9 @@ vectorized_rate_of_spread_at_time = vectorize(_rate_of_spread_at_time_mod._rate_
 vectorized_surface_fuel_consumption = vectorize(
     _surface_fuel_consumption_mod._surface_fuel_consumption
 )
+vectorized_initial_spread_index = vectorize(_fwi_mod.initial_spread_index)
+vectorized_crown_base_height = vectorize(_crown_base_height_mod._crown_base_height)
+vectorized_crown_fuel_load = vectorize(_crown_fuel_load_mod._crown_fuel_load)
 
 # Composite functions: vectorized from the patched-and-jitted clones above
 vectorized_surface_fire_rate_of_spread = vectorize(_cfb_calc_mod.surface_fire_rate_of_spread)
@@ -927,34 +929,18 @@ def vectorized_elliptical_fire_area(
     :param cbh: Crown base height (m).
     :param cfl: Crown fuel load (kg/m^2); zero disables crown fraction burned.
     :param fmc: Foliar Moisture Content (%).
-    :param isi: Initial Spread Index.
+    :param isi: Initial Spread Index; if not positive, it is derived from FFMC and WSV.
     :param time_min: Time of interest in minutes since ignition (default 30).
     :return: Elliptical fire area at time_min in hectares; float64 array or NumPy scalar for scalar inputs.
     """
     # Note that the CFFDRS FBP calculation passes time in minutes to the time-dependent helpers,
     # including length_to_breadth_at_time (despite the CFFDRS docstring saying hours).
 
-    # Step 1: Calculate Surface Fuel Consumption (SFC).
+    # Calculate Surface Fuel Consumption (SFC).
     sfc = vectorized_surface_fuel_consumption(fuel_type_code, ffmc, bui, pc, gfl)
 
-    # Step 2: Calculate the equilibrium Rate of Spread (ROS) and Crown Fraction Burned (CFB).
-    #         CFFDRS sets CFB to zero when Crown Fuel Load (CFL) is zero.
-    ros, cfb, _, _ = vectorized_rate_of_spread_extended(
-        fuel_type_code,
-        isi,
-        bui,
-        fmc,
-        sfc,
-        pc,
-        pdf,
-        grass_curing,
-        cbh,
-    )
-    cfb = np.where(cfl > 0.0, cfb, 0.0)
-
-    # Step 3: Calculate the Wind Speed Velocity (WSV) used for length-to-breadth and back ROS.
-    #         Slope adjustment also returns direction, but it is not needed for fire area.
-    wsv, _ = vectorized_slope_adjustment(
+    # Calculate the Wind Speed Velocity (WSV) used for length-to-breadth and back ROS.
+    wsv0, _ = vectorized_slope_adjustment(
         fuel_type_code,
         ffmc,
         bui,
@@ -970,15 +956,36 @@ def vectorized_elliptical_fire_area(
         cbh,
         isi,
     )
+    # As in CFFDRS, WSV is the slope-adjusted wind only when there is a slope and FFMC > 0,
+    # otherwise it is the plain wind speed.
+    wsv = np.where((gs > 0.0) & (ffmc > 0.0), wsv0, ws)
 
-    # Step 4: Calculate the equilibrium Length-to-Breadth ratio (LB), then its value at the time of interest.
+    # As in CFFDRS, use the given ISI if it is positive. Otherwise, derive it from FFMC and WSV.
+    isi = np.where(isi > 0.0, isi, vectorized_initial_spread_index(ffmc, wsv, True))
+
+    # Calculate the equilibrium Rate of Spread (ROS) and Crown Fraction Burned (CFB).
+    ros, cfb, _, _ = vectorized_rate_of_spread_extended(
+        fuel_type_code,
+        isi,
+        bui,
+        fmc,
+        sfc,
+        pc,
+        pdf,
+        grass_curing,
+        cbh,
+    )
+    # CFFDRS sets CFB to zero when Crown Fuel Load (CFL) is zero.
+    cfb = np.where(cfl > 0.0, cfb, 0.0)
+
+    # Calculate the equilibrium Length-to-Breadth ratio (LB), then its value at the time of interest.
     lb = vectorized_length_to_breadth(fuel_type_code, wsv)
     lb_t = vectorized_length_to_breadth_at_time(fuel_type_code, lb, time_min, cfb)
 
-    # Step 5: Calculate the head-fire spread distance at the time of interest.
+    # Calculate the head-fire spread distance at the time of interest.
     head_fire_distance = vectorized_distance_at_time(fuel_type_code, ros, time_min, cfb)
 
-    # Step 6: Calculate the equilibrium Back Rate of Spread (BROS).
+    # Calculate the equilibrium Back Rate of Spread (BROS).
     bros = vectorized_back_rate_of_spread(
         fuel_type_code,
         ffmc,
@@ -992,16 +999,16 @@ def vectorized_elliptical_fire_area(
         cbh,
     )
 
-    # Step 7: Calculate the back-fire spread distance at the time of interest.
+    # Calculate the back-fire spread distance at the time of interest.
     back_fire_distance = vectorized_distance_at_time(fuel_type_code, bros, time_min, cfb)
 
-    # Step 8: Calculate total spread distance from the back-fire edge to the head-fire edge.
-    #         This is the D_T variable in the elliptical fire area equation.
+    # Calculate total spread distance from the back-fire edge to the head-fire edge.
+    # This is the D_T variable in the elliptical fire area equation.
     total_distance = head_fire_distance + back_fire_distance
 
-    # Step 9: Calculate elliptical fire area using equation 86 on page 49 from the
-    #         1992 Information Report ST-X-3: A(ha) = ((pi / (4 * LB(t))) * (D_T)^2) / 10000,
-    #         which is algebraically equivalent to the calculation below.
-    area_ha = (np.pi * (total_distance ** 2)) / (40000.0 * lb_t)
+    # Calculate elliptical fire area using equation 86 on page 49 from the
+    # 1992 Information Report ST-X-3: A(ha) = ((pi / (4 * LB(t))) * (D_T)^2) / 10000,
+    # which is algebraically equivalent to the calculation below.
+    area_ha = (np.pi * (total_distance**2)) / (40000.0 * lb_t)
 
     return area_ha

@@ -3,6 +3,7 @@ import type Geometry from 'ol/geom/Geometry'
 import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
 import {
   CFB_COLOR_BREAKS,
+  FIRE_AREA_30MIN_COLOR_BREAKS,
   FMC_COLOR_BREAKS,
   FUEL_TYPE_COLORS,
   HFI_COLOR_BREAKS,
@@ -164,7 +165,8 @@ describe('getSFMSNGRasterColourExpression', () => {
     ['fmc', FMC_COLOR_BREAKS],
     ['tfc', TFC_COLOR_BREAKS],
     ['cfb', CFB_COLOR_BREAKS],
-    ['hfi', HFI_COLOR_BREAKS]
+    ['hfi', HFI_COLOR_BREAKS],
+    ['fire_area_30min', FIRE_AREA_30MIN_COLOR_BREAKS]
   ] as const)('should include every %s colour break', (rasterType, colorBreaks) => {
     const expr = getSFMSNGRasterColourExpression(rasterType)
 

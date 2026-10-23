@@ -41,7 +41,7 @@ describe('RasterTypeDropdown', () => {
     const buiOption = screen.getByRole('option', { name: 'BUI' })
     expect(buiOption).toHaveAttribute('aria-disabled', 'true')
 
-    for (const name of ['TFC', 'CFB', 'HFI']) {
+    for (const name of ['TFC', 'CFB', 'HFI', 'Fire Size 30 min']) {
       expect(screen.getByRole('option', { name })).toHaveAttribute('aria-disabled', 'true')
     }
   })
@@ -71,7 +71,7 @@ describe('RasterTypeDropdown', () => {
 
     expect(screen.getByRole('option', { name: 'SFC' })).not.toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByRole('option', { name: 'FMC' })).not.toHaveAttribute('aria-disabled', 'true')
-    for (const name of ['TFC', 'CFB', 'HFI']) {
+    for (const name of ['TFC', 'CFB', 'HFI', 'Fire Size 30 min']) {
       expect(screen.getByRole('option', { name })).not.toHaveAttribute('aria-disabled', 'true')
     }
   })
