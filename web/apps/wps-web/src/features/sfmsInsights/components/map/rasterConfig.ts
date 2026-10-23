@@ -10,6 +10,7 @@ export type RasterType =
   | 'tfc'
   | 'cfb'
   | 'hfi'
+  | 'fire_area_30min'
   | 'fmc'
   | 'ros'
   | 'temperature'
@@ -61,7 +62,8 @@ const RASTER_COLOURS = {
   fireBehaviourRed: 'rgb(234, 51, 35)',
   hfiLightBlue: 'rgb(0, 116, 255)',
   hfiDarkGreen: 'rgb(0, 116, 0)',
-  hfiOrange: 'rgb(255, 160, 0)'
+  hfiOrange: 'rgb(255, 160, 0)',
+  fireAreaLime: 'rgb(150, 255, 0)'
 } as const
 
 export const FWI_COLOR_BREAKS: ColorBreak[] = [
@@ -160,6 +162,16 @@ export const HFI_COLOR_BREAKS: ColorBreak[] = [
   { min: 4000, max: 10000, color: RASTER_COLOURS.yellow, label: '4,000-10,000' },
   { min: 10000, max: 30000, color: RASTER_COLOURS.hfiOrange, label: '10,000-30,000' },
   { min: 30000, max: null, color: RASTER_COLOURS.red, label: '30,000+' }
+]
+
+export const FIRE_AREA_30MIN_COLOR_BREAKS: ColorBreak[] = [
+  { min: 0, max: 2, color: RASTER_COLOURS.blue, label: '0-2 ha' },
+  { min: 2, max: 5, color: RASTER_COLOURS.blueGrey, label: '2-5 ha' },
+  { min: 5, max: 10, color: RASTER_COLOURS.darkGreen, label: '5-10 ha' },
+  { min: 10, max: 20, color: RASTER_COLOURS.fireAreaLime, label: '10-20 ha' },
+  { min: 20, max: 30, color: RASTER_COLOURS.yellow, label: '20-30 ha' },
+  { min: 30, max: 50, color: RASTER_COLOURS.orange, label: '30-50 ha' },
+  { min: 50, max: null, color: RASTER_COLOURS.red, label: '50+ ha' }
 ]
 
 export const ROS_COLOR_BREAKS: ColorBreak[] = [
@@ -279,7 +291,12 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   ros: { label: 'ROS', colorBreaks: ROS_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
   cfb: { label: 'CFB', colorBreaks: CFB_COLOR_BREAKS },
   tfc: { label: 'TFC', colorBreaks: TFC_COLOR_BREAKS, tooltipDecimalPlaces: 1 },
-  hfi: { label: 'HFI', colorBreaks: HFI_COLOR_BREAKS }
+  hfi: { label: 'HFI', colorBreaks: HFI_COLOR_BREAKS },
+  fire_area_30min: {
+    label: 'Fire Size, 30 minutes',
+    colorBreaks: FIRE_AREA_30MIN_COLOR_BREAKS,
+    tooltipDecimalPlaces: 1
+  }
 }
 
 // Backward compatibility - export just the color breaks
@@ -294,6 +311,7 @@ export const RASTER_COLOR_BREAKS: Record<RasterType, ColorBreak[]> = {
   tfc: TFC_COLOR_BREAKS,
   cfb: CFB_COLOR_BREAKS,
   hfi: HFI_COLOR_BREAKS,
+  fire_area_30min: FIRE_AREA_30MIN_COLOR_BREAKS,
   fmc: FMC_COLOR_BREAKS,
   ros: ROS_COLOR_BREAKS,
   temperature: TEMPERATURE_COLOR_BREAKS,
