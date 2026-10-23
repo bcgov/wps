@@ -5,9 +5,10 @@ interface RasterTooltipProps {
   value: number | string | null
   pixelCoords: [number, number] | null
   decimalPlaces?: number
+  snowCovered?: boolean
 }
 
-const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0 }: RasterTooltipProps) => {
+const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0, snowCovered = false }: RasterTooltipProps) => {
   if (value === null || !pixelCoords) {
     return null
   }
@@ -30,7 +31,7 @@ const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0 }: RasterT
         zIndex: 1000
       }}
     >
-      {tooltipText}
+      {snowCovered ? `❄️ ${tooltipText}` : tooltipText}
     </Box>
   )
 }

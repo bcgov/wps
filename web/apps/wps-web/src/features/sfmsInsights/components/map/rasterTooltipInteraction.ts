@@ -7,6 +7,7 @@ import { RASTER_CONFIG } from './rasterConfig'
 import { findRasterLayer, getDataAtPixel, getRasterType, type RasterTooltipValue } from './rasterTooltipHandler'
 
 export interface RasterTooltipData extends RasterTooltipValue {
+  snowCovered?: boolean
   pixel: [number, number] | null
 }
 
@@ -68,25 +69,27 @@ export class RasterTooltipInteraction extends Interaction {
 
     const rasterLayer = findRasterLayer(map.getLayers().getArray())
     if (!rasterLayer) {
-      this.onTooltipChange({ value: null, label: '', pixel: null })
+      this.onTooltipChange({ value: null, label: '', pixel: null, snowCovered: false })
       return
     }
 
     const rasterType = getRasterType(rasterLayer)
-    // snow masks fuel and fire indices, but weather values still apply under snow
-    const overSnow =
-      rasterType !== undefined &&
-      RASTER_CONFIG[rasterType].group !== 'weather' &&
+    const snowCovered =
       map.forEachFeatureAtPixel(pixel, feature => feature.get('snow') === 1 || undefined, {
         layerFilter: layer => layer.get('name') === SNOW_LAYER_NAME
-      })
-    if (overSnow) {
-      this.onTooltipChange({ label: 'Non-fuel', value: 'Snow', pixel })
+      }) === true
+    const group = rasterType ? RASTER_CONFIG[rasterType].group : undefined
+    if (snowCovered && (group === 'fwi' || group === 'fbp')) {
+      this.onTooltipChange({ label: '', value: 'Snow', pixel, snowCovered })
       return
     }
 
     const { value, label } = getDataAtPixel(rasterLayer, pixel)
-    this.onTooltipChange({ value, label, pixel })
+    if (snowCovered && group === 'fuel' && value === null) {
+      this.onTooltipChange({ label: '', value: 'Snow', pixel, snowCovered })
+      return
+    }
+    this.onTooltipChange({ value, label, pixel, snowCovered })
   }
 
   /**

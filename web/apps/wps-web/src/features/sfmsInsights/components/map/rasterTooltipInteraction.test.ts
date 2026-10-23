@@ -133,7 +133,8 @@ describe('RasterTooltipInteraction', () => {
       expect(onTooltipChange).toHaveBeenCalledWith({
         value: 43,
         label: 'FWI',
-        pixel: [100, 200]
+        pixel: [100, 200],
+        snowCovered: false
       })
     })
 
@@ -149,7 +150,7 @@ describe('RasterTooltipInteraction', () => {
 
       mockMap.pointerMoveHandler!(mockEvent)
 
-      expect(onTooltipChange).toHaveBeenCalledWith({ value: null, label: '', pixel: null })
+      expect(onTooltipChange).toHaveBeenCalledWith({ value: null, label: '', pixel: null, snowCovered: false })
     })
 
     it('should not call onTooltipChange when callback is not set', () => {
@@ -166,7 +167,6 @@ describe('RasterTooltipInteraction', () => {
     })
 
     it.each([
-      ['fuel', 2],
       ['fwi', 42.7],
       ['dmc', 42.7],
       ['dc', 42.7],
@@ -187,9 +187,48 @@ describe('RasterTooltipInteraction', () => {
 
       mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
 
-      expect(onTooltipChange).toHaveBeenCalledWith({ label: 'Non-fuel', value: 'Snow', pixel: [100, 200] })
+      expect(onTooltipChange).toHaveBeenCalledWith({ label: '', value: 'Snow', pixel: [100, 200], snowCovered: true })
       expect(mockRasterLayer.getData).not.toHaveBeenCalled()
     })
+
+    it.each([
+      [2, 'C-2'],
+      [99, 'Non-fuel'],
+      [102, 'Water']
+    ])('should flag fuel value %s as snow covered without changing its value', (value, expectedValue) => {
+      mockMap.forEachFeatureAtPixel.mockReturnValueOnce(true)
+      mockRasterLayer.getProperties.mockReturnValue({ rasterType: 'fuel' })
+      mockRasterLayer.getData.mockReturnValue(new Float32Array([value]))
+      const event = { map: mockMap, originalEvent: new MouseEvent('pointermove') }
+
+      mockMap.pointerMoveHandler!(event)
+      expect(onTooltipChange).toHaveBeenLastCalledWith({
+        label: '',
+        value: expectedValue,
+        pixel: [100, 200],
+        snowCovered: true
+      })
+
+      mockMap.pointerMoveHandler!(event)
+      expect(onTooltipChange).toHaveBeenLastCalledWith({
+        label: '',
+        value: expectedValue,
+        pixel: [100, 200],
+        snowCovered: expectedValue === 'Snow'
+      })
+    })
+
+    it.each([new Float32Array([-3.4028235e38]), new Float32Array([101]), new Float32Array([2, 0]), null])(
+      'should fall back to snow when fuel data is unavailable: %s',
+      data => {
+        mockMap.forEachFeatureAtPixel.mockReturnValue(true)
+        mockRasterLayer.getProperties.mockReturnValue({ rasterType: 'fuel' })
+        mockRasterLayer.getData.mockReturnValue(data)
+
+        mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
+        expect(onTooltipChange).toHaveBeenCalledWith({ label: '', value: 'Snow', pixel: [100, 200], snowCovered: true })
+      }
+    )
 
     it.each([
       ['temperature', 'Temperature'],
@@ -203,12 +242,12 @@ describe('RasterTooltipInteraction', () => {
       const event = { map: mockMap, originalEvent: new MouseEvent('pointermove') }
 
       mockMap.pointerMoveHandler!(event)
-      expect(onTooltipChange).toHaveBeenLastCalledWith({ label, value: 43, pixel: [100, 200] })
+      expect(onTooltipChange).toHaveBeenLastCalledWith({ label, value: 43, pixel: [100, 200], snowCovered: true })
 
       mockRasterLayer.getData.mockReturnValue(new Float32Array([-3.4028235e38]))
       mockMap.pointerMoveHandler!(event)
-      expect(onTooltipChange).toHaveBeenLastCalledWith({ label, value: null, pixel: [100, 200] })
-      expect(mockMap.forEachFeatureAtPixel).not.toHaveBeenCalled()
+      expect(onTooltipChange).toHaveBeenLastCalledWith({ label, value: null, pixel: [100, 200], snowCovered: true })
+      expect(mockMap.forEachFeatureAtPixel).toHaveBeenCalledTimes(2)
     })
 
     it.each([
@@ -226,9 +265,10 @@ describe('RasterTooltipInteraction', () => {
       mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
 
       expect(onTooltipChange).toHaveBeenCalledWith({
-        label: expectedValue === 'Snow' ? 'Non-fuel' : 'FWI',
+        label: expectedValue === 'Snow' ? '' : 'FWI',
         value: expectedValue,
-        pixel: [100, 200]
+        pixel: [100, 200],
+        snowCovered: expectedValue === 'Snow'
       })
     })
 
@@ -236,15 +276,25 @@ describe('RasterTooltipInteraction', () => {
       const event = { map: mockMap, originalEvent: new MouseEvent('pointermove') }
       mockMap.forEachFeatureAtPixel.mockReturnValueOnce(true)
       mockMap.pointerMoveHandler!(event)
-      expect(onTooltipChange).toHaveBeenLastCalledWith({ label: 'Non-fuel', value: 'Snow', pixel: [100, 200] })
+      expect(onTooltipChange).toHaveBeenLastCalledWith({
+        label: '',
+        value: 'Snow',
+        pixel: [100, 200],
+        snowCovered: true
+      })
 
       mockMap.pointerMoveHandler!(event)
-      expect(onTooltipChange).toHaveBeenLastCalledWith({ label: 'FWI', value: 43, pixel: [100, 200] })
+      expect(onTooltipChange).toHaveBeenLastCalledWith({
+        label: 'FWI',
+        value: 43,
+        pixel: [100, 200],
+        snowCovered: false
+      })
 
       mockMap.forEachFeatureAtPixel.mockReturnValue(true)
       mockMap.getLayers.mockReturnValue({ getArray: () => [] })
       mockMap.pointerMoveHandler!(event)
-      expect(onTooltipChange).toHaveBeenLastCalledWith({ label: '', value: null, pixel: null })
+      expect(onTooltipChange).toHaveBeenLastCalledWith({ label: '', value: null, pixel: null, snowCovered: false })
     })
 
     it('should handle nodata values correctly', () => {
@@ -260,7 +310,8 @@ describe('RasterTooltipInteraction', () => {
       expect(onTooltipChange).toHaveBeenCalledWith({
         value: null,
         label: 'FWI',
-        pixel: [100, 200]
+        pixel: [100, 200],
+        snowCovered: false
       })
     })
 
@@ -284,7 +335,8 @@ describe('RasterTooltipInteraction', () => {
       expect(onTooltipChange).toHaveBeenCalledWith({
         value: 43,
         label: expectedLabel,
-        pixel: [100, 200]
+        pixel: [100, 200],
+        snowCovered: false
       })
     })
   })
@@ -327,7 +379,8 @@ describe('RasterTooltipInteraction', () => {
       expect(newCallback).toHaveBeenCalledWith({
         value: 50,
         label: 'FWI',
-        pixel: [100, 200]
+        pixel: [100, 200],
+        snowCovered: false
       })
     })
   })
