@@ -5,7 +5,7 @@ use --output to choose another path.
 
 Example:
     uv run python -m wps_sfms.generate_fuel_cog \
-        --input ../web/apps/wps-web/src/features/sfmsInsights/components/map/fbp2025_v2.tif
+        --input path/to/fuel_grid.tif
 """
 
 import argparse
@@ -15,6 +15,7 @@ from tempfile import TemporaryDirectory
 
 import numpy as np
 from osgeo import gdal
+
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 
 logger = logging.getLogger(__name__)
