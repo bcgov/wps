@@ -1,11 +1,13 @@
 import type { MapBrowserEvent } from 'ol'
 import type { EventsKey } from 'ol/events'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { SNOW_LAYER_NAME } from './layerDefinitions'
 import { type RasterTooltipData, RasterTooltipInteraction } from './rasterTooltipInteraction'
 
 interface MockMapWithHandler {
   on: ReturnType<typeof vi.fn>
   getEventPixel: ReturnType<typeof vi.fn>
+  forEachFeatureAtPixel: ReturnType<typeof vi.fn>
   getLayers: ReturnType<typeof vi.fn>
   pointerMoveHandler?: (...args: unknown[]) => void
 }
@@ -110,6 +112,7 @@ describe('RasterTooltipInteraction', () => {
           return { type: 'mock-listener-key' } as EventsKey
         }),
         getEventPixel: vi.fn(() => [100, 200]),
+        forEachFeatureAtPixel: vi.fn(),
         getLayers: vi.fn(() => ({
           getArray: vi.fn(() => [mockRasterLayer])
         }))
@@ -134,7 +137,7 @@ describe('RasterTooltipInteraction', () => {
       })
     })
 
-    it('should not call onTooltipChange when no raster layer exists', () => {
+    it('should clear the tooltip when no raster layer exists', () => {
       mockMap.getLayers = vi.fn(() => ({
         getArray: vi.fn(() => [])
       }))
@@ -146,7 +149,7 @@ describe('RasterTooltipInteraction', () => {
 
       mockMap.pointerMoveHandler!(mockEvent)
 
-      expect(onTooltipChange).not.toHaveBeenCalled()
+      expect(onTooltipChange).toHaveBeenCalledWith({ value: null, label: '', pixel: null })
     })
 
     it('should not call onTooltipChange when callback is not set', () => {
@@ -160,6 +163,88 @@ describe('RasterTooltipInteraction', () => {
 
       // Should not throw error
       expect(() => mockMap.pointerMoveHandler!(mockEvent)).not.toThrow()
+    })
+
+    it.each([
+      ['fuel', 2],
+      ['fwi', 42.7],
+      ['dmc', 42.7],
+      ['dc', 42.7],
+      ['ffmc', 42.7],
+      ['bui', 42.7],
+      ['isi', 42.7],
+      ['sfc', 42.7],
+      ['tfc', 42.7],
+      ['cfb', 42.7],
+      ['hfi', 42.7],
+      ['fmc', 42.7],
+      ['ros', 12.3],
+      ['fwi', -3.4028235e38]
+    ])('should prefer snow over %s data %s', (rasterType, value) => {
+      mockMap.forEachFeatureAtPixel.mockReturnValue(true)
+      mockRasterLayer.getProperties.mockReturnValue({ rasterType })
+      mockRasterLayer.getData.mockReturnValue(new Float32Array([value]))
+
+      mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
+
+      expect(onTooltipChange).toHaveBeenCalledWith({ label: 'Non-fuel', value: 'Snow', pixel: [100, 200] })
+      expect(mockRasterLayer.getData).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      ['temperature', 'Temperature'],
+      ['relative_humidity', 'Relative Humidity'],
+      ['wind_speed', 'Wind Speed'],
+      ['wind_direction', 'Wind Direction'],
+      ['precipitation', 'Precipitation']
+    ])('should keep %s values under snow and hide weather nodata', (rasterType, label) => {
+      mockMap.forEachFeatureAtPixel.mockReturnValue(true)
+      mockRasterLayer.getProperties.mockReturnValue({ rasterType })
+      const event = { map: mockMap, originalEvent: new MouseEvent('pointermove') }
+
+      mockMap.pointerMoveHandler!(event)
+      expect(onTooltipChange).toHaveBeenLastCalledWith({ label, value: 43, pixel: [100, 200] })
+
+      mockRasterLayer.getData.mockReturnValue(new Float32Array([-3.4028235e38]))
+      mockMap.pointerMoveHandler!(event)
+      expect(onTooltipChange).toHaveBeenLastCalledWith({ label, value: null, pixel: [100, 200] })
+      expect(mockMap.forEachFeatureAtPixel).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      [SNOW_LAYER_NAME, 1, 'Snow'],
+      [SNOW_LAYER_NAME, 0, 43],
+      [SNOW_LAYER_NAME, undefined, 43],
+      ['anotherLayer', 1, 43]
+    ])('should check layer %s and snow property %s', (layerName, snow, expectedValue) => {
+      mockMap.forEachFeatureAtPixel.mockImplementation((_pixel, callback, options) => {
+        const layer = { get: (key: string) => (key === 'name' ? layerName : undefined) }
+        const feature = { get: (key: string) => (key === 'snow' ? snow : undefined) }
+        return options.layerFilter(layer) ? callback(feature) : undefined
+      })
+
+      mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
+
+      expect(onTooltipChange).toHaveBeenCalledWith({
+        label: expectedValue === 'Snow' ? 'Non-fuel' : 'FWI',
+        value: expectedValue,
+        pixel: [100, 200]
+      })
+    })
+
+    it('should resume raster data and clear the tooltip after leaving snow', () => {
+      const event = { map: mockMap, originalEvent: new MouseEvent('pointermove') }
+      mockMap.forEachFeatureAtPixel.mockReturnValueOnce(true)
+      mockMap.pointerMoveHandler!(event)
+      expect(onTooltipChange).toHaveBeenLastCalledWith({ label: 'Non-fuel', value: 'Snow', pixel: [100, 200] })
+
+      mockMap.pointerMoveHandler!(event)
+      expect(onTooltipChange).toHaveBeenLastCalledWith({ label: 'FWI', value: 43, pixel: [100, 200] })
+
+      mockMap.forEachFeatureAtPixel.mockReturnValue(true)
+      mockMap.getLayers.mockReturnValue({ getArray: () => [] })
+      mockMap.pointerMoveHandler!(event)
+      expect(onTooltipChange).toHaveBeenLastCalledWith({ label: '', value: null, pixel: null })
     })
 
     it('should handle nodata values correctly', () => {
@@ -223,6 +308,7 @@ describe('RasterTooltipInteraction', () => {
           return { type: 'mock-listener-key' } as EventsKey
         }),
         getEventPixel: vi.fn(() => [100, 200]),
+        forEachFeatureAtPixel: vi.fn(),
         getLayers: vi.fn(() => ({
           getArray: vi.fn(() => [mockRasterLayer])
         }))

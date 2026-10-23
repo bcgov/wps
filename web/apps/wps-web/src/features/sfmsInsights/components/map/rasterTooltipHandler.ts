@@ -48,7 +48,7 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
     const fuelType = FUEL_TYPE_COLOURS.find(f => f.value === Math.round(rawValue))
     return {
       value: fuelType ? fuelType.fuelCode : null,
-      label: defaultLabel
+      label: ''
     }
   }
 

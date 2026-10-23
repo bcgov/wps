@@ -13,6 +13,7 @@ const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0 }: RasterT
   }
 
   const displayValue = typeof value === 'number' ? value.toFixed(decimalPlaces) : value
+  const tooltipText = label ? `${label}: ${displayValue}` : displayValue
 
   return (
     <Box
@@ -29,7 +30,7 @@ const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0 }: RasterT
         zIndex: 1000
       }}
     >
-      {label}: {displayValue}
+      {tooltipText}
     </Box>
   )
 }

@@ -14,10 +14,16 @@ describe('RasterTooltip', () => {
     expect(screen.getByText('FMC: 95')).toBeInTheDocument()
   })
 
-  it('renders categorical fuel codes unchanged', () => {
-    render(<RasterTooltip label="Fuel" value="C-2" pixelCoords={[10, 20]} decimalPlaces={1} />)
+  it.each(['C-2', 'Non-fuel', 'Water'])('renders %s without the fuel prefix', value => {
+    render(<RasterTooltip label="" value={value} pixelCoords={[10, 20]} decimalPlaces={1} />)
 
-    expect(screen.getByText('Fuel: C-2')).toBeInTheDocument()
+    expect(screen.getByText(value)).toBeInTheDocument()
+  })
+
+  it('keeps the non fuel prefix for snow', () => {
+    render(<RasterTooltip label="Non-fuel" value="Snow" pixelCoords={[10, 20]} />)
+
+    expect(screen.getByText('Non-fuel: Snow')).toBeInTheDocument()
   })
 
   it('does not render without a value', () => {

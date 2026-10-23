@@ -33,7 +33,10 @@ export interface FuelTypeColourMapping {
   rgb: [number, number, number]
 }
 
+export type RasterGroup = 'weather' | 'fuel' | 'fwi' | 'fbp'
+
 export interface RasterConfig {
+  group: RasterGroup
   label: string
   colourBreaks: ColourBreak[]
   tooltipDecimalPlaces?: number
@@ -263,24 +266,24 @@ export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value,
 }))
 
 export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
-  fuel: { label: 'Fuel', colourBreaks: FUEL_COLOUR_BREAKS },
-  temperature: { label: 'Temperature', colourBreaks: TEMPERATURE_COLOUR_BREAKS },
-  relative_humidity: { label: 'Relative Humidity', colourBreaks: RH_COLOUR_BREAKS },
-  wind_speed: { label: 'Wind Speed', colourBreaks: WIND_SPEED_COLOUR_BREAKS },
-  wind_direction: { label: 'Wind Direction', colourBreaks: WIND_DIRECTION_COLOUR_BREAKS },
-  precipitation: { label: 'Precipitation', colourBreaks: PRECIPITATION_COLOUR_BREAKS },
-  ffmc: { label: 'FFMC', colourBreaks: FFMC_COLOUR_BREAKS },
-  dmc: { label: 'DMC', colourBreaks: DMC_COLOUR_BREAKS },
-  dc: { label: 'DC', colourBreaks: DC_COLOUR_BREAKS },
-  isi: { label: 'ISI', colourBreaks: ISI_COLOUR_BREAKS },
-  bui: { label: 'BUI', colourBreaks: BUI_COLOUR_BREAKS },
-  fwi: { label: 'FWI', colourBreaks: FWI_COLOUR_BREAKS },
-  fmc: { label: 'FMC', colourBreaks: FMC_COLOUR_BREAKS },
-  sfc: { label: 'SFC', colourBreaks: SFC_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },
-  ros: { label: 'ROS', colourBreaks: ROS_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },
-  cfb: { label: 'CFB', colourBreaks: CFB_COLOUR_BREAKS },
-  tfc: { label: 'TFC', colourBreaks: TFC_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },
-  hfi: { label: 'HFI', colourBreaks: HFI_COLOUR_BREAKS }
+  fuel: { group: 'fuel', label: 'Fuel', colourBreaks: FUEL_COLOUR_BREAKS },
+  temperature: { group: 'weather', label: 'Temperature', colourBreaks: TEMPERATURE_COLOUR_BREAKS },
+  relative_humidity: { group: 'weather', label: 'Relative Humidity', colourBreaks: RH_COLOUR_BREAKS },
+  wind_speed: { group: 'weather', label: 'Wind Speed', colourBreaks: WIND_SPEED_COLOUR_BREAKS },
+  wind_direction: { group: 'weather', label: 'Wind Direction', colourBreaks: WIND_DIRECTION_COLOUR_BREAKS },
+  precipitation: { group: 'weather', label: 'Precipitation', colourBreaks: PRECIPITATION_COLOUR_BREAKS },
+  ffmc: { group: 'fwi', label: 'FFMC', colourBreaks: FFMC_COLOUR_BREAKS },
+  dmc: { group: 'fwi', label: 'DMC', colourBreaks: DMC_COLOUR_BREAKS },
+  dc: { group: 'fwi', label: 'DC', colourBreaks: DC_COLOUR_BREAKS },
+  isi: { group: 'fwi', label: 'ISI', colourBreaks: ISI_COLOUR_BREAKS },
+  bui: { group: 'fwi', label: 'BUI', colourBreaks: BUI_COLOUR_BREAKS },
+  fwi: { group: 'fwi', label: 'FWI', colourBreaks: FWI_COLOUR_BREAKS },
+  fmc: { group: 'fbp', label: 'FMC', colourBreaks: FMC_COLOUR_BREAKS },
+  sfc: { group: 'fbp', label: 'SFC', colourBreaks: SFC_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },
+  ros: { group: 'fbp', label: 'ROS', colourBreaks: ROS_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },
+  cfb: { group: 'fbp', label: 'CFB', colourBreaks: CFB_COLOUR_BREAKS },
+  tfc: { group: 'fbp', label: 'TFC', colourBreaks: TFC_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },
+  hfi: { group: 'fbp', label: 'HFI', colourBreaks: HFI_COLOUR_BREAKS }
 }
 
 // keep the colour breaks export for existing consumers

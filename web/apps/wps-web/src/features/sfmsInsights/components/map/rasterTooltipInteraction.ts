@@ -2,7 +2,9 @@ import type { MapBrowserEvent } from 'ol'
 import type { EventsKey } from 'ol/events'
 import { Interaction } from 'ol/interaction'
 import { unByKey } from 'ol/Observable'
-import { findRasterLayer, getDataAtPixel, type RasterTooltipValue } from './rasterTooltipHandler'
+import { SNOW_LAYER_NAME } from './layerDefinitions'
+import { RASTER_CONFIG } from './rasterConfig'
+import { findRasterLayer, getDataAtPixel, getRasterType, type RasterTooltipValue } from './rasterTooltipHandler'
 
 export interface RasterTooltipData extends RasterTooltipValue {
   pixel: [number, number] | null
@@ -60,20 +62,31 @@ export class RasterTooltipInteraction extends Interaction {
     const map = event.map
     const pixel = map.getEventPixel(event.originalEvent) as [number, number]
 
-    // Find the fire weather raster layer
-    const rasterLayer = findRasterLayer(map.getLayers().getArray())
-
-    if (rasterLayer && this.onTooltipChange) {
-      // Get tooltip data from the raster layer at the pixel location
-      const { value, label } = getDataAtPixel(rasterLayer, pixel)
-
-      // Emit the tooltip data
-      this.onTooltipChange({
-        value,
-        label,
-        pixel
-      })
+    if (!this.onTooltipChange) {
+      return
     }
+
+    const rasterLayer = findRasterLayer(map.getLayers().getArray())
+    if (!rasterLayer) {
+      this.onTooltipChange({ value: null, label: '', pixel: null })
+      return
+    }
+
+    const rasterType = getRasterType(rasterLayer)
+    // snow masks fuel and fire indices, but weather values still apply under snow
+    const overSnow =
+      rasterType !== undefined &&
+      RASTER_CONFIG[rasterType].group !== 'weather' &&
+      map.forEachFeatureAtPixel(pixel, feature => feature.get('snow') === 1 || undefined, {
+        layerFilter: layer => layer.get('name') === SNOW_LAYER_NAME
+      })
+    if (overSnow) {
+      this.onTooltipChange({ label: 'Non-fuel', value: 'Snow', pixel })
+      return
+    }
+
+    const { value, label } = getDataAtPixel(rasterLayer, pixel)
+    this.onTooltipChange({ value, label, pixel })
   }
 
   /**
