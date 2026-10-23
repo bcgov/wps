@@ -14,7 +14,7 @@ target_time = datetime.fromisoformat("2020-09-03T20:00:00.000000+00:00")
         # Acute angle
         (10, 20, pytest.approx(50 / 3)),
         # Obtuse angle
-        (10, 20, pytest.approx(50 / 3)),
+        (10, 200, pytest.approx(770 / 3)),
         # Obtuse angle, interpolation in the other direction
         (200, 10, pytest.approx(940 / 3)),
         # Large obtuse angle, interpolation in the other direction
