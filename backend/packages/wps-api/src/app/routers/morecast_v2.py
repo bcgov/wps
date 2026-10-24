@@ -7,7 +7,6 @@ from typing import List
 from aiohttp.client import ClientSession
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.responses import ORJSONResponse
-from wps_wf1.wfwx_api import WfwxApi
 from wps_shared.auth import audit, auth_with_forecaster_role_required, authentication_required
 from wps_shared.db.crud.grass_curing import get_percent_grass_curing_by_station_for_date_range
 from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
@@ -23,6 +22,7 @@ from wps_shared.schemas.morecast_v2 import (
     MoreCastForecastOutput,
     MoreCastForecastRequest,
     MorecastForecastResponse,
+    MorecastForecastSubmitResponse,
     ObservedDailiesForStations,
     StationDailiesResponse,
     WeatherDeterminate,
@@ -34,13 +34,13 @@ from wps_shared.utils.time import get_hour_20_from_date, get_utc_now, vancouver_
 from wps_shared.weather_models.fetch.predictions import (
     fetch_latest_model_run_predictions_by_station_code_and_date_range,
 )
-
+from wps_wf1.wfwx_api import WfwxApi
 
 from app.morecast_v2.forecasts import (
     filter_for_api_forecasts,
-    format_as_wf1_post_forecasts,
     get_forecasts,
     get_fwi_values,
+    publish_wf1_forecasts,
     transform_morecastforecastoutput_to_weatherindeterminate,
 )
 
@@ -111,7 +111,7 @@ async def save_forecasts(
     forecasts: MoreCastForecastRequest,
     response: Response,
     token=Depends(auth_with_forecaster_role_required),
-) -> MorecastForecastResponse:
+) -> MorecastForecastSubmitResponse:
     """Persist a forecast"""
     logger.info("/forecast")
     response.headers["Cache-Control"] = no_cache
@@ -142,13 +142,9 @@ async def save_forecasts(
     async with ClientSession() as client_session:
         try:
             wfwx_api = WfwxApi(client_session)
-            wf1_forecast_records = await format_as_wf1_post_forecasts(
-                wfwx_api, forecasts_list, username
-            )
-            await wfwx_api.post_forecasts(forecasts=wf1_forecast_records)
+            submission = await publish_wf1_forecasts(wfwx_api, forecasts_list, username)
 
-            station_ids = [wfwx_station.stationId for wfwx_station in wf1_forecast_records]
-            for station_id in station_ids:
+            for station_id in submission.station_ids:
                 clear_cache_matching(station_id)
         except Exception as exc:
             logger.error("Encountered error posting forecast data to WF1 API", exc_info=exc)
@@ -170,7 +166,17 @@ async def save_forecasts(
         )
         for forecast in forecasts_list
     ]
-    return MorecastForecastResponse(forecasts=morecast_forecast_outputs)
+    logger.info(
+        "Saved %s forecasts, published %s to WF1, skipped %s with actuals",
+        len(forecasts_list),
+        len(submission.forecasts),
+        len(submission.skipped),
+    )
+    return MorecastForecastSubmitResponse(
+        forecasts=morecast_forecast_outputs,
+        wf1_published_count=len(submission.forecasts),
+        wf1_skipped=submission.skipped,
+    )
 
 
 @router.post("/yesterday-dailies/{today}", response_model=StationDailiesResponse)

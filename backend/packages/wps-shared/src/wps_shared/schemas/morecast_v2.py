@@ -1,9 +1,10 @@
 """This module contains pydantic models for Morecast v2"""
 
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
+
 from pydantic import BaseModel
-from datetime import datetime
 
 
 class ModelChoice(str, Enum):
@@ -109,6 +110,17 @@ class MorecastForecastResponse(BaseModel):
     """Outgoing forecast daily response"""
 
     forecasts: List[MoreCastForecastOutput]
+
+
+class WF1SkippedForecast(BaseModel):
+    station_code: int
+    station_name: str
+    for_date: int
+
+
+class MorecastForecastSubmitResponse(MorecastForecastResponse):
+    wf1_published_count: int
+    wf1_skipped: List[WF1SkippedForecast]
 
 
 class ObservedDailiesForStations(BaseModel):

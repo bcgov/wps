@@ -204,6 +204,22 @@ export interface MoreCastForecastRequest {
   forecasts: MoreCast2ForecastRecord[]
 }
 
+export interface WF1SkippedForecast {
+  station_code: number
+  station_name: string
+  for_date: number
+}
+
+export interface MoreCastForecastSubmitResponse {
+  forecasts: MoreCast2ForecastRecord[]
+  wf1_published_count?: number
+  wf1_skipped?: WF1SkippedForecast[]
+}
+
+export type MoreCastForecastSubmitResult =
+  | { success: true; wf1PublishedCount: number; wf1Skipped: WF1SkippedForecast[] }
+  | { success: false; errorMessage?: string }
+
 export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[]): MoreCast2ForecastRecord[] => {
   const forecastRecords: MoreCast2ForecastRecord[] = forecasts.map(forecast => {
     return {
@@ -220,25 +236,25 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
   return forecastRecords
 }
 
-/**
- * POSTs a batch of forecasts.
- * @param token The WF1 token.
- * @param forecasts The raw forecast model data.
- * @returns True if the response is a 201, otherwise false.
- */
 export async function submitMoreCastForecastRecords(
   forecasts: MoreCast2ForecastRow[]
-): Promise<{ success: boolean; errorMessage?: string }> {
+): Promise<MoreCastForecastSubmitResult> {
   const forecastRecords = marshalMoreCast2ForecastRecords(forecasts)
   const url = `/morecast-v2/forecast`
   try {
-    const { status } = await axios.post<MoreCastForecastRequest>(url, {
+    const { status, data } = await axios.post<MoreCastForecastSubmitResponse>(url, {
       forecasts: forecastRecords
     })
-    return { success: status === 201 }
+    if (status !== 201) return { success: false }
+    // older backends either publish the whole batch or return an error
+    return {
+      success: true,
+      wf1PublishedCount: data?.wf1_published_count ?? forecastRecords.length,
+      wf1Skipped: data?.wf1_skipped ?? []
+    }
   } catch (error: any) {
-    console.error(error.response.data.detail || error)
-    return { success: false, errorMessage: error.response.data.detail }
+    console.error(error.response?.data?.detail || error)
+    return { success: false, errorMessage: error.response?.data?.detail }
   }
 }
 

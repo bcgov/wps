@@ -22,6 +22,9 @@ import { selectAuthentication } from 'app/rootReducer'
 import { ROLES } from 'features/auth/roles'
 import { type ColumnVis, DataGridColumns, getTabColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
+import ForecastPublishResultDialog, {
+  type ForecastPublishResult
+} from 'features/moreCast2/components/ForecastPublishResultDialog'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
@@ -195,6 +198,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   const [columnGroupingModel, setColumnGroupingModel] = useState<GridColumnGroupingModel>([])
 
   const [showResetDialog, setShowResetDialog] = useState(false)
+  const [publishResult, setPublishResult] = useState<ForecastPublishResult | null>(null)
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     if (
@@ -465,10 +469,22 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     if (isRequiredInputSet(rowsToSave)) {
       const result = await submitMoreCastForecastRecords(rowsToSave)
       if (result.success) {
-        setSnackbarMessage(FORECAST_SAVED_MESSAGE)
-        setSnackbarSeverity('success')
-        setSnackbarOpen(true)
         storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave, getDateTimeNowPST())
+        if (result.wf1Skipped.length > 0) {
+          setPublishResult({
+            savedCount: rowsToSave.length,
+            publishedCount: result.wf1PublishedCount,
+            skipped: result.wf1Skipped
+          })
+          // a refresh failure must not turn a completed save into a publishing error
+          Promise.resolve()
+            .then(fetchWeatherIndeterminates)
+            .catch(error => console.error('Could not refresh MoreCast after publishing', error))
+        } else {
+          setSnackbarMessage(FORECAST_SAVED_MESSAGE)
+          setSnackbarSeverity('success')
+          setSnackbarOpen(true)
+        }
       } else {
         setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
         setSnackbarSeverity('error')
@@ -661,6 +677,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           processRowUpdate={processRowUpdate}
         />
       )}
+      <ForecastPublishResultDialog result={publishResult} onClose={() => setPublishResult(null)} />
       <MoreCast2Snackbar
         autoHideDuration={6000}
         handleClose={() => setSnackbarOpen(false)}

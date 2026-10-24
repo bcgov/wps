@@ -1,10 +1,12 @@
 from datetime import datetime
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import aiohttp
 import app.routers.morecast_v2
 import pytest
 from aiohttp import ClientSession
+from app.morecast_v2 import forecasts as forecast_service
+from app.morecast_v2.forecasts import WF1ForecastSubmission
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
@@ -12,6 +14,9 @@ from wps_shared.schemas.morecast_v2 import (
     MoreCastForecastInput,
     MoreCastForecastRequest,
     StationDailyFromWF1,
+    WF1ForecastRecordType,
+    WF1PostForecast,
+    WF1SkippedForecast,
 )
 from wps_shared.schemas.shared import StationsRequest
 from wps_shared.tests.common import default_mock_client_get
@@ -87,71 +92,113 @@ def test_post_forecast_unauthorized(client: TestClient):
     assert response.status_code == 401
 
 
-@pytest.mark.anyio
-def test_post_forecast_authorized(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch, mocker, mock_wfwx_api
-):
-    """Allowed to post station changes with correct role"""
-
-    def mock_admin_role_function(*_, **__):
-        return MockJWTDecodeWithRole("morecast2_write_forecast")
-
-    monkeypatch.setattr(decode_fn, mock_admin_role_function)
-
-    async def mock_format_as_wf1_post_forecasts(wfwx_api, forecasts_to_save, username):
-        return []
-
-    monkeypatch.setattr(
-        app.routers.morecast_v2, "format_as_wf1_post_forecasts", mock_format_as_wf1_post_forecasts
+def submission(eligible, skipped):
+    return WF1ForecastSubmission(
+        forecasts=[
+            WF1PostForecast(
+                stationId=str(code),
+                station=f"https://wf1/stations/{code}",
+                weatherTimestamp=1,
+                temperature=10,
+                relativeHumidity=40,
+                precipitation=0,
+                windSpeed=10,
+                recordType=WF1ForecastRecordType(),
+            )
+            for code in eligible
+        ],
+        skipped=[
+            WF1SkippedForecast(station_code=code, station_name=f"station{code}", for_date=1)
+            for code in skipped
+        ],
+        station_ids=["1", "2"],
     )
 
-    class MockResponse:
-        status = 201
 
-    mock_wfwx_api.post_forecasts = AsyncMock(return_value=MockResponse())
-    mocker.patch("app.routers.morecast_v2.WfwxApi", return_value=mock_wfwx_api)
+@pytest.fixture
+def publishing(monkeypatch, mocker):
+    monkeypatch.setattr(
+        decode_fn, lambda *_args, **_kwargs: MockJWTDecodeWithRole("morecast2_write_forecast")
+    )
+    api = AsyncMock()
+    mocker.patch("app.routers.morecast_v2.WfwxApi", return_value=api)
+    prepare = mocker.patch.object(forecast_service, "format_as_wf1_post_forecasts")
+    save = mocker.patch("app.routers.morecast_v2.save_all_forecasts")
+    cache = mocker.patch("app.routers.morecast_v2.clear_cache_matching")
+    return api, prepare, save, cache
 
-    response = client.post(morecast_v2_post_url, json=forecast.model_dump())
+
+def forecast_batch():
+    return {
+        "forecasts": [
+            forecast.forecasts[0].model_copy(update={"station_code": code}).model_dump()
+            for code in (1, 2)
+        ]
+    }
+
+
+@pytest.mark.parametrize("eligible, skipped", [([1, 2], []), ([2], [1]), ([], [1, 2])])
+def test_post_forecast_saves_full_batch(client, publishing, eligible, skipped):
+    api, prepare, save, cache = publishing
+    prepared = submission(eligible, skipped)
+    prepare.return_value = prepared
+
+    response = client.post(morecast_v2_post_url, json=forecast_batch())
+
     assert response.status_code == 201
+    assert response.json()["wf1_published_count"] == len(eligible)
+    assert response.json()["wf1_skipped"] == [row.model_dump() for row in prepared.skipped]
+    assert [row["station_code"] for row in response.json()["forecasts"]] == [1, 2]
+    save.assert_called_once()
+    saved = save.call_args.args[1]
+    assert [row.station_code for row in saved] == [1, 2]
+    assert all(row.temp == 10.0 and row.for_date.timestamp() * 1000 == 1 for row in saved)
+    assert api.post_forecasts.await_count == int(bool(eligible))
+    assert {call.args[0] for call in cache.call_args_list} == {"1", "2"}
 
 
-@pytest.mark.anyio
-def test_post_forecast_authorized_error(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch, mocker, mock_wfwx_api
-):
-    """Allowed to post station changes with correct role"""
+@pytest.mark.parametrize("remaining", [[], [2]])
+def test_post_forecast_race_saves_full_batch_once(client, publishing, remaining):
+    api, prepare, save, _cache = publishing
+    skipped = [code for code in (1, 2) if code not in remaining]
+    prepare.side_effect = [submission([1, 2], []), submission(remaining, skipped)]
+    api.post_forecasts.side_effect = [
+        aiohttp.ClientResponseError(Mock(real_url="https://wf1/test"), (), status=400),
+        None,
+    ]
 
-    def mock_admin_role_function(*_, **__):
-        return MockJWTDecodeWithRole("morecast2_write_forecast")
+    response = client.post(morecast_v2_post_url, json=forecast_batch())
 
-    monkeypatch.setattr(decode_fn, mock_admin_role_function)
+    assert response.status_code == 201
+    assert response.json()["wf1_published_count"] == len(remaining)
+    assert response.json()["wf1_skipped"][0]["station_code"] == 1
+    save.assert_called_once()
+    assert len(save.call_args.args[1]) == 2
+    assert api.post_forecasts.await_count == (2 if remaining else 1)
 
-    async def mock_format_as_wf1_post_forecasts(mock_wfwx_api, forecasts_to_save, username):
-        return []
 
-    monkeypatch.setattr(
-        app.routers.morecast_v2, "format_as_wf1_post_forecasts", mock_format_as_wf1_post_forecasts
-    )
+@pytest.mark.parametrize(
+    "failure", ["lookup", "post", "unrelated400", "retry_lookup", "retry_post"]
+)
+def test_post_forecast_error_does_not_save(client, publishing, failure):
+    api, prepare, save, _cache = publishing
+    error = aiohttp.ClientResponseError(Mock(real_url="https://wf1/test"), (), status=400)
+    prepare.return_value = submission([1, 2], [])
+    api.post_forecasts.side_effect = error
+    if failure == "lookup":
+        prepare.side_effect = RuntimeError("WF1 unavailable")
+    elif failure == "post":
+        api.post_forecasts.side_effect = RuntimeError("WF1 unavailable")
+    elif failure == "retry_lookup":
+        prepare.side_effect = [submission([1, 2], []), RuntimeError("WF1 unavailable")]
+    elif failure == "retry_post":
+        prepare.side_effect = [submission([1, 2], []), submission([2], [1])]
 
-    class MockResponse:
-        status = 500
+    response = client.post(morecast_v2_post_url, json=forecast_batch())
 
-        async def text(self):
-            return "Bad Request"
-
-    mock_wfwx_api.post_forecasts = AsyncMock(return_value=MockResponse())
-    mocker.patch("app.routers.morecast_v2.WfwxApi", mock_wfwx_api)
-
-    response = client.post(morecast_v2_post_url, json=forecast.model_dump())
     assert response.status_code == 500
-    assert (
-        response.json()["detail"]
-        == """
-        Error submitting forecasts to WF1, please retry.
-        All your forecast inputs have been saved as a draft on your browser and can be submitted at a later time.
-        If the problem persists, use the following link to verify the status of the WF1 service: https://wfapps.nrs.gov.bc.ca/pub/wfwx-fireweather-web/stations
-    """
-    )
+    assert response.json()["detail"] == app.routers.morecast_v2.WF1_HTTP_ERROR.detail
+    save.assert_not_called()
 
 
 def test_post_forecasts_by_date_range_unauthorized(client: TestClient):

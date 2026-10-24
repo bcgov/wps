@@ -57,7 +57,26 @@ describe('moreCast2API', () => {
       buildMorecast2Forecast('1', 1, 'one', DateTime.fromObject({ year: 2021, month: 1, day: 1 })),
       buildMorecast2Forecast('2', 2, 'two', DateTime.fromObject({ year: 2021, month: 1, day: 1 }))
     ])
-    expect(res).toEqual({ success: true })
+    expect(res).toEqual({ success: true, wf1PublishedCount: 2, wf1Skipped: [] })
+  })
+  it.each([0, 1])('returns skipped forecasts when %i rows publish to WF1', async published => {
+    const skipped = [{ station_code: 1, station_name: 'one', for_date: 1720123200000 }]
+    axios.post = vi.fn().mockResolvedValue({
+      status: 201,
+      data: { forecasts: [], wf1_published_count: published, wf1_skipped: skipped }
+    })
+    const res = await submitMoreCastForecastRecords([])
+    expect(res).toEqual({ success: true, wf1PublishedCount: published, wf1Skipped: skipped })
+  })
+  it('returns the publish error when WF1 submission fails', async () => {
+    const error = { response: { data: { detail: 'WF1 unavailable' } } }
+    axios.post = vi.fn().mockRejectedValue(error)
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      expect(await submitMoreCastForecastRecords([])).toEqual({ success: false, errorMessage: 'WF1 unavailable' })
+    } finally {
+      log.mockRestore()
+    }
   })
   it('should fetch weather indeterminates with no stations requested', async () => {
     const res = await fetchWeatherIndeterminates(
