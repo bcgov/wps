@@ -467,7 +467,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     if (isRequiredInputSet(rowsToSave)) {
       const result = await submitMoreCastForecastRecords(rowsToSave)
       if (result.success) {
-        storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave, getDateTimeNowPST())
+        storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave)
         if (result.wf1Skipped.length > 0) {
           setPublishResult({
             savedCount: rowsToSave.length,
