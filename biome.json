@@ -22,7 +22,8 @@
       "!mobile/keycloak/android",
       "!mobile/keycloak/ios",
       "!web/apps/wps-web/src/serviceWorker.ts",
-      "!**/*.svg"
+      "!**/*.svg",
+      ".vscode/**"
     ]
   },
   "formatter": {
