@@ -97,16 +97,11 @@ class WF1ForecastSubmission:
     station_ids: list[str]
 
 
-async def construct_wf1_forecasts(
+async def _get_existing_wf1_dailies(
     wfwx_api: WfwxApi,
     forecast_records: List[MoreCastForecastInput],
     stations: List[WFWXWeatherStation],
-    username: str,
-) -> WF1ForecastSubmission:
-    submission = WF1ForecastSubmission([], [], [station.wfwx_id for station in stations])
-    if not forecast_records:
-        return submission
-
+) -> tuple[dict[tuple[int, int], dict], set[tuple[int, int]]]:
     timestamps = [record.for_date for record in forecast_records]
     dailies = await wfwx_api.get_dailies_generator(
         wfwx_stations=stations,
@@ -126,7 +121,22 @@ async def construct_wf1_forecasts(
             observed_keys.add(key)
         elif record_type == "FORECAST":
             existing_forecasts[key] = daily
+    return existing_forecasts, observed_keys
 
+
+async def construct_wf1_forecasts(
+    wfwx_api: WfwxApi,
+    forecast_records: List[MoreCastForecastInput],
+    stations: List[WFWXWeatherStation],
+    username: str,
+) -> WF1ForecastSubmission:
+    submission = WF1ForecastSubmission([], [], [station.wfwx_id for station in stations])
+    if not forecast_records:
+        return submission
+
+    existing_forecasts, observed_keys = await _get_existing_wf1_dailies(
+        wfwx_api, forecast_records, stations
+    )
     station_names = {station.code: station.name for station in stations}
     for forecast in forecast_records:
         key = (forecast.station_code, forecast.for_date)
