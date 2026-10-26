@@ -64,11 +64,10 @@ def get_forecasts(
 
 def construct_wf1_forecast(
     forecast: MoreCastForecastInput,
-    stations: List[WFWXWeatherStation],
+    station: WFWXWeatherStation,
     forecast_id: Optional[str],
     created_by: Optional[str],
 ) -> WF1PostForecast:
-    station = next(filter(lambda obj: obj.code == forecast.station_code, stations))
     station_id = station.wfwx_id
     station_url = urljoin(
         config.get("WFWX_BASE_URL"), f"wfwx-fireweather-api/v1/stations/{station_id}"
@@ -137,14 +136,15 @@ async def construct_wf1_forecasts(
     existing_forecasts, observed_keys = await _get_existing_wf1_dailies(
         wfwx_api, forecast_records, stations
     )
-    station_names = {station.code: station.name for station in stations}
+    stations_by_code = {station.code: station for station in stations}
     for forecast in forecast_records:
+        station = stations_by_code[forecast.station_code]
         key = (forecast.station_code, forecast.for_date)
         if key in observed_keys:
             submission.skipped.append(
                 WF1SkippedForecast(
                     station_code=forecast.station_code,
-                    station_name=station_names[forecast.station_code],
+                    station_name=station.name,
                     for_date=forecast.for_date,
                 )
             )
@@ -154,7 +154,7 @@ async def construct_wf1_forecasts(
         submission.forecasts.append(
             construct_wf1_forecast(
                 forecast,
-                stations,
+                station,
                 daily["id"] if daily is not None else None,
                 daily["createdBy"] if daily is not None else username,
             )

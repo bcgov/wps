@@ -277,12 +277,12 @@ def test_get_forecasts_non_empty(_):
 
 
 def test_construct_wf1_forecast_new():
-    result = construct_wf1_forecast(morecast_input_1, wfwx_weather_stations, None, "test")
+    result = construct_wf1_forecast(morecast_input_1, wfwx_weather_stations[0], None, "test")
     assert_wf1_forecast(result, morecast_input_1, None, "test", station_1_url, "1")
 
 
 def test_construct_wf1_forecast_update():
-    result = construct_wf1_forecast(morecast_input_1, wfwx_weather_stations, "f1", "test")
+    result = construct_wf1_forecast(morecast_input_1, wfwx_weather_stations[0], "f1", "test")
     assert_wf1_forecast(result, morecast_input_1, "f1", "test", station_1_url, "1")
 
 

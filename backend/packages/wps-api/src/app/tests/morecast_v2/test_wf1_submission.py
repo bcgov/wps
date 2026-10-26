@@ -171,32 +171,24 @@ async def test_unrelated_post_error_is_not_retried(api, status):
 
 
 @pytest.mark.anyio
-async def test_retry_failure_stops_after_second_post(api):
-    api.get_dailies_generator.side_effect = [dailies([]), dailies([daily(1, "ACTUAL")])]
-    api.post_forecasts.side_effect = http_error(400)
-    with pytest.raises(ClientResponseError):
-        await forecasts.publish_wf1_forecasts(api, ROWS, "user")
-    assert api.post_forecasts.await_count == 2
-    assert api.get_dailies_generator.await_count == 2
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize("max_retries", [0, 1, 2])
+@pytest.mark.parametrize("max_retries", [pytest.param(None, id="default"), 0, 1, 2])
 async def test_retry_limit_stops_without_an_extra_lookup(api, max_retries):
+    retry_limit = 1 if max_retries is None else max_retries
+    retry_options = {} if max_retries is None else {"max_retries": max_retries}
     rows = [ROWS[0].model_copy(update={"for_date": TIMESTAMP + day * 86400000}) for day in range(4)]
     api.get_dailies_generator.side_effect = [
         dailies([daily(1, "ACTUAL", timestamp=row.for_date) for row in rows[:attempt]])
-        for attempt in range(max_retries + 1)
+        for attempt in range(retry_limit + 1)
     ]
-    errors = [http_error(400) for _ in range(max_retries + 1)]
+    errors = [http_error(400) for _ in range(retry_limit + 1)]
     api.post_forecasts.side_effect = errors
 
     with pytest.raises(ClientResponseError) as raised:
-        await forecasts.publish_wf1_forecasts(api, rows, "user", max_retries=max_retries)
+        await forecasts.publish_wf1_forecasts(api, rows, "user", **retry_options)
 
     assert raised.value is errors[-1]
-    assert api.post_forecasts.await_count == max_retries + 1
-    assert api.get_dailies_generator.await_count == max_retries + 1
+    assert api.post_forecasts.await_count == retry_limit + 1
+    assert api.get_dailies_generator.await_count == retry_limit + 1
 
 
 @pytest.mark.anyio

@@ -463,39 +463,42 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     }
   }
 
+  const showSnackbar = (message: string, severity: AlertColor) => {
+    setSnackbarMessage(message)
+    setSnackbarSeverity(severity)
+    setSnackbarOpen(true)
+  }
+
   const handleSaveClick = async () => {
     const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
 
-    if (isRequiredInputSet(rowsToSave)) {
-      const result = await submitMoreCastForecastRecords(rowsToSave)
-      if (result.success) {
-        storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave)
-        if (result.wf1Skipped.length > 0) {
-          setPublishResult({
-            savedCount: rowsToSave.length,
-            publishedCount: result.wf1PublishedCount,
-            skipped: result.wf1Skipped
-          })
-          // a refresh failure must not turn a completed save into a publishing error
-          Promise.resolve()
-            .then(fetchWeatherIndeterminates)
-            .catch(error => console.error('Could not refresh MoreCast after publishing', error))
-        } else {
-          setSnackbarMessage(FORECAST_SAVED_MESSAGE)
-          setSnackbarSeverity('success')
-          setSnackbarOpen(true)
-        }
-      } else {
-        setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
-        setSnackbarSeverity('error')
-        setSnackbarOpen(true)
-      }
-    } else {
+    if (!isRequiredInputSet(rowsToSave)) {
       dispatch(setRequiredInputEmpty({ empty: true }))
-      setSnackbarMessage(FORECAST_WARN_MESSAGE)
-      setSnackbarSeverity('warning')
-      setSnackbarOpen(true)
+      showSnackbar(FORECAST_WARN_MESSAGE, 'warning')
+      return
     }
+
+    const result = await submitMoreCastForecastRecords(rowsToSave)
+    if (!result.success) {
+      showSnackbar(result.errorMessage ?? FORECAST_ERROR_MESSAGE, 'error')
+      return
+    }
+
+    storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave)
+    if (result.wf1Skipped.length > 0) {
+      setPublishResult({
+        savedCount: rowsToSave.length,
+        publishedCount: result.wf1PublishedCount,
+        skipped: result.wf1Skipped
+      })
+      // a refresh failure must not turn a completed save into a publishing error
+      Promise.resolve()
+        .then(fetchWeatherIndeterminates)
+        .catch(error => console.error('Could not refresh MoreCast after publishing', error))
+      return
+    }
+
+    showSnackbar(FORECAST_SAVED_MESSAGE, 'success')
   }
 
   const handleResetButtonConfirm = () => {
