@@ -170,13 +170,16 @@ def test_fire_area_30min_matches_cffdrs_reference(grid_value: float, fuel_type: 
 
 def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
     primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_primary_fire_behaviour_prediction",
+        "wps_sfms.processors.primary_fire_behaviour.vectorized_fire_behaviour_prediction_with_spread",
         return_value=SimpleNamespace(
-            sfc=np.array([1.0]),
-            ros=np.array([2.0]),
-            hfi=np.array([3.0]),
-            tfc=np.array([4.0]),
-            cfb=np.array([0.5]),
+            primary=SimpleNamespace(
+                sfc=np.array([1.0]),
+                ros=np.array([2.0]),
+                hfi=np.array([3.0]),
+                tfc=np.array([4.0]),
+                cfb=np.array([0.5]),
+            ),
+            spread=SimpleNamespace(wsv=np.array([10.0]), bros=np.array([0.5])),
         ),
     )
 
@@ -229,13 +232,16 @@ def test_missing_grass_curing_on_grass_pixel_fails():
 
 def test_missing_grass_curing_off_grass_passes_zero_curing(mocker: MockerFixture):
     primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_primary_fire_behaviour_prediction",
+        "wps_sfms.processors.primary_fire_behaviour.vectorized_fire_behaviour_prediction_with_spread",
         return_value=SimpleNamespace(
-            sfc=np.array([1.0]),
-            ros=np.array([2.0]),
-            hfi=np.array([3.0]),
-            tfc=np.array([4.0]),
-            cfb=np.array([0.5]),
+            primary=SimpleNamespace(
+                sfc=np.array([1.0]),
+                ros=np.array([2.0]),
+                hfi=np.array([3.0]),
+                tfc=np.array([4.0]),
+                cfb=np.array([0.5]),
+            ),
+            spread=SimpleNamespace(wsv=np.array([10.0]), bros=np.array([0.5])),
         ),
     )
     datasets = make_datasets(
@@ -287,13 +293,16 @@ def test_sfc_matches_standalone_reference(grid_value: int, fuel_type: str, perce
 
 def test_normalizes_directions_and_clamps_slope_before_primary_fbp(mocker: MockerFixture):
     primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_primary_fire_behaviour_prediction",
+        "wps_sfms.processors.primary_fire_behaviour.vectorized_fire_behaviour_prediction_with_spread",
         return_value=SimpleNamespace(
-            sfc=np.array([1.0]),
-            ros=np.array([2.0]),
-            hfi=np.array([3.0]),
-            tfc=np.array([4.0]),
-            cfb=np.array([0.5]),
+            primary=SimpleNamespace(
+                sfc=np.array([1.0]),
+                ros=np.array([2.0]),
+                hfi=np.array([3.0]),
+                tfc=np.array([4.0]),
+                cfb=np.array([0.5]),
+            ),
+            spread=SimpleNamespace(wsv=np.array([10.0]), bros=np.array([0.5])),
         ),
     )
 
