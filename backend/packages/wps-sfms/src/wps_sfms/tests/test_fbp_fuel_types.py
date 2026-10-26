@@ -92,13 +92,50 @@ def test_cffdrs_codes_rejects_unexpected_values(fuel: np.ndarray, match: str):
         NATIONAL_FUEL_TYPES.cffdrs_codes(fuel)
 
 
-def test_masks_select_non_fuel_and_mixedwood_grid_values():
-    fuel = np.array([[1, 40, 50, 70, 101, 102, np.nan]], dtype=np.float32)
+def test_masks_select_non_fuel_mixedwood_and_grass_grid_values():
+    fuel = np.array([[1, 40, 50, 31, 32, 101, 102, np.nan]], dtype=np.float32)
 
     np.testing.assert_array_equal(
         NATIONAL_FUEL_TYPES.non_combustible_mask(fuel),
-        [[False, False, False, False, True, True, False]],
+        [[False, False, False, False, False, True, True, False]],
     )
     np.testing.assert_array_equal(
-        NATIONAL_FUEL_TYPES.mixedwood_mask(fuel), [[False, True, True, False, False, False, False]]
+        NATIONAL_FUEL_TYPES.mixedwood_mask(fuel),
+        [[False, True, True, False, False, False, False, False]],
     )
+    np.testing.assert_array_equal(
+        NATIONAL_FUEL_TYPES.grass_mask(fuel),
+        [[False, False, False, True, True, False, False, False]],
+    )
+
+
+@pytest.mark.parametrize(
+    "fuel_types,grid_values",
+    [
+        (("C1",), [1]),
+        (("C2",), [2]),
+        (("C3",), [3]),
+        (("C4",), [4]),
+        (("C5",), [5]),
+        (("C6",), [6]),
+        (("C7",), [7]),
+        (("D1",), [11]),
+        (("D2",), [12]),
+        (("S1",), [21]),
+        (("S2",), [22]),
+        (("S3",), [23]),
+        (("O1A",), [31]),
+        (("O1B",), [32]),
+        (("M1",), [40]),
+        (("M2",), [50]),
+        (("M3",), [70]),
+        (("M4",), [80]),
+        (("NF",), [101, 102]),
+        (("O1A", "O1B"), [31, 32]),
+        (("D3",), []),
+    ],
+)
+def test_grid_values_returns_every_grid_value_for_the_fuel_types(
+    fuel_types: tuple[str, ...], grid_values: list[int]
+):
+    assert sorted(NATIONAL_FUEL_TYPES.grid_values(*fuel_types)) == grid_values
