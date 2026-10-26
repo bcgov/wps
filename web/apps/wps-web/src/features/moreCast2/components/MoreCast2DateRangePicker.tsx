@@ -2,6 +2,7 @@ import { Box, createTheme, ThemeProvider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import DateRangeSelector from '@wps/ui/DateRangeSelector'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
+import { isActualForecastTestDate } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 import React from 'react'
 
@@ -54,12 +55,16 @@ export const dateRangePickerTheme = createTheme({
 })
 
 const MoreCase2DateRangePicker = ({ dateRange, setDateRange }: MoreCase2DateRangePickerProps) => {
+  const today = DateTime.now()
+  const testDate = DateTime.fromISO(new URLSearchParams(window.location.search).get('testActualForecastDate') ?? '')
+  const minDate = isActualForecastTestDate(testDate) ? DateTime.min(today, testDate) : today
+
   return (
     <StyledBox className={classes.container}>
       <ThemeProvider theme={dateRangePickerTheme}>
         <DateRangeSelector
           dateRange={dateRange}
-          minDate={DateTime.now().toJSDate()}
+          minDate={minDate.toJSDate()}
           maxDate={DateTime.now().plus({ days: 10 }).toJSDate()}
           maxDayOffset={11}
           dateDisplayFormat={'yyyy/MM/dd'}

@@ -34,10 +34,14 @@ import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import type { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
 import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
-import { getRowsToSave, isForecastRowPredicate, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
+import { getForecastRows, getRowsToSave, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
 import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
-import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
+import {
+  fillStationGrassCuringForward,
+  isActualForecastTestDate,
+  simulateFireWeatherIndices
+} from 'features/moreCast2/util'
 import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -395,9 +399,9 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       // The most recent value from the weather station for the weather parameter of interest
       // (eg. tempActual) which will be applied as the forecast value
       const mostRecentValue = isUndefined(mostRecentRow) ? NaN : mostRecentRow[actualField]
-      // Finally, get an array of rows that don't have an actual for the weather parameter of interest
-      // and iterate through them to apply the most recent actual as the new forecast value
-      const rowsWithoutActuals: MoreCast2Row[] = values.filter(value => Number.isNaN(value[actualField] as number))
+      const rowsWithoutActuals: MoreCast2Row[] = values.filter(
+        value => isActualForecastTestDate(value.forDate) || Number.isNaN(value[actualField] as number)
+      )
       rowsWithoutActuals.forEach(row => {
         const predictionItem = row[forecastField] as PredictionItem
         predictionItem.choice = ModelChoice.PERSISTENCE
@@ -414,11 +418,8 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     prefix: string
   ) => {
     const newVisibleRows = cloneDeep(visibleRows)
-    // Iterate through all the currently visible rows. If a row has an actual value for the weather parameter of
-    // interest we can skip it as we are only concerned with creating new forecasts.
     for (const row of newVisibleRows) {
-      // If an actual has a value of NaN, then the forecast field needs to be updated.
-      if (Number.isNaN(row[actualField] as number)) {
+      if (isActualForecastTestDate(row.forDate) || Number.isNaN(row[actualField] as number)) {
         const predictionItem = row[forecastField] as PredictionItem
         const sourceKey = `${prefix}${modelType}` as keyof MoreCast2Row
         predictionItem.choice = modelType
@@ -442,14 +443,11 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       // A forecast, actual or GC column was clicked, or there is no value for headerName, nothing to do
       return
     }
-    // Make sure we're in a row where a forecast is being created (ie. no actual for this weather parameter)
     const doubleClickedField = params.field
     const index = doubleClickedField.indexOf(headerName)
     const prefix = doubleClickedField.slice(0, index)
     const actualField = `${prefix}Actual`
-    if (Number.isNaN(params.row[actualField])) {
-      // There is no actual value, so we are in a forecast row and can proceed with updating the
-      // forecast field value with the value of the cell that was double-clicked
+    if (isActualForecastTestDate(params.row.forDate) || Number.isNaN(params.row[actualField])) {
       const forecastField = `${prefix}Forecast` as keyof MoreCast2Row
       const newVisibleRows = cloneDeep(visibleRows)
       const editedRowIndex = newVisibleRows.findIndex(row => row.id === params.row.id)
@@ -508,9 +506,8 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     setShowResetDialog(true)
   }
 
-  // Checks if the displayed rows includes non-Actual rows
   const hasForecastRow = () => {
-    return visibleRows.filter(isForecastRowPredicate).length > 0
+    return getForecastRows(visibleRows).length > 0
   }
 
   // Handler passed to our datagrids that runs after a row is updated.
