@@ -309,7 +309,9 @@ async def test_construct_wf1_forecasts_new(mock_wfwx_api):
 
     assert len(result.forecasts) == 2
     assert result.skipped == []
+    # existing forecast
     assert_wf1_forecast(result.forecasts[0], morecast_input_1, "f1", "test", station_1_url, "1")
+    # no existing forecast
     assert_wf1_forecast(result.forecasts[1], morecast_input_2, None, "user", station_2_url, "2")
 
 

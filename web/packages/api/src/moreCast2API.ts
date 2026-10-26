@@ -236,6 +236,10 @@ export const marshalMoreCast2ForecastRecords = (forecasts: MoreCast2ForecastRow[
   return forecastRecords
 }
 
+/**
+ * POSTs a batch of forecasts.
+ * @param forecasts The raw forecast model data.
+ */
 export async function submitMoreCastForecastRecords(
   forecasts: MoreCast2ForecastRow[]
 ): Promise<MoreCastForecastSubmitResult> {

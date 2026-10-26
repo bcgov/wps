@@ -149,6 +149,7 @@ async def construct_wf1_forecasts(
                 )
             )
             continue
+        # Check if an existing daily was retrieved from WF1 and use id and createdBy attributes if present
         daily = existing_forecasts.get(key)
         submission.forecasts.append(
             construct_wf1_forecast(
