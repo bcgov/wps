@@ -180,28 +180,40 @@ async def publish_wf1_forecasts(
     wfwx_api: WfwxApi,
     forecast_records: List[MoreCastForecastInput],
     username: str,
+    *,
+    max_retries: int = 1,
 ) -> WF1ForecastSubmission:
+    if max_retries < 0:
+        raise ValueError("max_retries must be nonnegative")
+
     submission = await format_as_wf1_post_forecasts(wfwx_api, forecast_records, username)
-    if not submission.forecasts:
-        return submission
-    try:
-        await wfwx_api.post_forecasts(forecasts=submission.forecasts)
-    except ClientResponseError as exc:
-        if exc.status != 400:
-            raise
-        skipped_keys = {(row.station_code, row.for_date) for row in submission.skipped}
-        attempted_records = [
-            row for row in forecast_records if (row.station_code, row.for_date) not in skipped_keys
-        ]
-        # refresh forecast IDs too in case WF1 wrote any rows before rejecting the batch
-        retry = await format_as_wf1_post_forecasts(wfwx_api, attempted_records, username)
-        if not retry.skipped:
-            raise
-        logger.info("Retrying WF1 submission after %s new actuals", len(retry.skipped))
-        if retry.forecasts:
-            await wfwx_api.post_forecasts(forecasts=retry.forecasts)
-        submission.forecasts = retry.forecasts
-        submission.skipped.extend(retry.skipped)
+    retries_remaining = max_retries
+    while submission.forecasts:
+        try:
+            await wfwx_api.post_forecasts(forecasts=submission.forecasts)
+            return submission
+        except ClientResponseError as exc:
+            if exc.status != 400 or retries_remaining == 0:
+                raise
+            skipped_keys = {(row.station_code, row.for_date) for row in submission.skipped}
+            attempted_records = [
+                row
+                for row in forecast_records
+                if (row.station_code, row.for_date) not in skipped_keys
+            ]
+            # refresh forecast IDs too in case WF1 wrote any rows before rejecting the batch
+            retry = await format_as_wf1_post_forecasts(wfwx_api, attempted_records, username)
+            if not retry.skipped:
+                raise
+            retries_remaining -= 1
+            logger.info(
+                "Retrying WF1 submission %s/%s after %s new actuals",
+                max_retries - retries_remaining,
+                max_retries,
+                len(retry.skipped),
+            )
+            submission.forecasts = retry.forecasts
+            submission.skipped.extend(retry.skipped)
     return submission
 
 

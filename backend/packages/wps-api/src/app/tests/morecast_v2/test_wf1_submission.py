@@ -181,6 +181,96 @@ async def test_retry_failure_stops_after_second_post(api):
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize("max_retries", [0, 1, 2])
+async def test_retry_limit_stops_without_an_extra_lookup(api, max_retries):
+    rows = [ROWS[0].model_copy(update={"for_date": TIMESTAMP + day * 86400000}) for day in range(4)]
+    api.get_dailies_generator.side_effect = [
+        dailies([daily(1, "ACTUAL", timestamp=row.for_date) for row in rows[:attempt]])
+        for attempt in range(max_retries + 1)
+    ]
+    errors = [http_error(400) for _ in range(max_retries + 1)]
+    api.post_forecasts.side_effect = errors
+
+    with pytest.raises(ClientResponseError) as raised:
+        await forecasts.publish_wf1_forecasts(api, rows, "user", max_retries=max_retries)
+
+    assert raised.value is errors[-1]
+    assert api.post_forecasts.await_count == max_retries + 1
+    assert api.get_dailies_generator.await_count == max_retries + 1
+
+
+@pytest.mark.anyio
+async def test_multiple_retries_preserve_skips_and_refresh_forecast_ids(api):
+    next_day = TIMESTAMP + 86400000
+    last_day = TIMESTAMP + 2 * 86400000
+    rows = [
+        *ROWS,
+        ROWS[1].model_copy(update={"for_date": next_day}),
+        ROWS[1].model_copy(update={"for_date": last_day}),
+    ]
+    api.get_wfwx_stations_from_station_codes.side_effect = lambda codes, *_args, **_kwargs: [
+        station for station in STATIONS if station.code in codes
+    ]
+    api.get_dailies_generator.side_effect = [
+        dailies([daily(1, "ACTUAL")]),
+        dailies([daily(2, "ACTUAL"), daily(2, "FORECAST", next_day, "interim")]),
+        dailies([daily(2, "MANUAL", next_day), daily(2, "FORECAST", last_day, "fresh")]),
+    ]
+    api.post_forecasts.side_effect = [http_error(400), http_error(400), None]
+
+    result = await forecasts.publish_wf1_forecasts(api, rows, "user", max_retries=2)
+
+    assert api.post_forecasts.await_count == 3
+    first, second, third = api.post_forecasts.await_args_list
+    assert [len(call.kwargs["forecasts"]) for call in (first, second, third)] == [3, 2, 1]
+    assert second.kwargs["forecasts"][0].id == "interim"
+    assert third.kwargs["forecasts"] == result.forecasts
+    assert result.forecasts[0].id == "fresh"
+    assert result.forecasts[0].createdBy == "original"
+    assert result.forecasts[0].weatherTimestamp == last_day
+    assert [(row.station_code, row.for_date) for row in result.skipped] == [
+        (1, TIMESTAMP),
+        (2, TIMESTAMP),
+        (2, next_day),
+    ]
+    assert result.station_ids == ["1", "2"]
+
+
+@pytest.mark.anyio
+async def test_multiple_retries_stop_when_all_rows_become_observed(api):
+    api.get_dailies_generator.side_effect = [
+        dailies([]),
+        dailies([daily(1, "ACTUAL")]),
+        dailies([daily(2, "MANUAL")]),
+    ]
+    api.post_forecasts.side_effect = http_error(400)
+
+    result = await forecasts.publish_wf1_forecasts(api, ROWS, "user", max_retries=2)
+
+    assert result.forecasts == []
+    assert [row.station_code for row in result.skipped] == [1, 2]
+    assert api.post_forecasts.await_count == 2
+    assert api.get_dailies_generator.await_count == 3
+
+
+@pytest.mark.anyio
+async def test_retry_requires_new_actuals_even_when_retries_remain(api):
+    api.get_dailies_generator.side_effect = [
+        dailies([daily(1, "ACTUAL")]),
+        dailies([daily(1, "ACTUAL")]),
+    ]
+    error = http_error(400)
+    api.post_forecasts.side_effect = error
+
+    with pytest.raises(ClientResponseError) as raised:
+        await forecasts.publish_wf1_forecasts(api, ROWS, "user", max_retries=3)
+
+    assert raised.value is error
+    api.post_forecasts.assert_awaited_once()
+    assert api.get_dailies_generator.await_count == 2
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize("retry", [False, True])
 async def test_lookup_failure_stops_publication(api, retry):
     api.get_dailies_generator.side_effect = (
