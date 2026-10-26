@@ -257,7 +257,7 @@ export const FUEL_TYPE_COLOURS: FuelTypeColourMapping[] = [
   { value: 102, fuelCode: 'Water', rgb: [115, 223, 255] }
 ]
 
-// derive legend colours from the map palette so they stay in sync
+// Convert fuel type colors to color breaks format for consistency with other rasters
 export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value, fuelCode, rgb }) => ({
   min: value,
   max: value,
