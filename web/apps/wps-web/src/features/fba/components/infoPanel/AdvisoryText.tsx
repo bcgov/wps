@@ -2,6 +2,7 @@ import { Box, Skeleton, styled, Typography } from '@mui/material'
 import type { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
+import { formatDatetimeInBCTime, getBCTimezoneLabel } from '@wps/utils/date'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
@@ -256,7 +257,12 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime)
     let message: React.ReactNode = null
     if (hasCriticalHours) {
-      const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(minStartTime, maxEndTime, false)
+      const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(
+        minStartTime,
+        maxEndTime,
+        false,
+        getBCTimezoneLabel(forDate.toISODate() ?? '')
+      )
       message = (
         <>
           There is a fire behaviour {zoneStatus?.toLowerCase()} in effect for {selectedFireZoneUnit?.mof_fire_zone_name}{' '}
@@ -289,7 +295,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
 
         {issueDate?.isValid && (
           <SerifTypography data-testid="bulletin-issue-date" sx={{ whiteSpace: 'pre-wrap' }}>
-            {`Issued on ${issueDate?.toLocaleString(DateTime.DATETIME_FULL)} for ${displayForDate}.\n\n`}
+            {`Issued on ${formatDatetimeInBCTime(issueDate)} for ${displayForDate}.\n\n`}
           </SerifTypography>
         )}
 

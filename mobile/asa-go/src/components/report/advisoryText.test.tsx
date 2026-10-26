@@ -1,4 +1,5 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
+import { formatDatetimeInBCTime } from '@wps/utils/date'
 import { cloneDeep } from 'lodash'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
@@ -40,7 +41,7 @@ const EXPECTED_FOR_DATE = DateTime.fromISO(TEST_FOR_DATE).toLocaleString({
   month: 'short',
   day: 'numeric'
 })
-const EXPECTED_RUN_DATETIME = DateTime.fromISO(TEST_RUN_DATETIME).toLocaleString(DateTime.DATETIME_FULL)
+const EXPECTED_RUN_DATETIME = formatDatetimeInBCTime(DateTime.fromISO(TEST_RUN_DATETIME))
 
 const testRunParameter: RunParameter = {
   for_date: TEST_FOR_DATE,
