@@ -38,6 +38,7 @@ at import time rather than silently computing wrong values.
 """
 
 import importlib.util
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import NamedTuple
 
@@ -218,9 +219,6 @@ vectorized_rate_of_spread_at_time = vectorize(_rate_of_spread_at_time_mod._rate_
 vectorized_surface_fuel_consumption = vectorize(
     _surface_fuel_consumption_mod._surface_fuel_consumption
 )
-vectorized_initial_spread_index = vectorize(_fwi_mod.initial_spread_index)
-vectorized_crown_base_height = vectorize(_crown_base_height_mod._crown_base_height)
-vectorized_crown_fuel_load = vectorize(_crown_fuel_load_mod._crown_fuel_load)
 
 # Composite functions: vectorized from the patched-and-jitted clones above
 vectorized_surface_fire_rate_of_spread = vectorize(_cfb_calc_mod.surface_fire_rate_of_spread)
@@ -534,6 +532,101 @@ def _vectorized_fbp_secondary(
     raz0_out[0] = result.raz0
 
 
+# Same 26 inputs as above, returning the 8 primary fields plus the two spread fields the
+# elliptical fire area needs: wsv (the slope-adjusted wind, falling back to ws as in CFFDRS) and
+# bros (the equilibrium back rate of spread).
+@guvectorize(
+    [
+        "void(int64, float64, float64, float64, float64, float64, float64, float64, float64,"
+        " float64, float64, float64, float64, float64, float64, float64, float64, float64,"
+        " float64, float64, float64, float64, float64, float64, int64, int64,"
+        " float64[:], float64[:], int64[:], float64[:], float64[:], float64[:], float64[:],"
+        " float64[:], float64[:], float64[:])"
+    ],
+    "(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),(),()"
+    "->(),(),(),(),(),(),(),(),(),()",
+)
+def _vectorized_fbp_with_spread(
+    fuel_type_code,
+    ffmc,
+    bui,
+    ws,
+    wd_rad,
+    gs,
+    aspect_rad,
+    pc,
+    pdf,
+    cc,
+    gfl,
+    cbh,
+    cfl,
+    fmc,
+    isi,
+    lat,
+    lon,
+    elv,
+    dj,
+    d0,
+    sd,
+    sh,
+    hr,
+    theta_rad,
+    accel,
+    buieff,
+    cfb_out,
+    cfc_out,
+    fd_code_out,
+    hfi_out,
+    raz_out,
+    ros_out,
+    sfc_out,
+    tfc_out,
+    wsv_out,
+    bros_out,
+):
+    """The 8 FBPPrimaryOutput fields plus wsv and bros, from one _jit_fire_behaviour_prediction
+    call per element. See vectorized_fire_behaviour_prediction_with_spread below.
+    """
+    result = _jit_fire_behaviour_prediction(
+        fuel_type_code,
+        ffmc,
+        bui,
+        ws,
+        wd_rad,
+        gs,
+        aspect_rad,
+        pc,
+        pdf,
+        cc,
+        gfl,
+        cbh,
+        cfl,
+        fmc,
+        isi,
+        lat,
+        lon,
+        elv,
+        dj,
+        d0,
+        sd,
+        sh,
+        hr,
+        theta_rad,
+        accel,
+        buieff,
+    )
+    cfb_out[0] = result.cfb
+    cfc_out[0] = result.cfc
+    fd_code_out[0] = result.fd_code
+    hfi_out[0] = result.hfi
+    raz_out[0] = result.raz
+    ros_out[0] = result.ros
+    sfc_out[0] = result.sfc
+    tfc_out[0] = result.tfc
+    wsv_out[0] = result.wsv
+    bros_out[0] = result.bros
+
+
 class FBPPrimaryOutput(NamedTuple):
     """The primary fields from one vectorized CFFDRS fire behaviour calculation."""
 
@@ -598,6 +691,22 @@ class FBPOutput(NamedTuple):
     tti: np.ndarray
     wsv0: np.ndarray
     raz0: np.ndarray
+
+
+@dataclass(frozen=True)
+class FBPSpreadOutput:
+    """Secondary FBP fields needed for the elliptical fire area."""
+
+    wsv: np.ndarray
+    bros: np.ndarray
+
+
+@dataclass(frozen=True)
+class FBPWithSpreadOutput:
+    """CFFDRS's primary fields plus the spread fields needed for the elliptical fire area."""
+
+    primary: FBPPrimaryOutput
+    spread: FBPSpreadOutput
 
 
 def vectorized_primary_fire_behaviour_prediction(
@@ -670,6 +779,83 @@ def vectorized_primary_fire_behaviour_prediction(
         ros=ros,
         sfc=sfc,
         tfc=tfc,
+    )
+
+
+def vectorized_fire_behaviour_prediction_with_spread(
+    fuel_type_code,
+    ffmc,
+    bui,
+    ws,
+    wd_rad,
+    gs,
+    aspect_rad,
+    pc,
+    pdf,
+    cc,
+    gfl,
+    cbh,
+    cfl,
+    fmc,
+    isi,
+    lat,
+    lon,
+    elv,
+    dj,
+    d0,
+    sd,
+    sh,
+    hr,
+    theta_rad,
+    accel,
+    buieff,
+) -> FBPWithSpreadOutput:
+    """Calculate the eight primary FBP fields plus WSV and BROS with one call per broadcast element.
+
+    Parameters have the same meaning as ``vectorized_fire_behaviour_prediction`` below. The result
+    is what ``vectorized_elliptical_fire_area`` needs, so the area calculation does not repeat
+    the fire behaviour calculation.
+    """
+    cfb, cfc, fd_code, hfi, raz, ros, sfc, tfc, wsv, bros = _vectorized_fbp_with_spread(
+        fuel_type_code,
+        ffmc,
+        bui,
+        ws,
+        wd_rad,
+        gs,
+        aspect_rad,
+        pc,
+        pdf,
+        cc,
+        gfl,
+        cbh,
+        cfl,
+        fmc,
+        isi,
+        lat,
+        lon,
+        elv,
+        dj,
+        d0,
+        sd,
+        sh,
+        hr,
+        theta_rad,
+        accel,
+        buieff,
+    )
+    return FBPWithSpreadOutput(
+        primary=FBPPrimaryOutput(
+            cfb=cfb,
+            cfc=cfc,
+            fd_code=fd_code,
+            hfi=hfi,
+            raz=raz,
+            ros=ros,
+            sfc=sfc,
+            tfc=tfc,
+        ),
+        spread=FBPSpreadOutput(wsv=wsv, bros=bros),
     )
 
 
@@ -893,113 +1079,34 @@ def vectorized_fire_behaviour_prediction(
 
 def vectorized_elliptical_fire_area(
     fuel_type_code: np.ndarray | np.generic | float | int,
-    ffmc: np.ndarray | np.generic | float | int,
-    bui: np.ndarray | np.generic | float | int,
-    ws: np.ndarray | np.generic | float | int,
-    wd_rad: np.ndarray | np.generic | float | int,
-    gs: np.ndarray | np.generic | float | int,
-    aspect_rad: np.ndarray | np.generic | float | int,
-    pc: np.ndarray | np.generic | float | int,
-    pdf: np.ndarray | np.generic | float | int,
-    grass_curing: np.ndarray | np.generic | float | int,
-    gfl: np.ndarray | np.generic | float | int,
-    cbh: np.ndarray | np.generic | float | int,
-    cfl: np.ndarray | np.generic | float | int,
-    fmc: np.ndarray | np.generic | float | int,
-    isi: np.ndarray | np.generic | float | int,
+    fbp: FBPWithSpreadOutput,
     time_min: np.ndarray | np.generic | float | int = 30.0,
 ) -> np.ndarray | np.generic:
     """
-    Calculate the elliptical fire area at a time of interest using accelerated spread.
+    Calculate the elliptical fire area at a time of interest.
 
-    This standalone calculation leaves the equilibrium FBP outputs unchanged. Each input may
-    be a scalar or NumPy array.
+    This leaves the equilibrium FBP outputs unchanged. It only does the area calculation, using
+    the equilibrium ROS, CFB, BROS and WSV from an existing fire behaviour calculation.
 
-    :param fuel_type_code: CFFDRS fuel-type code.
-    :param ffmc: Fine Fuel Moisture Code.
-    :param bui: Buildup Index.
-    :param ws: Wind speed (km/h).
-    :param wd_rad: Wind direction, in radians.
-    :param gs: Ground slope (%).
-    :param aspect_rad: Slope aspect, in radians.
-    :param pc: Percent conifer (%), used for mixedwood fuel types.
-    :param pdf: Percent dead balsam fir (%), used for mixedwood-dead fuel types.
-    :param grass_curing: Percent cured grass, used for grass fuel types.
-    :param gfl: Grass fuel load (kg/m^2).
-    :param cbh: Crown base height (m).
-    :param cfl: Crown fuel load (kg/m^2); zero disables crown fraction burned.
-    :param fmc: Foliar Moisture Content (%).
-    :param isi: Initial Spread Index; if not positive, it is derived from FFMC and WSV.
+    :param fuel_type_code: CFFDRS fuel-type code, the same one given to the FBP calculation.
+    :param fbp: Result of vectorized_fire_behaviour_prediction_with_spread.
     :param time_min: Time of interest in minutes since ignition (default 30).
     :return: Elliptical fire area at time_min in hectares; float64 array or NumPy scalar for scalar inputs.
     """
     # Note that the CFFDRS FBP calculation passes time in minutes to the time-dependent helpers,
     # including length_to_breadth_at_time (despite the CFFDRS docstring saying hours).
 
-    # Calculate Surface Fuel Consumption (SFC).
-    sfc = vectorized_surface_fuel_consumption(fuel_type_code, ffmc, bui, pc, gfl)
-
-    # Calculate the Wind Speed Velocity (WSV) used for length-to-breadth and back ROS.
-    wsv0, _ = vectorized_slope_adjustment(
-        fuel_type_code,
-        ffmc,
-        bui,
-        ws,
-        wd_rad,
-        gs,
-        aspect_rad,
-        fmc,
-        sfc,
-        pc,
-        pdf,
-        grass_curing,
-        cbh,
-        isi,
-    )
-    # As in CFFDRS, WSV is the slope-adjusted wind only when there is a slope and FFMC > 0,
-    # otherwise it is the plain wind speed.
-    wsv = np.where((gs > 0.0) & (ffmc > 0.0), wsv0, ws)
-
-    # As in CFFDRS, use the given ISI if it is positive. Otherwise, derive it from FFMC and WSV.
-    isi = np.where(isi > 0.0, isi, vectorized_initial_spread_index(ffmc, wsv, True))
-
-    # Calculate the equilibrium Rate of Spread (ROS) and Crown Fraction Burned (CFB).
-    ros, cfb, _, _ = vectorized_rate_of_spread_extended(
-        fuel_type_code,
-        isi,
-        bui,
-        fmc,
-        sfc,
-        pc,
-        pdf,
-        grass_curing,
-        cbh,
-    )
-    # CFFDRS sets CFB to zero when Crown Fuel Load (CFL) is zero.
-    cfb = np.where(cfl > 0.0, cfb, 0.0)
+    ros = fbp.primary.ros
+    cfb = fbp.primary.cfb
+    bros = fbp.spread.bros
+    wsv = fbp.spread.wsv
 
     # Calculate the equilibrium Length-to-Breadth ratio (LB), then its value at the time of interest.
     lb = vectorized_length_to_breadth(fuel_type_code, wsv)
     lb_t = vectorized_length_to_breadth_at_time(fuel_type_code, lb, time_min, cfb)
 
-    # Calculate the head-fire spread distance at the time of interest.
+    # Calculate the head-fire and back-fire spread distances at the time of interest.
     head_fire_distance = vectorized_distance_at_time(fuel_type_code, ros, time_min, cfb)
-
-    # Calculate the equilibrium Back Rate of Spread (BROS).
-    bros = vectorized_back_rate_of_spread(
-        fuel_type_code,
-        ffmc,
-        bui,
-        wsv,
-        fmc,
-        sfc,
-        pc,
-        pdf,
-        grass_curing,
-        cbh,
-    )
-
-    # Calculate the back-fire spread distance at the time of interest.
     back_fire_distance = vectorized_distance_at_time(fuel_type_code, bros, time_min, cfb)
 
     # Calculate total spread distance from the back-fire edge to the head-fire edge.
