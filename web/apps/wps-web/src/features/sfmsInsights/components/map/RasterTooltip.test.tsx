@@ -14,10 +14,31 @@ describe('RasterTooltip', () => {
     expect(screen.getByText('FMC: 95')).toBeInTheDocument()
   })
 
-  it('renders categorical fuel codes unchanged', () => {
-    render(<RasterTooltip label="Fuel" value="C-2" pixelCoords={[10, 20]} decimalPlaces={1} />)
+  it.each(['C-2', 'Non-fuel', 'Water'])('renders %s without the fuel prefix', value => {
+    render(<RasterTooltip label="" value={value} pixelCoords={[10, 20]} decimalPlaces={1} />)
 
-    expect(screen.getByText('Fuel: C-2')).toBeInTheDocument()
+    expect(screen.getByText(value)).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'Snow cover' })).not.toBeInTheDocument()
+  })
+
+  it.each(['C-2', 'Non-fuel', 'Water', 'Snow'])('prefixes %s with a snowflake', value => {
+    render(<RasterTooltip label="" value={value} pixelCoords={[10, 20]} snowCovered />)
+
+    expect(screen.getByText(value)).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Snow cover' })).toBeInTheDocument()
+  })
+
+  it('prefixes the full weather tooltip and preserves decimal places', () => {
+    render(<RasterTooltip label="Temperature" value={4} pixelCoords={[10, 20]} decimalPlaces={1} snowCovered />)
+
+    expect(screen.getByText('Temperature: 4.0')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Snow cover' })).toBeInTheDocument()
+  })
+
+  it('hides weather nodata under snow', () => {
+    const { container } = render(<RasterTooltip label="Temperature" value={null} pixelCoords={[10, 20]} snowCovered />)
+
+    expect(container).toBeEmptyDOMElement()
   })
 
   it('does not render without a value', () => {
