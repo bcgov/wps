@@ -27,6 +27,23 @@ from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_
 TEST_DATETIME = datetime(2024, 7, 4, 20, tzinfo=timezone.utc)
 
 
+def patch_fbp_with_spread(mocker: MockerFixture):
+    """Replace the FBP calculation with fixed single-pixel results, returning the mock."""
+    return mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.vectorized_fire_behaviour_prediction_with_spread",
+        return_value=SimpleNamespace(
+            primary=SimpleNamespace(
+                sfc=np.array([1.0]),
+                ros=np.array([2.0]),
+                hfi=np.array([3.0]),
+                tfc=np.array([4.0]),
+                cfb=np.array([0.5]),
+            ),
+            spread=SimpleNamespace(wsv=np.array([10.0]), bros=np.array([0.5])),
+        ),
+    )
+
+
 def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehaviourDatasets:
     shape = fuel.shape
     defaults = {
@@ -169,19 +186,7 @@ def test_fire_area_30min_matches_cffdrs_reference(grid_value: float, fuel_type: 
 
 
 def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
-    primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_fire_behaviour_prediction_with_spread",
-        return_value=SimpleNamespace(
-            primary=SimpleNamespace(
-                sfc=np.array([1.0]),
-                ros=np.array([2.0]),
-                hfi=np.array([3.0]),
-                tfc=np.array([4.0]),
-                cfb=np.array([0.5]),
-            ),
-            spread=SimpleNamespace(wsv=np.array([10.0]), bros=np.array([0.5])),
-        ),
-    )
+    primary_fbp = patch_fbp_with_spread(mocker)
 
     calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), NATIONAL_FUEL_TYPES)
 
@@ -231,19 +236,7 @@ def test_missing_grass_curing_on_grass_pixel_fails():
 
 
 def test_missing_grass_curing_off_grass_passes_zero_curing(mocker: MockerFixture):
-    primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_fire_behaviour_prediction_with_spread",
-        return_value=SimpleNamespace(
-            primary=SimpleNamespace(
-                sfc=np.array([1.0]),
-                ros=np.array([2.0]),
-                hfi=np.array([3.0]),
-                tfc=np.array([4.0]),
-                cfb=np.array([0.5]),
-            ),
-            spread=SimpleNamespace(wsv=np.array([10.0]), bros=np.array([0.5])),
-        ),
-    )
+    primary_fbp = patch_fbp_with_spread(mocker)
     datasets = make_datasets(
         np.array([NATIONAL_FUEL_TYPES.grid_values("C2")]),
         grass_curing=np.array([[TEST_INPUT_NODATA]]),
@@ -292,19 +285,7 @@ def test_sfc_matches_standalone_reference(grid_value: int, fuel_type: str, perce
 
 
 def test_normalizes_directions_and_clamps_slope_before_primary_fbp(mocker: MockerFixture):
-    primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_fire_behaviour_prediction_with_spread",
-        return_value=SimpleNamespace(
-            primary=SimpleNamespace(
-                sfc=np.array([1.0]),
-                ros=np.array([2.0]),
-                hfi=np.array([3.0]),
-                tfc=np.array([4.0]),
-                cfb=np.array([0.5]),
-            ),
-            spread=SimpleNamespace(wsv=np.array([10.0]), bros=np.array([0.5])),
-        ),
-    )
+    primary_fbp = patch_fbp_with_spread(mocker)
 
     calculate_primary_fire_behaviour(
         make_datasets(
