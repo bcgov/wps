@@ -33,8 +33,10 @@ def test_convert_fuel_cog(fuel_raster, tmp_path, explicit_output):
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(3857)
         assert ds.GetSpatialRef().IsSame(srs)
-        assert ds.GetGeoTransform()[1] == 2000
-        assert ds.GetGeoTransform()[5] == -2000
+        x_resolution = ds.GetGeoTransform()[1]
+        y_resolution = ds.GetGeoTransform()[5]
+        assert 2000 < x_resolution < 5000
+        assert y_resolution == pytest.approx(-x_resolution)
         assert ds.GetMetadata("IMAGE_STRUCTURE")["LAYOUT"] == "COG"
         assert ds.GetMetadata("IMAGE_STRUCTURE")["COMPRESSION"] == "LZW"
         band = ds.GetRasterBand(1)
@@ -45,6 +47,37 @@ def test_convert_fuel_cog(fuel_raster, tmp_path, explicit_output):
         assert band.GetOverviewCount() > 0
         for index in range(band.GetOverviewCount()):
             assert set(np.unique(band.GetOverview(index).ReadAsArray())) <= expected
+
+
+def test_convert_geographic_fuel_cog(fuel_raster):
+    geographic = osr.SpatialReference()
+    geographic.ImportFromEPSG(4326)
+    with gdal.Open(str(fuel_raster), gdal.GA_Update) as source:
+        source.SetProjection(geographic.ExportToWkt())
+        source.SetGeoTransform((-126, 0.01, 0, 55, 0, -0.01))
+
+    generate_fuel_cog.main(["--input", str(fuel_raster)])
+
+    output = fuel_raster.with_name("fuel_3857_cog.tif")
+    with gdal.Open(str(output)) as ds:
+        web_mercator = osr.SpatialReference()
+        web_mercator.ImportFromEPSG(3857)
+        assert ds.GetSpatialRef().IsSame(web_mercator)
+        x_resolution = ds.GetGeoTransform()[1]
+        y_resolution = ds.GetGeoTransform()[5]
+        assert 1000 < x_resolution < 3000
+        assert y_resolution == pytest.approx(-x_resolution)
+        assert 200 < ds.RasterXSize < 1200
+        assert 200 < ds.RasterYSize < 1200
+        band = ds.GetRasterBand(1)
+        assert band.GetNoDataValue() == float(np.float32(SFMS_NO_DATA))
+        assert set(np.unique(band.ReadAsArray())) == {
+            np.float32(SFMS_NO_DATA),
+            2010,
+            2030,
+            500,
+            102,
+        }
 
 
 @pytest.mark.parametrize("args", [[], ["--input", "missing.tif"]])

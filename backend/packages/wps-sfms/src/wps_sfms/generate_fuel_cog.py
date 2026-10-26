@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 def reproject_raster_to_3857(input_path: str, output_path: str) -> str:
     """reproject using nearest neighbour to preserve categorical fuel codes."""
     with gdal.ExceptionMgr(), gdal.Open(input_path) as source:
-        transform = source.GetGeoTransform()
+        # let GDAL derive target resolution because source pixel sizes may use degrees
         gdal.Warp(
             output_path,
             source,
@@ -32,8 +32,6 @@ def reproject_raster_to_3857(input_path: str, output_path: str) -> str:
             dstNodata=float(np.float32(SFMS_NO_DATA)),
             # float32 can represent the SFMS nodata value even for integer inputs
             outputType=gdal.GDT_Float32,
-            xRes=abs(transform[1]),
-            yRes=abs(transform[5]),
             resampleAlg=gdal.GRA_NearestNeighbour,
             format="GTiff",
         ).Close()
