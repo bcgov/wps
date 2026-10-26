@@ -6,12 +6,29 @@ import os
 from contextlib import asynccontextmanager
 from typing import Optional
 
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine
+
 from wps_shared.auth import ASA_TEST_IDIR_GUID
 from wps_shared.tests.fixtures.loader import FixtureFinder
 
 logger = logging.getLogger(__name__)
 
 TESTCONTAINERS_POSTGRES_IMAGE = "postgis/postgis:16-3.4"
+
+
+async def truncate_all_tables(engine: AsyncEngine):
+    """Empty every table and reset id sequences, so a postgres container can be shared across tests."""
+    async with engine.begin() as conn:
+        result = await conn.execute(
+            text(
+                "SELECT tablename FROM pg_tables "
+                "WHERE schemaname = 'public' AND tablename <> 'spatial_ref_sys'"
+            )
+        )
+        tables = ", ".join(f'"{row.tablename}"' for row in result)
+        if tables:
+            await conn.execute(text(f"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE"))
 
 
 class MockJWTDecode:

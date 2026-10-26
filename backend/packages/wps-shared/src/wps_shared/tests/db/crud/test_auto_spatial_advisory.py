@@ -24,7 +24,7 @@ from wps_shared.db.models.auto_spatial_advisory import (
 from wps_shared.db.models.fuel_type_raster import FuelTypeRaster
 from wps_shared.db.models.psu import FireCentre
 from wps_shared.run_type import RunType
-from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
+from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE, truncate_all_tables
 
 test_run_datetime = datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 test_for_date = test_run_datetime.date()
@@ -51,7 +51,7 @@ async def base_setup(async_session):
     return run_param, fire_centre, shape_type
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def postgres_container():
     with PostgresContainer(TESTCONTAINERS_POSTGRES_IMAGE) as postgres:
         yield postgres
@@ -82,6 +82,7 @@ async def engine(postgres_container):
 
     yield engine
 
+    await truncate_all_tables(engine)
     await engine.dispose()
 
 

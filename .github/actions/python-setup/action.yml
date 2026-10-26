@@ -1,5 +1,5 @@
 name: Python Setup
-description: Install uv, cache venv, and install Python dependencies
+description: Install uv and Python dependencies
 
 inputs:
   install-jdk:
@@ -15,22 +15,15 @@ runs:
       with:
         version: "0.13.1"
 
-    - name: Cache .venv
-      id: cache-venv
-      uses: actions/cache@v6
-      with:
-        path: ~/work/wps/wps/backend/.venv
-        key: ${{ runner.os }}-venv-uv-${{ hashFiles('backend/.python-version', '**/uv.lock') }}
-
     - name: Install JDK
-      if: inputs.install-jdk == 'true' && steps.cache-venv.outputs.cache-hit != 'true'
+      if: inputs.install-jdk == 'true'
       shell: bash
       run: |
         apt-get update --fix-missing
-        apt-get -y install default-jdk
+        apt-get -y install default-jdk-headless
 
+    # setup-uv restores the uv cache, so this takes seconds
     - name: Install python dependencies using uv
-      if: steps.cache-venv.outputs.cache-hit != 'true'
       working-directory: ./backend
       shell: bash
       run: |

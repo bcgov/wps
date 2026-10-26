@@ -22,7 +22,7 @@ from wps_shared.db.crud.fcm import (
 from wps_shared.db.models.auto_spatial_advisory import Shape, ShapeType, ShapeTypeEnum
 from wps_shared.db.models.fcm import DeviceToken, NotificationSettings, PlatformEnum
 from wps_shared.db.models.psu import FireCentre
-from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
+from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE, truncate_all_tables
 from wps_shared.utils.time import get_utc_now
 
 test_target_date = date(2025, 7, 15)
@@ -33,7 +33,7 @@ mock_fcm_token = "abcdefghijklmnop"
 now = get_utc_now()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def postgres_container():
     with PostgresContainer(TESTCONTAINERS_POSTGRES_IMAGE) as postgres:
         yield postgres
@@ -55,14 +55,15 @@ async def engine(postgres_container):
 
     async with engine.begin() as conn:
         await conn.execute(text("""CREATE EXTENSION IF NOT EXISTS postgis"""))
-        await conn.run_sync(FireCentre.__table__.create)
-        await conn.run_sync(ShapeType.__table__.create)
-        await conn.run_sync(Shape.__table__.create)
-        await conn.run_sync(DeviceToken.__table__.create)
-        await conn.run_sync(NotificationSettings.__table__.create)
+        await conn.run_sync(FireCentre.__table__.create, checkfirst=True)
+        await conn.run_sync(ShapeType.__table__.create, checkfirst=True)
+        await conn.run_sync(Shape.__table__.create, checkfirst=True)
+        await conn.run_sync(DeviceToken.__table__.create, checkfirst=True)
+        await conn.run_sync(NotificationSettings.__table__.create, checkfirst=True)
 
     yield engine
 
+    await truncate_all_tables(engine)
     await engine.dispose()
 
 

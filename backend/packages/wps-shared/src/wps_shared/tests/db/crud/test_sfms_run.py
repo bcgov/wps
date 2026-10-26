@@ -19,14 +19,14 @@ from wps_shared.db.models.sfms_run import (
     SFMSRunLogJobName,
     SFMSRunLogStatus,
 )
-from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE
+from wps_shared.tests.common import TESTCONTAINERS_POSTGRES_IMAGE, truncate_all_tables
 
 
 test_target_date = date(2025, 7, 15)
 test_completed_at = datetime(2025, 7, 15, 20, 45, 0, tzinfo=timezone.utc)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def postgres_container():
     with PostgresContainer(TESTCONTAINERS_POSTGRES_IMAGE) as postgres:
         yield postgres
@@ -40,16 +40,17 @@ async def engine(postgres_container):
     engine = create_async_engine(db_url, echo=False)
 
     async with engine.begin() as conn:
-        await conn.run_sync(SFMSRun.__table__.create)
+        await conn.run_sync(SFMSRun.__table__.create, checkfirst=True)
         # Insert a mock sfms_run record
         await conn.execute(
             text("""INSERT INTO sfms_run (run_type, target_date, run_datetime, stations)
                  VALUES ('actual', '2026-02-01', '2026-02-02 16:32:15.294322-08', ARRAY[1, 2, 3]);""")
         )
-        await conn.run_sync(SFMSRunLog.__table__.create)
+        await conn.run_sync(SFMSRunLog.__table__.create, checkfirst=True)
 
     yield engine
 
+    await truncate_all_tables(engine)
     await engine.dispose()
 
 

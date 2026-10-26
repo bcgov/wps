@@ -68,7 +68,7 @@ jobs:
         run: |
           export ORIGINS=testorigin
           export SFMS_SECRET=secret
-          uv run pytest --cov=packages/wps-shared/src/wps_shared --cov-branch --cov-report=xml:packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml packages/wps-shared/src/wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
+          uv run pytest -n auto --dist loadfile --cov=packages/wps-shared/src/wps_shared --cov-branch --cov-report=xml:packages/wps-shared/coverage-reports/wps-shared-coverage-report.xml packages/wps-shared/src/wps_shared/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_shared)
         uses: actions/upload-artifact@v7
         with:
