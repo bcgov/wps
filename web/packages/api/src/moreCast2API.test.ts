@@ -52,7 +52,10 @@ describe('moreCast2API', () => {
     expect(res[1].grass_curing).toEqual(0)
   })
   it('should call submit endpoint for forecast submission', async () => {
-    axios.post = vi.fn().mockResolvedValue({ status: 201 })
+    axios.post = vi.fn().mockResolvedValue({
+      status: 201,
+      data: { forecasts: [], wf1_published_count: 2, wf1_skipped: [] }
+    })
     const res = await submitMoreCastForecastRecords([
       buildMorecast2Forecast('1', 1, 'one', DateTime.fromObject({ year: 2021, month: 1, day: 1 })),
       buildMorecast2Forecast('2', 2, 'two', DateTime.fromObject({ year: 2021, month: 1, day: 1 }))

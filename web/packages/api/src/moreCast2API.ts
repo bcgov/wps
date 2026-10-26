@@ -212,8 +212,8 @@ export interface WF1SkippedForecast {
 
 export interface MoreCastForecastSubmitResponse {
   forecasts: MoreCast2ForecastRecord[]
-  wf1_published_count?: number
-  wf1_skipped?: WF1SkippedForecast[]
+  wf1_published_count: number
+  wf1_skipped: WF1SkippedForecast[]
 }
 
 export type MoreCastForecastSubmitResult =
@@ -246,11 +246,10 @@ export async function submitMoreCastForecastRecords(
       forecasts: forecastRecords
     })
     if (status !== 201) return { success: false }
-    // older backends either publish the whole batch or return an error
     return {
       success: true,
-      wf1PublishedCount: data?.wf1_published_count ?? forecastRecords.length,
-      wf1Skipped: data?.wf1_skipped ?? []
+      wf1PublishedCount: data.wf1_published_count,
+      wf1Skipped: data.wf1_skipped
     }
   } catch (error: any) {
     console.error(error.response?.data?.detail || error)
