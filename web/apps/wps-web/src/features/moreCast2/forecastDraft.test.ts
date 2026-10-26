@@ -6,7 +6,7 @@ import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/r
 import { DateTime } from 'luxon'
 import { vi } from 'vitest'
 
-const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00')
+const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00', { setZone: true })
 
 describe('MorecastDraftForecast', () => {
   afterEach(() => {
