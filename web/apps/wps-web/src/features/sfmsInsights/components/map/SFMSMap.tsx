@@ -144,6 +144,7 @@ const SFMSMap = ({
             label={rasterTooltipData.label}
             value={rasterTooltipData.value}
             pixelCoords={rasterTooltipData.pixel}
+            snowCovered={rasterTooltipData.snowCovered}
             decimalPlaces={RASTER_CONFIG[rasterType].tooltipDecimalPlaces}
           />
           <RasterLegend rasterType={rasterType} />

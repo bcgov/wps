@@ -1,55 +1,24 @@
 import * as ol from 'ol'
 import type Geometry from 'ol/geom/Geometry'
-import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
 import {
-  CFB_COLOR_BREAKS,
-  FIRE_AREA_30MIN_COLOR_BREAKS,
-  FMC_COLOR_BREAKS,
-  FUEL_TYPE_COLORS,
-  HFI_COLOR_BREAKS,
-  SFC_COLOR_BREAKS,
-  TFC_COLOR_BREAKS
+  CFB_COLOUR_BREAKS,
+  FIRE_AREA_30MIN_COLOUR_BREAKS,
+  FMC_COLOUR_BREAKS,
+  FUEL_COLOUR_BREAKS,
+  FUEL_TYPE_COLOURS,
+  HFI_COLOUR_BREAKS,
+  SFC_COLOUR_BREAKS,
+  TFC_COLOUR_BREAKS
 } from '@/features/sfmsInsights/components/map/rasterConfig'
 import {
   EMPTY_FILL,
   fuelCOGColourExpression,
-  getColorForRasterValue,
   getSFMSNGRasterColourExpression,
   isNodataValue,
   NODATA_THRESHOLD,
   SNOW_FILL,
-  snowStyler,
-  styleFuelGrid
+  snowStyler
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
-
-describe('getColorForRasterValue', () => {
-  it('should get the correct colour for the specified raster value', () => {
-    const rasterValue = 1
-    const colour = getColorForRasterValue(rasterValue)
-    expect(colour).toBe('rgb(209, 255, 115)')
-  })
-  it('should return a transparent colour if no colour is found', () => {
-    const rasterValue = 1000
-    const colour = getColorForRasterValue(rasterValue)
-    expect(colour).toBe('rgba(0, 0, 0, 0)')
-  })
-})
-
-describe('styleFuelGrid', () => {
-  it('should render correct fill color for invalid fuel type code', () => {
-    const feature = new ol.Feature<Geometry>({ fuel: -1 })
-    const styler = styleFuelGrid()
-    const fuelStyle = styler(feature)
-    expect(fuelStyle.getFill()?.getColor()).toBe(EMPTY_FILL)
-  })
-  it('should render correct fill color for valid fuel type code', () => {
-    const feature = new ol.Feature<Geometry>({ fuel: 1 })
-    const styler = styleFuelGrid()
-    const fuelStyle = styler(feature)
-    const expected = getColorByFuelTypeCode('C-1')
-    expect(fuelStyle.getFill()?.getColor()).toBe(expected)
-  })
-})
 
 describe('snowStyler', () => {
   it('should render correct fill color for snow', () => {
@@ -65,6 +34,22 @@ describe('snowStyler', () => {
 })
 
 describe('fuelCOGColourExpression', () => {
+  it.each([
+    [99, 'Non-fuel', [130, 130, 130]],
+    [102, 'Water', [115, 223, 255]]
+  ] as const)('should display %s as %s in the map and legend', (value, label, rgb) => {
+    const expr = fuelCOGColourExpression()
+    const index = expr.findIndex(item => JSON.stringify(item) === JSON.stringify(['==', ['band', 1], value]))
+    expect(index).toBeGreaterThan(-1)
+    expect(expr[index + 1]).toEqual([...rgb, 1])
+    expect(FUEL_COLOUR_BREAKS.find(item => item.min === value)).toEqual({
+      min: value,
+      max: value,
+      colour: `rgb(${rgb.join(', ')})`,
+      label
+    })
+  })
+
   it('should return a case expression array', () => {
     const expr = fuelCOGColourExpression()
     expect(Array.isArray(expr)).toBe(true)
@@ -80,28 +65,11 @@ describe('fuelCOGColourExpression', () => {
 
   it('should include all raster values and their corresponding colors', () => {
     const expr = fuelCOGColourExpression()
-    // expected: 'case' + alpha guard + (3 nodata cases * 2) + (14 fuel types * 2) + fallback.
-    const expectedLength = 1 + 2 + 3 * 2 + FUEL_TYPE_COLORS.length * 2 + 1
+    const expectedLength = 1 + 2 + FUEL_TYPE_COLOURS.length * 2 + 1
     expect(expr.length).toBe(expectedLength)
 
-    // Check nodata values are transparent (99, 102, -10000)
-    const nodataValues = [99, 102, -10000]
-    for (const nodataValue of nodataValues) {
-      const idx = expr.findIndex(
-        item =>
-          Array.isArray(item) &&
-          item[0] === '==' &&
-          Array.isArray(item[1]) &&
-          item[1][0] === 'band' &&
-          item[2] === nodataValue
-      )
-      expect(idx).toBeGreaterThan(-1)
-      const color = expr[idx + 1]
-      expect(color).toEqual([0, 0, 0, 0]) // Transparent
-    }
-
     // Check valid fuel type values
-    for (const { value: rasterValue, rgb: expectedColor } of FUEL_TYPE_COLORS) {
+    for (const { value: rasterValue, rgb: expectedColor } of FUEL_TYPE_COLOURS) {
       const idx = expr.findIndex(
         item =>
           Array.isArray(item) &&
@@ -126,7 +94,7 @@ describe('fuelCOGColourExpression', () => {
 
 describe('getSFMSNGRasterColourExpression', () => {
   it('should use the normalized shared palettes for SFC and FMC', () => {
-    expect(SFC_COLOR_BREAKS.map(colorBreak => colorBreak.color)).toEqual([
+    expect(SFC_COLOUR_BREAKS.map(colourBreak => colourBreak.colour)).toEqual([
       'rgb(0, 0, 255)',
       'rgb(102, 153, 204)',
       'rgb(0, 170, 0)',
@@ -135,7 +103,7 @@ describe('getSFMSNGRasterColourExpression', () => {
       'rgb(255, 170, 0)',
       'rgb(255, 0, 0)'
     ])
-    expect(FMC_COLOR_BREAKS.map(colorBreak => colorBreak.color)).toEqual([
+    expect(FMC_COLOUR_BREAKS.map(colourBreak => colourBreak.colour)).toEqual([
       'rgb(255, 170, 0)',
       'rgb(255, 255, 0)',
       'rgb(128, 255, 0)',
@@ -161,23 +129,23 @@ describe('getSFMSNGRasterColourExpression', () => {
   })
 
   it.each([
-    ['sfc', SFC_COLOR_BREAKS],
-    ['fmc', FMC_COLOR_BREAKS],
-    ['tfc', TFC_COLOR_BREAKS],
-    ['cfb', CFB_COLOR_BREAKS],
-    ['hfi', HFI_COLOR_BREAKS],
-    ['fire_area_30min', FIRE_AREA_30MIN_COLOR_BREAKS]
-  ] as const)('should include every %s colour break', (rasterType, colorBreaks) => {
+    ['sfc', SFC_COLOUR_BREAKS],
+    ['fmc', FMC_COLOUR_BREAKS],
+    ['tfc', TFC_COLOUR_BREAKS],
+    ['cfb', CFB_COLOUR_BREAKS],
+    ['hfi', HFI_COLOUR_BREAKS],
+    ['fire_area_30min', FIRE_AREA_30MIN_COLOUR_BREAKS]
+  ] as const)('should include every %s colour break', (rasterType, colourBreaks) => {
     const expr = getSFMSNGRasterColourExpression(rasterType)
 
-    for (const colorBreak of colorBreaks) {
-      const [red, green, blue] = colorBreak.color.match(/\d+/g)!.map(Number)
+    for (const colourBreak of colourBreaks) {
+      const [red, green, blue] = colourBreak.colour.match(/\d+/g)!.map(Number)
       expect(expr).toContainEqual([red, green, blue, 1])
     }
   })
 
   it('should label CFB breaks as percentages while using fraction thresholds', () => {
-    expect(CFB_COLOR_BREAKS.map(({ label }) => label)).toEqual([
+    expect(CFB_COLOUR_BREAKS.map(({ label }) => label)).toEqual([
       '0-10%',
       '10-30%',
       '30-50%',
@@ -186,8 +154,8 @@ describe('getSFMSNGRasterColourExpression', () => {
       '80-90%',
       '90-100%'
     ])
-    expect(CFB_COLOR_BREAKS[0].min).toBe(0)
-    expect(CFB_COLOR_BREAKS.at(-1)?.max).toBeNull()
+    expect(CFB_COLOUR_BREAKS[0].min).toBe(0)
+    expect(CFB_COLOUR_BREAKS.at(-1)?.max).toBeNull()
   })
 })
 

@@ -129,19 +129,31 @@ describe('getRasterTooltipData', () => {
       const result = getRasterTooltipData(new Uint8Array([2]), 'fuel')
 
       expect(result.value).toBe('C-2')
-      expect(result.label).toBe('Fuel')
+      expect(result.label).toBe('')
+    })
+
+    it.each([
+      [99, 'Non-fuel'],
+      [102, 'Water']
+    ] as const)('should label fuel value %s as %s', (value, label) => {
+      expect(getRasterTooltipData(new Float32Array([value, 255]), 'fuel')).toEqual({
+        value: label,
+        label: ''
+      })
+    })
+
+    it('should hide unknown fuel codes without a label', () => {
+      expect(getRasterTooltipData(new Uint8Array([101]), 'fuel')).toEqual({ value: null, label: '' })
     })
 
     it.each([
       ['outside grid', new Uint8Array([255])],
-      ['non-fuel area', new Uint8Array([99])],
-      ['water or non-vegetated', new Uint8Array([102])],
       ['primary nodata', new Float32Array([-10000])]
     ])('should hide %s fuel values', (_description, data) => {
       const result = getRasterTooltipData(data, 'fuel')
 
       expect(result.value).toBeNull()
-      expect(result.label).toBe('Fuel')
+      expect(result.label).toBe('')
     })
   })
 })
