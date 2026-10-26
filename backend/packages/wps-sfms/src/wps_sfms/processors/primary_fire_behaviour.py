@@ -1,8 +1,8 @@
 """Calculate and publish shared daily SFMS Fire Behaviour Prediction raster products.
 
 One primary CFFDRS call produces surface fuel consumption (SFC), equilibrium head rate of
-spread (ROS), and head fire intensity (HFI) from aligned SFMS input rasters. A second call
-produces the 30 minute elliptical fire area.
+spread (ROS), and head fire intensity (HFI) from aligned SFMS input rasters. Its wind speed velocity
+and back rate of spread then feed the 30 minute elliptical fire area.
 """
 
 import logging
@@ -14,10 +14,8 @@ from typing import Generator
 
 import numpy as np
 from cffdrs_vec.fbp import (
-    vectorized_crown_base_height,
-    vectorized_crown_fuel_load,
     vectorized_elliptical_fire_area,
-    vectorized_primary_fire_behaviour_prediction,
+    vectorized_fire_behaviour_prediction_with_spread,
 )
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FBPParameter, GDALPath
@@ -201,7 +199,7 @@ def calculate_primary_fire_behaviour(
         buieff = np.ones_like(fuel[calculation_mask], dtype=np.int64)
         isi = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
 
-        primary = vectorized_primary_fire_behaviour_prediction(
+        fbp = vectorized_fire_behaviour_prediction_with_spread(
             fuel_type_codes[calculation_mask],
             ffmc[calculation_mask],
             bui[calculation_mask],
@@ -229,32 +227,12 @@ def calculate_primary_fire_behaviour(
             accel,
             buieff,
         )
-        logger.info("%f seconds to calculate vectorized primary FBP", perf_counter() - start)
+        primary = fbp.primary
+        logger.info("%f seconds to calculate vectorized FBP", perf_counter() - start)
 
         start = perf_counter()
-        # The primary FBP call replaces cbh=0 and cfl=0 with the fuel type defaults, but the area
-        # function does not, so apply them here to keep CFB and ROS consistent with the primary call.
-        area_fuel_codes = fuel_type_codes[calculation_mask]
-        area_cbh = vectorized_crown_base_height(area_fuel_codes, cbh, sd, sh)
-        area_cfl = vectorized_crown_fuel_load(area_fuel_codes, cfl)
-        # isi = 0 makes the area calculation derive ISI from FFMC and terrain-adjusted wind
         fire_area_30min = vectorized_elliptical_fire_area(
-            fuel_type_codes[calculation_mask],
-            ffmc[calculation_mask],
-            bui[calculation_mask],
-            wind_speed[calculation_mask],
-            wind_direction_rad[calculation_mask],
-            slope_percent[calculation_mask],
-            aspect_rad[calculation_mask],
-            percent_conifer[calculation_mask],
-            pdf,
-            grass_curing[calculation_mask],
-            gfl,
-            area_cbh,
-            area_cfl,
-            fmc[calculation_mask],
-            isi,
-            time_min=30.0,
+            fuel_type_codes[calculation_mask], fbp, time_min=30.0
         )
         logger.info("%f seconds to calculate vectorized fire area", perf_counter() - start)
         return PrimaryFireBehaviourResult(
