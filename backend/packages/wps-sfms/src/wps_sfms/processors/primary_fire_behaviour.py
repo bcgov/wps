@@ -25,7 +25,7 @@ from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
 from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES, NODATA_FUEL_TYPE_CODE, CFFDRSFuelTypes
-from wps_sfms.fbp_input_validation import validate_percent_conifer
+from wps_sfms.fbp_input_validation import validate_grass_curing, validate_percent_conifer
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
@@ -107,6 +107,7 @@ class PrimaryFireBehaviourDatasets:
     slope: WPSDataset
     aspect: WPSDataset
     percent_conifer: WPSDataset
+    grass_curing: WPSDataset
     fmc: WPSDataset
 
 
@@ -149,6 +150,7 @@ def calculate_primary_fire_behaviour(
     aspect, _ = datasets.aspect.replace_nodata_with(np.nan)
     fmc, _ = datasets.fmc.replace_nodata_with(np.nan)
     percent_conifer, _ = datasets.percent_conifer.replace_nodata_with(np.nan)
+    grass_curing, _ = datasets.grass_curing.replace_nodata_with(np.nan)
 
     wind_direction_rad = np.radians(np.mod(wind_direction, 360.0))
     # clamp at 70% because CFFDRS uses the same maximum spread factor for every steeper slope, this also
@@ -164,6 +166,9 @@ def calculate_primary_fire_behaviour(
     validate_percent_conifer(
         percent_conifer=percent_conifer, mixedwood_mask=fuel_types.mixedwood_mask(fuel)
     )
+    grass_mask = fuel_types.grass_mask(fuel)
+    validate_grass_curing(grass_curing=grass_curing, grass_mask=grass_mask)
+    grass_curing = np.where(grass_mask, grass_curing, 0.0)
 
     non_combustible_mask = fuel_types.non_combustible_mask(fuel)
     calculation_mask = (
@@ -183,7 +188,6 @@ def calculate_primary_fire_behaviour(
     if np.any(calculation_mask):
         start = perf_counter()
         pdf = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        cc = np.full(fuel[calculation_mask].shape, 65.0, dtype=np.float32)
         gfl = np.full(fuel[calculation_mask].shape, 0.35, dtype=np.float32)
         cbh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         cfl = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
@@ -207,7 +211,7 @@ def calculate_primary_fire_behaviour(
             aspect_rad[calculation_mask],
             percent_conifer[calculation_mask],
             pdf,
-            cc,
+            grass_curing[calculation_mask],
             gfl,
             cbh,
             cfl,
@@ -297,6 +301,7 @@ class PrimaryFireBehaviourProcessor:
             inputs.slope_key,
             inputs.aspect_key,
             inputs.percent_conifer_key,
+            inputs.grass_curing_key,
             inputs.fmc_key,
         )
 
@@ -318,6 +323,7 @@ class PrimaryFireBehaviourProcessor:
                 slope=datasets_by_key[inputs.slope_key],
                 aspect=datasets_by_key[inputs.aspect_key],
                 percent_conifer=datasets_by_key[inputs.percent_conifer_key],
+                grass_curing=datasets_by_key[inputs.grass_curing_key],
                 fmc=datasets_by_key[inputs.fmc_key],
             )
 
@@ -332,6 +338,7 @@ class PrimaryFireBehaviourProcessor:
                 "slope": datasets.slope,
                 "aspect": datasets.aspect,
                 "percent_conifer": datasets.percent_conifer,
+                "grass_curing": datasets.grass_curing,
                 "fmc": datasets.fmc,
             },
         )

@@ -28,6 +28,10 @@ from wps_sfms.raster_inputs import (
 RUN_DATETIME_FILENAME_FORMAT = "%Y-%m-%dT%H-%M-%S.%fZ"
 """UTC format for run manifest file names: ISO 8601 with dashes for colons, and microseconds."""
 
+# the S3 object name under static/ and static/archive/, so renaming it changes where the grass
+# curing raster is read from and archived to
+GRASS_CURING_RASTER_NAME = "percent_grass_curing"
+
 FWI_WEATHER_INPUTS = (
     SFMSInterpolatedWeatherParameter.TEMP,
     SFMSInterpolatedWeatherParameter.RH,
@@ -148,6 +152,14 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         """S3 key for the BC aspect raster used in primary FBP calculations."""
         return self.get_static_key("bc_aspect.tif")
 
+    def get_grass_curing_key(self) -> S3Key:
+        """S3 key for the current percent grass curing raster used in primary FBP calculations."""
+        return self.get_static_key(f"{GRASS_CURING_RASTER_NAME}.tif")
+
+    def get_grass_curing_archive_key(self, content_hash: str) -> S3Key:
+        """S3 key for an archived copy of the grass curing raster, addressed by its SHA-256 hash."""
+        return self.get_static_key(f"archive/{GRASS_CURING_RASTER_NAME}/{content_hash}.tif")
+
     def get_julian_key(self, name: str) -> S3Key:
         """S3 key for the current Julian date raster ``name``, e.g. ``green_up_on``."""
         return self.get_static_key(f"julian/{name}.tif")
@@ -218,8 +230,10 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         self,
         datetime_to_process: datetime,
         run_type: RunType,
+        *,
         fuel_key: GDALPath,
         percent_conifer_key: GDALPath,
+        grass_curing_key: GDALPath,
         ffmc_key: GDALPath,
         bui_key: GDALPath,
         wind_speed_key: GDALPath,
@@ -239,6 +253,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             slope_key=slope_key,
             aspect_key=aspect_key,
             percent_conifer_key=percent_conifer_key,
+            grass_curing_key=grass_curing_key,
             fmc_key=fmc_key,
             output_keys={
                 parameter: self.get_fbp_key(datetime_to_process, parameter, run_type)

@@ -33,11 +33,14 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
   - If M3/M4 is absent, use zero for PDF and defer acquiring a dedicated raster.
   - If PDF is required, missing or out-of-range values on M3/M4 pixels should prevent calculation
     rather than silently use a generic percentage.
-- [ ] Identify, retain, and align an initial percent-grass-curing (`cc`) raster source.
-  - It is only meaningful for O1A/O1B pixels. Primary FBP passes a fixed `65%` placeholder, which
+- [x] Identify, retain, and align an initial percent-grass-curing (`cc`) raster source.
+  - It is only meaningful for O1A/O1B pixels. Primary FBP reads the static
+    `sfms_ng/static/percent_grass_curing.tif` grid, currently 65% everywhere, which
     matters more now that the temporal fuel grid makes grass O1B (standing) from June to December.
-  - The initial source and update cadence still need to be determined.
-  - Define staleness and fallback rules once the source is selected.
+  - Each run archives the grid by content hash, so FBP reads, and the run manifest names, the
+    exact grid used even after the live key is replaced.
+  - A dynamic source (station interpolation, NDVI) and its update cadence still need to be
+    determined; that grid will probably need storing by date rather than as one static key.
 - [x] Generate one shared Foliar Moisture Content (FMC) raster per calendar date from the
       SFMSNG elevation, latitude, and longitude grids.
   - Actual jobs ensure their target date exists; forecast jobs ensure their three processed
@@ -120,7 +123,7 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
 | `aspect_rad`     | Existing legacy SFMS aspect raster                        | Downslope aspect in degrees; normalize modulo 360, convert to radians, and use `0` on flat pixels.                              |
 | `pc`             | Percent-conifer raster paired with the fuel-grid year     | Required and validated on M1/M2 pixels. Use zero elsewhere.                                                                     |
 | `pdf`            | Conditional percent-dead-balsam-fir source                | First confirm M3/M4 occurs in the selected fuel grid. If it does, require and validate PDF on those pixels; use zero elsewhere. |
-| `cc`             | Grass-curing source to be determined                      | Required and validated on O1A/O1B pixels. Use zero elsewhere.                                                                   |
+| `cc`             | Static percent grass curing raster                        | Required and validated on O1A/O1B pixels. Use zero elsewhere.                                                                   |
 | `gfl`            | Fixed value                                               | `0.35 kg/m²`, matching the existing SFC calculation.                                                                            |
 | `cbh`            | Default policy to confirm                                 | Candidate value: `0`, which selects the CFFDRS fuel-type default; confirm before implementation.                                |
 | `cfl`            | Default policy to confirm                                 | Candidate value: `0`, which selects the CFFDRS fuel-type default; confirm before implementation.                                |

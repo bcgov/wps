@@ -188,7 +188,7 @@ class TestRunSfmsDailyForecasts:
         await run_sfms_daily_forecasts(datetime(2024, 7, 5, 0, 45, tzinfo=timezone.utc))
 
         fbp_fuel_paths = [
-            call.args[2]
+            call.kwargs["fuel_key"]
             for call in mock_dependencies.addresser.get_primary_fire_behaviour_inputs.call_args_list
         ]
         assert fbp_fuel_paths == [

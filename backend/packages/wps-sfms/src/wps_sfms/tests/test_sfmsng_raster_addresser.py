@@ -41,6 +41,12 @@ class TestTemporalFuelKeys:
             == "sfms_ng/static/julian/archive/green_up_on/abc123.tif"
         )
 
+    def test_grass_curing_archive_key_is_addressed_by_hash(self, addresser: SFMSNGRasterAddresser):
+        assert (
+            addresser.get_grass_curing_archive_key("abc123")
+            == "sfms_ng/static/archive/percent_grass_curing/abc123.tif"
+        )
+
     def test_temporal_fuel_keys_are_dated_and_versioned(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_temporal_fuel_key(date(2026, 6, 1), 2) == (
             "sfms_ng/fuel/temporal/2026/06/01/2/fuel2026_06_01_2.tif"
@@ -80,6 +86,7 @@ class TestGetFoliarMoistureContentInputs:
             ("get_latitude_key", "sfms_ng/static/latitude.tif"),
             ("get_longitude_key", "sfms_ng/static/longitude.tif"),
             ("get_elevation_key", "sfms_ng/static/bc_elevation.tif"),
+            ("get_grass_curing_key", "sfms_ng/static/percent_grass_curing.tif"),
         ],
     )
     def test_static_lookup_helpers(
@@ -286,19 +293,21 @@ class TestPrimaryFireBehaviourInputs:
         )
         slope_key = addresser.gdal_path(addresser.get_slope_key())
         aspect_key = addresser.gdal_path(addresser.get_aspect_key())
+        grass_curing_key = addresser.gdal_path(addresser.get_grass_curing_key())
 
         result = addresser.get_primary_fire_behaviour_inputs(
             TEST_DATETIME,
             run_type,
-            fuel_key,
-            percent_conifer_key,
-            ffmc_key,
-            bui_key,
-            wind_speed_key,
-            wind_direction_key,
-            fmc_key,
-            slope_key,
-            aspect_key,
+            fuel_key=fuel_key,
+            percent_conifer_key=percent_conifer_key,
+            grass_curing_key=grass_curing_key,
+            ffmc_key=ffmc_key,
+            bui_key=bui_key,
+            wind_speed_key=wind_speed_key,
+            wind_direction_key=wind_direction_key,
+            fmc_key=fmc_key,
+            slope_key=slope_key,
+            aspect_key=aspect_key,
         )
 
         assert result.fuel_key == fuel_key
@@ -309,6 +318,7 @@ class TestPrimaryFireBehaviourInputs:
         assert result.slope_key == slope_key
         assert result.aspect_key == aspect_key
         assert result.percent_conifer_key == percent_conifer_key
+        assert result.grass_curing_key == grass_curing_key
         assert result.fmc_key == fmc_key
         assert result.output_keys == {
             FBPParameter.SFC: f"sfms_ng/{run_type.value}/2024/04/15/sfc_20240415.tif",
@@ -328,15 +338,16 @@ class TestPrimaryFireBehaviourInputs:
             addresser.get_primary_fire_behaviour_inputs(
                 NON_UTC,
                 RunType.ACTUAL,
-                fuel_key,
-                percent_conifer_key,
-                "ffmc",
-                "bui",
-                "wind-speed",
-                "wind-direction",
-                "fmc",
-                "slope",
-                "aspect",
+                fuel_key=fuel_key,
+                percent_conifer_key=percent_conifer_key,
+                grass_curing_key="grass-curing",
+                ffmc_key="ffmc",
+                bui_key="bui",
+                wind_speed_key="wind-speed",
+                wind_direction_key="wind-direction",
+                fmc_key="fmc",
+                slope_key="slope",
+                aspect_key="aspect",
             )
 
 
