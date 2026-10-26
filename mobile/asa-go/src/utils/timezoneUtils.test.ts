@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { formatDatetimeInBCTime, getBCTimezoneLabel } from '@/utils/timezoneUtils'
+import { formatDatetimeWithTimezone, getBCTimezoneLabel } from '@/utils/timezoneUtils'
 
 describe('getBCTimezoneLabel', () => {
   it('should be PDT before BC moved to permanent Pacific Time', () => {
@@ -12,15 +12,19 @@ describe('getBCTimezoneLabel', () => {
   })
 })
 
-describe('formatDatetimeInBCTime', () => {
-  it('should format in UTC-7 with a BC timezone label regardless of the input zone', () => {
-    const pdt = DateTime.fromISO('2026-07-15T21:30:00Z', { zone: 'America/Edmonton' })
-    expect(formatDatetimeInBCTime(pdt)).toMatch(/July 15, 2026.*2:30.*PDT$/)
-    const pct = DateTime.fromISO('2026-11-02T21:30:00Z', { zone: 'America/Toronto' })
-    expect(formatDatetimeInBCTime(pct)).toMatch(/November 2, 2026.*2:30.*PCT$/)
+describe('formatDatetimeWithTimezone', () => {
+  it('should keep the datetime in its own timezone with the device timezone label', () => {
+    const pdt = DateTime.fromISO('2026-07-15T20:00:00Z', { zone: 'America/Vancouver' })
+    expect(formatDatetimeWithTimezone(pdt)).toMatch(/July 15, 2026.*1:00.*PDT$/)
+    const mst = DateTime.fromISO('2026-11-02T20:00:00Z', { zone: 'America/Dawson_Creek' })
+    expect(formatDatetimeWithTimezone(mst)).toMatch(/November 2, 2026.*1:00.*MST$/)
   })
-  it('should use the UTC-7 date for the label', () => {
-    // Oct 31 at 23:30 in UTC-8 is Nov 1 in UTC-7
-    expect(formatDatetimeInBCTime(DateTime.fromISO('2026-11-01T07:30:00Z'))).toMatch(/PCT$/)
+  it('should label Pacific time as PCT from Nov 1, 2026', () => {
+    const pct = DateTime.fromISO('2026-11-02T20:00:00Z', { zone: 'America/Vancouver' })
+    expect(formatDatetimeWithTimezone(pct)).toMatch(/November 2, 2026.*1:00.*PCT$/)
+  })
+  it('should keep PST for Pacific winter times before the switch', () => {
+    const pst = DateTime.fromISO('2026-01-15T20:00:00Z', { zone: 'America/Vancouver' })
+    expect(formatDatetimeWithTimezone(pst)).toMatch(/January 15, 2026.*12:00.*PST$/)
   })
 })

@@ -2,7 +2,7 @@ import { Box, Skeleton, styled, Typography } from '@mui/material'
 import type { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
-import { formatDatetimeInBCTime, getBCTimezoneLabel } from '@wps/utils/date'
+import { formatDatetimeWithTimezone, getBCTimezoneLabel } from '@wps/utils/date'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
@@ -295,7 +295,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
 
         {issueDate?.isValid && (
           <SerifTypography data-testid="bulletin-issue-date" sx={{ whiteSpace: 'pre-wrap' }}>
-            {`Issued on ${formatDatetimeInBCTime(issueDate)} for ${displayForDate}.\n\n`}
+            {`Issued on ${formatDatetimeWithTimezone(issueDate)} for ${displayForDate}.\n\n`}
           </SerifTypography>
         )}
 

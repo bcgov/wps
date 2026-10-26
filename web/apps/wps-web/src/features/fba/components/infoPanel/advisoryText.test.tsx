@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import type { FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
-import { formatDatetimeInBCTime } from '@wps/utils/date'
+import { formatDatetimeWithTimezone } from '@wps/utils/date'
 import AdvisoryText, {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -263,7 +263,7 @@ describe('AdvisoryText', () => {
     const bulletinIssueDate = queryByTestId('bulletin-issue-date')
     expect(bulletinIssueDate).toBeInTheDocument()
     expect(bulletinIssueDate).toHaveTextContent(
-      `Issued on ${formatDatetimeInBCTime(issueDate)} for ${forDate.toLocaleString({ month: 'short', day: 'numeric' })}.`
+      `Issued on ${formatDatetimeWithTimezone(issueDate)} for ${forDate.toLocaleString({ month: 'short', day: 'numeric' })}.`
     )
   })
 
@@ -297,7 +297,7 @@ describe('AdvisoryText', () => {
     expect(zoneBulletinMessage).toBeInTheDocument()
     expect(zoneBulletinMessage).toHaveTextContent(`${mockFireZoneUnit.mof_fire_zone_name}:`)
     expect(bulletinIssueDate).toBeInTheDocument()
-    expect(bulletinIssueDate).toHaveTextContent(`Issued on ${formatDatetimeInBCTime(issueDate)} for today.`)
+    expect(bulletinIssueDate).toHaveTextContent(`Issued on ${formatDatetimeWithTimezone(issueDate)} for today.`)
   })
 
   it('should render warning status', () => {
@@ -328,7 +328,7 @@ describe('AdvisoryText', () => {
     expect(zoneBulletinMessage).toBeInTheDocument()
     expect(zoneBulletinMessage).toHaveTextContent(`${mockFireZoneUnit.mof_fire_zone_name}:`)
     expect(bulletinIssueDate).toBeInTheDocument()
-    expect(bulletinIssueDate).toHaveTextContent(`Issued on ${formatDatetimeInBCTime(issueDate)} for today.`)
+    expect(bulletinIssueDate).toHaveTextContent(`Issued on ${formatDatetimeWithTimezone(issueDate)} for today.`)
     expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
   })
 
@@ -354,7 +354,7 @@ describe('AdvisoryText', () => {
     expect(zoneBulletinMessage).toBeInTheDocument()
     expect(zoneBulletinMessage).toHaveTextContent(`${mockAdvisoryFireZoneUnit.mof_fire_zone_name}:`)
     expect(bulletinIssueDate).toBeInTheDocument()
-    expect(bulletinIssueDate).toHaveTextContent(`Issued on ${formatDatetimeInBCTime(issueDate)} for today.`)
+    expect(bulletinIssueDate).toHaveTextContent(`Issued on ${formatDatetimeWithTimezone(issueDate)} for today.`)
     expect(screen.queryByTestId('advisory-message-wind-speed')).not.toBeInTheDocument()
   })
 
