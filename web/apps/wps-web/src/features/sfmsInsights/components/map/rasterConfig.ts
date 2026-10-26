@@ -237,7 +237,7 @@ export const PRECIPITATION_COLOUR_BREAKS: ColourBreak[] = [
   { min: 25, max: null, colour: 'rgb(0, 0, 128)', label: '25+ mm' }
 ]
 
-// fuel type colours for the existing raster codes
+// Fuel type color mappings based on BCWS standard colors
 export const FUEL_TYPE_COLOURS: FuelTypeColourMapping[] = [
   { value: 1, fuelCode: 'C-1', rgb: [209, 255, 115] },
   { value: 2, fuelCode: 'C-2', rgb: [34, 102, 51] },
@@ -257,7 +257,7 @@ export const FUEL_TYPE_COLOURS: FuelTypeColourMapping[] = [
   { value: 102, fuelCode: 'Water', rgb: [115, 223, 255] }
 ]
 
-// share the fuel palette between the map and legend
+// derive legend colours from the map palette so they stay in sync
 export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value, fuelCode, rgb }) => ({
   min: value,
   max: value,
@@ -286,7 +286,6 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   hfi: { group: 'fbp', label: 'HFI', colourBreaks: HFI_COLOUR_BREAKS }
 }
 
-// keep the colour breaks export for existing consumers
 export const RASTER_COLOUR_BREAKS: Record<RasterType, ColourBreak[]> = {
   fwi: FWI_COLOUR_BREAKS,
   dmc: DMC_COLOUR_BREAKS,
