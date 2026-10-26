@@ -67,6 +67,7 @@ export class RasterTooltipInteraction extends Interaction {
       return
     }
 
+    // Find the fire weather raster layer
     const rasterLayer = findRasterLayer(map.getLayers().getArray())
     if (!rasterLayer) {
       this.onTooltipChange({ value: null, label: '', pixel: null, snowCovered: false })
@@ -84,11 +85,13 @@ export class RasterTooltipInteraction extends Interaction {
       return
     }
 
+    // Get tooltip data from the raster layer at the pixel location
     const { value, label } = getDataAtPixel(rasterLayer, pixel)
     if (snowCovered && group === 'fuel' && value === null) {
       this.onTooltipChange({ label: '', value: 'Snow', pixel, snowCovered })
       return
     }
+    // Emit the tooltip data
     this.onTooltipChange({ value, label, pixel, snowCovered })
   }
 
