@@ -4,7 +4,7 @@ import type RenderFeature from 'ol/render/Feature'
 import Fill from 'ol/style/Fill'
 import Style from 'ol/style/Style'
 import { getColorByFuelTypeCode } from '@/features/fba/components/viz/color'
-import { type ColourBreak, FUEL_TYPE_COLOURS, RASTER_COLOUR_BREAKS, type SFMSNGRasterType } from './rasterConfig'
+import { type ColourBreak, FUEL_TYPE_COLOURS, RASTER_CONFIG, type SFMSNGRasterType } from './rasterConfig'
 
 export const SNOW_FILL = 'rgba(255, 255, 255, 1)'
 export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
@@ -99,7 +99,7 @@ export const fuelCOGColourExpression = () => {
 
 // Generate color expression dynamically from color breaks
 export const getSFMSNGRasterColourExpression = (rasterType: SFMSNGRasterType) => {
-  const colourBreaks = RASTER_COLOUR_BREAKS[rasterType]
+  const colourBreaks = RASTER_CONFIG[rasterType].colourBreaks
   const expression: Array<string | ColourCaseCondition | ColourCaseColour> = [
     'case',
     ...transparentWhenAlphaBandIsZero()

@@ -285,24 +285,3 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   tfc: { group: 'fbp', label: 'TFC', colourBreaks: TFC_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },
   hfi: { group: 'fbp', label: 'HFI', colourBreaks: HFI_COLOUR_BREAKS }
 }
-
-export const RASTER_COLOUR_BREAKS: Record<RasterType, ColourBreak[]> = {
-  fwi: FWI_COLOUR_BREAKS,
-  dmc: DMC_COLOUR_BREAKS,
-  dc: DC_COLOUR_BREAKS,
-  ffmc: FFMC_COLOUR_BREAKS,
-  bui: BUI_COLOUR_BREAKS,
-  isi: ISI_COLOUR_BREAKS,
-  sfc: SFC_COLOUR_BREAKS,
-  tfc: TFC_COLOUR_BREAKS,
-  cfb: CFB_COLOUR_BREAKS,
-  hfi: HFI_COLOUR_BREAKS,
-  fmc: FMC_COLOUR_BREAKS,
-  ros: ROS_COLOUR_BREAKS,
-  temperature: TEMPERATURE_COLOUR_BREAKS,
-  relative_humidity: RH_COLOUR_BREAKS,
-  wind_speed: WIND_SPEED_COLOUR_BREAKS,
-  wind_direction: WIND_DIRECTION_COLOUR_BREAKS,
-  precipitation: PRECIPITATION_COLOUR_BREAKS,
-  fuel: FUEL_COLOUR_BREAKS
-}
