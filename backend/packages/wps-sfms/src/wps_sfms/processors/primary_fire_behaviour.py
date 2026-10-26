@@ -248,7 +248,7 @@ def calculate_primary_fire_behaviour(
             aspect_rad[calculation_mask],
             percent_conifer[calculation_mask],
             pdf,
-            cc,
+            grass_curing[calculation_mask],
             gfl,
             area_cbh,
             area_cfl,
