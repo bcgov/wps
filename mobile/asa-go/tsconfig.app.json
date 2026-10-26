@@ -24,10 +24,7 @@
       "@/*": ["./src/*"],
       "#root/*": ["./*"],
       "utils/*": ["./src/utils/*"],
-      "api/*": ["./src/api/*"],
-      "@wps/utils/*": ["../../web/packages/utils/src/*"],
-      "lodash": ["./node_modules/@types/lodash"],
-      "luxon": ["./node_modules/@types/luxon"]
+      "api/*": ["./src/api/*"]
     }
   },
   "include": ["src"]

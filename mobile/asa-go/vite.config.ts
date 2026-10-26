@@ -23,11 +23,8 @@ export default defineConfig({
       app: resolve(__dirname, 'src', 'app'),
       utils: resolve(__dirname, 'src', 'utils'),
       api: resolve(__dirname, 'src', 'api'),
-      '#root': resolve(__dirname),
-      // Shared with wps-web. It's not installed as a package, so its imports resolve from asa-go's node_modules.
-      '@wps/utils': resolve(__dirname, '../../web/packages/utils/src')
-    },
-    dedupe: ['lodash', 'luxon']
+      '#root': resolve(__dirname)
+    }
   },
 
   build: {

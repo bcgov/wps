@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "mobile/**"
-      - "web/packages/utils/**"
       - "biome.json"
       - ".github/workflows/asa_go_*.yml"
 

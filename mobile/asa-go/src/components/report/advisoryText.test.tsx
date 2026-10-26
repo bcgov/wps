@@ -1,5 +1,4 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
-import { formatDatetimeInBCTime } from '@wps/utils/date'
 import { cloneDeep } from 'lodash'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
@@ -17,6 +16,7 @@ import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { type RunParametersState, initialState as runParametersInitialState } from '@/slices/runParametersSlice'
 import { createTestStore } from '@/testUtils'
 import type { FireCentre } from '@/types/fireCentre'
+import { formatDatetimeInBCTime } from '@/utils/timezoneUtils'
 
 // Mock hooks
 vi.mock('@/hooks/useRunParameterForDate', () => ({

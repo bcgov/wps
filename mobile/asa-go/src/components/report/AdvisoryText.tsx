@@ -1,5 +1,4 @@
 import { Box, useTheme } from '@mui/material'
-import { formatDatetimeInBCTime, getBCTimezoneLabel } from '@wps/utils/date'
 import { isEmpty, isNil, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
 import { useMemo } from 'react'
@@ -19,6 +18,7 @@ import {
   getMinStartAndMaxEndTime
 } from '@/utils/criticalHoursStartEndTime'
 import { getToday } from '@/utils/dataSliceUtils'
+import { formatDatetimeInBCTime, getBCTimezoneLabel } from '@/utils/timezoneUtils'
 
 export interface AdvisoryTextProps {
   selectedFireCentre: FireCentre | undefined

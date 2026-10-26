@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig/base.json",
+  "extends": "@wps/tsconfig/base.json",
   "compilerOptions": {
     "moduleResolution": "bundler",
     "module": "esnext",
