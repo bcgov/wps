@@ -1,16 +1,18 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 from typing import Optional
-from scipy.interpolate import interp1d
-from wps_shared.db.models.weather_models import ModelRunPrediction
 
+import numpy as np
+from wps_shared.db.models.weather_models import ModelRunPrediction
 
 SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")
 
 logger = logging.getLogger(__name__)
 
 
-def interpolate_between_two_points(x1: int, x2: int, y1: float, y2: float, xn: int) -> Optional[float]:
+def interpolate_between_two_points(
+    x1: float, x2: float, y1: Optional[float], y2: Optional[float], xn: float
+) -> Optional[float]:
     """Interpolate values between two points in time.
     :param x1: X coordinate of the 1st value.
     :param x2: X coordinate of the 2nd value.
@@ -20,67 +22,106 @@ def interpolate_between_two_points(x1: int, x2: int, y1: float, y2: float, xn: i
     :return: Interpolated value.
 
     """
-    # check valid values so we don't return a nan.
+    # Bias-adjustment predictions may be unavailable, leaving either value as None.
+    # Missing values cannot be interpolated, so return None.
     if y1 is None or y2 is None:
         return None
 
-    # Prepare x-axis (time).
-    x_axis = [x1, x2]
-    # Prepare y-axis (values).
-    y_axis = [y1, y2]
+    # numpy.interp expects the x coordinates to be increasing. Keep each x paired
+    # with its y value if the points were passed in reverse order.
+    if x1 <= x2:
+        x_axis = [x1, x2]
+        y_axis = [y1, y2]
+    else:
+        x_axis = [x2, x1]
+        y_axis = [y2, y1]
 
-    # Create interpolation function.
-    linear_interp = interp1d(x_axis, y_axis, kind="linear")
-    # Use iterpolation function to derive values at the time of interest.
-    return linear_interp(xn).item()
+    # Unlike interp1d, numpy.interp allows values outside the x range. Keep the
+    # previous behavior of raising an error when the target is not between points.
+    if not x_axis[0] <= xn <= x_axis[1]:
+        raise ValueError("Interpolation target must be between the two x coordinates")
+
+    # Ensure the return value is a float after interpolation.
+    return float(np.interp(xn, x_axis, y_axis))
 
 
-def interpolate_bearing(time_a: datetime, time_b: datetime, target_time: datetime, direction_a: float, direction_b: float):
+def interpolate_bearing(
+    time_a: datetime,
+    time_b: datetime,
+    target_time: datetime,
+    direction_a: Optional[float],
+    direction_b: Optional[float],
+) -> Optional[float]:
     """Interpolate between two bearings, along the acute angle between the two bearings.
 
     params:
     :time_a: Time of the first bearing.
     :time_b: Time of the 2nd bearing.
-    :target_Time: Time for which we desire a value.
-    :direction_a: Bearing (in degrees) at time_a.
-    :direction_b: Bearing (in degrees) at time b.
+    :target_time: Time for which we desire a value.
+    :direction_a: Bearing at time_a, in degrees from 0 to 360.
+    :direction_b: Bearing at time_b, in degrees from 0 to 360.
     """
-    x_axis = (time_a.timestamp(), time_b.timestamp())
-    # If the difference between two angles exceeds 180 degrees, it means we need to add
-    # 360 degrees to the smaller number in order to find the acute angle.
-    # After interpolating between the two angles, we need to subtract 360 degrees to ensure
-    # we have a value between between 0 and 360 again.
-    # e.g. a = 259 and b = 1 ; We don't actually want to interpolate between 259 and 1, we want
-    # to interpolat between 361 and 259.
+    # A direction can be missing if its bias-adjustment prediction is unavailable.
+    # Missing values cannot be interpolated, so return None.
+    if direction_a is None or direction_b is None:
+        return None
+
+    timestamp_a = time_a.timestamp()
+    timestamp_b = time_b.timestamp()
+    target_timestamp = target_time.timestamp()
+
+    # Direct interpolation can take the long way around the compass.
+    # If the bearings are more than 180 degrees apart, add 360 to the smaller
+    # one to interpolate across north (e.g. 350 to 10 becomes 350 to 370).
     if abs(direction_a - direction_b) > 180:
-        # We want to interpolate along the acute angle between the two directions
         if direction_a < direction_b:
-            y_axis = (direction_a + 360, direction_b)
+            direction_a += 360
         else:
-            y_axis = (direction_a, direction_b + 360)
+            direction_b += 360
+
+    # numpy.interp expects the x coordinates to be increasing. Keep each x paired
+    # with its y value if the points were passed in reverse order.
+    if timestamp_a <= timestamp_b:
+        x_axis = [timestamp_a, timestamp_b]
+        y_axis = [direction_a, direction_b]
     else:
-        y_axis = (direction_a, direction_b)
+        x_axis = [timestamp_b, timestamp_a]
+        y_axis = [direction_b, direction_a]
 
-    linear_interp = interp1d(x_axis, y_axis, kind="linear")
-    interpolated_value = linear_interp(target_time.timestamp()).item(0)
-    if interpolated_value >= 360:
-        # If we had to adjust the angles, we need to re-adjust the resultant angle.
-        return interpolated_value - 360
-    return interpolated_value
+    # Unlike interp1d, numpy.interp allows values outside the x range. Keep the
+    # previous behavior of raising an error when the target is not between points.
+    if not x_axis[0] <= target_timestamp <= x_axis[1]:
+        raise ValueError("Interpolation target must be between the two times")
+
+    # Perform the interpolation and ensure the result is a float.
+    interpolated_value = float(np.interp(target_timestamp, x_axis, y_axis))
+
+    # Normalize the result to the 0 to 360 degree range.
+    return interpolated_value % 360
 
 
-def interpolate_wind_direction(prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, target_timestamp: datetime):
+def interpolate_wind_direction(
+    prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, target_timestamp: datetime
+):
     """Interpolate wind direction"""
     if prediction_a.wdir_tgl_10 is None or prediction_b.wdir_tgl_10 is None:
         # There's nothing to interpolate!
         return None
 
-    interpolated_wdir = interpolate_bearing(prediction_a.prediction_timestamp, prediction_b.prediction_timestamp, target_timestamp, prediction_a.wdir_tgl_10, prediction_b.wdir_tgl_10)
+    interpolated_wdir = interpolate_bearing(
+        prediction_a.prediction_timestamp,
+        prediction_b.prediction_timestamp,
+        target_timestamp,
+        prediction_a.wdir_tgl_10,
+        prediction_b.wdir_tgl_10,
+    )
 
     return interpolated_wdir
 
 
-def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, model_keys):
+def construct_interpolated_noon_prediction(
+    prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, model_keys
+):
     """Construct a noon prediction by interpolating."""
     # create a noon prediction. (using utc hour 20, as that is solar noon in B.C.)
     noon_prediction = ModelRunPrediction()
@@ -88,7 +129,9 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, pre
 
     # inherit metadata
     noon_prediction.station_code = prediction_a.station_code
-    noon_prediction.prediction_model_run_timestamp_id = prediction_a.prediction_model_run_timestamp_id
+    noon_prediction.prediction_model_run_timestamp_id = (
+        prediction_a.prediction_model_run_timestamp_id
+    )
 
     # throw timestamps into their own variables.
     timestamp_a = prediction_a.prediction_timestamp.timestamp()
@@ -102,7 +145,9 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, pre
             logger.warning("can't interpolate between None values for %s", key)
             continue
 
-        value = interpolate_between_two_points(timestamp_a, timestamp_b, value_a, value_b, noon_timestamp)
+        value = interpolate_between_two_points(
+            timestamp_a, timestamp_b, value_a, value_b, noon_timestamp
+        )
         assert isinstance(value, float)
         setattr(noon_prediction, key, value)
     if noon_prediction.apcp_sfc_0 is None or prediction_a.apcp_sfc_0 is None:
@@ -110,6 +155,8 @@ def construct_interpolated_noon_prediction(prediction_a: ModelRunPrediction, pre
     else:
         noon_prediction.delta_precip = noon_prediction.apcp_sfc_0 - prediction_a.apcp_sfc_0
 
-    noon_prediction.wdir_tgl_10 = interpolate_wind_direction(prediction_a, prediction_b, noon_prediction.prediction_timestamp)
+    noon_prediction.wdir_tgl_10 = interpolate_wind_direction(
+        prediction_a, prediction_b, noon_prediction.prediction_timestamp
+    )
 
     return noon_prediction
