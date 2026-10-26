@@ -155,6 +155,10 @@ export class GridComponentRenderer {
     field: string,
     validator?: (value: string) => string
   ) => {
+    // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
+    const isActual = rowContainsActual(params.row)
+    // We can disable a cell if an Actual exists or the forDate is before today.
+    // Both forDate and today are currently in the system's time zone
     const isPreviousDate = isBeforeToday(params.row.forDate)
     const isGrassField = field.includes('grass')
     const forecastValue = this.getPredictionItem(params.row, field)
@@ -182,7 +186,7 @@ export class GridComponentRenderer {
     if (isGrassField) {
       return (
         <ValidatedGrassCureForecastCell
-          disabled={!isForecastRow(params.row)}
+          disabled={isActual || isPreviousDate}
           label={label}
           value={params.formattedValue}
           validator={validator}
@@ -191,7 +195,7 @@ export class GridComponentRenderer {
     } else if (field.includes('windDirection')) {
       return (
         <ValidatedWindDirectionForecastCell
-          disabled={!isForecastRow(params.row)}
+          disabled={isActual || isPreviousDate}
           label={label}
           value={params.formattedValue}
           validator={validator}
@@ -202,7 +206,7 @@ export class GridComponentRenderer {
       // greater than or less than the actual
       return (
         <ForecastCell
-          disabled={!isForecastRow(params.row)}
+          disabled={isActual || isPreviousDate}
           label={label}
           showGreaterThan={showGreaterThan}
           showLessThan={showLessThan}
@@ -214,8 +218,14 @@ export class GridComponentRenderer {
   }
 
   public renderForecastSummaryCellWith = (params: Pick<GridRenderCellParams, 'row' | 'formattedValue'>) => {
+    // If a single cell in a row contains an Actual, no Forecast will be entered into the row anymore, so we can disable the whole row.
+    const isActual = rowContainsActual(params.row)
+    // We can disable a cell if an Actual exists or the forDate is before today.
+    // Both forDate and today are currently in the system's time zone
+    const isPreviousDate = isBeforeToday(params.row.forDate)
+
     // The grass curing 'forecast' field and other weather parameter forecasts fields are rendered differently
-    return <TextField disabled={!isForecastRow(params.row)} size="small" value={params.formattedValue}></TextField>
+    return <TextField disabled={isActual || isPreviousDate} size="small" value={params.formattedValue}></TextField>
   }
 
   public predictionItemValueSetter = (

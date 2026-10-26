@@ -108,12 +108,8 @@ export const validForecastPredicate = (row: MoreCast2Row) =>
   !isUndefined(row.windSpeedForecast) &&
   !Number.isNaN(row.windSpeedForecast.value)
 
-// temporary dev bypass for testing publication when WF1 already has actuals
-export const isActualForecastTestDate = (date: DateTime): boolean =>
-  date.isValid && new URLSearchParams(window.location.search).get('testActualForecastDate') === date.toISODate()
-
 export const isForecastRow = (row: MoreCast2Row) => {
-  return isActualForecastTestDate(row.forDate) || (!rowContainsActual(row) && !isBeforeToday(row.forDate))
+  return !rowContainsActual(row) && !isBeforeToday(row.forDate)
 }
 
 export const mapForecastChoiceLabels = (newRows: MoreCast2Row[], storedRows: MoreCast2Row[]): MoreCast2Row[] => {

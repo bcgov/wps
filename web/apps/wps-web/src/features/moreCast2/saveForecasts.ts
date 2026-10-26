@@ -1,6 +1,6 @@
 import { ModelChoice } from '@wps/api/moreCast2API'
 import type { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
-import { isActualForecastTestDate, isBeforeToday } from 'features/moreCast2/util'
+import { isBeforeToday } from 'features/moreCast2/util'
 import { isNil } from 'lodash'
 
 // Forecast rows contain all NaN values in their 'actual' fields
@@ -13,11 +13,7 @@ export const isForecastRowPredicate = (row: MoreCast2Row) =>
   Number.isNaN(row.grassCuringActual)
 
 export const getForecastRows = (rows: MoreCast2Row[]): MoreCast2Row[] => {
-  return rows
-    ? rows.filter(
-        row => isActualForecastTestDate(row.forDate) || (isForecastRowPredicate(row) && !isBeforeToday(row.forDate))
-      )
-    : []
+  return rows ? rows.filter(row => isForecastRowPredicate(row) && !isBeforeToday(row.forDate)) : []
 }
 
 export const getRowsToSave = (rows: MoreCast2Row[]): MoreCast2ForecastRow[] => {
