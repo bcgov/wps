@@ -120,7 +120,7 @@ def make_mock_daily_sfms_dependencies(
         addresser, *args
     )
     addresser.get_primary_fire_behaviour_inputs.side_effect = (
-        lambda datetime_to_process, run_type, *_args: MagicMock(
+        lambda datetime_to_process, run_type, **_kwargs: MagicMock(
             output_keys={
                 parameter: raster_key(datetime_to_process, parameter, run_type)
                 for parameter in FBPParameter
@@ -189,6 +189,11 @@ def make_mock_daily_sfms_dependencies(
     primary_fbp_processor.process = AsyncMock(return_value=None)
     mocker.patch(
         "wps_sfms.fbp_step.PrimaryFireBehaviourProcessor", return_value=primary_fbp_processor
+    )
+    mocker.patch(
+        "wps_sfms.fbp_step.archive_grass_curing_raster",
+        new_callable=AsyncMock,
+        return_value="sfms_ng/static/archive/percent_grass_curing/abc123.tif",
     )
 
     db_session = MagicMock(spec=AsyncSession)
