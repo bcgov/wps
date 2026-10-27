@@ -39,7 +39,7 @@ def patch_fbp_with_spread(mocker: MockerFixture):
                 tfc=np.array([4.0]),
                 cfb=np.array([0.5]),
             ),
-            spread=SimpleNamespace(wsv=np.array([10.0]), bros=np.array([0.5])),
+            spread=SimpleNamespace(dh=np.array([100.0]), db=np.array([10.0]), lbt=np.array([2.0])),
         ),
     )
 
