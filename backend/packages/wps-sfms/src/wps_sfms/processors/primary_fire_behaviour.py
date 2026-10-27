@@ -1,8 +1,9 @@
 """Calculate and publish shared daily SFMS Fire Behaviour Prediction raster products.
 
-One primary CFFDRS call produces surface fuel consumption (SFC), equilibrium head rate of
-spread (ROS), and head fire intensity (HFI) from aligned SFMS input rasters. Its wind speed velocity
-and back rate of spread then feed the 30 minute elliptical fire area.
+One CFFDRS call produces surface fuel consumption (SFC), equilibrium head rate of spread (ROS),
+and head fire intensity (HFI) from aligned SFMS input rasters. The same call also returns the
+head and back fire spread distances and length-to-breadth ratio at 30 minutes, which give the
+elliptical fire area without a second CFFDRS pass.
 """
 
 import logging
@@ -33,6 +34,7 @@ from wps_sfms.raster_output import create_masked_output_dataset, open_bc_mask_da
 logger = logging.getLogger(__name__)
 
 MAX_GROUND_SLOPE_PERCENT = 70.0
+FIRE_AREA_TIME_HOURS = 0.5
 
 
 @dataclass(frozen=True)
@@ -193,9 +195,11 @@ def calculate_primary_fire_behaviour(
         fmc_fallback_placeholder = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sd = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        hr = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
+        # hr and accel only set the spread fields used for the 30 minute fire area. The published
+        # SFC, ROS, HFI, TFC and CFB are equilibrium values either way.
+        hr = np.full(fuel[calculation_mask].shape, FIRE_AREA_TIME_HOURS, dtype=np.float32)
         theta_rad = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        accel = np.zeros_like(fuel[calculation_mask], dtype=np.int64)
+        accel = np.ones_like(fuel[calculation_mask], dtype=np.int64)
         buieff = np.ones_like(fuel[calculation_mask], dtype=np.int64)
         isi = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
 
@@ -231,9 +235,7 @@ def calculate_primary_fire_behaviour(
         logger.info("%f seconds to calculate vectorized FBP", perf_counter() - start)
 
         start = perf_counter()
-        fire_area_30min = vectorized_elliptical_fire_area(
-            fuel_type_codes[calculation_mask], fbp, time_min=30.0
-        )
+        fire_area_30min = vectorized_elliptical_fire_area(fbp)
         logger.info("%f seconds to calculate vectorized fire area", perf_counter() - start)
         return PrimaryFireBehaviourResult(
             sfc=_result_values(primary.sfc, calculation_mask, non_combustible_mask),
