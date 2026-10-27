@@ -16,6 +16,7 @@ import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { type RunParametersState, initialState as runParametersInitialState } from '@/slices/runParametersSlice'
 import { createTestStore } from '@/testUtils'
 import type { FireCentre } from '@/types/fireCentre'
+import { formatDatetimeWithTimezone } from '@/utils/timezoneUtils'
 
 // Mock hooks
 vi.mock('@/hooks/useRunParameterForDate', () => ({
@@ -40,7 +41,7 @@ const EXPECTED_FOR_DATE = DateTime.fromISO(TEST_FOR_DATE).toLocaleString({
   month: 'short',
   day: 'numeric'
 })
-const EXPECTED_RUN_DATETIME = DateTime.fromISO(TEST_RUN_DATETIME).toLocaleString(DateTime.DATETIME_FULL)
+const EXPECTED_RUN_DATETIME = formatDatetimeWithTimezone(DateTime.fromISO(TEST_RUN_DATETIME))
 
 const testRunParameter: RunParameter = {
   for_date: TEST_FOR_DATE,
