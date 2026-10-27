@@ -1,9 +1,11 @@
 # SFMS Fire Behaviour Prediction TODO
 
 This document tracks the inputs and policy decisions for the shared Fire Behaviour Prediction
-(FBP) calculation. One call to `vectorized_primary_fire_behaviour_prediction` currently publishes
-Surface Fuel Consumption (SFC), Rate of Spread (ROS), Head Fire Intensity (HFI), Total Fuel
-Consumption (TFC), and Crown Fraction Burned (CFB).
+(FBP) calculation. One call to `vectorized_fire_behaviour_prediction_with_spread` currently
+publishes Surface Fuel Consumption (SFC), Rate of Spread (ROS), Head Fire Intensity (HFI), Total
+Fuel Consumption (TFC), and Crown Fraction Burned (CFB). The same call also returns the head and
+back fire spread distances and length-to-breadth ratio at 30 minutes, which give the 30 minute
+fire area.
 
 ## Input TODOs
 
