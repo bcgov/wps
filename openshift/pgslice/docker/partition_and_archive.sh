@@ -52,15 +52,18 @@ fi
 ENCODED_PASS=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${PG_PASSWORD}', safe=''))")
 PGSLICE_URL=postgresql://${PG_USER}:${ENCODED_PASS}@${PG_HOSTNAME}:${PG_PORT}/${PG_DATABASE}
 
-# Add new partition for next month
-NEXT_MONTH_DATE=$(date -d "$(date +%Y-%m-01) next month" +%Y%m)
-FIRST_DAY_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) next month" +%Y-%m-%d)
-FIRST_DAY_NEXT_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) next month +1 month" +%Y-%m-%d)
-echo "Creating new partition for dates: $FIRST_DAY_NEXT_MONTH to $FIRST_DAY_NEXT_NEXT_MONTH"
+# Add partitions for this month and the next two if they don't exist yet, so a failed or
+# missed run is caught up by the next one instead of leaving a month without a partition
+for i in {0..2}; do
+    PARTITION_MONTH_DATE=$(date -d "$(date +%Y-%m-01) +$i month" +%Y%m)
+    FIRST_DAY_OF_MONTH=$(date -d "$(date +%Y-%m-01) +$i month" +%Y-%m-%d)
+    FIRST_DAY_OF_NEXT_MONTH=$(date -d "$(date +%Y-%m-01) +$((i + 1)) month" +%Y-%m-%d)
+    echo "Creating new partition for dates: $FIRST_DAY_OF_MONTH to $FIRST_DAY_OF_NEXT_MONTH"
 
-NEW_PARTITION_COMMAND="CREATE TABLE IF NOT EXISTS ${TABLE}_${NEXT_MONTH_DATE} PARTITION OF $TABLE FOR VALUES FROM ('$FIRST_DAY_NEXT_MONTH') TO ('$FIRST_DAY_NEXT_NEXT_MONTH');"
+    NEW_PARTITION_COMMAND="CREATE TABLE IF NOT EXISTS ${TABLE}_${PARTITION_MONTH_DATE} PARTITION OF $TABLE FOR VALUES FROM ('$FIRST_DAY_OF_MONTH') TO ('$FIRST_DAY_OF_NEXT_MONTH');"
 
-psql -c "$NEW_PARTITION_COMMAND" "$PGSLICE_URL"
+    psql -c "$NEW_PARTITION_COMMAND" "$PGSLICE_URL"
+done
 
 # Mark tables from 3 months ago to 6 months ago as retired if they exist, then detach and dump them to object store
 # Borrowing a lot from https://github.com/BCDevOps/backup-container
