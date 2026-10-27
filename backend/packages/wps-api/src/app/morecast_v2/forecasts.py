@@ -34,6 +34,25 @@ from wps_wf1.wfwx_api import WfwxApi
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class StationDailyKey:
+    station_code: int
+    weather_timestamp: int  # utc epoch milliseconds
+
+
+@dataclass
+class ExistingWF1Dailies:
+    forecasts: dict[StationDailyKey, dict]
+    observed_keys: set[StationDailyKey]
+
+
+@dataclass
+class WF1ForecastSubmission:
+    forecasts: list[WF1PostForecast]
+    skipped: list[WF1SkippedForecast]
+    station_ids: list[str]
+
+
 def get_forecasts(
     db_session: Session,
     start_time: Optional[datetime],
@@ -89,18 +108,11 @@ def construct_wf1_forecast(
     return wf1_post_forecast
 
 
-@dataclass
-class WF1ForecastSubmission:
-    forecasts: list[WF1PostForecast]
-    skipped: list[WF1SkippedForecast]
-    station_ids: list[str]
-
-
 async def _get_existing_wf1_dailies(
     wfwx_api: WfwxApi,
     forecast_records: List[MoreCastForecastInput],
     stations: List[WFWXWeatherStation],
-) -> tuple[dict[tuple[int, int], dict], set[tuple[int, int]]]:
+) -> ExistingWF1Dailies:
     timestamps = [record.for_date for record in forecast_records]
     dailies = await wfwx_api.get_dailies_generator(
         wfwx_stations=stations,
@@ -109,18 +121,17 @@ async def _get_existing_wf1_dailies(
         check_cache=False,
         use_no_cache_header=True,
     )
-    existing_forecasts = {}
-    observed_keys = set()
+    existing = ExistingWF1Dailies(forecasts={}, observed_keys=set())
     async for daily in dailies:
         if not is_station_valid(daily.get("stationData")):
             continue
-        key = (daily["stationData"]["stationCode"], daily["weatherTimestamp"])
+        key = StationDailyKey(daily["stationData"]["stationCode"], daily["weatherTimestamp"])
         record_type = daily["recordType"]["id"]
         if record_type in ("ACTUAL", "MANUAL"):
-            observed_keys.add(key)
+            existing.observed_keys.add(key)
         elif record_type == "FORECAST":
-            existing_forecasts[key] = daily
-    return existing_forecasts, observed_keys
+            existing.forecasts[key] = daily
+    return existing
 
 
 async def construct_wf1_forecasts(
@@ -129,18 +140,20 @@ async def construct_wf1_forecasts(
     stations: List[WFWXWeatherStation],
     username: str,
 ) -> WF1ForecastSubmission:
-    submission = WF1ForecastSubmission([], [], [station.wfwx_id for station in stations])
+    submission = WF1ForecastSubmission(
+        forecasts=[],
+        skipped=[],
+        station_ids=[station.wfwx_id for station in stations],
+    )
     if not forecast_records:
         return submission
 
-    existing_forecasts, observed_keys = await _get_existing_wf1_dailies(
-        wfwx_api, forecast_records, stations
-    )
+    existing = await _get_existing_wf1_dailies(wfwx_api, forecast_records, stations)
     stations_by_code = {station.code: station for station in stations}
     for forecast in forecast_records:
         station = stations_by_code[forecast.station_code]
-        key = (forecast.station_code, forecast.for_date)
-        if key in observed_keys:
+        key = StationDailyKey(forecast.station_code, forecast.for_date)
+        if key in existing.observed_keys:
             submission.skipped.append(
                 WF1SkippedForecast(
                     station_code=forecast.station_code,
@@ -150,7 +163,7 @@ async def construct_wf1_forecasts(
             )
             continue
         # Check if an existing daily was retrieved from WF1 and use id and createdBy attributes if present
-        daily = existing_forecasts.get(key)
+        daily = existing.forecasts.get(key)
         submission.forecasts.append(
             construct_wf1_forecast(
                 forecast,
@@ -168,7 +181,7 @@ async def format_as_wf1_post_forecasts(
     username: str,
 ) -> WF1ForecastSubmission:
     if not forecast_records:
-        return WF1ForecastSubmission([], [], [])
+        return WF1ForecastSubmission(forecasts=[], skipped=[], station_ids=[])
     station_codes = list({record.station_code for record in forecast_records})
     fire_centre_station_codes = get_fire_centre_station_codes()
     stations = await wfwx_api.get_wfwx_stations_from_station_codes(
