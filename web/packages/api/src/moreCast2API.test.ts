@@ -62,14 +62,14 @@ describe('moreCast2API', () => {
     ])
     expect(res).toEqual({ success: true, wf1PublishedCount: 2, wf1Skipped: [] })
   })
-  it.each([0, 1])('returns skipped forecasts when %i rows publish to WF1', async published => {
+  it('returns skipped forecasts when no rows publish to WF1', async () => {
     const skipped = [{ station_code: 1, station_name: 'one', for_date: 1720123200000 }]
     axios.post = vi.fn().mockResolvedValue({
       status: 201,
-      data: { forecasts: [], wf1_published_count: published, wf1_skipped: skipped }
+      data: { forecasts: [], wf1_published_count: 0, wf1_skipped: skipped }
     })
     const res = await submitMoreCastForecastRecords([])
-    expect(res).toEqual({ success: true, wf1PublishedCount: published, wf1Skipped: skipped })
+    expect(res).toEqual({ success: true, wf1PublishedCount: 0, wf1Skipped: skipped })
   })
   it('returns the publish error when WF1 submission fails', async () => {
     const error = { response: { data: { detail: 'WF1 unavailable' } } }

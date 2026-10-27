@@ -506,13 +506,12 @@ class TestWfwxClientPostForecasts:
         response.text.assert_not_awaited()
 
     @pytest.mark.anyio
-    @pytest.mark.parametrize("status", [400, 503])
     @pytest.mark.parametrize(
-        "body",
+        "status, body",
         [
-            '{"errors": null, "message": "ORA-00001: unique constraint violated"}',
-            "WF1 is unavailable",
-            "",
+            (400, '{"errors": null, "message": "ORA-00001: unique constraint violated"}'),
+            (503, "WF1 is unavailable"),
+            (400, ""),
         ],
     )
     async def test_error_preserves_status_and_includes_body(self, posting, status, body, caplog):

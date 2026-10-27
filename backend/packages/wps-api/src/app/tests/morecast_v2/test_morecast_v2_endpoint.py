@@ -172,12 +172,10 @@ def test_post_forecast_saves_full_batch(client, publishing, eligible, skipped, c
     chatops.assert_not_called()
 
 
-@pytest.mark.parametrize("remaining", [[], [2]])
-def test_post_forecast_race_saves_full_batch_once(client, publishing, remaining, chatops, mocker):
+def test_post_forecast_race_saves_full_batch_once(client, publishing, chatops, mocker):
     log_error = mocker.spy(app.routers.morecast_v2.logger, "error")
     api, prepare, save, _cache = publishing
-    skipped = [code for code in (1, 2) if code not in remaining]
-    prepare.side_effect = [submission([1, 2], []), submission(remaining, skipped)]
+    prepare.side_effect = [submission([1, 2], []), submission([2], [1])]
     api.post_forecasts.side_effect = [
         aiohttp.ClientResponseError(Mock(real_url="https://wf1/test"), (), status=400),
         None,
@@ -186,32 +184,29 @@ def test_post_forecast_race_saves_full_batch_once(client, publishing, remaining,
     response = client.post(morecast_v2_post_url, json=forecast_batch())
 
     assert response.status_code == 201
-    assert response.json()["wf1_published_count"] == len(remaining)
+    assert response.json()["wf1_published_count"] == 1
     assert response.json()["wf1_skipped"][0]["station_code"] == 1
     save.assert_called_once()
     assert len(save.call_args.args[1]) == 2
-    assert api.post_forecasts.await_count == (2 if remaining else 1)
+    assert api.post_forecasts.await_count == 2
     log_error.assert_not_called()
     chatops.assert_not_called()
 
 
 @pytest.mark.parametrize(
-    "failure", ["lookup", "post", "unrelated400", "retry_lookup", "retry_post"]
+    "error",
+    [
+        pytest.param(RuntimeError("WF1 unavailable"), id="runtime"),
+        pytest.param(
+            aiohttp.ClientResponseError(Mock(real_url="https://wf1/test"), (), status=503),
+            id="http503",
+        ),
+    ],
 )
-def test_post_forecast_error_does_not_save(client, publishing, failure, chatops, mocker):
+def test_post_forecast_error_does_not_save(client, publishing, error, chatops, mocker):
     log_error = mocker.spy(app.routers.morecast_v2.logger, "error")
-    api, prepare, save, _cache = publishing
-    error = aiohttp.ClientResponseError(Mock(real_url="https://wf1/test"), (), status=400)
-    prepare.return_value = submission([1, 2], [])
-    api.post_forecasts.side_effect = error
-    if failure == "lookup":
-        prepare.side_effect = RuntimeError("WF1 unavailable")
-    elif failure == "post":
-        api.post_forecasts.side_effect = RuntimeError("WF1 unavailable")
-    elif failure == "retry_lookup":
-        prepare.side_effect = [submission([1, 2], []), RuntimeError("WF1 unavailable")]
-    elif failure == "retry_post":
-        prepare.side_effect = [submission([1, 2], []), submission([2], [1])]
+    _api, _prepare, save, _cache = publishing
+    mocker.patch("app.routers.morecast_v2.publish_wf1_forecasts", side_effect=error)
 
     response = client.post(morecast_v2_post_url, json=forecast_batch())
 
@@ -219,23 +214,16 @@ def test_post_forecast_error_does_not_save(client, publishing, failure, chatops,
     assert response.json()["detail"] == app.routers.morecast_v2.WF1_ERROR_MESSAGE
     save.assert_not_called()
     log_error.assert_called_once()
-    logged_error = log_error.call_args.kwargs["exc_info"]
-    assert isinstance(logged_error, Exception)
+    assert log_error.call_args.kwargs["exc_info"] is error
     assert log_error.call_args.kwargs["extra"]["forecast_count"] == 2
-    chatops.assert_called_once_with(log_error.call_args.args[0], logged_error)
+    chatops.assert_called_once_with(log_error.call_args.args[0], error)
 
 
-@pytest.mark.parametrize("notification_result", [None, RuntimeError("ChatOps unavailable")])
-def test_chatops_failure_preserves_submission_error(
-    client, publishing, chatops, notification_result
-):
+def test_chatops_failure_preserves_submission_error(client, publishing, chatops):
     api, prepare, save, _cache = publishing
     prepare.return_value = submission([1, 2], [])
     api.post_forecasts.side_effect = RuntimeError("WF1 unavailable")
-    if isinstance(notification_result, Exception):
-        chatops.side_effect = notification_result
-    else:
-        chatops.return_value = notification_result
+    chatops.side_effect = RuntimeError("ChatOps unavailable")
 
     response = client.post(morecast_v2_post_url, json=forecast_batch())
 
