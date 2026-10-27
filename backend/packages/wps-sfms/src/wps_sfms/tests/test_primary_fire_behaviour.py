@@ -16,6 +16,7 @@ from wps_shared.sfms.raster_addresser import FBPParameter
 from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.processors.primary_fire_behaviour import (
+    FIRE_AREA_TIME_HOURS,
     PrimaryFireBehaviourDatasets,
     PrimaryFireBehaviourProcessor,
     PrimaryFireBehaviourResult,
@@ -191,6 +192,17 @@ def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
     calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), NATIONAL_FUEL_TYPES)
 
     np.testing.assert_array_equal(primary_fbp.call_args.args[14], np.array([0.0]))
+
+
+def test_passes_fire_area_time_and_accelerating_spread_to_fbp(mocker: MockerFixture):
+    primary_fbp = patch_fbp_with_spread(mocker)
+
+    calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), NATIONAL_FUEL_TYPES)
+
+    # the fire area needs the spread at 30 minutes (hr) from a point ignition (accel)
+    call_args = primary_fbp.call_args.args
+    np.testing.assert_array_equal(call_args[22], np.array([FIRE_AREA_TIME_HOURS]))
+    np.testing.assert_array_equal(call_args[24], np.array([1]))
 
 
 # O1a and O1b are the only fuel types whose spread depends on curing
