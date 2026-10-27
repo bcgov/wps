@@ -81,9 +81,8 @@ const createPublishingStore = () => {
   })
 }
 
-const renderPublishing = async (refresh = vi.fn()) => {
+const renderPublishing = async (refresh = vi.fn(), testStore = createPublishingStore()) => {
   localStorage.clear()
-  const testStore = createPublishingStore()
   const draft = new MorecastDraftForecast(localStorage)
   draft.createStoredForecast(selectAllMoreCast2Rows(testStore.getState()), DateTime.now())
   render(
@@ -125,12 +124,16 @@ describe('MoreCast publishing', () => {
       wf1PublishedCount: 0,
       wf1Skipped: skipped
     })
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const { draft } = await renderPublishing(vi.fn().mockRejectedValue(new Error('refresh failed')))
-    expect(await screen.findByRole('dialog', { name: 'Forecasts saved' })).toBeVisible()
-    await waitFor(() =>
-      expect(error).toHaveBeenCalledWith('Could not refresh MoreCast after publishing', expect.any(Error))
-    )
+    const testStore = createPublishingStore()
+    const stations = testStore.getState().selectedStations.selectedStations
+    vi.mocked(fetchWeatherIndeterminates).mockRejectedValueOnce(new Error('refresh failed'))
+    const refresh = vi.fn(() => {
+      testStore.dispatch(getWeatherIndeterminates(stations, timestamp.startOf('day'), timestamp.startOf('day')))
+    })
+    const { draft } = await renderPublishing(refresh, testStore)
+    await waitFor(() => expect(testStore.getState().weatherIndeterminates.error).toBe('Error: refresh failed'))
+    expect(testStore.getState().weatherIndeterminates.loading).toBe(false)
+    expect(screen.getByRole('dialog', { name: 'Forecasts saved' })).toBeVisible()
     expect(draft.hasDraftForecastStored()).toBe(false)
   })
 

@@ -491,10 +491,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         publishedCount: result.wf1PublishedCount,
         skipped: result.wf1Skipped
       })
-      // a refresh failure must not turn a completed save into a publishing error
-      Promise.resolve()
-        .then(fetchWeatherIndeterminates)
-        .catch(error => console.error('Could not refresh MoreCast after publishing', error))
+      fetchWeatherIndeterminates()
       return
     }
 
