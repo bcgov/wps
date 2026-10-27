@@ -146,7 +146,7 @@ async def test_retry_excludes_new_actuals_and_refreshes_forecast_ids(api):
 async def test_retry_retains_initial_skips_and_avoids_empty_post(api):
     api.get_dailies_generator.side_effect = [
         dailies([daily(1, "ACTUAL")]),
-        dailies([daily(2, "ACTUAL")]),
+        dailies([daily(1, "ACTUAL"), daily(2, "ACTUAL")]),
     ]
     api.post_forecasts.side_effect = http_error(400)
     result = await forecasts.publish_wf1_forecasts(api, ROWS, "user")
@@ -205,8 +205,17 @@ async def test_multiple_retries_preserve_skips_and_refresh_forecast_ids(api):
     ]
     api.get_dailies_generator.side_effect = [
         dailies([daily(1, "ACTUAL")]),
-        dailies([daily(2, "ACTUAL"), daily(2, "FORECAST", next_day, "interim")]),
-        dailies([daily(2, "MANUAL", next_day), daily(2, "FORECAST", last_day, "fresh")]),
+        dailies(
+            [daily(1, "ACTUAL"), daily(2, "ACTUAL"), daily(2, "FORECAST", next_day, "interim")]
+        ),
+        dailies(
+            [
+                daily(1, "ACTUAL"),
+                daily(2, "ACTUAL"),
+                daily(2, "MANUAL", next_day),
+                daily(2, "FORECAST", last_day, "fresh"),
+            ]
+        ),
     ]
     api.post_forecasts.side_effect = [http_error(400), http_error(400), None]
 
@@ -226,6 +235,11 @@ async def test_multiple_retries_preserve_skips_and_refresh_forecast_ids(api):
         (2, next_day),
     ]
     assert result.station_ids == ["1", "2"]
+    assert api.get_wfwx_stations_from_station_codes.await_count == 3
+    assert all(
+        set(call.args[0]) == {1, 2}
+        for call in api.get_wfwx_stations_from_station_codes.await_args_list
+    )
 
 
 @pytest.mark.anyio
@@ -233,7 +247,7 @@ async def test_multiple_retries_stop_when_all_rows_become_observed(api):
     api.get_dailies_generator.side_effect = [
         dailies([]),
         dailies([daily(1, "ACTUAL")]),
-        dailies([daily(2, "MANUAL")]),
+        dailies([daily(1, "ACTUAL"), daily(2, "MANUAL")]),
     ]
     api.post_forecasts.side_effect = http_error(400)
 
@@ -243,6 +257,26 @@ async def test_multiple_retries_stop_when_all_rows_become_observed(api):
     assert [row.station_code for row in result.skipped] == [1, 2]
     assert api.post_forecasts.await_count == 2
     assert api.get_dailies_generator.await_count == 3
+
+
+@pytest.mark.anyio
+async def test_retry_uses_latest_snapshot_when_skipped_keys_change(api):
+    api.get_dailies_generator.side_effect = [
+        dailies([daily(1, "ACTUAL")]),
+        dailies([daily(1, "FORECAST", forecast_id="refreshed"), daily(2, "MANUAL")]),
+    ]
+    api.post_forecasts.side_effect = [http_error(400), None]
+
+    result = await forecasts.publish_wf1_forecasts(api, ROWS, "user")
+
+    first, second = api.post_forecasts.await_args_list
+    assert [row.stationId for row in first.kwargs["forecasts"]] == ["2"]
+    assert second.kwargs["forecasts"] == result.forecasts
+    assert [row.stationId for row in result.forecasts] == ["1"]
+    assert result.forecasts[0].id == "refreshed"
+    assert result.forecasts[0].createdBy == "original"
+    assert [row.station_code for row in result.skipped] == [2]
+    assert result.station_ids == ["1", "2"]
 
 
 @pytest.mark.anyio

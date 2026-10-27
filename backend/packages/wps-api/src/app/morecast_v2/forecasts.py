@@ -201,33 +201,33 @@ async def publish_wf1_forecasts(
         raise ValueError("max_retries must be nonnegative")
 
     submission = await format_as_wf1_post_forecasts(wfwx_api, forecast_records, username)
-    retries_remaining = max_retries
-    while submission.forecasts:
+    for attempt in range(max_retries + 1):
+        if not submission.forecasts:
+            return submission
         try:
             await wfwx_api.post_forecasts(forecasts=submission.forecasts)
             return submission
         except ClientResponseError as exc:
-            if exc.status != 400 or retries_remaining == 0:
+            if exc.status != 400 or attempt == max_retries:
                 raise
-            skipped_keys = {(row.station_code, row.for_date) for row in submission.skipped}
-            attempted_records = [
-                row
-                for row in forecast_records
-                if (row.station_code, row.for_date) not in skipped_keys
-            ]
-            # refresh forecast IDs too in case WF1 wrote any rows before rejecting the batch
-            retry = await format_as_wf1_post_forecasts(wfwx_api, attempted_records, username)
-            if not retry.skipped:
+            skipped_keys = {
+                StationDailyKey(row.station_code, row.for_date) for row in submission.skipped
+            }
+            # a 400 rejects the whole batch, so rebuild from the original inputs
+            retry = await format_as_wf1_post_forecasts(wfwx_api, forecast_records, username)
+            # only new actual conflicts explain this rejection. existing skips were never posted
+            new_skipped_keys = {
+                StationDailyKey(row.station_code, row.for_date) for row in retry.skipped
+            } - skipped_keys
+            if not new_skipped_keys:
                 raise
-            retries_remaining -= 1
             logger.info(
                 "Retrying WF1 submission %s/%s after %s new actuals",
-                max_retries - retries_remaining,
+                attempt + 1,
                 max_retries,
-                len(retry.skipped),
+                len(new_skipped_keys),
             )
-            submission.forecasts = retry.forecasts
-            submission.skipped.extend(retry.skipped)
+            submission = retry
     return submission
 
 
