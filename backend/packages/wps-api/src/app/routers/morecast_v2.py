@@ -1,13 +1,15 @@
 """Routes for Morecast v2"""
 
+import asyncio
 import logging
 from datetime import date, datetime, time, timedelta, timezone
 from typing import List
 
 from aiohttp.client import ClientSession
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import ORJSONResponse
 from wps_shared.auth import audit, auth_with_forecaster_role_required, authentication_required
+from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.grass_curing import get_percent_grass_curing_by_station_for_date_range
 from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
 from wps_shared.db.crud.morecast_v2 import (
@@ -52,14 +54,30 @@ router = APIRouter(
     prefix="/morecast-v2", dependencies=[Depends(authentication_required), Depends(audit)]
 )
 
-WF1_HTTP_ERROR = HTTPException(
-    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    detail="""
+WF1_ERROR_MESSAGE = """
         Error submitting forecasts to WF1, please retry.
         All your forecast inputs have been saved as a draft on your browser and can be submitted at a later time.
         If the problem persists, use the following link to verify the status of the WF1 service: https://wfapps.nrs.gov.bc.ca/pub/wfwx-fireweather-web/stations
-    """,
-)
+    """
+
+
+async def _handle_wf1_submission_error(exc: Exception, forecast_count: int) -> ORJSONResponse:
+    message = f"Error submitting {forecast_count} MoreCast forecasts to WF1"
+    logger.error(
+        message,
+        exc_info=exc,
+        extra={"forecast_count": forecast_count, "wf1_status": getattr(exc, "status", None)},
+    )
+    try:
+        await asyncio.to_thread(send_chatops_notification, message, exc)
+    except Exception:
+        # notification failures should not replace the submission error
+        logger.warning("Unable to send WF1 submission failure to ChatOps", exc_info=True)
+    # return the response so sentry only captures the original wf1 failure
+    return ORJSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": WF1_ERROR_MESSAGE},
+    )
 
 
 @router.get("/forecasts/{for_date}")
@@ -106,12 +124,16 @@ async def get_forecasts_by_date_range(
     return MorecastForecastResponse(forecasts=morecast_forecast_outputs)
 
 
-@router.post("/forecast", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/forecast",
+    status_code=status.HTTP_201_CREATED,
+    response_model=MorecastForecastSubmitResponse,
+)
 async def save_forecasts(
     forecasts: MoreCastForecastRequest,
     response: Response,
     token=Depends(auth_with_forecaster_role_required),
-) -> MorecastForecastSubmitResponse:
+) -> MorecastForecastSubmitResponse | ORJSONResponse:
     """Persist a forecast"""
     logger.info("/forecast")
     response.headers["Cache-Control"] = no_cache
@@ -147,8 +169,7 @@ async def save_forecasts(
             for station_id in submission.station_ids:
                 clear_cache_matching(station_id)
         except Exception as exc:
-            logger.error("Encountered error posting forecast data to WF1 API", exc_info=exc)
-            raise WF1_HTTP_ERROR
+            return await _handle_wf1_submission_error(exc, len(forecasts_list))
 
     with get_write_session_scope() as db_session:
         save_all_forecasts(db_session, forecasts_to_save)
