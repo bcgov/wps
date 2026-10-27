@@ -535,6 +535,9 @@ def _vectorized_fbp_secondary(
 # Same 26 inputs as above, returning the 8 primary fields plus the three spread fields the
 # elliptical fire area needs, at the time of interest hr: dh and db (head and back fire spread
 # distances) and lbt (length-to-breadth ratio).
+# This deliberately repeats _vectorized_fbp_primary instead of replacing it: the primary function
+# stays a direct vector version of CFFDRS's "Primary" output, and this one is the extra,
+# SFMS-specific entry point (CFFDRS has no equivalent).
 @guvectorize(
     [
         "void(int64, float64, float64, float64, float64, float64, float64, float64, float64,"

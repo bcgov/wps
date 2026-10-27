@@ -150,7 +150,7 @@ def test_calculation_matches_cffdrs_reference_and_derives_isi():
 
 @pytest.mark.parametrize("grid_value,fuel_type", [(6.0, "C6"), (31.0, "O1A")])
 def test_fire_area_30min_matches_cffdrs_reference(grid_value: float, fuel_type: str):
-    """The area must use the same default CBH/CFL and derived ISI as the primary FBP call."""
+    """The area must match CFFDRS's 30 minute spread distances and length-to-breadth ratio."""
     datasets = make_datasets(
         np.array([[grid_value]]),
         wind_direction=np.array([[225.0]]),
