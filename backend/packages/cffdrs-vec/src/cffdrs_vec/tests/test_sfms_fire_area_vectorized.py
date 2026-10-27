@@ -12,8 +12,8 @@ the time of interest, FMC, ISI, and expected area, which `source.load_area_cases
 the relevant input and output tables.
 
 The area function does not repeat the fire behaviour calculation. Each test first runs
-`vectorized_fire_behaviour_prediction_with_spread` once, then passes its result to
-`vectorized_elliptical_fire_area`.
+`vectorized_fire_behaviour_prediction_with_spread` once, with the time of interest as `hr` and
+`accel` on, then passes its result to `vectorized_elliptical_fire_area`.
 
 The published areas are rounded, so comparisons allow a 0.5% relative difference and an absolute
 difference of 0.01 ha for values near zero.
@@ -38,7 +38,7 @@ ATOL_AREA = 0.01
 
 
 def _fire_area(inputs, fmc, isi, time_min):
-    """Run the single FBP call, then the area calculation on its result."""
+    """Run the single FBP call at the time of interest, then the area calculation on its result."""
     zeros = np.zeros_like(inputs.fuel_type_codes, dtype=np.float64)
     fbp = vectorized_fire_behaviour_prediction_with_spread(
         inputs.fuel_type_codes,
@@ -63,12 +63,14 @@ def _fire_area(inputs, fmc, isi, time_min):
         zeros,  # julian date of minimum foliar moisture content not needed
         zeros,  # stand density not needed, CBH and CFL are given
         zeros,  # stand height not needed, CBH and CFL are given
-        zeros,  # hr = 0 keeps the equilibrium FBP outputs
-        zeros,  # theta_rad not needed, hr = 0
-        np.zeros_like(inputs.fuel_type_codes, dtype=np.int64),  # accel off, hr = 0
+        time_min / 60.0,  # hr, the time of interest in hours
+        zeros,  # theta_rad not needed, only used for the spread at an angle
+        np.ones_like(
+            inputs.fuel_type_codes, dtype=np.int64
+        ),  # accel on, spread from a point ignition
         np.ones_like(inputs.fuel_type_codes, dtype=np.int64),  # buieff on, as in SFMS
     )
-    return vectorized_elliptical_fire_area(inputs.fuel_type_codes, fbp, time_min)
+    return vectorized_elliptical_fire_area(fbp)
 
 
 @pytest.mark.parametrize("source", GLC_X_10_SOURCES, ids=lambda s: s.name)
