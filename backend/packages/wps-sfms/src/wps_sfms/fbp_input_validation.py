@@ -12,3 +12,12 @@ def validate_percent_conifer(*, percent_conifer: np.ndarray, mixedwood_mask: np.
         raise ValueError(
             "Percent-conifer raster contains missing or out-of-range values on mixedwood pixels"
         )
+
+
+def validate_grass_curing(*, grass_curing: np.ndarray, grass_mask: np.ndarray) -> None:
+    """Require grass curing to be present and within range on O1a/O1b pixels."""
+    invalid = grass_mask & (~np.isfinite(grass_curing) | (grass_curing < 0) | (grass_curing > 100))
+    if np.any(invalid):
+        raise ValueError(
+            "Grass curing raster contains missing or out-of-range values on grass pixels"
+        )

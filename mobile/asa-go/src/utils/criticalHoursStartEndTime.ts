@@ -65,7 +65,8 @@ export const criticalHoursExtendToNextDay = (startTime: number, endTime: number)
 export const formatCriticalHoursTimeText = (
   startTime: number,
   endTime: number,
-  shorthand: boolean = true
+  shorthand: boolean = true,
+  timezoneLabel?: string
 ): string[] => {
   const extendsNextDay = criticalHoursExtendToNextDay(startTime, endTime)
 
@@ -81,5 +82,6 @@ export const formatCriticalHoursTimeText = (
     return `${String(hour).padStart(2, '0')}:00`
   }
 
-  return [formatHour(startTime, shorthand), `${formatHour(endTime, shorthand)}${endSuffix}`]
+  const timezoneSuffix = timezoneLabel ? ` ${timezoneLabel}` : ''
+  return [formatHour(startTime, shorthand), `${formatHour(endTime, shorthand)}${timezoneSuffix}${endSuffix}`]
 }

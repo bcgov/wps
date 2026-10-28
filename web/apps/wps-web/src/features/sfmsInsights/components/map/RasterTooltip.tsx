@@ -5,14 +5,16 @@ interface RasterTooltipProps {
   value: number | string | null
   pixelCoords: [number, number] | null
   decimalPlaces?: number
+  snowCovered?: boolean
 }
 
-const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0 }: RasterTooltipProps) => {
+const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0, snowCovered = false }: RasterTooltipProps) => {
   if (value === null || !pixelCoords) {
     return null
   }
 
   const displayValue = typeof value === 'number' ? value.toFixed(decimalPlaces) : value
+  const tooltipText = label ? `${label}: ${displayValue}` : displayValue
 
   return (
     <Box
@@ -25,11 +27,31 @@ const RasterTooltip = ({ label, value, pixelCoords, decimalPlaces = 0 }: RasterT
         padding: '4px 8px',
         borderRadius: '4px',
         fontSize: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        minHeight: '20px',
+        boxSizing: 'content-box',
         pointerEvents: 'none',
         zIndex: 1000
       }}
     >
-      {label}: {displayValue}
+      {snowCovered && (
+        <Box
+          component="span"
+          role="img"
+          aria-label="Snow cover"
+          sx={{
+            width: '20px',
+            height: '20px',
+            flexShrink: 0,
+            bgcolor: '#b3e5fc',
+            mask: 'url(/images/snowflake.svg) center / contain no-repeat',
+            WebkitMask: 'url(/images/snowflake.svg) center / contain no-repeat'
+          }}
+        />
+      )}
+      {tooltipText}
     </Box>
   )
 }
