@@ -104,7 +104,7 @@ def test_post_forecast_unauthorized(client: TestClient):
     assert response.status_code == 401
 
 
-def submission(eligible, skipped):
+def submission(eligible, skipped, unavailable=()):
     return WF1ForecastSubmission(
         forecasts=[
             WF1PostForecast(
@@ -120,10 +120,18 @@ def submission(eligible, skipped):
             for code in eligible
         ],
         skipped=[
-            WF1SkippedForecast(station_code=code, station_name=f"station{code}", for_date=1)
+            WF1SkippedForecast(
+                station_code=code, station_name=f"station{code}", for_date=1, reason="actual_exists"
+            )
             for code in skipped
+        ]
+        + [
+            WF1SkippedForecast(
+                station_code=code, station_name=None, for_date=1, reason="station_unavailable"
+            )
+            for code in unavailable
         ],
-        station_ids=["1", "2"],
+        station_ids=[str(code) for code in (1, 2) if code not in unavailable],
     )
 
 
@@ -149,11 +157,16 @@ def forecast_batch():
     }
 
 
-@pytest.mark.parametrize("eligible, skipped", [([1, 2], []), ([2], [1]), ([], [1, 2])])
-def test_post_forecast_saves_full_batch(client, publishing, eligible, skipped, chatops, mocker):
+@pytest.mark.parametrize(
+    "eligible, skipped, unavailable",
+    [([1, 2], [], []), ([2], [1], []), ([], [1, 2], []), ([2], [], [1]), ([], [], [1, 2])],
+)
+def test_post_forecast_saves_full_batch(
+    client, publishing, eligible, skipped, unavailable, chatops, mocker
+):
     log_error = mocker.spy(app.routers.morecast_v2.logger, "error")
     api, prepare, save, cache = publishing
-    prepared = submission(eligible, skipped)
+    prepared = submission(eligible, skipped, unavailable)
     prepare.return_value = prepared
 
     response = client.post(morecast_v2_post_url, json=forecast_batch())
@@ -167,8 +180,9 @@ def test_post_forecast_saves_full_batch(client, publishing, eligible, skipped, c
     assert [row.station_code for row in saved] == [1, 2]
     assert all(row.temp == 10.0 and row.for_date.timestamp() * 1000 == 1 for row in saved)
     assert api.post_forecasts.await_count == int(bool(eligible))
-    assert {call.args[0] for call in cache.call_args_list} == {"1", "2"}
-    assert cache.call_count == 2
+    expected_station_ids = {str(code) for code in (1, 2) if code not in unavailable}
+    assert {call.args[0] for call in cache.call_args_list} == expected_station_ids
+    assert cache.call_count == len(expected_station_ids)
     log_error.assert_not_called()
     chatops.assert_not_called()
 
@@ -214,6 +228,29 @@ def test_post_forecast_race_saves_full_batch_once(client, publishing, chatops, m
     assert len(save.call_args.args[1]) == 2
     assert api.post_forecasts.await_count == 2
     log_error.assert_not_called()
+    chatops.assert_not_called()
+
+
+def test_post_forecast_saves_full_batch_when_stations_become_unavailable(
+    client, publishing, chatops
+):
+    api, prepare, save, cache = publishing
+    skipped = submission([], [], unavailable=[1, 2])
+    prepare.side_effect = [submission([1, 2], []), skipped]
+    api.post_forecasts.side_effect = aiohttp.ClientResponseError(
+        Mock(real_url="https://wf1/test"), (), status=400
+    )
+
+    response = client.post(morecast_v2_post_url, json=forecast_batch())
+
+    assert response.status_code == 201
+    assert response.json()["wf1_published_count"] == 0
+    assert response.json()["wf1_skipped"] == [row.model_dump() for row in skipped.skipped]
+    assert [row["station_code"] for row in response.json()["forecasts"]] == [1, 2]
+    save.assert_called_once()
+    assert [row.station_code for row in save.call_args.args[1]] == [1, 2]
+    api.post_forecasts.assert_awaited_once()
+    cache.assert_not_called()
     chatops.assert_not_called()
 
 

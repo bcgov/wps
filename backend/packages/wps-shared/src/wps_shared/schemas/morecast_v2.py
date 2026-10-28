@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
@@ -114,8 +114,9 @@ class MorecastForecastResponse(BaseModel):
 
 class WF1SkippedForecast(BaseModel):
     station_code: int
-    station_name: str
+    station_name: str | None
     for_date: int
+    reason: Literal["actual_exists", "station_unavailable"]
 
 
 class MorecastForecastSubmitResponse(MorecastForecastResponse):

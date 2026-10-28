@@ -41,23 +41,25 @@ const ForecastPublishResultDialog = ({ result, onClose }: Props) => (
           Saved {result.savedCount} {result.savedCount === 1 ? 'forecast' : 'forecasts'} in MoreCast. Published{' '}
           {result.publishedCount} to WF1.
         </DialogContentText>
-        <DialogContentText sx={{ mt: 2 }}>
-          WF1 already has actuals for the rows below. These forecasts were saved only in MoreCast.
-        </DialogContentText>
+        <DialogContentText sx={{ mt: 2 }}>These forecasts were saved only in MoreCast.</DialogContentText>
         <Table aria-label="Forecasts saved only in MoreCast">
           <TableHead>
             <TableRow>
               <TableCell>Station</TableCell>
               <TableCell>Station code</TableCell>
               <TableCell>Forecast date</TableCell>
+              <TableCell>Reason</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {result.skipped.map(row => (
               <TableRow key={`${row.station_code}-${row.for_date}`}>
-                <TableCell>{row.station_name}</TableCell>
+                <TableCell>{row.station_name ?? 'Not available'}</TableCell>
                 <TableCell>{row.station_code}</TableCell>
                 <TableCell>{toBCPacificTime(DateTime.fromMillis(row.for_date)).toISODate()}</TableCell>
+                <TableCell>
+                  {row.reason === 'actual_exists' ? 'Actuals available in WF1' : 'Station unavailable in WF1'}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

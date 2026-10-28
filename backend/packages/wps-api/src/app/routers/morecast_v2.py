@@ -196,7 +196,7 @@ async def save_forecasts(
         for forecast in forecasts_list
     ]
     logger.info(
-        "Saved %s forecasts, published %s to WF1, skipped %s with actuals",
+        "Saved %s forecasts, published %s to WF1, skipped %s",
         len(forecasts_list),
         len(submission.forecasts),
         len(submission.skipped),

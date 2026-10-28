@@ -1,8 +1,12 @@
+import json
 import types
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from aiohttp import ClientResponse
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_wf1.wfwx_client import WfwxClient
 
 
 # ---------------------------
@@ -165,7 +169,7 @@ def fake_config(monkeypatch):
             "WFWX_USER": "pytest-user",
             "WFWX_SECRET": "pytest-secret",
             "REDIS_AUTH_CACHE_EXPIRY": "600",
-            "REDIS_STATION_CACHE_EXPIRY": "604800",
+            "REDIS_STATION_CACHE_EXPIRY": "86400",
             "REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY": "300",
             "REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY": "300",
             "REDIS_USE": "True",  # flip between True/False in tests as needed
@@ -292,8 +296,64 @@ async def test_get_station_data_uses_mapper_and_headers(monkeypatch, wfwx_api):
             collected.append({"parsed": item["stationCode"]})
         return collected
 
-    stations = await wfwx_api.get_station_data(mapper=mapper, use_no_cache_header=True)
+    stations = await wfwx_api.get_station_data(mapper=mapper, use_cache=False)
     assert stations == [{"parsed": 1}, {"parsed": 2}]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "use_cache, expected_codes",
+    [(True, [100]), (False, [200])],
+    ids=["cached", "fresh"],
+)
+async def test_station_lookup_bypasses_stale_cache(
+    wfwx_api, mock_session, mock_cache, use_cache, expected_codes
+):
+    old_station = {
+        "id": "old",
+        "stationCode": 100,
+        "displayLabel": "Old station",
+        "stationStatus": {"id": "ACTIVE"},
+        "latitude": 49.1,
+        "longitude": -123.1,
+        "elevation": 100,
+        "zone": None,
+        "fireCentre": None,
+    }
+    new_station = {
+        **old_station,
+        "id": "new",
+        "stationCode": 200,
+        "displayLabel": "New station",
+    }
+    mock_cache.get.return_value = json.dumps(
+        {"_embedded": {"stations": [old_station]}, "page": {"totalPages": 1}}
+    ).encode("utf-8")
+    response = MagicMock(spec=ClientResponse)
+    response.json.return_value = {
+        "_embedded": {
+            "stations": [
+                {**old_station, "stationStatus": {"id": "INACTIVE"}},
+                new_station,
+            ]
+        },
+        "page": {"totalPages": 1},
+    }
+    mock_session.get.return_value.__aenter__.return_value = response
+    client = WfwxClient(mock_session, wfwx_api.wfwx_settings, mock_cache)
+    client.fetch_access_token = AsyncMock(return_value={"access_token": "token123"})
+    wfwx_api.wfwx_client = client
+
+    stations = await wfwx_api.get_wfwx_stations_from_station_codes(
+        [100, 200], [], use_cache=use_cache
+    )
+
+    assert [station.code for station in stations] == expected_codes
+    assert mock_session.get.call_count == int(not use_cache)
+    assert mock_cache.get.call_count == int(use_cache)
+    mock_cache.set.assert_not_called()
+    if not use_cache:
+        assert mock_session.get.call_args.kwargs["headers"]["Cache-Control"] == "no-cache"
 
 
 @pytest.mark.anyio

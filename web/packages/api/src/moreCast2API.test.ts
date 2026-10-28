@@ -6,7 +6,8 @@ import {
   type MoreCast2ForecastRow,
   marshalMoreCast2ForecastRecords,
   submitMoreCastForecastRecords,
-  WeatherDeterminate
+  WeatherDeterminate,
+  type WF1SkippedForecast
 } from './moreCast2API'
 
 describe('moreCast2API', () => {
@@ -63,7 +64,10 @@ describe('moreCast2API', () => {
     expect(res).toEqual({ success: true, wf1PublishedCount: 2, wf1Skipped: [] })
   })
   it('returns skipped forecasts when no rows publish to WF1', async () => {
-    const skipped = [{ station_code: 1, station_name: 'one', for_date: 1720123200000 }]
+    const skipped: WF1SkippedForecast[] = [
+      { station_code: 1, station_name: 'one', for_date: 1720123200000, reason: 'actual_exists' },
+      { station_code: 2, station_name: null, for_date: 1720123200000, reason: 'station_unavailable' }
+    ]
     axios.post = vi.fn().mockResolvedValue({
       status: 201,
       data: { forecasts: [], wf1_published_count: 0, wf1_skipped: skipped }

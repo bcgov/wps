@@ -9,6 +9,9 @@ from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_wf1.wfwx_api import WfwxApi
 
 TIMESTAMP = 1720123200000
+STATION_FOREIGN_KEY_ERROR = (
+    "ORA-02291: integrity constraint (APP_WF1_WEATHER.DWXM_WS_FK) violated - parent key not found"
+)
 ROWS = [
     MoreCastForecastInput(
         station_code=code, for_date=TIMESTAMP, temp=20, rh=40, precip=0, wind_speed=10
@@ -49,8 +52,10 @@ async def dailies(rows):
         yield row
 
 
-def http_error(status):
-    return ClientResponseError(Mock(real_url="https://wf1/test"), (), status=status)
+def http_error(status, message=""):
+    return ClientResponseError(
+        Mock(real_url="https://wf1/test"), (), status=status, message=message
+    )
 
 
 @pytest.fixture
@@ -73,7 +78,12 @@ async def test_skip_observed_and_preserve_existing_forecast(api, observed_type):
     assert result.forecasts[0].id == "existing"
     assert result.forecasts[0].createdBy == "original"
     assert [row.model_dump() for row in result.skipped] == [
-        {"station_code": 1, "station_name": "station1", "for_date": TIMESTAMP}
+        {
+            "station_code": 1,
+            "station_name": "station1",
+            "for_date": TIMESTAMP,
+            "reason": "actual_exists",
+        }
     ]
     api.post_forecasts.assert_awaited_once_with(forecasts=result.forecasts)
     api.get_dailies_generator.assert_awaited_once_with(
@@ -83,9 +93,7 @@ async def test_skip_observed_and_preserve_existing_forecast(api, observed_type):
         check_cache=False,
         use_no_cache_header=True,
     )
-    assert api.get_wfwx_stations_from_station_codes.call_args.kwargs == {
-        "use_no_cache_header": True
-    }
+    assert api.get_wfwx_stations_from_station_codes.call_args.kwargs == {"use_cache": False}
 
 
 @pytest.mark.anyio
@@ -111,6 +119,51 @@ async def test_all_skipped_avoids_post(api):
     assert result.forecasts == []
     assert len(result.skipped) == 2
     assert result.station_ids == ["1", "2"]
+    api.post_forecasts.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_unavailable_station_does_not_block_other_forecasts(api):
+    unavailable = ROWS[0].model_copy(update={"station_code": 3})
+    api.get_dailies_generator.return_value = dailies([daily(1, "ACTUAL"), daily(2, "FORECAST")])
+
+    result = await forecasts.publish_wf1_forecasts(api, [*ROWS, unavailable], "user")
+
+    assert [row.stationId for row in result.forecasts] == ["2"]
+    assert [(row.station_code, row.reason, row.station_name) for row in result.skipped] == [
+        (1, "actual_exists", "station1"),
+        (3, "station_unavailable", None),
+    ]
+    assert all(row.for_date == TIMESTAMP for row in result.skipped)
+    api.post_forecasts.assert_awaited_once_with(forecasts=result.forecasts)
+
+
+@pytest.mark.anyio
+async def test_all_unavailable_avoids_daily_lookup_and_post(api):
+    api.get_wfwx_stations_from_station_codes.return_value = []
+
+    result = await forecasts.publish_wf1_forecasts(api, ROWS, "user")
+
+    assert result.forecasts == []
+    assert result.station_ids == []
+    assert [row.station_code for row in result.skipped] == [1, 2]
+    assert all(
+        row.reason == "station_unavailable" and row.station_name is None for row in result.skipped
+    )
+    api.get_dailies_generator.assert_not_awaited()
+    api.post_forecasts.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_station_lookup_failure_does_not_become_skipped(api):
+    error = http_error(503)
+    api.get_wfwx_stations_from_station_codes.side_effect = error
+
+    with pytest.raises(ClientResponseError) as raised:
+        await forecasts.publish_wf1_forecasts(api, ROWS, "user")
+
+    assert raised.value is error
+    api.get_dailies_generator.assert_not_awaited()
     api.post_forecasts.assert_not_awaited()
 
 
@@ -158,10 +211,12 @@ async def test_retry_retains_initial_skips_and_avoids_empty_post(api):
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("status", [400, 401, 500])
-async def test_unrelated_post_error_is_not_retried(api, status):
+@pytest.mark.parametrize(
+    "status, message", [(400, STATION_FOREIGN_KEY_ERROR), (401, ""), (500, "")]
+)
+async def test_unrelated_post_error_is_not_retried(api, status, message):
     api.get_dailies_generator.side_effect = [dailies([]), dailies([])]
-    error = http_error(status)
+    error = http_error(status, message)
     api.post_forecasts.side_effect = error
     with pytest.raises(ClientResponseError) as raised:
         await forecasts.publish_wf1_forecasts(api, ROWS, "user")
@@ -280,7 +335,7 @@ async def test_retry_uses_latest_snapshot_when_skipped_keys_change(api):
 
 
 @pytest.mark.anyio
-async def test_retry_requires_new_actuals_even_when_retries_remain(api):
+async def test_retry_requires_new_skips_even_when_retries_remain(api):
     api.get_dailies_generator.side_effect = [
         dailies([daily(1, "ACTUAL")]),
         dailies([daily(1, "ACTUAL")]),
@@ -294,6 +349,46 @@ async def test_retry_requires_new_actuals_even_when_retries_remain(api):
     assert raised.value is error
     api.post_forecasts.assert_awaited_once()
     assert api.get_dailies_generator.await_count == 2
+
+
+@pytest.mark.anyio
+async def test_actual_on_previously_unavailable_station_does_not_trigger_retry(api):
+    api.get_wfwx_stations_from_station_codes.side_effect = [STATIONS[1:], STATIONS]
+    api.get_dailies_generator.side_effect = [dailies([]), dailies([daily(1, "ACTUAL")])]
+    error = http_error(400)
+    api.post_forecasts.side_effect = error
+
+    with pytest.raises(ClientResponseError) as raised:
+        await forecasts.publish_wf1_forecasts(api, ROWS, "user")
+
+    assert raised.value is error
+    api.post_forecasts.assert_awaited_once()
+    assert [row.stationId for row in api.post_forecasts.await_args.kwargs["forecasts"]] == ["2"]
+    assert api.get_dailies_generator.await_count == 2
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "remaining, unavailable_codes",
+    [(STATIONS[1:], [1]), ([], [1, 2])],
+    ids=["partial", "all_unavailable"],
+)
+async def test_retry_excludes_stations_that_become_unavailable(api, remaining, unavailable_codes):
+    api.get_wfwx_stations_from_station_codes.side_effect = [STATIONS, remaining]
+    api.get_dailies_generator.side_effect = [dailies([]), dailies([])]
+    api.post_forecasts.side_effect = [http_error(400, STATION_FOREIGN_KEY_ERROR), None]
+
+    result = await forecasts.publish_wf1_forecasts(api, ROWS, "user")
+
+    assert [row.stationId for row in result.forecasts] == [station.wfwx_id for station in remaining]
+    assert [row.station_code for row in result.skipped] == unavailable_codes
+    assert all(row.reason == "station_unavailable" for row in result.skipped)
+    assert result.station_ids == [station.wfwx_id for station in remaining]
+    assert api.post_forecasts.await_count == 1 + bool(remaining)
+    assert api.get_wfwx_stations_from_station_codes.await_count == 2
+    assert api.get_dailies_generator.await_count == 1 + bool(remaining)
+    if remaining:
+        assert api.post_forecasts.await_args.kwargs["forecasts"] == result.forecasts
 
 
 @pytest.mark.anyio

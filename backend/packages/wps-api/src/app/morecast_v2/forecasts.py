@@ -113,6 +113,9 @@ async def _get_existing_wf1_dailies(
     forecast_records: List[MoreCastForecastInput],
     stations: List[WFWXWeatherStation],
 ) -> ExistingWF1Dailies:
+    existing = ExistingWF1Dailies(forecasts={}, observed_keys=set())
+    if not stations:
+        return existing
     timestamps = [record.for_date for record in forecast_records]
     dailies = await wfwx_api.get_dailies_generator(
         wfwx_stations=stations,
@@ -121,7 +124,6 @@ async def _get_existing_wf1_dailies(
         check_cache=False,
         use_no_cache_header=True,
     )
-    existing = ExistingWF1Dailies(forecasts={}, observed_keys=set())
     async for daily in dailies:
         if not is_station_valid(daily.get("stationData")):
             continue
@@ -151,7 +153,17 @@ async def construct_wf1_forecasts(
     existing = await _get_existing_wf1_dailies(wfwx_api, forecast_records, stations)
     stations_by_code = {station.code: station for station in stations}
     for forecast in forecast_records:
-        station = stations_by_code[forecast.station_code]
+        station = stations_by_code.get(forecast.station_code)
+        if station is None:
+            submission.skipped.append(
+                WF1SkippedForecast(
+                    station_code=forecast.station_code,
+                    station_name=None,
+                    for_date=forecast.for_date,
+                    reason="station_unavailable",
+                )
+            )
+            continue
         key = StationDailyKey(forecast.station_code, forecast.for_date)
         if key in existing.observed_keys:
             submission.skipped.append(
@@ -159,6 +171,7 @@ async def construct_wf1_forecasts(
                     station_code=forecast.station_code,
                     station_name=station.name,
                     for_date=forecast.for_date,
+                    reason="actual_exists",
                 )
             )
             continue
@@ -185,7 +198,7 @@ async def format_as_wf1_post_forecasts(
     station_codes = list({record.station_code for record in forecast_records})
     fire_centre_station_codes = get_fire_centre_station_codes()
     stations = await wfwx_api.get_wfwx_stations_from_station_codes(
-        station_codes, fire_centre_station_codes, use_no_cache_header=True
+        station_codes, fire_centre_station_codes, use_cache=False
     )
     return await construct_wf1_forecasts(wfwx_api, forecast_records, stations, username)
 
@@ -215,14 +228,14 @@ async def publish_wf1_forecasts(
             }
             # a 400 rejects the whole batch, so rebuild from the original inputs
             retry = await format_as_wf1_post_forecasts(wfwx_api, forecast_records, username)
-            # only new actual conflicts explain this rejection. existing skips were never posted
+            # only newly skipped rows we tried to post explain the rejection
             new_skipped_keys = {
                 StationDailyKey(row.station_code, row.for_date) for row in retry.skipped
             } - skipped_keys
             if not new_skipped_keys:
                 raise
             logger.info(
-                "Retrying WF1 submission %s/%s after %s new actuals",
+                "Retrying WF1 submission %s/%s after %s newly skipped forecasts",
                 attempt + 1,
                 max_retries,
                 len(new_skipped_keys),

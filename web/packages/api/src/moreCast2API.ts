@@ -206,8 +206,9 @@ export interface MoreCastForecastRequest {
 
 export interface WF1SkippedForecast {
   station_code: number
-  station_name: string
+  station_name: string | null
   for_date: number
+  reason: 'actual_exists' | 'station_unavailable'
 }
 
 export interface MoreCastForecastSubmitResponse {

@@ -68,7 +68,7 @@ class WfwxApi:
             user=config.get("WFWX_USER"),
             secret=config.get("WFWX_SECRET"),
             auth_cache_expiry=int(config.get("REDIS_AUTH_CACHE_EXPIRY", 600)),
-            station_cache_expiry=int(config.get("REDIS_STATION_CACHE_EXPIRY", 604800)),
+            station_cache_expiry=int(config.get("REDIS_STATION_CACHE_EXPIRY", 86400)),
             hourlies_by_station_code_expiry=int(
                 config.get("REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY", 300)
             ),
@@ -118,19 +118,19 @@ class WfwxApi:
             logger.debug("total stations: %d", len(stations))
             return stations
 
-    async def get_station_data(self, mapper=station_list_mapper, use_no_cache_header: bool = False):
+    async def get_station_data(self, mapper=station_list_mapper, use_cache: bool = True):
         """Get list of stations from WFWX Fireweather API."""
         logger.info("Using WFWX to retrieve station list")
-        if use_no_cache_header:
-            header = await self._get_no_cache_auth_header()
-        else:
+        if use_cache:
             header = await self._get_auth_header()
+        else:
+            header = await self._get_no_cache_auth_header()
         # Iterate through "raw" station data.
         raw_stations = self.wfwx_client.fetch_paged_response_generator(
             header,
             BuildQueryStations(),
             "stations",
-            use_cache=True,
+            use_cache=use_cache,
             ttl=self.wfwx_settings.station_cache_expiry,
         )
         # Map list of stations into desired shape
@@ -365,7 +365,7 @@ class WfwxApi:
         self,
         station_codes: Optional[List[int]],
         fire_centre_station_codes: List[int],
-        use_no_cache_header: bool = False,
+        use_cache: bool = True,
     ) -> List[WFWXWeatherStation]:
         """Return the WFWX station ids from WFWX API given a list of station codes."""
 
@@ -374,7 +374,7 @@ class WfwxApi:
         # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
         # be called multiple times!
         wfwx_stations = await self.get_station_data(
-            mapper=wfwx_station_list_mapper, use_no_cache_header=use_no_cache_header
+            mapper=wfwx_station_list_mapper, use_cache=use_cache
         )
 
         # Default to all known WFWX station ids if no station codes are specified

@@ -1,7 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { fetchWeatherIndeterminates, submitMoreCastForecastRecords, WeatherDeterminate } from '@wps/api/moreCast2API'
+import {
+  fetchWeatherIndeterminates,
+  submitMoreCastForecastRecords,
+  WeatherDeterminate,
+  type WF1SkippedForecast
+} from '@wps/api/moreCast2API'
 import rootReducer from 'app/rootReducer'
 import { ROLES } from 'features/auth/roles'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
@@ -24,7 +29,9 @@ vi.mock('@wps/api/moreCast2API', async importOriginal => ({
 }))
 
 const timestamp = DateTime.utc(2030, 7, 4, 20)
-const skipped = [{ station_code: 1, station_name: 'Test station', for_date: timestamp.toMillis() }]
+const skipped: WF1SkippedForecast[] = [
+  { station_code: 1, station_name: 'Test station', for_date: timestamp.toMillis(), reason: 'actual_exists' }
+]
 
 const createPublishingStore = () => {
   const initial = rootReducer(undefined, { type: 'test' })
@@ -122,7 +129,7 @@ describe('MoreCast publishing', () => {
     vi.mocked(submitMoreCastForecastRecords).mockResolvedValue({
       success: true,
       wf1PublishedCount: 0,
-      wf1Skipped: skipped
+      wf1Skipped: [{ ...skipped[0], station_name: null, reason: 'station_unavailable' }]
     })
     const testStore = createPublishingStore()
     const stations = testStore.getState().selectedStations.selectedStations
@@ -134,6 +141,7 @@ describe('MoreCast publishing', () => {
     await waitFor(() => expect(testStore.getState().weatherIndeterminates.error).toBe('Error: refresh failed'))
     expect(testStore.getState().weatherIndeterminates.loading).toBe(false)
     expect(screen.getByRole('dialog', { name: 'Forecasts saved' })).toBeVisible()
+    expect(screen.getByRole('table')).toHaveTextContent('Station unavailable in WF1')
     expect(draft.hasDraftForecastStored()).toBe(false)
   })
 
