@@ -344,9 +344,7 @@ async def test_station_lookup_bypasses_stale_cache(
     client.fetch_access_token = AsyncMock(return_value={"access_token": "token123"})
     wfwx_api.wfwx_client = client
 
-    stations = await wfwx_api.get_wfwx_stations_from_station_codes(
-        [100, 200], [], use_cache=use_cache
-    )
+    stations = await wfwx_api.get_wfwx_stations_from_station_codes([100, 200], use_cache=use_cache)
 
     assert [station.code for station in stations] == expected_codes
     assert mock_session.get.call_count == int(not use_cache)
@@ -691,9 +689,7 @@ async def test_get_wfwx_stations_from_station_codes_specific(monkeypatch, wfwx_a
 
     monkeypatch.setattr(api_mod, "wfwx_station_list_mapper", fake_wfwx_station_list_mapper)
 
-    res = await wfwx_api.get_wfwx_stations_from_station_codes(
-        station_codes=[101, 999], fire_centre_station_codes=[101, 202]
-    )
+    res = await wfwx_api.get_wfwx_stations_from_station_codes(station_codes=[101, 999])
     assert [s.code for s in res] == [101]
     # The missing one logs an error; we just ensure function doesn’t crash
 

@@ -16,7 +16,6 @@ from cffdrs import (
 )
 from sqlalchemy.orm import Session
 from wps_shared import config
-from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
 from wps_shared.db.crud.morecast_v2 import get_forecasts_in_range
 from wps_shared.schemas.morecast_v2 import (
     MoreCastForecastInput,
@@ -196,10 +195,7 @@ async def format_as_wf1_post_forecasts(
     if not forecast_records:
         return WF1ForecastSubmission(forecasts=[], skipped=[], station_ids=[])
     station_codes = list({record.station_code for record in forecast_records})
-    fire_centre_station_codes = get_fire_centre_station_codes()
-    stations = await wfwx_api.get_wfwx_stations_from_station_codes(
-        station_codes, fire_centre_station_codes, use_cache=False
-    )
+    stations = await wfwx_api.get_wfwx_stations_from_station_codes(station_codes, use_cache=False)
     return await construct_wf1_forecasts(wfwx_api, forecast_records, stations, username)
 
 

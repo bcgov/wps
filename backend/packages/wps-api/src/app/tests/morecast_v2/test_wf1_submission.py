@@ -59,8 +59,7 @@ def http_error(status, message=""):
 
 
 @pytest.fixture
-def api(monkeypatch):
-    monkeypatch.setattr(forecasts, "get_fire_centre_station_codes", lambda: [])
+def api():
     result = AsyncMock(spec=WfwxApi)
     result.get_wfwx_stations_from_station_codes.return_value = STATIONS
     return result

@@ -210,10 +210,17 @@ def test_cache_failure_does_not_fail_submission(client, publishing, chatops, moc
     chatops.assert_not_called()
 
 
-def test_post_forecast_race_saves_full_batch_once(client, publishing, chatops, mocker):
+@pytest.mark.parametrize(
+    "prepared",
+    [
+        pytest.param(submission([2], [1]), id="new_actual"),
+        pytest.param(submission([], [], unavailable=[1, 2]), id="stations_unavailable"),
+    ],
+)
+def test_post_forecast_race_saves_full_batch_once(client, publishing, chatops, mocker, prepared):
     log_error = mocker.spy(app.routers.morecast_v2.logger, "error")
-    api, prepare, save, _cache = publishing
-    prepare.side_effect = [submission([1, 2], []), submission([2], [1])]
+    api, prepare, save, cache = publishing
+    prepare.side_effect = [submission([1, 2], []), prepared]
     api.post_forecasts.side_effect = [
         aiohttp.ClientResponseError(Mock(real_url="https://wf1/test"), (), status=400),
         None,
@@ -222,35 +229,15 @@ def test_post_forecast_race_saves_full_batch_once(client, publishing, chatops, m
     response = client.post(morecast_v2_post_url, json=forecast_batch())
 
     assert response.status_code == 201
-    assert response.json()["wf1_published_count"] == 1
-    assert response.json()["wf1_skipped"][0]["station_code"] == 1
-    save.assert_called_once()
-    assert len(save.call_args.args[1]) == 2
-    assert api.post_forecasts.await_count == 2
-    log_error.assert_not_called()
-    chatops.assert_not_called()
-
-
-def test_post_forecast_saves_full_batch_when_stations_become_unavailable(
-    client, publishing, chatops
-):
-    api, prepare, save, cache = publishing
-    skipped = submission([], [], unavailable=[1, 2])
-    prepare.side_effect = [submission([1, 2], []), skipped]
-    api.post_forecasts.side_effect = aiohttp.ClientResponseError(
-        Mock(real_url="https://wf1/test"), (), status=400
-    )
-
-    response = client.post(morecast_v2_post_url, json=forecast_batch())
-
-    assert response.status_code == 201
-    assert response.json()["wf1_published_count"] == 0
-    assert response.json()["wf1_skipped"] == [row.model_dump() for row in skipped.skipped]
+    assert response.json()["wf1_published_count"] == len(prepared.forecasts)
+    assert response.json()["wf1_skipped"] == [row.model_dump() for row in prepared.skipped]
     assert [row["station_code"] for row in response.json()["forecasts"]] == [1, 2]
     save.assert_called_once()
     assert [row.station_code for row in save.call_args.args[1]] == [1, 2]
-    api.post_forecasts.assert_awaited_once()
-    cache.assert_not_called()
+    assert api.post_forecasts.await_count == 1 + bool(prepared.forecasts)
+    assert {call.args[0] for call in cache.call_args_list} == set(prepared.station_ids)
+    assert cache.call_count == len(prepared.station_ids)
+    log_error.assert_not_called()
     chatops.assert_not_called()
 
 

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import math
 from datetime import datetime
-from typing import AsyncGenerator, Dict, List, Optional, Tuple
+from typing import AsyncGenerator, Dict, List, Optional, Sequence, Tuple
 
 from aiohttp import ClientSession
 from wps_shared import config
@@ -364,15 +364,13 @@ class WfwxApi:
     async def get_wfwx_stations_from_station_codes(
         self,
         station_codes: Optional[List[int]],
-        fire_centre_station_codes: List[int],
+        fire_centre_station_codes: Sequence[int] = (),
         use_cache: bool = True,
     ) -> List[WFWXWeatherStation]:
         """Return the WFWX station ids from WFWX API given a list of station codes."""
 
         # All WFWX stations are requested because WFWX returns a malformed JSON response when too
         # many station codes are added as query parameters.
-        # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
-        # be called multiple times!
         wfwx_stations = await self.get_station_data(
             mapper=wfwx_station_list_mapper, use_cache=use_cache
         )
