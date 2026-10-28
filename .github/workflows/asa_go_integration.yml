@@ -31,9 +31,6 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       contents: read
-    strategy:
-      matrix:
-        node-version: [24.x]
     name: Test JS
     steps:
       - name: Checkout
