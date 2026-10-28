@@ -239,7 +239,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v10.3.0
         with:
-          version: "0.13.3"
+          version: "0.13.4"
           python-version: ${{ matrix.python-version }}
           enable-cache: true
           cache-dependency-glob: openshift/s3-backup/docker/uv.lock

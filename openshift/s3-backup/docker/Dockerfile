@@ -21,7 +21,7 @@ RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
 
 RUN apt-get -y install python3
 
-COPY --from=ghcr.io/astral-sh/uv:0.13.3 /uv /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.4 /uv /bin/
 
 # Install locked dependencies into a venv and put it first on PATH, so the
 # scripts' plain `python3` calls pick it up.
