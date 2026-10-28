@@ -315,26 +315,23 @@ class TestMake4PanelCharts:
         assert runner._make_4panel_chart.call_count == 4
 
     @pytest.mark.anyio
-    async def test_output_name_contains_model_and_date_for_gdps(self):
+    @pytest.mark.parametrize(
+        ("model", "expected_name"),
+        [
+            (ECCCModel.GDPS, "GDPS_20260318T12Z_F006_4panel.png"),
+            ("GDPS", "GDPS_20260318T12Z_F006_4panel.png"),
+            (ECCCModel.RDPS, "RDPS_20260318T12Z_F006_4panel.png"),
+            ("RDPS", "RDPS_20260318T12Z_F006_4panel.png"),
+        ],
+    )
+    async def test_output_name_matches_frontend_for_enum_and_string_models(self, model, expected_name):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
         raster_mock = _raster_addresser_mock.WX4PanelChartAddresser.return_value
 
-        await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 3, 3, 3)
-
-        # The output filename (second arg to get_4panel_key) should embed model and date.
-        output_name = raster_mock.get_4panel_key.call_args[0][1]
-        assert "20260318" in output_name
-        assert "GDPS" in output_name
-
-    @pytest.mark.anyio
-    async def test_output_name_contains_rdps_for_rdps_model(self):
-        runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
-        raster_mock = _raster_addresser_mock.WX4PanelChartAddresser.return_value
-
-        await runner._make_4panel_charts(ECCCModel.RDPS, "20260318", "12", 3, 3, 3)
+        await runner._make_4panel_charts(model, "20260318", "12", 6, 6, 3)
 
         output_name = raster_mock.get_4panel_key.call_args[0][1]
-        assert "RDPS" in output_name
+        assert output_name == expected_name
 
     @pytest.mark.anyio
     async def test_output_key_is_checked_before_generating(self):

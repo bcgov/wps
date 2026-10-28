@@ -269,6 +269,7 @@ class FourPanelChartRunner:
         end_hour: int,
         step: int,
     ):
+        model_name = ECCCModel(model).value
         raster_addresser = WX4PanelChartAddresser(init_ymd, init_hh, model)
         config_builder = create_config_builder(model, init_ymd, init_hh)
         plotter_factory = PlotterFactory(model=model)
@@ -276,7 +277,7 @@ class FourPanelChartRunner:
             logger.info(
                 f"Start {model} 4 panel chart generation for hour {fh} of model run {init_ymd}T{init_hh}Z."
             )
-            output_name = f"{model}_{init_ymd}T{init_hh}Z_F{fh:03d}_4panel.png"
+            output_name = f"{model_name}_{init_ymd}T{init_hh}Z_F{fh:03d}_4panel.png"
             output_key = raster_addresser.get_4panel_key(fh, output_name)
 
             # If a 4panel chart already exists don't re-create it.
