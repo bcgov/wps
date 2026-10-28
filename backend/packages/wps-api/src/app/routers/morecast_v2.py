@@ -61,6 +61,14 @@ WF1_ERROR_MESSAGE = """
     """
 
 
+def _clear_wf1_cache(station_ids: list[str]) -> None:
+    for station_id in set(station_ids):
+        try:
+            clear_cache_matching(station_id)
+        except Exception:
+            logger.warning("Unable to clear WF1 cache for station %s", station_id, exc_info=True)
+
+
 async def _handle_wf1_submission_error(exc: Exception, forecast_count: int) -> ORJSONResponse:
     message = f"Error submitting {forecast_count} MoreCast forecasts to WF1"
     logger.error(
@@ -165,11 +173,11 @@ async def save_forecasts(
         try:
             wfwx_api = WfwxApi(client_session)
             submission = await publish_wf1_forecasts(wfwx_api, forecasts_list, username)
-
-            for station_id in submission.station_ids:
-                clear_cache_matching(station_id)
         except Exception as exc:
             return await _handle_wf1_submission_error(exc, len(forecasts_list))
+
+    # skipped stations need a fresh cache too so the grid can show the new actuals
+    _clear_wf1_cache(submission.station_ids)
 
     with get_write_session_scope() as db_session:
         save_all_forecasts(db_session, forecasts_to_save)

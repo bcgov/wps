@@ -24,6 +24,7 @@ export class MorecastDraftForecast {
 
     if (storedDraftString) {
       const storedDraft = JSON.parse(storedDraftString, restorePredictionItemNaN)
+      if (storedDraft.rows.length === 0) return
       for (const row of storedDraft.rows) {
         row.forDate = DateTime.fromISO(row.forDate, { setZone: true })
       }
@@ -78,7 +79,10 @@ export class MorecastDraftForecast {
 
   public reconcileWithActuals = (actuals: Pick<WeatherIndeterminate, 'station_code' | 'utc_timestamp'>[]) => {
     const storedDraft = this.getStoredDraftForecasts()
-    if (!storedDraft) return
+    if (!storedDraft) {
+      this.clearDraftForecasts()
+      return
+    }
 
     const actualKeys = new Set(
       actuals.map(actual => `${actual.station_code}:${DateTime.fromISO(actual.utc_timestamp).toMillis()}`)
@@ -86,7 +90,7 @@ export class MorecastDraftForecast {
     const rows = storedDraft.rows.filter(
       row => !isBeforeToday(row.forDate) && !actualKeys.has(`${row.stationCode}:${row.forDate.toMillis()}`)
     )
-    if (rows.length > 0 && rows.length === storedDraft.rows.length) return
+    if (rows.length === storedDraft.rows.length) return
 
     this.storeDraftForecasts({ ...storedDraft, rows })
   }
@@ -104,13 +108,12 @@ export class MorecastDraftForecast {
   }
 
   public hasDraftForecastStored = (): boolean => {
-    const localStoredForecast = this.getStoredDraftForecasts()
-    return !!localStoredForecast && localStoredForecast.rows.length > 0
+    return !!this.getStoredDraftForecasts()
   }
 
   public getLastSavedDraftDateTime = (): string | undefined => {
     const storedDraftForecast = this.getStoredDraftForecasts()
-    if (storedDraftForecast?.rows.length) {
+    if (storedDraftForecast) {
       return storedDraftForecast.lastEdited.toFormat('MMMM dd, HH:mm')
     }
   }

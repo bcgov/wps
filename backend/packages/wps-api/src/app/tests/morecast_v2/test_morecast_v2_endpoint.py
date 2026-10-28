@@ -168,6 +168,30 @@ def test_post_forecast_saves_full_batch(client, publishing, eligible, skipped, c
     assert all(row.temp == 10.0 and row.for_date.timestamp() * 1000 == 1 for row in saved)
     assert api.post_forecasts.await_count == int(bool(eligible))
     assert {call.args[0] for call in cache.call_args_list} == {"1", "2"}
+    assert cache.call_count == 2
+    log_error.assert_not_called()
+    chatops.assert_not_called()
+
+
+def test_cache_failure_does_not_fail_submission(client, publishing, chatops, mocker):
+    api, prepare, save, cache = publishing
+    prepared = submission([1, 2], [])
+    prepared.station_ids.append("1")
+    prepare.return_value = prepared
+    cache.side_effect = RuntimeError("Redis unavailable")
+    log_error = mocker.spy(app.routers.morecast_v2.logger, "error")
+    log_warning = mocker.spy(app.routers.morecast_v2.logger, "warning")
+
+    response = client.post(morecast_v2_post_url, json=forecast_batch())
+
+    assert response.status_code == 201
+    assert response.json()["wf1_published_count"] == 2
+    api.post_forecasts.assert_awaited_once()
+    save.assert_called_once()
+    assert [row.station_code for row in save.call_args.args[1]] == [1, 2]
+    assert {call.args[0] for call in cache.call_args_list} == {"1", "2"}
+    assert cache.call_count == 2
+    assert log_warning.call_count == 2
     log_error.assert_not_called()
     chatops.assert_not_called()
 

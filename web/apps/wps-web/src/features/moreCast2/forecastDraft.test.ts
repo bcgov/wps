@@ -200,8 +200,11 @@ describe('draft reconciliation', () => {
 
   it('hides the draft indicator for an empty stored draft and clears it on reconciliation', () => {
     seedDraft([])
+    const original = localStorage.getItem(draft.STORAGE_KEY)
+    expect(draft.getStoredDraftForecasts()).toBeUndefined()
     expect(draft.hasDraftForecastStored()).toBe(false)
     expect(draft.getLastSavedDraftDateTime()).toBeUndefined()
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBe(original)
 
     draft.reconcileWithActuals([])
 

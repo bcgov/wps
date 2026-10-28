@@ -2,7 +2,6 @@ import types
 from datetime import datetime, timezone
 
 import pytest
-
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 
 
@@ -768,40 +767,6 @@ async def test_get_dailies_for_stations_and_date(monkeypatch, wfwx_api):
         mapper=fake_mapper,
     )
     assert res == [{"mapped": 1}, {"mapped": 2}]
-
-
-@pytest.mark.anyio
-async def test_get_forecasts_for_stations_by_date_range(monkeypatch, wfwx_api):
-    async def fake_get_wfwx_stations(*args, **kwargs):
-        return [types.SimpleNamespace(wfwx_id="A", code=101)]
-
-    monkeypatch.setattr(wfwx_api, "get_wfwx_stations_from_station_codes", fake_get_wfwx_stations)
-
-    async def fake_dailies_generator(*args, **kwargs):
-        # validate flags forwarded
-        assert kwargs["check_cache"] is False
-        assert kwargs["use_no_cache_header"] is True
-        return async_gen([{"rec": 42}])
-
-    monkeypatch.setattr(wfwx_api, "get_dailies_generator", fake_dailies_generator)
-
-    async def fake_mapper(raw_gen, rec_type):
-        assert rec_type.name == "FORECAST"
-        items = []
-        async for it in raw_gen:
-            items.append({"mapped": it["rec"]})
-        return items
-
-    res = await wfwx_api.get_forecasts_for_stations_by_date_range(
-        start_time_of_interest=datetime(2025, 1, 1),
-        end_time_of_interest=datetime(2025, 1, 3),
-        unique_station_codes=[101],
-        fire_centre_station_codes=[101, 202],
-        check_cache=False,
-        mapper=fake_mapper,
-        use_no_cache_header=True,
-    )
-    assert res == [{"mapped": 42}]
 
 
 @pytest.mark.anyio

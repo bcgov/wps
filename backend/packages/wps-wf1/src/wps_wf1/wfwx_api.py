@@ -9,7 +9,7 @@ from wps_shared import config
 from wps_shared.db.models.forecasts import NoonForecast
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.fba import WFWXFireCentre
-from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WF1PostForecast
+from wps_shared.schemas.morecast_v2 import WF1PostForecast
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.schemas.stations import (
@@ -473,33 +473,6 @@ class WfwxApi:
         yesterday_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.ACTUAL)
 
         return yesterday_dailies
-
-    async def get_forecasts_for_stations_by_date_range(
-        self,
-        start_time_of_interest: datetime,
-        end_time_of_interest: datetime,
-        unique_station_codes: List[int],
-        fire_centre_station_codes: List[int],
-        check_cache=True,
-        mapper=dailies_list_mapper,
-        use_no_cache_header: bool = False,
-    ) -> List[StationDailyFromWF1]:
-        # get station information from the wfwx api
-        wfwx_stations = await self.get_wfwx_stations_from_station_codes(
-            unique_station_codes, fire_centre_station_codes, use_no_cache_header=use_no_cache_header
-        )
-        # get the daily forecasts for all the stations in the date range
-        raw_dailies = await self.get_dailies_generator(
-            wfwx_stations=wfwx_stations,
-            time_of_interest=start_time_of_interest,
-            end_time_of_interest=end_time_of_interest,
-            check_cache=check_cache,
-            use_no_cache_header=use_no_cache_header,
-        )
-
-        forecast_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.FORECAST)
-
-        return forecast_dailies
 
     async def get_daily_determinates_for_stations_and_date(
         self,
