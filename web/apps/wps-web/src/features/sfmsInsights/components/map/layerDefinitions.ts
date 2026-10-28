@@ -106,7 +106,7 @@ export const getSFMSNGRasterLayer = (
 }
 
 export const getFuelGridCOG = (token?: string) => {
-  const path = 'psu/cog/fbp2025_500m_cog.tif'
+  const path = 'sfms_ng/fuel/fbp2025_v2_3857_cog.tif'
   const url = `${API_BASE_URL}/object-store-proxy/${path}`
 
   const headers: Record<string, string> = {}
@@ -117,8 +117,7 @@ export const getFuelGridCOG = (token?: string) => {
   return new GeoTIFF({
     sources: [
       {
-        url,
-        nodata: -10000 // Primary nodata value for fuel raster
+        url
       }
     ],
     sourceOptions: {

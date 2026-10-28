@@ -133,6 +133,11 @@ describe('formatCriticalHoursTimeText', () => {
     expect(result).toEqual(['22:00', '06:00 tomorrow'])
   })
 
+  it('adds the timezone label to the end time before "tomorrow"', () => {
+    expect(formatCriticalHoursTimeText(13, 18, false, 'PCT')).toEqual(['13:00', '18:00 PCT'])
+    expect(formatCriticalHoursTimeText(22, 6, false, 'PCT')).toEqual(['22:00', '06:00 PCT tomorrow'])
+  })
+
   it('adds +1 when startTime and endTime are the same and endTime < 8', () => {
     const result = formatCriticalHoursTimeText(7, 7)
     expect(result).toEqual(['7', '7 (+1 day)'])
