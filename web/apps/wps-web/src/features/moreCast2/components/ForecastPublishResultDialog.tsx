@@ -12,6 +12,7 @@ import {
   TableRow
 } from '@mui/material'
 import type { WF1SkippedForecast } from '@wps/api/moreCast2API'
+import { toBCPacificTime } from '@wps/utils/date'
 import { DateTime } from 'luxon'
 
 export interface ForecastPublishResult {
@@ -56,7 +57,7 @@ const ForecastPublishResultDialog = ({ result, onClose }: Props) => (
               <TableRow key={`${row.station_code}-${row.for_date}`}>
                 <TableCell>{row.station_name}</TableCell>
                 <TableCell>{row.station_code}</TableCell>
-                <TableCell>{DateTime.fromMillis(row.for_date, { zone: 'America/Vancouver' }).toISODate()}</TableCell>
+                <TableCell>{toBCPacificTime(DateTime.fromMillis(row.for_date)).toISODate()}</TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -17,7 +17,6 @@ import {
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import { type MoreCastParams, theme } from '@wps/ui/theme'
-import { getDateTimeNowPST } from '@wps/utils/date'
 import { selectAuthentication } from 'app/rootReducer'
 import { ROLES } from 'features/auth/roles'
 import { type ColumnVis, DataGridColumns, getTabColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
@@ -39,6 +38,7 @@ import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'feat
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
 import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
+import { DateTime } from 'luxon'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch } from '@/app/store'
@@ -370,7 +370,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
       draftRows = draftRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
     }
-    storedDraftForecast.updateStoredDraftForecasts(draftRows, getDateTimeNowPST())
+    storedDraftForecast.updateStoredDraftForecasts(draftRows, DateTime.utc())
     let newRows = cloneDeep(allRows)
     newRows = newRows.map(newRow => draftRows.find(row => row.id === newRow.id) || newRow)
     setAllRows(newRows)
@@ -520,7 +520,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     const filteredRowsWithIndices = simulateFireWeatherIndices(filteredRows)
     // Merge rows that have been updated (ie. filledRows) with rows that have had indices added and save as a draft
     filledRows = filledRows.map(filledRow => filteredRowsWithIndices.find(row => row.id === filledRow.id) || filledRow)
-    storedDraftForecast.updateStoredDraftForecasts(filledRows, getDateTimeNowPST())
+    storedDraftForecast.updateStoredDraftForecasts(filledRows, DateTime.utc())
     let newRows = cloneDeep(allRows)
     // Merge the copy of existing rows with rows that were updated with simulated indices
     newRows = newRows.map(newRow => filledRows.find(row => row.id === newRow.id) || newRow)

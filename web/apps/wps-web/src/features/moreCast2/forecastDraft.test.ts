@@ -1,5 +1,4 @@
 import { ModelChoice } from '@wps/api/moreCast2API'
-import * as DateUtils from '@wps/utils/date'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import type { DraftMorecast2Rows, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
@@ -35,7 +34,7 @@ describe('MorecastDraftForecast', () => {
   ]
 
   it('should only store current forecast rows', () => {
-    vi.spyOn(DateUtils, 'getDateTimeNowPST').mockReturnValue(TEST_DATE)
+    vi.spyOn(Date, 'now').mockReturnValue(TEST_DATE.toMillis())
     const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE }
     const setSpy = vi.spyOn(localStorageMock, 'setItem')
 
@@ -98,7 +97,7 @@ describe('draft reconciliation', () => {
 
   beforeEach(() => {
     localStorage.clear()
-    vi.spyOn(DateUtils, 'getDateTimeNowPST').mockReturnValue(TEST_DATE)
+    vi.spyOn(Date, 'now').mockReturnValue(TEST_DATE.toMillis())
   })
 
   afterEach(() => {
@@ -153,6 +152,33 @@ describe('draft reconciliation', () => {
     draft.reconcileWithActuals([])
     draft.reconcileWithActuals([])
 
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBe(original)
+  })
+
+  it('expires yesterday at Pacific midnight while preserving today and the edit timestamp', () => {
+    vi.mocked(Date.now).mockReturnValue(DateTime.fromISO('2027-01-15T07:00:00Z', { zone: 'utc' }).toMillis())
+    const yesterday = buildValidForecastRow(111, DateTime.fromISO('2027-01-14T20:00:00Z', { zone: 'utc' }))
+    const today = buildValidForecastRow(111, yesterday.forDate.plus({ days: 1 }))
+    seedDraft([yesterday, today])
+
+    draft.reconcileWithActuals([])
+
+    const remaining = draft.getStoredDraftForecasts()!
+    expect(remaining.rows.map(row => row.id)).toEqual([today.id])
+    expect(remaining.rows[0].forDate.toMillis()).toBe(today.forDate.toMillis())
+    expect(remaining.lastEdited.toISO()).toBe(lastEdited.toISO())
+  })
+
+  it('displays an existing draft edit in Pacific time without changing storage', () => {
+    const edited = DateTime.fromISO('2026-11-01T23:30:00-08:00', { setZone: true })
+    localStorage.setItem(
+      draft.STORAGE_KEY,
+      JSON.stringify({ rows: [buildValidForecastRow(111, TEST_DATE)], lastEdited: edited })
+    )
+    const original = localStorage.getItem(draft.STORAGE_KEY)
+
+    expect(draft.getLastSavedDraftDateTime()).toBe('November 02, 00:30')
+    expect(draft.getStoredDraftForecasts()!.lastEdited.toMillis()).toBe(edited.toMillis())
     expect(localStorage.getItem(draft.STORAGE_KEY)).toBe(original)
   })
 

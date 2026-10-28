@@ -1,4 +1,5 @@
 import type { WeatherIndeterminate } from '@wps/api/moreCast2API'
+import { toBCPacificTime } from '@wps/utils/date'
 import type { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { getRowsMap, isBeforeToday, isForecastRow } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
@@ -114,7 +115,7 @@ export class MorecastDraftForecast {
   public getLastSavedDraftDateTime = (): string | undefined => {
     const storedDraftForecast = this.getStoredDraftForecasts()
     if (storedDraftForecast) {
-      return storedDraftForecast.lastEdited.toFormat('MMMM dd, HH:mm')
+      return toBCPacificTime(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
     }
   }
 }
