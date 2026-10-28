@@ -1,5 +1,11 @@
 import { DateTime } from 'luxon'
-import { formatISODateInPST, formatMonthAndDay, toBCPacificTime, getBCTimezoneLabel. formatDatetimeWithTimezone } from './date'
+import {
+  formatDatetimeWithTimezone,
+  formatISODateInPST,
+  formatMonthAndDay,
+  getBCTimezoneLabel,
+  toBCPacificTime
+} from './date'
 
 describe('Date util functions', () => {
   describe('toBCPacificTime', () => {
