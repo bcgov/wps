@@ -491,11 +491,11 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
         publishedCount: result.wf1PublishedCount,
         skipped: result.wf1Skipped
       })
-      fetchWeatherIndeterminates()
-      return
+    } else {
+      showSnackbar(FORECAST_SAVED_MESSAGE, 'success')
     }
 
-    showSnackbar(FORECAST_SAVED_MESSAGE, 'success')
+    fetchWeatherIndeterminates()
   }
 
   const handleResetButtonConfirm = () => {

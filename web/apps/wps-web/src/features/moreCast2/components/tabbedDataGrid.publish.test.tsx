@@ -3,6 +3,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import {
   fetchWeatherIndeterminates,
+  ModelChoice,
   submitMoreCastForecastRecords,
   WeatherDeterminate,
   type WF1SkippedForecast
@@ -125,11 +126,17 @@ describe('MoreCast publishing', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
   })
 
-  test('keeps the successful result if refresh fails', async () => {
+  test.each([
+    { outcome: 'all published', skippedRows: [] },
+    {
+      outcome: 'skipped',
+      skippedRows: [{ ...skipped[0], station_name: null, reason: 'station_unavailable' as const }]
+    }
+  ])('keeps the successful $outcome result if refresh fails', async ({ skippedRows }) => {
     vi.mocked(submitMoreCastForecastRecords).mockResolvedValue({
       success: true,
-      wf1PublishedCount: 0,
-      wf1Skipped: [{ ...skipped[0], station_name: null, reason: 'station_unavailable' }]
+      wf1PublishedCount: skippedRows.length === 0 ? 1 : 0,
+      wf1Skipped: skippedRows
     })
     const testStore = createPublishingStore()
     const stations = testStore.getState().selectedStations.selectedStations
@@ -140,8 +147,14 @@ describe('MoreCast publishing', () => {
     const { draft } = await renderPublishing(refresh, testStore)
     await waitFor(() => expect(testStore.getState().weatherIndeterminates.error).toBe('Error: refresh failed'))
     expect(testStore.getState().weatherIndeterminates.loading).toBe(false)
-    expect(screen.getByRole('dialog', { name: 'Forecasts saved' })).toBeVisible()
-    expect(screen.getByRole('table')).toHaveTextContent('Station unavailable in WF1')
+    if (skippedRows.length > 0) {
+      expect(screen.getByRole('dialog', { name: 'Forecasts saved' })).toBeVisible()
+      expect(screen.getByRole('table')).toHaveTextContent('Station unavailable in WF1')
+    } else {
+      expect(screen.getByRole('alert')).toHaveTextContent('Forecast was successfully saved and sent to Wildfire One.')
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    }
+    expect(refresh).toHaveBeenCalledTimes(1)
     expect(draft.hasDraftForecastStored()).toBe(false)
   })
 
@@ -154,14 +167,58 @@ describe('MoreCast publishing', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  test('shows normal success when every forecast publishes', async () => {
+  test('refreshes manual entries as forecasts when every forecast publishes', async () => {
+    localStorage.clear()
+    const testStore = createPublishingStore()
+    const { selectedStations, weatherIndeterminates } = testStore.getState()
+    const draft = new MorecastDraftForecast(localStorage)
+    const rows = selectAllMoreCast2Rows(testStore.getState()).map(row => ({
+      ...row,
+      tempForecast: { choice: ModelChoice.MANUAL, value: 42 }
+    }))
+    draft.createStoredForecast(rows, DateTime.now())
+    // rebuild the rows so the grid reads the manual draft
+    testStore.dispatch(
+      getWeatherIndeterminatesSuccess({
+        actuals: [],
+        forecasts: [...weatherIndeterminates.forecasts],
+        grassCuring: [],
+        predictions: []
+      })
+    )
     vi.mocked(submitMoreCastForecastRecords).mockResolvedValue({ success: true, wf1PublishedCount: 1, wf1Skipped: [] })
-    const { draft, refresh } = await renderPublishing()
+    vi.mocked(fetchWeatherIndeterminates).mockResolvedValue({
+      actuals: [],
+      forecasts: weatherIndeterminates.forecasts.map(forecast => ({ ...forecast, temperature: 42 })),
+      grassCuring: [],
+      predictions: []
+    })
+    const refresh = vi.fn(() => {
+      expect(draft.hasDraftForecastStored()).toBe(false)
+      testStore.dispatch(
+        getWeatherIndeterminates(selectedStations.selectedStations, timestamp.startOf('day'), timestamp.startOf('day'))
+      )
+    })
+    render(
+      <Provider store={testStore}>
+        <TabbedDataGrid fromTo={{}} setFromTo={vi.fn()} fetchWeatherIndeterminates={refresh} />
+      </Provider>
+    )
+    expect(await screen.findByRole('textbox', { name: 'MANUAL' })).toHaveValue('42')
+    await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Publish to WF1' })).toBeEnabled())
+    await userEvent.click(screen.getByRole('button', { name: 'Publish to WF1' }))
+
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Forecast was successfully saved and sent to Wildfire One.'
     )
     expect(draft.hasDraftForecastStored()).toBe(false)
-    expect(refresh).not.toHaveBeenCalled()
+    expect(refresh).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await waitFor(() => expect(testStore.getState().weatherIndeterminates.loading).toBe(false))
+    await userEvent.click(screen.getByTestId('temp-tab-button-unselected'))
+    expect(await screen.findByRole('textbox', { name: 'FORECAST' })).toHaveValue('42')
+    expect(screen.queryByRole('textbox', { name: 'MANUAL' })).not.toBeInTheDocument()
   })
 
   test('reconciles an actual on refresh and clears the final draft after publishing', async () => {
