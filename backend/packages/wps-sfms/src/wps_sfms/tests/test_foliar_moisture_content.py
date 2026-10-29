@@ -174,6 +174,41 @@ async def test_processor_loads_static_inputs_once_and_publishes_each_date_with_m
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("output_mask")
+@pytest.mark.parametrize(
+    "fuel_grid_value, expected_excluded",
+    [
+        pytest.param(99, True, id="non-fuel"),
+        pytest.param(102, True, id="water"),
+        pytest.param(1, False, id="combustible-fuel"),
+    ],
+)
+async def test_processor_passes_base_grid_non_fuel_and_water_mask_to_cog(
+    mocker: MockerFixture,
+    fuel_grid_value: int,
+    expected_excluded: bool,
+):
+    """Use BC base-grid classifications to exclude Non-fuel and water from the FMC COG."""
+    target_date = date(2024, 7, 4)
+    # make_datasets takes elevation values; fuel classification is set separately.
+    datasets = make_datasets(np.array([[100.0]]))
+    datasets.fuel.as_gdal_ds().GetRasterBand(1).WriteArray(np.array([[fuel_grid_value]]))
+    publish = mocker.patch(f"{MODULE_PATH}.publish_dataset", new=AsyncMock())
+    # The output is missing, but all required input rasters exist.
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(side_effect=[False, True]))
+
+    await FoliarMoistureContentProcessor(make_addresser()).process(
+        s3_client,
+        make_dataset_context(datasets, []),
+        make_inputs(target_date),
+    )
+
+    publish.assert_awaited_once()
+    expected_mask = np.array([[expected_excluded]], dtype=bool)
+    np.testing.assert_array_equal(publish.await_args.kwargs["cog_non_fuel_mask"], expected_mask)
+
+
+@pytest.mark.anyio
 async def test_processor_applies_bc_mask_to_published_output(
     mocker: MockerFixture,
     output_mask: WPSDataset,

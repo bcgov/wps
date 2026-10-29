@@ -344,6 +344,9 @@ class PrimaryFireBehaviourProcessor:
             with self._open_datasets(input_dataset_context, inputs) as datasets:
                 self._validate_grids(datasets)
                 result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
+                # Use national fuel classes (including water), not output zeros, to mask only the COGs.
+                fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
+                non_fuel_mask = NATIONAL_FUEL_TYPES.non_combustible_mask(fuel)
 
                 with open_bc_mask_dataset() as mask:
                     for output in result.raster_outputs():
@@ -360,6 +363,7 @@ class PrimaryFireBehaviourProcessor:
                                 s3_client=s3_client,
                                 dataset=output_ds,
                                 output_key=inputs.output_keys[output.parameter],
+                                cog_non_fuel_mask=non_fuel_mask,
                             )
                             logger.info(
                                 "Stored %s %s: %s (COG: %s)",
