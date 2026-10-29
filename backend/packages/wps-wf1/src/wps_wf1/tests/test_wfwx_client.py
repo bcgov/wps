@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 from urllib.parse import urlencode
 
 import pytest
+from aiohttp import ClientPayloadError, ClientResponse, ClientResponseError
 from wps_wf1.query_builders import BuildQuery
 from wps_wf1.wfwx_client import WfwxClient, _cache_key
 
@@ -482,3 +483,83 @@ class TestWfwxClientFetchStations:
         # Verify the correct URL was used
         expected_url = f"{wfwx_client.settings.base_url}/v1/stationGroups/{group_id}/members"
         wfwx_client.session.get.assert_called_once_with(expected_url, headers=headers)
+
+
+class TestWfwxClientPostForecasts:
+    @pytest.fixture
+    def posting(self, mock_session, mock_settings):
+        response = MagicMock(spec=ClientResponse)
+        mock_session.post.return_value.__aenter__.return_value = response
+        return WfwxClient(mock_session, mock_settings), response
+
+    @pytest.mark.anyio
+    async def test_success_does_not_read_body(self, posting):
+        client, response = posting
+        forecasts = [{"stationId": "1"}]
+        headers = {"Authorization": "Bearer token"}
+
+        await client.post_forecasts(headers, forecasts)
+
+        client.session.post.assert_called_once_with(
+            f"{client.settings.base_url}/v1/dailies/daily-bulk", json=forecasts, headers=headers
+        )
+        response.text.assert_not_awaited()
+
+    @pytest.mark.anyio
+    @pytest.mark.parametrize(
+        "status, body",
+        [
+            (400, '{"errors": null, "message": "ORA-00001: unique constraint violated"}'),
+            (503, "WF1 is unavailable"),
+            (400, ""),
+        ],
+    )
+    async def test_error_preserves_status_and_includes_body(self, posting, status, body, caplog):
+        client, response = posting
+        error = ClientResponseError(
+            MagicMock(real_url="https://wf1/test"), (), status=status, message="WF1 error"
+        )
+        response.raise_for_status.side_effect = error
+        response.text.return_value = body
+
+        with pytest.raises(ClientResponseError) as raised:
+            await client.post_forecasts({}, [])
+
+        assert raised.value is error
+        assert error.status == status
+        assert error.message == (f"WF1 error: {body}" if body else "WF1 error")
+        assert not caplog.records
+
+    @pytest.mark.anyio
+    async def test_long_error_body_is_truncated(self, posting):
+        client, response = posting
+        error = ClientResponseError(
+            MagicMock(real_url="https://wf1/test"), (), status=400, message="Bad Request"
+        )
+        response.raise_for_status.side_effect = error
+        response.text.return_value = "ORA-00001: " + "x" * 2000
+
+        with pytest.raises(ClientResponseError) as raised:
+            await client.post_forecasts({}, [])
+
+        assert raised.value is error
+        body = error.message.removeprefix("Bad Request: ")
+        assert len(body) <= 1000
+        assert body.startswith("ORA-00001: ")
+        assert body.endswith("[truncated]")
+
+    @pytest.mark.anyio
+    @pytest.mark.parametrize("body_error", [ClientPayloadError("incomplete body"), TimeoutError()])
+    async def test_body_read_failure_preserves_http_error(self, posting, body_error):
+        client, response = posting
+        error = ClientResponseError(
+            MagicMock(real_url="https://wf1/test"), (), status=400, message="Bad Request"
+        )
+        response.raise_for_status.side_effect = error
+        response.text.side_effect = body_error
+
+        with pytest.raises(ClientResponseError) as raised:
+            await client.post_forecasts({}, [])
+
+        assert raised.value is error
+        assert error.message == "Bad Request"

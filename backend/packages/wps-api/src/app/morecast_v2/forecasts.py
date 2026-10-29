@@ -1,25 +1,55 @@
+import logging
 from collections import defaultdict
-from datetime import datetime, time, timedelta, timezone
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Tuple
 from urllib.parse import urljoin
 
-from cffdrs import buildup_index, drought_code, duff_moisture_code, fine_fuel_moisture_code, fire_weather_index, initial_spread_index
+from aiohttp import ClientResponseError
+from cffdrs import (
+    buildup_index,
+    drought_code,
+    duff_moisture_code,
+    fine_fuel_moisture_code,
+    fire_weather_index,
+    initial_spread_index,
+)
 from sqlalchemy.orm import Session
 from wps_shared import config
-from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
 from wps_shared.db.crud.morecast_v2 import get_forecasts_in_range
 from wps_shared.schemas.morecast_v2 import (
     MoreCastForecastInput,
     MoreCastForecastOutput,
-    StationDailyFromWF1,
-    WF1ForecastRecordType,
-    WF1PostForecast,
     WeatherDeterminate,
     WeatherIndeterminate,
+    WF1ForecastRecordType,
+    WF1PostForecast,
+    WF1SkippedForecast,
 )
 from wps_shared.schemas.stations import WFWXWeatherStation
-from wps_shared.utils.time import vancouver_tz
+from wps_wf1.util import is_station_valid
 from wps_wf1.wfwx_api import WfwxApi
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class StationDailyKey:
+    station_code: int
+    weather_timestamp: int  # utc epoch milliseconds
+
+
+@dataclass
+class ExistingWF1Dailies:
+    forecasts: dict[StationDailyKey, dict]
+    observed_keys: set[StationDailyKey]
+
+
+@dataclass
+class WF1ForecastSubmission:
+    forecasts: list[WF1PostForecast]
+    skipped: list[WF1SkippedForecast]
+    station_ids: list[str]
 
 
 def get_forecasts(
@@ -52,11 +82,10 @@ def get_forecasts(
 
 def construct_wf1_forecast(
     forecast: MoreCastForecastInput,
-    stations: List[WFWXWeatherStation],
+    station: WFWXWeatherStation,
     forecast_id: Optional[str],
     created_by: Optional[str],
 ) -> WF1PostForecast:
-    station = next(filter(lambda obj: obj.code == forecast.station_code, stations))
     station_id = station.wfwx_id
     station_url = urljoin(
         config.get("WFWX_BASE_URL"), f"wfwx-fireweather-api/v1/stations/{station_id}"
@@ -78,71 +107,137 @@ def construct_wf1_forecast(
     return wf1_post_forecast
 
 
+async def _get_existing_wf1_dailies(
+    wfwx_api: WfwxApi,
+    forecast_records: List[MoreCastForecastInput],
+    stations: List[WFWXWeatherStation],
+) -> ExistingWF1Dailies:
+    existing = ExistingWF1Dailies(forecasts={}, observed_keys=set())
+    if not stations:
+        return existing
+    timestamps = [record.for_date for record in forecast_records]
+    dailies = await wfwx_api.get_dailies_generator(
+        wfwx_stations=stations,
+        time_of_interest=datetime.fromtimestamp(min(timestamps) / 1000, timezone.utc),
+        end_time_of_interest=datetime.fromtimestamp(max(timestamps) / 1000, timezone.utc),
+        check_cache=False,
+        use_no_cache_header=True,
+    )
+    async for daily in dailies:
+        if not is_station_valid(daily.get("stationData")):
+            continue
+        key = StationDailyKey(daily["stationData"]["stationCode"], daily["weatherTimestamp"])
+        record_type = daily["recordType"]["id"]
+        if record_type in ("ACTUAL", "MANUAL"):
+            existing.observed_keys.add(key)
+        elif record_type == "FORECAST":
+            existing.forecasts[key] = daily
+    return existing
+
+
 async def construct_wf1_forecasts(
     wfwx_api: WfwxApi,
     forecast_records: List[MoreCastForecastInput],
     stations: List[WFWXWeatherStation],
     username: str,
-) -> List[WF1PostForecast]:
-    # Fetch existing forecasts from WF1 for the stations and date range in the forecast records
-    forecast_dates = [
-        datetime.fromtimestamp(f.for_date / 1000, timezone.utc) for f in forecast_records
-    ]
-    min_forecast_date = min(forecast_dates)
-    max_forecast_date = max(forecast_dates)
-    start_time = datetime.combine(min_forecast_date, time.min, tzinfo=vancouver_tz)
-    end_time = datetime.combine(max_forecast_date, time.max, tzinfo=vancouver_tz)
-    unique_station_codes = list(set([f.station_code for f in forecast_records]))
-    fire_centre_station_codes = get_fire_centre_station_codes()
-    dailies = await wfwx_api.get_forecasts_for_stations_by_date_range(
-        start_time_of_interest=start_time,
-        end_time_of_interest=end_time,
-        unique_station_codes=unique_station_codes,
-        fire_centre_station_codes=fire_centre_station_codes,
-        check_cache=False,
-        use_no_cache_header=True,
+) -> WF1ForecastSubmission:
+    submission = WF1ForecastSubmission(
+        forecasts=[],
+        skipped=[],
+        station_ids=[station.wfwx_id for station in stations],
     )
+    if not forecast_records:
+        return submission
 
-    # Shape the WF1 dailies into a dictionary keyed by station codes for easier consumption
-    grouped_dailies = defaultdict(list[StationDailyFromWF1])
-    for daily in dailies:
-        grouped_dailies[daily.station_code].append(daily)
-
-    # iterate through the MoreCast2 forecast records and create WF1PostForecast objects
-    wf1_forecasts = []
+    existing = await _get_existing_wf1_dailies(wfwx_api, forecast_records, stations)
+    stations_by_code = {station.code: station for station in stations}
     for forecast in forecast_records:
-        forecast_timestamp = datetime.fromtimestamp(forecast.for_date / 1000, timezone.utc)
+        station = stations_by_code.get(forecast.station_code)
+        if station is None:
+            submission.skipped.append(
+                WF1SkippedForecast(
+                    station_code=forecast.station_code,
+                    station_name=None,
+                    for_date=forecast.for_date,
+                    reason="station_unavailable",
+                )
+            )
+            continue
+        key = StationDailyKey(forecast.station_code, forecast.for_date)
+        if key in existing.observed_keys:
+            submission.skipped.append(
+                WF1SkippedForecast(
+                    station_code=forecast.station_code,
+                    station_name=station.name,
+                    for_date=forecast.for_date,
+                    reason="actual_exists",
+                )
+            )
+            continue
         # Check if an existing daily was retrieved from WF1 and use id and createdBy attributes if present
-        observed_daily = next(
-            (
-                daily
-                for daily in grouped_dailies[forecast.station_code]
-                if daily.utcTimestamp == forecast_timestamp
-            ),
-            None,
+        daily = existing.forecasts.get(key)
+        submission.forecasts.append(
+            construct_wf1_forecast(
+                forecast,
+                station,
+                daily["id"] if daily is not None else None,
+                daily["createdBy"] if daily is not None else username,
+            )
         )
-        forecast_id = observed_daily.forecast_id if observed_daily is not None else None
-        created_by = observed_daily.created_by if observed_daily is not None else username
-        wf1_forecasts.append(construct_wf1_forecast(forecast, stations, forecast_id, created_by))
-    return wf1_forecasts
+    return submission
 
 
 async def format_as_wf1_post_forecasts(
     wfwx_api: WfwxApi,
     forecast_records: List[MoreCastForecastInput],
     username: str,
-) -> List[WF1PostForecast]:
-    """Returns list of forecast records re-formatted in the data structure WF1 API expects"""
-    station_codes = [record.station_code for record in forecast_records]
-    fire_centre_station_codes = get_fire_centre_station_codes()
-    stations = await wfwx_api.get_wfwx_stations_from_station_codes(
-        list(station_codes), fire_centre_station_codes
-    )
-    unique_stations = list(set(stations))
-    wf1_post_forecasts = await construct_wf1_forecasts(
-        wfwx_api, forecast_records, unique_stations, username
-    )
-    return wf1_post_forecasts
+) -> WF1ForecastSubmission:
+    if not forecast_records:
+        return WF1ForecastSubmission(forecasts=[], skipped=[], station_ids=[])
+    station_codes = list({record.station_code for record in forecast_records})
+    stations = await wfwx_api.get_wfwx_stations_from_station_codes(station_codes, use_cache=False)
+    return await construct_wf1_forecasts(wfwx_api, forecast_records, stations, username)
+
+
+async def publish_wf1_forecasts(
+    wfwx_api: WfwxApi,
+    forecast_records: List[MoreCastForecastInput],
+    username: str,
+    *,
+    max_retries: int = 1,
+) -> WF1ForecastSubmission:
+    if max_retries < 0:
+        raise ValueError("max_retries must be nonnegative")
+
+    submission = await format_as_wf1_post_forecasts(wfwx_api, forecast_records, username)
+    for attempt in range(max_retries + 1):
+        if not submission.forecasts:
+            return submission
+        try:
+            await wfwx_api.post_forecasts(forecasts=submission.forecasts)
+            return submission
+        except ClientResponseError as exc:
+            if exc.status != 400 or attempt == max_retries:
+                raise
+            skipped_keys = {
+                StationDailyKey(row.station_code, row.for_date) for row in submission.skipped
+            }
+            # a 400 rejects the whole batch, so rebuild from the original inputs
+            retry = await format_as_wf1_post_forecasts(wfwx_api, forecast_records, username)
+            # only newly skipped rows we tried to post explain the rejection
+            new_skipped_keys = {
+                StationDailyKey(row.station_code, row.for_date) for row in retry.skipped
+            } - skipped_keys
+            if not new_skipped_keys:
+                raise
+            logger.info(
+                "Retrying WF1 submission %s/%s after %s newly skipped forecasts",
+                attempt + 1,
+                max_retries,
+                len(new_skipped_keys),
+            )
+            submission = retry
+    return submission
 
 
 def actual_exists(forecast: WeatherIndeterminate, actuals: List[WeatherIndeterminate]):
@@ -317,11 +412,15 @@ def calculate_fwi_values(
             lat_adjust=True,
         )
     if today.fine_fuel_moisture_code is not None:
-        today.initial_spread_index = initial_spread_index(ffmc=today.fine_fuel_moisture_code, ws=today.wind_speed)
+        today.initial_spread_index = initial_spread_index(
+            ffmc=today.fine_fuel_moisture_code, ws=today.wind_speed
+        )
     if today.duff_moisture_code is not None and today.drought_code is not None:
         today.build_up_index = buildup_index(dmc=today.duff_moisture_code, dc=today.drought_code)
     if today.initial_spread_index is not None and today.build_up_index is not None:
-        today.fire_weather_index = fire_weather_index(isi=today.initial_spread_index, bui=today.build_up_index)
+        today.fire_weather_index = fire_weather_index(
+            isi=today.initial_spread_index, bui=today.build_up_index
+        )
 
     return today
 
