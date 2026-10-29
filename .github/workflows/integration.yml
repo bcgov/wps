@@ -248,7 +248,7 @@ jobs:
         run: uv sync --locked --no-build
       - name: Lint (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: uv run --locked --no-build ruff check *.py
+        run: uv run --locked --no-build ruff check ./*.py
       - name: Unit tests (s3-backup)
         working-directory: ./openshift/s3-backup/docker
         run: uv run --locked --no-build pytest -v

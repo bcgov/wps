@@ -19,7 +19,7 @@ then
     exit 1
 fi
 
-if [ -z "${CLUSTER_NAME}" ]
+if [[ -z "${CLUSTER_NAME}" ]]
 then
     echo "CLUSTER_NAME not specified"
     echo "Specify the postgres cluster name, e.g. wps-crunchydb-16-pr-###"
