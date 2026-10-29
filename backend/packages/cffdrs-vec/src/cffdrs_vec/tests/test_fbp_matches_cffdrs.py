@@ -16,6 +16,8 @@ single guvectorize call can't have more than 64 total input+output operands).
 Tight tolerance throughout: both sides run the exact same current formula.
 """
 
+import dataclasses
+
 import numpy as np
 import pytest
 from cffdrs.constants import FUEL_TYPE_CODES
@@ -24,7 +26,9 @@ from cffdrs.fire_behaviour_prediction import fire_behaviour_prediction
 from cffdrs_vec.fbp import (
     FBPOutput,
     FBPPrimaryOutput,
+    FBPSpreadOutput,
     vectorized_fire_behaviour_prediction,
+    vectorized_fire_behaviour_prediction_with_spread,
     vectorized_primary_fire_behaviour_prediction,
 )
 from cffdrs_vec.tests._glc_x_10_data import GLC_X_10_SOURCES
@@ -99,6 +103,7 @@ def test_vectorized_fire_behaviour_prediction_matches_fire_behaviour_prediction(
     )
     result = vectorized_fire_behaviour_prediction(*calculation_args)
     primary_result = vectorized_primary_fire_behaviour_prediction(*calculation_args)
+    with_spread_result = vectorized_fire_behaviour_prediction_with_spread(*calculation_args)
 
     all_output = [fire_behaviour_prediction(i, output="All") for i in fbp_inputs]
     wsv0 = np.array([fire_behaviour_prediction(i, output="WSV0") for i in fbp_inputs])
@@ -124,6 +129,23 @@ def test_vectorized_fire_behaviour_prediction_matches_fire_behaviour_prediction(
                 atol=1e-9,
                 err_msg=f"primary {field}",
             )
+            np.testing.assert_allclose(
+                getattr(with_spread_result.primary, field),
+                reference,
+                rtol=1e-9,
+                atol=1e-9,
+                err_msg=f"with_spread primary {field}",
+            )
+
+    for spread_field in dataclasses.fields(FBPSpreadOutput):
+        reference = np.array([getattr(r, spread_field.name) for r in all_output])
+        np.testing.assert_allclose(
+            getattr(with_spread_result.spread, spread_field.name),
+            reference,
+            rtol=1e-9,
+            atol=1e-9,
+            err_msg=f"with_spread {spread_field.name}",
+        )
 
 
 def test_vectorized_primary_fire_behaviour_prediction_accepts_scalar_inputs():

@@ -20,8 +20,8 @@ from wps_shared.sfms.raster_addresser import (
 from wps_shared.utils.time import assert_all_utc
 
 from wps_sfms.raster_inputs import (
-    FWIInputs,
     FoliarMoistureContentInputs,
+    FWIInputs,
     PrimaryFireBehaviourInputs,
 )
 
@@ -263,6 +263,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
                     FBPParameter.HFI,
                     FBPParameter.TFC,
                     FBPParameter.CFB,
+                    FBPParameter.FIRE_AREA_30MIN,
                 )
             },
             run_type=run_type,

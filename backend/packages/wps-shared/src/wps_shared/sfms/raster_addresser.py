@@ -36,6 +36,7 @@ class FBPParameter(enum.Enum):
     HFI = "hfi"
     TFC = "tfc"
     CFB = "cfb"
+    FIRE_AREA_30MIN = "fire_area_30min"
 
 
 class BaseRasterAddresser:

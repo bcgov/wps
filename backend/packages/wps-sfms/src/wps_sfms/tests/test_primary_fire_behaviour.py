@@ -16,6 +16,7 @@ from wps_shared.sfms.raster_addresser import FBPParameter
 from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.processors.primary_fire_behaviour import (
+    FIRE_AREA_TIME_HOURS,
     PrimaryFireBehaviourDatasets,
     PrimaryFireBehaviourProcessor,
     PrimaryFireBehaviourResult,
@@ -25,6 +26,23 @@ from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 TEST_DATETIME = datetime(2024, 7, 4, 20, tzinfo=timezone.utc)
+
+
+def patch_fbp_with_spread(mocker: MockerFixture):
+    """Replace the FBP calculation with fixed single-pixel results, returning the mock."""
+    return mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.vectorized_fire_behaviour_prediction_with_spread",
+        return_value=SimpleNamespace(
+            primary=SimpleNamespace(
+                sfc=np.array([1.0]),
+                ros=np.array([2.0]),
+                hfi=np.array([3.0]),
+                tfc=np.array([4.0]),
+                cfb=np.array([0.5]),
+            ),
+            spread=SimpleNamespace(dh=np.array([100.0]), db=np.array([10.0]), lbt=np.array([2.0])),
+        ),
+    )
 
 
 def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehaviourDatasets:
@@ -68,6 +86,7 @@ def make_inputs() -> PrimaryFireBehaviourInputs:
             FBPParameter.HFI: "sfms_ng/actual/2024/07/04/hfi_20240704.tif",
             FBPParameter.TFC: "sfms_ng/actual/2024/07/04/tfc_20240704.tif",
             FBPParameter.CFB: "sfms_ng/actual/2024/07/04/cfb_20240704.tif",
+            FBPParameter.FIRE_AREA_30MIN: "sfms_ng/actual/2024/07/04/fire_area_30min_20240704.tif",
         },
         run_type=RunType.ACTUAL,
     )
@@ -129,21 +148,61 @@ def test_calculation_matches_cffdrs_reference_and_derives_isi():
     assert result.cfb[0, 0] == pytest.approx(expected.cfb, rel=1e-3)
 
 
-def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
-    primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_primary_fire_behaviour_prediction",
-        return_value=SimpleNamespace(
-            sfc=np.array([1.0]),
-            ros=np.array([2.0]),
-            hfi=np.array([3.0]),
-            tfc=np.array([4.0]),
-            cfb=np.array([0.5]),
-        ),
+@pytest.mark.parametrize("grid_value,fuel_type", [(6.0, "C6"), (31.0, "O1A")])
+def test_fire_area_30min_matches_cffdrs_reference(grid_value: float, fuel_type: str):
+    """The area must match CFFDRS's 30 minute spread distances and length-to-breadth ratio."""
+    datasets = make_datasets(
+        np.array([[grid_value]]),
+        wind_direction=np.array([[225.0]]),
     )
+
+    result = calculate_primary_fire_behaviour(datasets, NATIONAL_FUEL_TYPES)
+
+    # CFFDRS returns the distances and length-to-breadth ratio at the time of interest (0.5 hr)
+    reference = cffdrs.fire_behaviour_prediction.fire_behaviour_prediction(
+        cffdrs.models.FBPInput(
+            fuel_type=fuel_type,
+            ffmc=90.0,
+            bui=60.0,
+            ws=10.0,
+            wd=225.0,
+            gs=5.0,
+            aspect=50.0,
+            pc=50.0,
+            fmc=100.0,
+            isi=0.0,
+            lat=0.0,
+            lon=0.0,
+            elv=0.0,
+            cc=65.0,
+            gfl=0.35,
+            hr=0.5,
+            accel=True,
+        ),
+        "All",
+    )
+    # equation 86, ST-X-3 page 49
+    expected_area_ha = (np.pi * (reference.dh + reference.db) ** 2) / (40000.0 * reference.lbt)
+    assert result.fire_area_30min[0, 0] == pytest.approx(expected_area_ha, rel=1e-3)
+
+
+def test_passes_zero_isi_to_primary_fbp(mocker: MockerFixture):
+    primary_fbp = patch_fbp_with_spread(mocker)
 
     calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), NATIONAL_FUEL_TYPES)
 
     np.testing.assert_array_equal(primary_fbp.call_args.args[14], np.array([0.0]))
+
+
+def test_passes_fire_area_time_and_accelerating_spread_to_fbp(mocker: MockerFixture):
+    primary_fbp = patch_fbp_with_spread(mocker)
+
+    calculate_primary_fire_behaviour(make_datasets(np.array([[6.0]])), NATIONAL_FUEL_TYPES)
+
+    # the fire area needs the spread at 30 minutes (hr) from a point ignition (accel)
+    call_args = primary_fbp.call_args.args
+    np.testing.assert_array_equal(call_args[22], np.array([FIRE_AREA_TIME_HOURS]))
+    np.testing.assert_array_equal(call_args[24], np.array([1]))
 
 
 # O1a and O1b are the only fuel types whose spread depends on curing
@@ -189,16 +248,7 @@ def test_missing_grass_curing_on_grass_pixel_fails():
 
 
 def test_missing_grass_curing_off_grass_passes_zero_curing(mocker: MockerFixture):
-    primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_primary_fire_behaviour_prediction",
-        return_value=SimpleNamespace(
-            sfc=np.array([1.0]),
-            ros=np.array([2.0]),
-            hfi=np.array([3.0]),
-            tfc=np.array([4.0]),
-            cfb=np.array([0.5]),
-        ),
-    )
+    primary_fbp = patch_fbp_with_spread(mocker)
     datasets = make_datasets(
         np.array([NATIONAL_FUEL_TYPES.grid_values("C2")]),
         grass_curing=np.array([[TEST_INPUT_NODATA]]),
@@ -247,16 +297,7 @@ def test_sfc_matches_standalone_reference(grid_value: int, fuel_type: str, perce
 
 
 def test_normalizes_directions_and_clamps_slope_before_primary_fbp(mocker: MockerFixture):
-    primary_fbp = mocker.patch(
-        "wps_sfms.processors.primary_fire_behaviour.vectorized_primary_fire_behaviour_prediction",
-        return_value=SimpleNamespace(
-            sfc=np.array([1.0]),
-            ros=np.array([2.0]),
-            hfi=np.array([3.0]),
-            tfc=np.array([4.0]),
-            cfb=np.array([0.5]),
-        ),
-    )
+    primary_fbp = patch_fbp_with_spread(mocker)
 
     calculate_primary_fire_behaviour(
         make_datasets(
@@ -302,6 +343,7 @@ def test_aspect_nodata_is_preserved_when_slope_is_clamped_to_zero():
     np.testing.assert_array_equal(result.hfi, expected)
     np.testing.assert_array_equal(result.tfc, expected)
     np.testing.assert_array_equal(result.cfb, expected)
+    np.testing.assert_array_equal(result.fire_area_30min, expected)
 
 
 def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
@@ -315,6 +357,7 @@ def test_non_fuel_becomes_zero_and_source_nodata_remains_sfms_nodata():
     np.testing.assert_array_equal(result.hfi, expected)
     np.testing.assert_array_equal(result.tfc, expected)
     np.testing.assert_array_equal(result.cfb, expected)
+    np.testing.assert_array_equal(result.fire_area_30min, expected)
 
 
 def test_non_fuel_becomes_zero_when_other_inputs_are_nodata():
@@ -331,6 +374,7 @@ def test_non_fuel_becomes_zero_when_other_inputs_are_nodata():
     np.testing.assert_array_equal(result.hfi, np.zeros((1, 2), dtype=np.float32))
     np.testing.assert_array_equal(result.tfc, np.zeros((1, 2), dtype=np.float32))
     np.testing.assert_array_equal(result.cfb, np.zeros((1, 2), dtype=np.float32))
+    np.testing.assert_array_equal(result.fire_area_30min, np.zeros((1, 2), dtype=np.float32))
 
 
 @pytest.mark.parametrize(
@@ -350,6 +394,7 @@ def test_required_input_nodata_becomes_sfms_nodata(input_name: str):
     assert result.hfi[0, 0] == SFMS_NO_DATA
     assert result.tfc[0, 0] == SFMS_NO_DATA
     assert result.cfb[0, 0] == SFMS_NO_DATA
+    assert result.fire_area_30min[0, 0] == SFMS_NO_DATA
 
 
 @pytest.mark.parametrize("fmc", [TEST_INPUT_NODATA, np.nan, 0.0, -1.0, 120.1])
@@ -363,6 +408,7 @@ def test_invalid_fmc_becomes_sfms_nodata(fmc: float):
     assert result.hfi[0, 0] == SFMS_NO_DATA
     assert result.tfc[0, 0] == SFMS_NO_DATA
     assert result.cfb[0, 0] == SFMS_NO_DATA
+    assert result.fire_area_30min[0, 0] == SFMS_NO_DATA
 
 
 @pytest.mark.parametrize("fmc", [0.1, 120.0])
@@ -387,7 +433,7 @@ def test_processor_binds_opened_datasets_by_input_key():
 
 
 @pytest.mark.anyio
-async def test_processor_publishes_five_outputs_with_values_and_metadata(
+async def test_processor_publishes_six_outputs_with_values_and_metadata(
     mocker: MockerFixture,
     output_mask: WPSDataset,
 ):
@@ -425,6 +471,7 @@ async def test_processor_publishes_five_outputs_with_values_and_metadata(
             hfi=np.array([[3.0]], dtype=np.float32),
             tfc=np.array([[4.0]], dtype=np.float32),
             cfb=np.array([[0.5]], dtype=np.float32),
+            fire_area_30min=np.array([[6.0]], dtype=np.float32),
             nodata_value=SFMS_NO_DATA,
         ),
     )
@@ -469,6 +516,13 @@ async def test_processor_publishes_five_outputs_with_values_and_metadata(
             "unit": "fraction",
             "nodata": pytest.approx(SFMS_NO_DATA),
             "value": pytest.approx(0.5),
+        },
+        {
+            "output_key": inputs.output_keys[FBPParameter.FIRE_AREA_30MIN],
+            "description": "fire_area_30min",
+            "unit": "ha",
+            "nodata": pytest.approx(SFMS_NO_DATA),
+            "value": pytest.approx(6.0),
         },
     ]
     clear_cache.assert_called_once_with()
