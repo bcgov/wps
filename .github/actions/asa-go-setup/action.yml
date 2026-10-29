@@ -8,13 +8,13 @@ runs:
       id: setup-node
       uses: actions/setup-node@v7
       with:
-        node-version: "26"
+        node-version-file: .nvmrc
 
     - uses: actions/cache@v6
       id: asa-go-keycloak-cache
       with:
         path: mobile/keycloak/node_modules
-        key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-modules-${{ hashFiles('**/yarn.lock') }}
+        key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-keycloak-${{ hashFiles('mobile/keycloak/yarn.lock') }}
 
     - name: Install keycloak plugin
       if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
@@ -31,7 +31,7 @@ runs:
       id: asa-go-cache
       with:
         path: mobile/asa-go/node_modules
-        key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-modules-${{ hashFiles('**/yarn.lock') }}
+        key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-asa-go-${{ hashFiles('mobile/asa-go/yarn.lock', 'mobile/keycloak/yarn.lock') }}
 
     - name: Install dependencies
       if: steps.asa-go-cache.outputs.cache-hit != 'true'

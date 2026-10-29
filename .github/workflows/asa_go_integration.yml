@@ -5,8 +5,10 @@ on:
     branches:
       - main
     paths:
+      - ".nvmrc"
       - "mobile/**"
       - "biome.json"
+      - ".github/actions/asa-go-setup/**"
       - ".github/workflows/asa_go_*.yml"
 
 jobs:

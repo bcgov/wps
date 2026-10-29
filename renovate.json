@@ -15,6 +15,16 @@
         "@sentry/react"
       ],
       "allowedVersions": "10.69.0"
+    },
+    {
+      "matchPackageNames": [
+        "node",
+        "library/node",
+        "docker.io/library/node",
+        "@types/node"
+      ],
+      "groupName": "Node.js",
+      "groupSlug": "nodejs"
     }
   ]
 }
