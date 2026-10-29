@@ -32,6 +32,7 @@ echo Promote
 MODULE_NAME=api bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=web bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=jobs bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
+MODULE_NAME=s3-backup bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 
 # wps-weather lives on GHCR now, promoted via a registry-side copy rather than `oc tag`.
 # wps-weather isn't always rebuilt if nothing in it changed, in which case there's no PR

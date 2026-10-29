@@ -19,9 +19,8 @@ parameters:
     required: true
   - name: "SOURCE_IMAGE_NAME"
     displayName: "Source Image Name"
-    description: "The name of the image to use for this resource."
+    description: "The name of the image to use for this resource, e.g. wps-s3-backup-pr-### or wps-s3-backup-prod"
     required: true
-    value: "s3-backup"
   - name: "IMAGE_NAMESPACE"
     displayName: "Image Namespace"
     description: "The namespace of the OpenShift project containing the imagestream for the application."
@@ -29,9 +28,8 @@ parameters:
     value: "e1e498-tools"
   - name: "TAG_NAME"
     displayName: "Environment TAG name"
-    description: "The TAG name for this environment, e.g., dev, test, prod"
+    description: "The TAG name for this environment, e.g. pr-### or prod"
     required: true
-    value: "dev"
   - name: DATABASE_USER
     value: wps
     required: true

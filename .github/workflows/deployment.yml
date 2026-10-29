@@ -57,6 +57,9 @@ jobs:
             module: jobs
             docker_file: Dockerfile.jobs
             path_bc: openshift/templates/wps_jobs/wps_jobs_build.yaml
+          - name: S3 Backup
+            module: s3-backup
+            path_bc: openshift/s3-backup/openshift/build.yaml
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
