@@ -37,4 +37,4 @@ RUN uv sync --locked --no-dev --no-build
 COPY backup_to_s3.sh cleanup_bucket.sh prune.py prune_test.py ./
 
 # Configure the default command to run.
-CMD bash backup_to_s3.sh
+CMD ["bash", "backup_to_s3.sh"]
