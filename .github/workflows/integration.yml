@@ -177,6 +177,9 @@ jobs:
       - uses: rharkor/caching-for-turbo@760158c05c47e7a764f78e9a22ca3b5a6ed8c52e # v2.5.2
         with:
           cache-prefix: turbogha_${{ runner.os }}_node${{ steps.setup-node.outputs.node-version }}_
+        # install Corepack explicitly because Node 26 no longer bundles it
+      - name: Install Corepack
+        run: npm install --global corepack@0.36.0 && corepack enable
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
