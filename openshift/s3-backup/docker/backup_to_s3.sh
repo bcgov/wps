@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Fail the job if any step fails, including pg_dump inside the upload pipeline.
+set -euo pipefail
+
 # usage example:
 # PG_PASSWORD=wps PG_HOSTNAME=localhost PG_PORT=5432 PG_USER=wps PG_DATABASE=wps AWS_HOSTNAME=[your aws hostname] AWS_ACCESS_KEY=[your access key] AWS_SECRET_KEY=[your secret key] AWS_BUCKET=[your aws bucket] ./backup_to_s3.sh
 
@@ -73,10 +76,24 @@ _datestamp=`date +\%Y/\%m`
 _target_filename="${PG_HOSTNAME}_${PG_DATABASE}_${_timestamp}.sql.gz"
 _target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
 
+_target_path="s3://${AWS_BUCKET}/backup/${_target_folder}/${_target_filename}"
+
+export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}"
+export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}"
+
 # Using the official aws cli to upload the database back to S3:
 # pg_dump | gzip | aws s3:
-# this is tested and works.
-PGPASSWORD="${PG_PASSWORD}" pg_dump -Fp -h "${PG_HOSTNAME}" -p ${PG_PORT} -U "${PG_USER}" -n "public" --no-owner "${PG_DATABASE}" | gzip | AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}" AWS_SECRET_ACCESS_KEY="${AWS_SECRET_KEY}" aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "s3://${AWS_BUCKET}/backup/${_target_folder}/${_target_filename}"
+echo "Backing up ${PG_DATABASE} on ${PG_HOSTNAME} to ${_target_path}"
+if ! PGPASSWORD="${PG_PASSWORD}" pg_dump -Fp -h "${PG_HOSTNAME}" -p ${PG_PORT} -U "${PG_USER}" -n "public" --no-owner "${PG_DATABASE}" | gzip | aws --endpoint="https://${AWS_HOSTNAME}" s3 cp - "${_target_path}"
+then
+    # Don't leave a truncated or empty dump behind for prune.py to count as a backup.
+    echo "Backup failed, removing ${_target_path}"
+    aws --endpoint="https://${AWS_HOSTNAME}" s3 rm "${_target_path}" || true
+    exit 1
+fi
+echo "Uploaded: $(aws --endpoint="https://${AWS_HOSTNAME}" s3 ls "${_target_path}")"
 
 # Run python code to prune old backups.
+echo "Pruning old backups"
 python3 prune.py
+echo "Done"
