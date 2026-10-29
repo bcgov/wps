@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, AsyncGenerator, Dict, Optional
 from urllib.parse import urlencode
 
-from aiohttp import BasicAuth, ClientSession
+from aiohttp import BasicAuth, ClientResponse, ClientResponseError, ClientSession
 
 from wps_wf1.cache_protocol import CacheProtocol
 from wps_wf1.query_builders import BuildQuery
@@ -13,6 +13,19 @@ from wps_wf1.wfwx_settings import WfwxSettings
 logger = logging.getLogger(__name__)
 
 DEFAULT_TTL = 86400
+ERROR_BODY_MAX_LENGTH = 1000
+
+
+async def _get_error_body(response: ClientResponse) -> str:
+    try:
+        body = (await response.text(errors="replace")).strip()
+    except Exception:
+        # a failed body read should not hide the original http error
+        return ""
+    if len(body) <= ERROR_BODY_MAX_LENGTH:
+        return body
+    suffix = "... [truncated]"
+    return body[: ERROR_BODY_MAX_LENGTH - len(suffix)] + suffix
 
 
 def _cache_key(url: str, params: Dict[str, Any]) -> str:
@@ -153,9 +166,15 @@ class WfwxClient:
         async with self.session.get(url, headers=headers) as resp:
             resp.raise_for_status()
             return await resp.json()
-        
+
     async def post_forecasts(self, headers, forecasts_json):
         url = f"{self.settings.base_url}/v1/dailies/daily-bulk"
         async with self.session.post(url, json=forecasts_json, headers=headers) as response:
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except ClientResponseError as exc:
+                body = await _get_error_body(response)
+                if body:
+                    exc.message = f"{exc.message}: {body}"
+                raise
         logger.info("submitted forecasts to wf1..")

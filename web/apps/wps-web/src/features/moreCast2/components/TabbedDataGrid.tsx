@@ -17,11 +17,13 @@ import {
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import { type MoreCastParams, theme } from '@wps/ui/theme'
-import { getDateTimeNowPST } from '@wps/utils/date'
 import { selectAuthentication } from 'app/rootReducer'
 import { ROLES } from 'features/auth/roles'
 import { type ColumnVis, DataGridColumns, getTabColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
+import ForecastPublishResultDialog, {
+  type ForecastPublishResult
+} from 'features/moreCast2/components/ForecastPublishResultDialog'
 import ForecastSummaryDataGrid from 'features/moreCast2/components/ForecastSummaryDataGrid'
 import MoreCast2DateRangePicker from 'features/moreCast2/components/MoreCast2DateRangePicker'
 import MoreCast2Snackbar from 'features/moreCast2/components/MoreCast2Snackbar'
@@ -36,6 +38,7 @@ import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'feat
 import { selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
 import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
+import { DateTime } from 'luxon'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch } from '@/app/store'
@@ -195,6 +198,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   const [columnGroupingModel, setColumnGroupingModel] = useState<GridColumnGroupingModel>([])
 
   const [showResetDialog, setShowResetDialog] = useState(false)
+  const [publishResult, setPublishResult] = useState<ForecastPublishResult | null>(null)
 
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = (params, event) => {
     if (
@@ -366,7 +370,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       const filteredRowsWithIndices = simulateFireWeatherIndices(rowsForSimulation)
       draftRows = draftRows.map(newRow => filteredRowsWithIndices.find(row => row.id === newRow.id) || newRow)
     }
-    storedDraftForecast.updateStoredDraftForecasts(draftRows, getDateTimeNowPST())
+    storedDraftForecast.updateStoredDraftForecasts(draftRows, DateTime.utc())
     let newRows = cloneDeep(allRows)
     newRows = newRows.map(newRow => draftRows.find(row => row.id === newRow.id) || newRow)
     setAllRows(newRows)
@@ -459,27 +463,39 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     }
   }
 
+  const showSnackbar = (message: string, severity: AlertColor) => {
+    setSnackbarMessage(message)
+    setSnackbarSeverity(severity)
+    setSnackbarOpen(true)
+  }
+
   const handleSaveClick = async () => {
     const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
 
-    if (isRequiredInputSet(rowsToSave)) {
-      const result = await submitMoreCastForecastRecords(rowsToSave)
-      if (result.success) {
-        setSnackbarMessage(FORECAST_SAVED_MESSAGE)
-        setSnackbarSeverity('success')
-        setSnackbarOpen(true)
-        storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave, getDateTimeNowPST())
-      } else {
-        setSnackbarMessage(result.errorMessage ?? FORECAST_ERROR_MESSAGE)
-        setSnackbarSeverity('error')
-        setSnackbarOpen(true)
-      }
-    } else {
+    if (!isRequiredInputSet(rowsToSave)) {
       dispatch(setRequiredInputEmpty({ empty: true }))
-      setSnackbarMessage(FORECAST_WARN_MESSAGE)
-      setSnackbarSeverity('warning')
-      setSnackbarOpen(true)
+      showSnackbar(FORECAST_WARN_MESSAGE, 'warning')
+      return
     }
+
+    const result = await submitMoreCastForecastRecords(rowsToSave)
+    if (!result.success) {
+      showSnackbar(result.errorMessage ?? FORECAST_ERROR_MESSAGE, 'error')
+      return
+    }
+
+    storedDraftForecast.deleteRowsFromStoredDraft(rowsToSave)
+    if (result.wf1Skipped.length > 0) {
+      setPublishResult({
+        savedCount: rowsToSave.length,
+        publishedCount: result.wf1PublishedCount,
+        skipped: result.wf1Skipped
+      })
+    } else {
+      showSnackbar(FORECAST_SAVED_MESSAGE, 'success')
+    }
+
+    fetchWeatherIndeterminates()
   }
 
   const handleResetButtonConfirm = () => {
@@ -504,7 +520,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     const filteredRowsWithIndices = simulateFireWeatherIndices(filteredRows)
     // Merge rows that have been updated (ie. filledRows) with rows that have had indices added and save as a draft
     filledRows = filledRows.map(filledRow => filteredRowsWithIndices.find(row => row.id === filledRow.id) || filledRow)
-    storedDraftForecast.updateStoredDraftForecasts(filledRows, getDateTimeNowPST())
+    storedDraftForecast.updateStoredDraftForecasts(filledRows, DateTime.utc())
     let newRows = cloneDeep(allRows)
     // Merge the copy of existing rows with rows that were updated with simulated indices
     newRows = newRows.map(newRow => filledRows.find(row => row.id === newRow.id) || newRow)
@@ -661,6 +677,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           processRowUpdate={processRowUpdate}
         />
       )}
+      <ForecastPublishResultDialog result={publishResult} onClose={() => setPublishResult(null)} />
       <MoreCast2Snackbar
         autoHideDuration={6000}
         handleClose={() => setSnackbarOpen(false)}

@@ -125,6 +125,8 @@ export const getWeatherIndeterminates =
         grassCuring,
         predictions
       }
+      // use returned actuals so placeholder readings never discard a draft
+      morecastDraftForecast.reconcileWithActuals(data.actuals)
       dispatch(getWeatherIndeterminatesSuccess(payload))
     } catch (err) {
       dispatch(getWeatherIndeterminatesFailed((err as Error).toString()))
