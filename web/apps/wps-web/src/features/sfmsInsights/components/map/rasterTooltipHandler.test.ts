@@ -67,6 +67,7 @@ describe('getRasterTooltipData', () => {
       ['tfc', 'tfc' as const, 'TFC'],
       ['cfb', 'cfb' as const, 'CFB'],
       ['hfi', 'hfi' as const, 'HFI'],
+      ['fire_area_30min', 'fire_area_30min' as const, 'Fire Size, 30 minutes'],
       ['fmc', 'fmc' as const, 'FMC'],
       ['undefined defaults to FWI', undefined, 'FWI']
     ])('%s -> %s', (_description, rasterType, expectedLabel) => {
@@ -98,9 +99,10 @@ describe('getRasterTooltipData', () => {
     expect(getRasterTooltipData(new Float32Array([input]), 'cfb')).toEqual({ value: expected, label: 'CFB' })
   })
 
-  it('should show TFC with one decimal and HFI as a whole number', () => {
+  it('should show TFC/Fire Size, 30 minutes with one decimal and HFI as a whole number', () => {
     expect(getRasterTooltipData(new Float32Array([7.64]), 'tfc').value).toBe(7.6)
     expect(getRasterTooltipData(new Float32Array([1234.6]), 'hfi').value).toBe(1235)
+    expect(getRasterTooltipData(new Float32Array([12.34]), 'fire_area_30min').value).toBe(12.3)
   })
 
   it.each([

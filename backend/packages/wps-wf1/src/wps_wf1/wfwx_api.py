@@ -2,14 +2,14 @@ import asyncio
 import logging
 import math
 from datetime import datetime
-from typing import AsyncGenerator, Dict, List, Optional, Tuple
+from typing import AsyncGenerator, Dict, List, Optional, Sequence, Tuple
 
 from aiohttp import ClientSession
 from wps_shared import config
 from wps_shared.db.models.forecasts import NoonForecast
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.fba import WFWXFireCentre
-from wps_shared.schemas.morecast_v2 import StationDailyFromWF1, WF1PostForecast
+from wps_shared.schemas.morecast_v2 import WF1PostForecast
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.schemas.stations import (
@@ -68,7 +68,7 @@ class WfwxApi:
             user=config.get("WFWX_USER"),
             secret=config.get("WFWX_SECRET"),
             auth_cache_expiry=int(config.get("REDIS_AUTH_CACHE_EXPIRY", 600)),
-            station_cache_expiry=int(config.get("REDIS_STATION_CACHE_EXPIRY", 604800)),
+            station_cache_expiry=int(config.get("REDIS_STATION_CACHE_EXPIRY", 86400)),
             hourlies_by_station_code_expiry=int(
                 config.get("REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY", 300)
             ),
@@ -118,19 +118,19 @@ class WfwxApi:
             logger.debug("total stations: %d", len(stations))
             return stations
 
-    async def get_station_data(self, mapper=station_list_mapper, use_no_cache_header: bool = False):
+    async def get_station_data(self, mapper=station_list_mapper, use_cache: bool = True):
         """Get list of stations from WFWX Fireweather API."""
         logger.info("Using WFWX to retrieve station list")
-        if use_no_cache_header:
-            header = await self._get_no_cache_auth_header()
-        else:
+        if use_cache:
             header = await self._get_auth_header()
+        else:
+            header = await self._get_no_cache_auth_header()
         # Iterate through "raw" station data.
         raw_stations = self.wfwx_client.fetch_paged_response_generator(
             header,
             BuildQueryStations(),
             "stations",
-            use_cache=True,
+            use_cache=use_cache,
             ttl=self.wfwx_settings.station_cache_expiry,
         )
         # Map list of stations into desired shape
@@ -364,17 +364,15 @@ class WfwxApi:
     async def get_wfwx_stations_from_station_codes(
         self,
         station_codes: Optional[List[int]],
-        fire_centre_station_codes: List[int],
-        use_no_cache_header: bool = False,
+        fire_centre_station_codes: Sequence[int] = (),
+        use_cache: bool = True,
     ) -> List[WFWXWeatherStation]:
         """Return the WFWX station ids from WFWX API given a list of station codes."""
 
         # All WFWX stations are requested because WFWX returns a malformed JSON response when too
         # many station codes are added as query parameters.
-        # IMPORTANT - the two calls below, cannot be made from within the lambda, as they will be
-        # be called multiple times!
         wfwx_stations = await self.get_station_data(
-            mapper=wfwx_station_list_mapper, use_no_cache_header=use_no_cache_header
+            mapper=wfwx_station_list_mapper, use_cache=use_cache
         )
 
         # Default to all known WFWX station ids if no station codes are specified
@@ -473,33 +471,6 @@ class WfwxApi:
         yesterday_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.ACTUAL)
 
         return yesterday_dailies
-
-    async def get_forecasts_for_stations_by_date_range(
-        self,
-        start_time_of_interest: datetime,
-        end_time_of_interest: datetime,
-        unique_station_codes: List[int],
-        fire_centre_station_codes: List[int],
-        check_cache=True,
-        mapper=dailies_list_mapper,
-        use_no_cache_header: bool = False,
-    ) -> List[StationDailyFromWF1]:
-        # get station information from the wfwx api
-        wfwx_stations = await self.get_wfwx_stations_from_station_codes(
-            unique_station_codes, fire_centre_station_codes, use_no_cache_header=use_no_cache_header
-        )
-        # get the daily forecasts for all the stations in the date range
-        raw_dailies = await self.get_dailies_generator(
-            wfwx_stations=wfwx_stations,
-            time_of_interest=start_time_of_interest,
-            end_time_of_interest=end_time_of_interest,
-            check_cache=check_cache,
-            use_no_cache_header=use_no_cache_header,
-        )
-
-        forecast_dailies = await mapper(raw_dailies, WF1RecordTypeEnum.FORECAST)
-
-        return forecast_dailies
 
     async def get_daily_determinates_for_stations_and_date(
         self,
