@@ -179,7 +179,7 @@ jobs:
           cache-prefix: turbogha_${{ runner.os }}_node${{ steps.setup-node.outputs.node-version }}_
         # install Corepack explicitly because Node 26 no longer bundles it
       - name: Install Corepack
-        run: npm install --global corepack@0.36.0 && corepack enable
+        run: npm install --global --ignore-scripts corepack@0.36.0 && corepack enable
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'
