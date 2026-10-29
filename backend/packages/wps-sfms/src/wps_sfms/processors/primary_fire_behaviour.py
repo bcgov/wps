@@ -1,7 +1,9 @@
 """Calculate and publish shared daily SFMS Fire Behaviour Prediction raster products.
 
-One primary CFFDRS call produces surface fuel consumption (SFC), equilibrium head rate of
-spread (ROS), and head fire intensity (HFI) from aligned SFMS input rasters.
+One CFFDRS call produces surface fuel consumption (SFC), equilibrium head rate of spread (ROS),
+and head fire intensity (HFI) from aligned SFMS input rasters. The same call also returns the
+head and back fire spread distances and length-to-breadth ratio at 30 minutes, which give the
+elliptical fire area without a second CFFDRS pass.
 """
 
 import logging
@@ -12,7 +14,10 @@ from time import perf_counter
 from typing import Generator
 
 import numpy as np
-from cffdrs_vec.fbp import vectorized_primary_fire_behaviour_prediction
+from cffdrs_vec.fbp import (
+    vectorized_elliptical_fire_area,
+    vectorized_fire_behaviour_prediction_with_spread,
+)
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FBPParameter, GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
@@ -29,6 +34,7 @@ from wps_sfms.raster_output import create_masked_output_dataset, open_bc_mask_da
 logger = logging.getLogger(__name__)
 
 MAX_GROUND_SLOPE_PERCENT = 70.0
+FIRE_AREA_TIME_HOURS = 0.5
 
 
 @dataclass(frozen=True)
@@ -46,6 +52,7 @@ class PrimaryFireBehaviourResult:
     hfi: np.ndarray
     tfc: np.ndarray
     cfb: np.ndarray
+    fire_area_30min: np.ndarray
     nodata_value: float = SFMS_NO_DATA
 
     def raster_outputs(self) -> tuple[_RasterOutput, ...]:
@@ -81,6 +88,12 @@ class PrimaryFireBehaviourResult:
                 description="crown_fraction_burned",
                 unit="fraction",
             ),
+            _RasterOutput(
+                parameter=FBPParameter.FIRE_AREA_30MIN,
+                values=self.fire_area_30min,
+                description="fire_area_30min",
+                unit="ha",
+            ),
         )
 
 
@@ -114,11 +127,11 @@ def calculate_primary_fire_behaviour(
     datasets: PrimaryFireBehaviourDatasets,
     fuel_types: CFFDRSFuelTypes,
 ) -> PrimaryFireBehaviourResult:
-    """Calculate SFC, equilibrium head ROS, HFI, TFC, and CFB on the shared raster grid.
+    """Calculate SFC, equilibrium head ROS, HFI, TFC, CFB, and 30min fire area on the shared raster grid.
 
     Wind direction and downslope aspect arrive in degrees and are normalized to radians here.
     Ground slope arrives as percent and is clamped to the legacy SFMS supported range
-    of 0–70%. Only FMC values in ``(0, 120]`` are accepted, which prevents CFFDRS from deriving
+    of 0-70%. Only FMC values in ``(0, 120]`` are accepted, which prevents CFFDRS from deriving
     FMC from the placeholder location and date inputs. Passing zero for ISI makes CFFDRS derive
     it from FFMC and terrain-adjusted effective wind instead of using the FWI ISI raster.
 
@@ -182,13 +195,15 @@ def calculate_primary_fire_behaviour(
         fmc_fallback_placeholder = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sd = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
         sh = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        hr = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
+        # hr and accel only set the spread fields used for the 30 minute fire area. The published
+        # SFC, ROS, HFI, TFC and CFB are equilibrium values either way.
+        hr = np.full(fuel[calculation_mask].shape, FIRE_AREA_TIME_HOURS, dtype=np.float32)
         theta_rad = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
-        accel = np.zeros_like(fuel[calculation_mask], dtype=np.int64)
+        accel = np.ones_like(fuel[calculation_mask], dtype=np.int64)
         buieff = np.ones_like(fuel[calculation_mask], dtype=np.int64)
         isi = np.zeros_like(fuel[calculation_mask], dtype=np.float32)
 
-        primary = vectorized_primary_fire_behaviour_prediction(
+        fbp = vectorized_fire_behaviour_prediction_with_spread(
             fuel_type_codes[calculation_mask],
             ffmc[calculation_mask],
             bui[calculation_mask],
@@ -216,13 +231,19 @@ def calculate_primary_fire_behaviour(
             accel,
             buieff,
         )
-        logger.info("%f seconds to calculate vectorized primary FBP", perf_counter() - start)
+        primary = fbp.primary
+        logger.info("%f seconds to calculate vectorized FBP", perf_counter() - start)
+
+        start = perf_counter()
+        fire_area_30min = vectorized_elliptical_fire_area(fbp)
+        logger.info("%f seconds to calculate vectorized fire area", perf_counter() - start)
         return PrimaryFireBehaviourResult(
             sfc=_result_values(primary.sfc, calculation_mask, non_combustible_mask),
             ros=_result_values(primary.ros, calculation_mask, non_combustible_mask),
             hfi=_result_values(primary.hfi, calculation_mask, non_combustible_mask),
             tfc=_result_values(primary.tfc, calculation_mask, non_combustible_mask),
             cfb=_result_values(primary.cfb, calculation_mask, non_combustible_mask),
+            fire_area_30min=_result_values(fire_area_30min, calculation_mask, non_combustible_mask),
         )
 
     empty_output = _result_values(
@@ -234,11 +255,12 @@ def calculate_primary_fire_behaviour(
         hfi=empty_output,
         tfc=empty_output,
         cfb=empty_output,
+        fire_area_30min=empty_output,
     )
 
 
 class PrimaryFireBehaviourProcessor:
-    """Validate aligned FBP inputs and publish daily SFC, ROS, HFI, TFC, and CFB rasters.
+    """Validate aligned FBP inputs and publish daily SFC, ROS, HFI, TFC, CFB, and 30min fire area rasters.
 
     All input grids must match the fuel grid. Each output preserves calculation nodata, encodes
     recognized non-combustible fuel as zero, and applies the BC boundary mask before publishing.
