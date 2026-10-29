@@ -13,7 +13,8 @@ COPY packages/ui/package.json        packages/ui/
 COPY apps/wps-web/package.json       apps/wps-web/
 
 # install Corepack explicitly because Node 26 no longer bundles it
-RUN npm install --global --ignore-scripts corepack@0.36.0 \
+RUN npm install --global --ignore-scripts \
+    "corepack@$(node -p 'require("./package.json").devDependencies.corepack')" \
     && corepack enable \
     && yarn install --immutable
 

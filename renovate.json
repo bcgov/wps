@@ -9,20 +9,6 @@
     "@psu/cffdrs_ts",
     "aiobotocore"
   ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/(^|/)Dockerfile[^/]*$/",
-        "/^\\.github/workflows/integration\\.yml$/"
-      ],
-      "matchStrings": [
-        "corepack@(?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "corepack",
-      "datasourceTemplate": "npm"
-    }
-  ],
   "packageRules": [
     {
       "matchPackageNames": [
