@@ -61,6 +61,10 @@ parameters:
     required: true
   - name: CPU_REQUEST
     value: "0.5"
+  - name: MEMORY_REQUEST
+    value: "2Gi"
+  - name: MEMORY_LIMIT
+    value: "4Gi"
   - name: "JOB_BACKOFF_LIMIT"
     displayName: "Job Backoff Limit"
     description: "The number of attempts to try for a successful job outcome"
@@ -118,10 +122,10 @@ objects:
                   imagePullPolicy: Always
                   resources:
                     limits:
-                      memory: 4Gi
+                      memory: ${MEMORY_LIMIT}
                     requests:
                       cpu: ${CPU_REQUEST}
-                      memory: 2Gi
+                      memory: ${MEMORY_REQUEST}
                   image: "image-registry.openshift-image-registry.svc:5000/${IMAGE_NAMESPACE}/${SOURCE_IMAGE_NAME}:${TAG_NAME}"
                   # image: backup
                   env:

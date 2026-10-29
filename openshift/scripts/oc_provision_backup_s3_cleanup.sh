@@ -21,6 +21,7 @@ JOB="job/cleanup-s3-wps-${SUFFIX}"
 # create the job
 oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-cleanup-job.yaml \
     -p SUFFIX=${SUFFIX} \
+    -p CLUSTER_NAME=${CRUNCHY_NAME}-${SUFFIX} \
     -p PROJ_TOOLS=${PROJ_TOOLS} | jq '.items[0]' | oc -n ${PROJ_TARGET} create -f -
 # wait for the job to finish
 oc wait --for=condition=complete ${JOB} --timeout=60s

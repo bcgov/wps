@@ -42,6 +42,8 @@ OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/backup-s3-postgres-
     -p APP_LABEL=${APP_NAME}-${SUFFIX} \
     -p CLUSTER_NAME=${CLUSTER_NAME} \
     ${CPU_REQUEST:+ " -p CPU_REQUEST=${CPU_REQUEST}"} \
+    ${MEMORY_REQUEST:+ " -p MEMORY_REQUEST=${MEMORY_REQUEST}"} \
+    ${MEMORY_LIMIT:+ " -p MEMORY_LIMIT=${MEMORY_LIMIT}"} \
     ${SCHEDULE:+ " -p SCHEDULE=\"${SCHEDULE}\""} \
     ${TAG_NAME:+ " -p TAG_NAME=${TAG_NAME}"}"
 

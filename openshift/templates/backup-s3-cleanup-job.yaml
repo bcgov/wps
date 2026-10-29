@@ -12,6 +12,9 @@ parameters:
     value: wps-global
   - name: PROJ_TOOLS
     required: true
+  - name: CLUSTER_NAME
+    description: The postgres cluster whose backups to remove, e.g. wps-crunchydb-16-pr-###
+    required: true
   - name: TAG_NAME
     displayName: "Environment TAG name"
     description: "The TAG name for this environment, e.g., dev, test, prod"
@@ -62,5 +65,7 @@ objects:
                       key: object-store-bucket
                 - name: SUFFIX
                   value: ${SUFFIX}
+                - name: CLUSTER_NAME
+                  value: ${CLUSTER_NAME}
               command: ["bash", "cleanup_bucket.sh"]
           restartPolicy: OnFailure
