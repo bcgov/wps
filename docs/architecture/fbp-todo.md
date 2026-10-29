@@ -1,9 +1,11 @@
 # SFMS Fire Behaviour Prediction TODO
 
 This document tracks the inputs and policy decisions for the shared Fire Behaviour Prediction
-(FBP) calculation. One call to `vectorized_primary_fire_behaviour_prediction` currently publishes
-Surface Fuel Consumption (SFC), Rate of Spread (ROS), Head Fire Intensity (HFI), Total Fuel
-Consumption (TFC), and Crown Fraction Burned (CFB).
+(FBP) calculation. One call to `vectorized_fire_behaviour_prediction_with_spread` currently
+publishes Surface Fuel Consumption (SFC), Rate of Spread (ROS), Head Fire Intensity (HFI), Total
+Fuel Consumption (TFC), and Crown Fraction Burned (CFB). The same call also returns the head and
+back fire spread distances and length-to-breadth ratio at 30 minutes, which give the 30 minute
+fire area.
 
 ## Input TODOs
 
@@ -103,6 +105,7 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
     cd backend
     uv run python -m wps_tools.upload_national_fuel_codes
     ```
+
   - D2 is supported by `cffdrs_vec`. It applies BUI thresholding, so D2 produces almost no spread
     below BUI 80.
   - Seasonal variants apply to every primary FBP output, including SFC, following the
@@ -136,9 +139,9 @@ Consumption (TFC), and Crown Fraction Burned (CFB).
 | `d0`             | Fixed placeholder                                         | Pass `0`; valid FMC prevents CFFDRS from reading it.                                                                            |
 | `sd`             | Default policy to confirm                                 | Candidate value: `0`, which makes C6 use its fuel-type CBH default; confirm before implementation.                              |
 | `sh`             | Default policy to confirm                                 | Candidate value: `0`, which makes C6 use its fuel-type CBH default; confirm before implementation.                              |
-| `hr`             | Primary-control policy to confirm                         | Candidate value: `0`; elapsed time is not used by the planned primary products. Confirm before implementation.                  |
+| `hr`             | Fixed calculation control                                 | Pass `0.5` (30 minutes) so CFFDRS returns the spread distances and length-to-breadth ratio for the 30 minute fire area.         |
 | `theta_rad`      | Primary-control policy to confirm                         | Candidate value: `0`; directional secondary outputs are not planned. Confirm before implementation.                             |
-| `accel`          | Primary-control policy to confirm                         | Candidate value: `0`, which produces equilibrium ROS; confirm before implementation.                                            |
+| `accel`          | Fixed calculation control                                 | Pass `1` for accelerating spread from a point ignition. SFC, ROS, HFI, TFC, and CFB are equilibrium values either way.          |
 | `buieff`         | Fixed calculation control                                 | Pass `1` to apply the BUI effect.                                                                                               |
 
 ## Pipeline Requirements

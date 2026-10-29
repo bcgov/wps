@@ -1,5 +1,7 @@
+import type { WeatherIndeterminate } from '@wps/api/moreCast2API'
+import { toBCPacificTime } from '@wps/utils/date'
 import type { DraftMorecast2Rows, MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
-import { getRowsMap, isForecastRow } from 'features/moreCast2/util'
+import { getRowsMap, isBeforeToday, isForecastRow } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
 
 function restorePredictionItemNaN(this: { choice?: unknown }, key: string, value: unknown) {
@@ -23,12 +25,22 @@ export class MorecastDraftForecast {
 
     if (storedDraftString) {
       const storedDraft = JSON.parse(storedDraftString, restorePredictionItemNaN)
-      storedDraft.lastEdited = storedDraft.lastEdited ? DateTime.fromISO(storedDraft.lastEdited) : undefined
+      if (storedDraft.rows.length === 0) return
+      for (const row of storedDraft.rows) {
+        row.forDate = DateTime.fromISO(row.forDate, { setZone: true })
+      }
+      storedDraft.lastEdited = storedDraft.lastEdited
+        ? DateTime.fromISO(storedDraft.lastEdited, { setZone: true })
+        : undefined
       return storedDraft
     }
   }
 
   private storeDraftForecasts = (forecastDraft: DraftMorecast2Rows) => {
+    if (forecastDraft.rows.length === 0) {
+      this.clearDraftForecasts()
+      return
+    }
     this.localStorage.setItem(
       this.STORAGE_KEY,
       JSON.stringify({ rows: forecastDraft.rows, lastEdited: forecastDraft.lastEdited })
@@ -66,7 +78,25 @@ export class MorecastDraftForecast {
     }
   }
 
-  public deleteRowsFromStoredDraft = (savedRows: MoreCast2ForecastRow[] | MoreCast2Row[], editDateTime: DateTime) => {
+  public reconcileWithActuals = (actuals: Pick<WeatherIndeterminate, 'station_code' | 'utc_timestamp'>[]) => {
+    const storedDraft = this.getStoredDraftForecasts()
+    if (!storedDraft) {
+      this.clearDraftForecasts()
+      return
+    }
+
+    const actualKeys = new Set(
+      actuals.map(actual => `${actual.station_code}:${DateTime.fromISO(actual.utc_timestamp).toMillis()}`)
+    )
+    const rows = storedDraft.rows.filter(
+      row => !isBeforeToday(row.forDate) && !actualKeys.has(`${row.stationCode}:${row.forDate.toMillis()}`)
+    )
+    if (rows.length === storedDraft.rows.length) return
+
+    this.storeDraftForecasts({ ...storedDraft, rows })
+  }
+
+  public deleteRowsFromStoredDraft = (savedRows: MoreCast2ForecastRow[] | MoreCast2Row[]) => {
     const localStoredForecast = this.getStoredDraftForecasts()
     if (localStoredForecast) {
       const localStoredRows = getRowsMap(localStoredForecast.rows)
@@ -74,20 +104,18 @@ export class MorecastDraftForecast {
         localStoredRows.delete(row.id)
       })
       localStoredForecast.rows = Array.from(localStoredRows.values())
-      localStoredForecast.lastEdited = editDateTime
       this.storeDraftForecasts(localStoredForecast)
     }
   }
 
   public hasDraftForecastStored = (): boolean => {
-    const localStoredForecast = this.getStoredDraftForecasts()
-    return !!localStoredForecast && localStoredForecast.rows.length > 0
+    return !!this.getStoredDraftForecasts()
   }
 
   public getLastSavedDraftDateTime = (): string | undefined => {
     const storedDraftForecast = this.getStoredDraftForecasts()
     if (storedDraftForecast) {
-      return storedDraftForecast.lastEdited.toFormat('MMMM dd, HH:mm')
+      return toBCPacificTime(storedDraftForecast.lastEdited).toFormat('MMMM dd, HH:mm')
     }
   }
 }

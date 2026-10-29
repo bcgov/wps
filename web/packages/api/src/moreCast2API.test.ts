@@ -6,7 +6,8 @@ import {
   type MoreCast2ForecastRow,
   marshalMoreCast2ForecastRecords,
   submitMoreCastForecastRecords,
-  WeatherDeterminate
+  WeatherDeterminate,
+  type WF1SkippedForecast
 } from './moreCast2API'
 
 describe('moreCast2API', () => {
@@ -52,12 +53,37 @@ describe('moreCast2API', () => {
     expect(res[1].grass_curing).toEqual(0)
   })
   it('should call submit endpoint for forecast submission', async () => {
-    axios.post = vi.fn().mockResolvedValue({ status: 201 })
+    axios.post = vi.fn().mockResolvedValue({
+      status: 201,
+      data: { forecasts: [], wf1_published_count: 2, wf1_skipped: [] }
+    })
     const res = await submitMoreCastForecastRecords([
       buildMorecast2Forecast('1', 1, 'one', DateTime.fromObject({ year: 2021, month: 1, day: 1 })),
       buildMorecast2Forecast('2', 2, 'two', DateTime.fromObject({ year: 2021, month: 1, day: 1 }))
     ])
-    expect(res).toEqual({ success: true })
+    expect(res).toEqual({ success: true, wf1PublishedCount: 2, wf1Skipped: [] })
+  })
+  it('returns skipped forecasts when no rows publish to WF1', async () => {
+    const skipped: WF1SkippedForecast[] = [
+      { station_code: 1, station_name: 'one', for_date: 1720123200000, reason: 'actual_exists' },
+      { station_code: 2, station_name: null, for_date: 1720123200000, reason: 'station_unavailable' }
+    ]
+    axios.post = vi.fn().mockResolvedValue({
+      status: 201,
+      data: { forecasts: [], wf1_published_count: 0, wf1_skipped: skipped }
+    })
+    const res = await submitMoreCastForecastRecords([])
+    expect(res).toEqual({ success: true, wf1PublishedCount: 0, wf1Skipped: skipped })
+  })
+  it('returns the publish error when WF1 submission fails', async () => {
+    const error = { response: { data: { detail: 'WF1 unavailable' } } }
+    axios.post = vi.fn().mockRejectedValue(error)
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      expect(await submitMoreCastForecastRecords([])).toEqual({ success: false, errorMessage: 'WF1 unavailable' })
+    } finally {
+      log.mockRestore()
+    }
   })
   it('should fetch weather indeterminates with no stations requested', async () => {
     const res = await fetchWeatherIndeterminates(

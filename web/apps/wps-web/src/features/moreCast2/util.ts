@@ -1,7 +1,7 @@
 import { bui, dc, dmc, ffmc, fwi, isi } from '@psu/cffdrs_ts'
 import { ModelChoice, type MoreCast2ForecastRecord, WeatherDeterminate } from '@wps/api/moreCast2API'
 import type { StationGroupMember } from '@wps/api/stationAPI'
-import { getDateTimeNowPST } from '@wps/utils/date'
+import { toBCPacificTime } from '@wps/utils/date'
 import type { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
 import { groupBy, isUndefined } from 'lodash'
@@ -279,7 +279,7 @@ export const fillStationGrassCuringForward = (editedRow: MoreCast2Row, allRows: 
  * @returns boolean
  */
 export const isBeforeToday = (datetime: DateTime): boolean => {
-  const today = getDateTimeNowPST().startOf('day')
+  const today = toBCPacificTime(DateTime.now()).startOf('day')
 
   return datetime < today
 }

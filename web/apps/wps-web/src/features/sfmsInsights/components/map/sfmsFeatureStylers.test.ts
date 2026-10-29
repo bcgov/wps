@@ -2,6 +2,7 @@ import * as ol from 'ol'
 import type Geometry from 'ol/geom/Geometry'
 import {
   CFB_COLOUR_BREAKS,
+  FIRE_AREA_30MIN_COLOUR_BREAKS,
   FMC_COLOUR_BREAKS,
   FUEL_COLOUR_BREAKS,
   FUEL_TYPE_COLOURS,
@@ -132,7 +133,8 @@ describe('getSFMSNGRasterColourExpression', () => {
     ['fmc', FMC_COLOUR_BREAKS],
     ['tfc', TFC_COLOUR_BREAKS],
     ['cfb', CFB_COLOUR_BREAKS],
-    ['hfi', HFI_COLOUR_BREAKS]
+    ['hfi', HFI_COLOUR_BREAKS],
+    ['fire_area_30min', FIRE_AREA_30MIN_COLOUR_BREAKS]
   ] as const)('should include every %s colour break', (rasterType, colourBreaks) => {
     const expr = getSFMSNGRasterColourExpression(rasterType)
 
