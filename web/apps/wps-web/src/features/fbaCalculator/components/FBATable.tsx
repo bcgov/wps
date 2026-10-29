@@ -12,7 +12,8 @@ import ResetDialog from '@wps/ui/ResetDialog'
 import StickyCell from '@wps/ui/StickyCell'
 import { theme } from '@wps/ui/theme'
 import WPSDatePicker from '@wps/ui/WPSDatePicker'
-import { type Order, PST_UTC_OFFSET } from '@wps/utils/constants'
+import type { Order } from '@wps/utils/constants'
+import { toBCPacificTime } from '@wps/utils/date'
 import { selectFireBehaviourCalcResult, selectFireWeatherStations } from 'app/rootReducer'
 import type { AppDispatch } from 'app/store'
 import CriticalHoursCell from 'features/fbaCalculator/components/CriticalHoursCell'
@@ -148,9 +149,7 @@ const FBATable = (props: FBATableProps) => {
 
   // state
   const [headerSelected, setHeaderSelect] = useState<boolean>(false)
-  const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(
-    DateTime.now().setZone(`UTC${PST_UTC_OFFSET}`)
-  )
+  const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(() => toBCPacificTime(DateTime.now()))
   const [rowIdsToUpdate, setRowIdsToUpdate] = useState<Set<number>>(new Set())
   const [sortByColumn, setSortByColumn] = useState<SortByColumn>(SortByColumn.Station)
   const [initialLoad, setInitialLoad] = useState<boolean>(true)

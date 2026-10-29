@@ -5,6 +5,7 @@ import type { StationGroup } from '@wps/api/stationAPI'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { MORE_CAST_DOC_TITLE, MORE_CAST_NAME } from '@wps/utils/constants'
+import { toBCPacificTime } from '@wps/utils/date'
 import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
 import type { AppDispatch } from 'app/store'
 import StationPanel from 'features/moreCast2/components/StationPanel'
@@ -55,12 +56,13 @@ const MoreCast2Page = () => {
   const { idir } = useSelector(selectAuthentication)
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
 
-  const currentTimeIsBeforeNoon = DateTime.now().hour < 13
+  const now = toBCPacificTime(DateTime.now())
+  const currentTimeIsBeforeNoon = now.hour < 13
   let startDateTime: DateTime
   if (currentTimeIsBeforeNoon) {
-    startDateTime = DateTime.now().minus({ days: 3 })
+    startDateTime = now.minus({ days: 3 })
   } else {
-    startDateTime = DateTime.now().minus({ days: 2 })
+    startDateTime = now.minus({ days: 2 })
   }
   const endDateTime = startDateTime.plus({ days: 4 })
   const [fromTo, setFromTo] = useState<DateRange>({
