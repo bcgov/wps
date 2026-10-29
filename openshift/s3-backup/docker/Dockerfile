@@ -30,7 +30,7 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV UV_PYTHON_DOWNLOADS=never
 ENV PATH="/opt/venv/bin:$PATH"
 COPY pyproject.toml uv.lock /tmp/
-RUN cd /tmp && uv sync --locked --no-dev
+RUN cd /tmp && uv sync --locked --no-dev --no-build
 
 # Copy scripts.
 COPY backup_to_s3.sh .
