@@ -43,12 +43,24 @@ const PCT_START_DATE = '2026-11-01'
  */
 export const getBCTimezoneLabel = (isoDate: string): string => (isoDate >= PCT_START_DATE ? 'PCT' : 'PDT')
 
+/**
+ * Formats a datetime in BC Pacific time with its timezone label, regardless of the device's timezone. The label is
+ * hardcoded rather than taken from the device so it doesn't vary by locale (e.g. GMT-7 in en-GB, HAP in fr-CA).
+ * Use formatDatetimeWithTimezone to show the device's own timezone instead.
+ */
+export const formatInBCPacificTime = (dt: DateTime, format: string): string => {
+  const bcTime = toBCPacificTime(dt)
+  const label = bcTime.offset === PDT_UTC_OFFSET * 60 ? getBCTimezoneLabel(bcTime.toISODate() ?? '') : 'PST'
+  return `${bcTime.toFormat(format)} ${label}`
+}
+
 const PACIFIC_ZONES = new Set(['America/Vancouver', 'Canada/Pacific'])
 
 /**
  * Formats a datetime in its own (usually the device's) timezone. Timezone data doesn't have a PCT abbreviation,
  * so Pacific times from Nov 1, 2026 are labelled PCT here instead of the PDT/MST the device would print. Devices
  * whose timezone data predates the switch still show UTC-8, so they keep their own PST label.
+ * Use formatInBCPacificTime to always show BC time instead.
  */
 export const formatDatetimeWithTimezone = (dt: DateTime): string => {
   const formatted = dt.toLocaleString({ ...DateTime.DATETIME_FULL, timeZoneName: undefined })

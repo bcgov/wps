@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import {
   formatDatetimeWithTimezone,
+  formatInBCPacificTime,
   formatISODateInPST,
   formatMonthAndDay,
   getBCTimezoneLabel,
@@ -51,6 +52,20 @@ describe('Date util functions', () => {
     it('should be PCT once BC moved to permanent Pacific Time', () => {
       expect(getBCTimezoneLabel('2026-11-01')).toEqual('PCT')
       expect(getBCTimezoneLabel('2027-07-01')).toEqual('PCT')
+    })
+  })
+  describe('formatInBCPacificTime', () => {
+    it.each([
+      ['2026-01-15T20:00:00Z', 'January 15, 12:00 PST'],
+      ['2026-07-15T20:00:00Z', 'July 15, 13:00 PDT'],
+      ['2026-11-02T20:00:00Z', 'November 2, 13:00 PCT']
+    ])('formats %s in BC Pacific time regardless of the source timezone', (instant, expected) => {
+      const dt = DateTime.fromISO(instant, { zone: 'Asia/Tokyo' })
+      expect(formatInBCPacificTime(dt, 'MMMM d, HH:mm')).toEqual(expected)
+    })
+    it('should not localize the timezone label', () => {
+      const dt = DateTime.fromISO('2026-07-15T20:00:00Z', { locale: 'en-GB' })
+      expect(formatInBCPacificTime(dt, 'HH:mm')).toEqual('13:00 PDT')
     })
   })
   describe('formatDatetimeWithTimezone', () => {
