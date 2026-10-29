@@ -157,30 +157,33 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       actions: write
-    strategy:
-      matrix:
-        node-version: [24.x]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js
+        id: setup-node
         uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: .nvmrc
       - uses: actions/cache@v6
         id: yarn-cache
         with:
           path: |
-            **/node_modules
+            web/**/node_modules
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-web-${{ hashFiles('web/yarn.lock') }}
       - uses: rharkor/caching-for-turbo@760158c05c47e7a764f78e9a22ca3b5a6ed8c52e # v2.5.2
-      - name: enable corepack
-        run: corepack enable
-      - name: use new yarn
-        run: yarn set version berry
+        with:
+          cache-prefix: turbogha_${{ runner.os }}_node${{ steps.setup-node.outputs.node-version }}_
+      # install Corepack explicitly because Node 26 no longer bundles it
+      - name: Install Corepack
+        working-directory: ./web
+        run: |
+          npm install --global --ignore-scripts \
+            "corepack@$(node -p 'require("./package.json").devDependencies.corepack')"
+          corepack enable
       - name: Install node dependencies (web)
         working-directory: ./web
         if: steps.yarn-cache.outputs.cache-hit != 'true'

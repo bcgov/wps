@@ -6,6 +6,17 @@ For iOS & Android Firebase push notification setup details, see [Notifications.m
 
 ## Building
 
+Use the Node.js version specified in the repository root's `.nvmrc` and install Corepack. From the repository root:
+
+```bash
+nvm install
+nvm use
+npm install --global --ignore-scripts corepack
+corepack enable
+```
+
+Corepack selects the Yarn version pinned by `packageManager` in each mobile package. Run Yarn commands from the package directory.
+
 The keycloak plugin must be built before installing asa-go dependencies, as asa-go resolves it as a local path dependency.
 
 ```bash

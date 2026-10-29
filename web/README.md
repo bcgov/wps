@@ -6,13 +6,25 @@
 
 #### [Node.js](https://nodejs.org/en/)
 
-You'll need Node 24.x and yarn. Use [nvm](https://github.com/nvm-sh/nvm#installation) (macOS/Linux) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between projects.
+You'll need Node.js and Yarn. Use [nvm](https://github.com/nvm-sh/nvm#installation) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between projects. The repository root contains a `.nvmrc` with the required version.
+
+From the repository root:
+
+```bash
+nvm install
+nvm use
+```
 
 #### [yarn](https://yarnpkg.com/)
 
-```
+Install Corepack to use the Yarn version pinned by `packageManager` in `web/package.json`:
+
+```bash
+npm install --global --ignore-scripts corepack
 corepack enable
 ```
+
+Run Yarn commands from `web/` so Corepack selects the pinned version.
 
 ### Installing
 
