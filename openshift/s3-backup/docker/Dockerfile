@@ -1,6 +1,6 @@
 FROM postgres:16
 
-# Set the locale (important for poetry)
+# Set the locale
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
@@ -19,23 +19,22 @@ USER root
 RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
     /tmp/aws/install
 
-RUN apt-get -y install python3 python3-setuptools python3-pip
+RUN apt-get -y install python3
 
-# We don't care that we break system packages, this is only used for backup related tasks
-RUN pip3 install poetry==1.8.5 --break-system-packages
+COPY --from=ghcr.io/astral-sh/uv:0.13.4 /uv /bin/
 
-# Getting poetry to play nice in openshift is a nightmare, so we just
-# take the easy route and create a requirements.txt file.
-COPY pyproject.toml poetry.lock /tmp/
-RUN cd /tmp && \
-    python3 -m poetry export -f requirements.txt --output requirements.txt && \
-    pip3 install -r requirements.txt --break-system-packages
+# Install locked dependencies into a venv and put it first on PATH, so the
+# scripts' plain `python3` calls pick it up.
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+# Use the base image's python3; fail the build rather than download another.
+ENV UV_PYTHON_DOWNLOADS=never
+ENV PATH="/opt/venv/bin:$PATH"
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev --no-build
 
 # Copy scripts.
-COPY backup_to_s3.sh .
-COPY cleanup_bucket.sh .
-COPY prune.py .
-COPY prune_test.py .
+COPY backup_to_s3.sh cleanup_bucket.sh prune.py prune_test.py ./
 
 # Configure the default command to run.
-CMD sh backup_to_s3.sh
+CMD ["bash", "backup_to_s3.sh"]

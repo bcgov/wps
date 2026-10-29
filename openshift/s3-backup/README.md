@@ -1,41 +1,30 @@
 # S3 Backup Image
 
-Uses postgres-12, centos base image: https://hub.docker.com/r/centos/postgresql-12-centos7
-Installs single dependency, the AWS cli.
-Copys and runs driver script
+Uses the official Debian-based postgres 16 image (https://hub.docker.com/_/postgres) so `pg_dump` matches the database's major version.
+Installs the AWS CLI, and the Python dependencies for `prune.py` with uv.
+Copies and runs the driver script.
 
-## Building
+## Building and deploying
 
-### Apply template to build the base image on Openshift
+The image is built and promoted the same way as the `api`, `web` and `jobs` images:
+
+- Each pull request builds `wps-s3-backup-pr-###:pr-###` in `e1e498-tools` from [`openshift/build.yaml`](openshift/build.yaml) (the `build-image` job in `.github/workflows/deployment.yml`).
+- The pull request's dev backup cronjob (`backup-postgres-wps-pr-###`) runs that image against the pull request's database.
+- Deploying to production promotes it to `wps-s3-backup-prod:prod`, which the production backup cronjob and the pull request S3 cleanup job use.
+
+### Run a backup in dev on demand
 
 ```bash
-oc -n e1e498-tools process -f build.yaml | oc -n e1e498-tools apply -f -
+oc -n e1e498-dev create job --from=cronjob/backup-postgres-wps-pr-### backup-test
+oc -n e1e498-dev logs -f job/backup-test
+oc -n e1e498-dev delete job/backup-test
 ```
 
-### Apply template using a specified branch and version
+### Roll back production
+
+`oc_promote.sh` keeps the last 5 promoted tags on `wps-s3-backup-prod`. To roll back, point `prod` at an earlier one:
 
 ```bash
-oc -n e1e498-tools process -p VERSION=some-date -p GIT_BRANCH=my-branch -f build.yaml | oc -n e1e498-tools apply -f -
-```
-
-### Kick off the build
-
-```bash
-oc -n e1e498-tools start-build s3-backup --follow
-```
-
-### Re-tag for production
-
-Assuming you've built an image tagged for dev, you may now want to tag it for production. Remember to retain
-the current prod image in case you want to revert!
-
-You may also want to delete any old tags that are no longer relevant.
-
-```bash
-# maybe tag the current production image in case we need to revert
-oc -n e1e498-tools tag s3-backup:prod s3-backup:previous-prod
-# tag this image with something useful, may todays date
-oc -n e1e498-tools tag s3-backup:dev s3-backup:some-sensible-tag-like-the-current-date
-# tag it for production
-oc -n e1e498-tools tag s3-backup:dev s3-backup:prod
+oc -n e1e498-tools get is/wps-s3-backup-prod
+oc -n e1e498-tools tag wps-s3-backup-prod:pr-### wps-s3-backup-prod:prod
 ```

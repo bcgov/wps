@@ -236,45 +236,19 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Setup Python ${{ matrix.python-version }} (api)
-        uses: actions/setup-python@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
+          version: "0.13.4"
           python-version: ${{ matrix.python-version }}
-      - name: Cache poetry installer
-        uses: actions/cache@v6
-        id: cache-poetry-installer
-        env:
-          cache-name: cache-poetry-installer
-        with:
-          path: "~/poetry_installer"
-          key: "poetry-installer-1.8.3"
-      - name: Download poetry installer
-        if: steps.cache-poetry-installer.outputs.cache-hit != 'true'
-        run: |
-          echo
-          mkdir ~/poetry_installer
-          curl -sSL https://install.python-poetry.org > ~/poetry_installer/install-poetry.py
-      - name: Install poetry (api)
-        run: |
-          cd ~/poetry_installer
-          python install-poetry.py --version 1.8.3
-          poetry config virtualenvs.create true
-          poetry config virtualenvs.in-project false
-      - name: Cache poetry
-        uses: actions/cache@v6
-        env:
-          cache-name: cache-poetry
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-prune-cache-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-prune-cache-
-      - name: Install python dependencies using poetry (s3-backup)
+          enable-cache: true
+          cache-dependency-glob: openshift/s3-backup/docker/uv.lock
+      - name: Install python dependencies using uv (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: poetry install
+        run: uv sync --locked --no-build
       - name: Lint (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: poetry run ruff check *.py
+        run: uv run --locked --no-build ruff check ./*.py
       - name: Unit tests (s3-backup)
         working-directory: ./openshift/s3-backup/docker
-        run: poetry run pytest -v
+        run: uv run --locked --no-build pytest -v
