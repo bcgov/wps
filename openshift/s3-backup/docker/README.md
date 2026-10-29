@@ -30,27 +30,10 @@ docker compose build
 docker compose run --rm backup bash
 ```
 
-### MacOS specific instructions
-
-If you have trouble getting poetry to use python 3.6.8, reference this [StackOverflow post](https://stackoverflow.com/questions/66482346/problems-installing-python-3-6-with-pyenv-on-mac-os-big-sur):
+### Run lint and tests locally
 
 ```bash
-brew update
-brew upgrade
-CFLAGS="-I$(brew --prefix openssl)/include -I$(brew --prefix bzip2)/include -I$(brew --prefix readline)/include -I$(xcrun --show-sdk-path)/usr/include" LDFLAGS="-L$(brew --prefix openssl)/lib -L$(brew --prefix readline)/lib -L$(brew --prefix zlib)/lib -L$(brew --prefix bzip2)/lib" pyenv install --patch 3.6.8 < <(curl -sSL https://github.com/python/cpython/commit/8ea6353.patch\?full_index\=1)
-brew reinstall zlib bzip2
-poetry env use /Users/[user]/.pyenv/versions/3.6.8/bin/python
-poetry install
-```
-
-### Ubuntu specific instructions
-
-If you have trouble getting poetry to use python 3.6.*
-
-Install [pyenv](https://github.com/pyenv/pyenv) then
-
-```bash
-pyenv install 3.6.8
-poetry env use /home/[user]/.pyenv/versions/3.6.8/bin/python
-poetry install
+uv sync
+make lint
+make test
 ```

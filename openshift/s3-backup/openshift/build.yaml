@@ -1,36 +1,35 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  creationTimestamp: null
-  name: s3-backup
+  name: ${APP_NAME}-${MODULE_NAME}
 labels:
-  app: s3-backup
-  phase: build
-  app.kubernetes.io/name: s3-backup
-  app.kubernetes.io/managed-by: template
+  app.kubernetes.io/part-of: "${APP_NAME}-${MODULE_NAME}"
+  app: ${APP_NAME}-${SUFFIX}
 parameters:
-  - name: NAME
+  - name: APP_NAME
+    description: Application name (wps - wildfire predictive services)
+    value: wps
+  - name: MODULE_NAME
+    description: Module name
     value: s3-backup
   - name: SUFFIX
-  - name: VERSION
-    description: Output version
+    description: Deployment suffix, e.g. pr-### or prod
     required: true
-    value: "latest"
   - name: GIT_URL
     value: https://github.com/bcgov/wps.git
   - name: GIT_BRANCH
-    value: main
+    description: PR branch
+    required: true
 objects:
-  #ImageStream is create if it doesn't already exist
   - apiVersion: v1
     kind: ImageStream
     metadata:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: s3-backup
+        app: ${APP_NAME}-${SUFFIX}
         common: "true"
-      name: s3-backup
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
       lookupPolicy:
         local: false
@@ -40,22 +39,22 @@ objects:
       annotations:
         openshift.io/generated-by: OpenShiftNewBuild
       labels:
-        app: s3-backup
-      name: s3-backup
+        app: ${APP_NAME}-${SUFFIX}
+      name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}
     spec:
+      completionDeadlineSeconds: 600 # 10 minutes
+      runPolicy: SerialLatestOnly
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}
       resources:
         limits:
           cpu: "2000m"
           memory: "512Mi"
         requests:
-          # we might as well start high!
           cpu: "500m"
           memory: "256Mi"
-      completionDeadlineSeconds: 600 # 10 minutes.
-      output:
-        to:
-          kind: ImageStreamTag
-          name: s3-backup:${VERSION}
       source:
         type: Git
         git:
@@ -64,3 +63,4 @@ objects:
         contextDir: openshift/s3-backup/docker
       strategy:
         type: Docker
+      triggers: []

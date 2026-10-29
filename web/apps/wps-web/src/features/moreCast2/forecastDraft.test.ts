@@ -1,12 +1,11 @@
 import { ModelChoice } from '@wps/api/moreCast2API'
-import * as DateUtils from '@wps/utils/date'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
-import type { DraftMorecast2Rows } from 'features/moreCast2/interfaces'
+import type { DraftMorecast2Rows, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
 import { DateTime } from 'luxon'
 import { vi } from 'vitest'
 
-const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00')
+const TEST_DATE = DateTime.fromISO('2024-01-01T00:00:00.000-08:00', { setZone: true })
 
 describe('MorecastDraftForecast', () => {
   afterEach(() => {
@@ -35,7 +34,7 @@ describe('MorecastDraftForecast', () => {
   ]
 
   it('should only store current forecast rows', () => {
-    vi.spyOn(DateUtils, 'getDateTimeNowPST').mockReturnValue(TEST_DATE)
+    vi.spyOn(Date, 'now').mockReturnValue(TEST_DATE.toMillis())
     const toBeStored: DraftMorecast2Rows = { rows: mockRowData.slice(0, 4), lastEdited: TEST_DATE }
     const setSpy = vi.spyOn(localStorageMock, 'setItem')
 
@@ -70,7 +69,7 @@ describe('MorecastDraftForecast', () => {
     vi.spyOn(localStorageMock, 'getItem').mockReturnValue(JSON.stringify(storedDraft))
     const setSpy = vi.spyOn(localStorageMock, 'setItem')
 
-    draftForecast.deleteRowsFromStoredDraft(savedRows, TEST_DATE)
+    draftForecast.deleteRowsFromStoredDraft(savedRows)
 
     expect(setSpy).toHaveBeenCalledWith(draftForecast.STORAGE_KEY, JSON.stringify(toBeStored))
   })
@@ -86,5 +85,160 @@ describe('MorecastDraftForecast', () => {
 
     const draftStored = draftForecast.hasDraftForecastStored()
     expect(draftStored).toBe(false)
+  })
+})
+
+describe('draft reconciliation', () => {
+  const draft = new MorecastDraftForecast(localStorage)
+  const lastEdited = TEST_DATE.minus({ hours: 1 })
+  const seedDraft = (rows: MoreCast2Row[]) => {
+    localStorage.setItem(draft.STORAGE_KEY, JSON.stringify({ rows, lastEdited }))
+  }
+
+  beforeEach(() => {
+    localStorage.clear()
+    vi.spyOn(Date, 'now').mockReturnValue(TEST_DATE.toMillis())
+  })
+
+  afterEach(() => {
+    localStorage.clear()
+    vi.restoreAllMocks()
+  })
+
+  it('restores dates and offsets without changing stored prediction values', () => {
+    const forDate = DateTime.fromISO('2024-01-02T20:00:00Z', { setZone: true })
+    seedDraft([buildValidForecastRow(111, forDate)])
+
+    const restored = draft.getStoredDraftForecasts()!
+
+    expect(DateTime.isDateTime(restored.rows[0].forDate)).toBe(true)
+    expect(restored.rows[0].forDate.toISO()).toBe(forDate.toISO())
+    expect(restored.lastEdited.toISO()).toBe(lastEdited.toISO())
+    expect(restored.rows[0].tempForecast?.value).toBe(2)
+    expect(Number.isNaN(restored.rows[0].grassCuringForecast?.value)).toBe(true)
+  })
+
+  it('removes matching actuals and expired rows while preserving unrelated drafts', () => {
+    const rows = [
+      buildValidForecastRow(111, TEST_DATE),
+      buildValidForecastRow(111, TEST_DATE.plus({ days: 1 })),
+      buildValidForecastRow(222, TEST_DATE),
+      buildValidForecastRow(333, TEST_DATE.minus({ days: 1 }))
+    ]
+    seedDraft(rows)
+
+    draft.reconcileWithActuals([{ station_code: 111, utc_timestamp: TEST_DATE.toISO()! }])
+
+    const remaining = draft.getStoredDraftForecasts()!
+    expect(remaining.rows.map(row => row.id)).toEqual([rows[1].id, rows[2].id])
+    expect(remaining.lastEdited.toISO()).toBe(lastEdited.toISO())
+  })
+
+  it('matches actuals by instant even when their timezone offsets differ', () => {
+    const forDate = DateTime.fromISO('2024-01-01T20:00:00Z', { setZone: true })
+    seedDraft([buildValidForecastRow(111, forDate)])
+
+    draft.reconcileWithActuals([{ station_code: 111, utc_timestamp: '2024-01-01T12:00:00-08:00' }])
+
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBeNull()
+    expect(draft.hasDraftForecastStored()).toBe(false)
+    expect(draft.getLastSavedDraftDateTime()).toBeUndefined()
+  })
+
+  it('keeps current drafts when no actuals are returned and repeated cleanup changes nothing', () => {
+    seedDraft([buildValidForecastRow(111, TEST_DATE)])
+    const original = localStorage.getItem(draft.STORAGE_KEY)
+
+    draft.reconcileWithActuals([])
+    draft.reconcileWithActuals([])
+
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBe(original)
+  })
+
+  it('expires yesterday at Pacific midnight while preserving today and the edit timestamp', () => {
+    vi.mocked(Date.now).mockReturnValue(DateTime.fromISO('2027-01-15T07:00:00Z', { zone: 'utc' }).toMillis())
+    const yesterday = buildValidForecastRow(111, DateTime.fromISO('2027-01-14T20:00:00Z', { zone: 'utc' }))
+    const today = buildValidForecastRow(111, yesterday.forDate.plus({ days: 1 }))
+    seedDraft([yesterday, today])
+
+    draft.reconcileWithActuals([])
+
+    const remaining = draft.getStoredDraftForecasts()!
+    expect(remaining.rows.map(row => row.id)).toEqual([today.id])
+    expect(remaining.rows[0].forDate.toMillis()).toBe(today.forDate.toMillis())
+    expect(remaining.lastEdited.toISO()).toBe(lastEdited.toISO())
+  })
+
+  it('displays an existing draft edit in Pacific time without changing storage', () => {
+    const edited = DateTime.fromISO('2026-11-01T23:30:00-08:00', { setZone: true })
+    localStorage.setItem(
+      draft.STORAGE_KEY,
+      JSON.stringify({ rows: [buildValidForecastRow(111, TEST_DATE)], lastEdited: edited })
+    )
+    const original = localStorage.getItem(draft.STORAGE_KEY)
+
+    expect(draft.getLastSavedDraftDateTime()).toBe('November 02, 00:30')
+    expect(draft.getStoredDraftForecasts()!.lastEdited.toMillis()).toBe(edited.toMillis())
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBe(original)
+  })
+
+  it('removes expired rows from storage even when no stations have actuals', () => {
+    seedDraft([buildValidForecastRow(111, TEST_DATE.minus({ days: 1 }))])
+
+    draft.reconcileWithActuals([])
+
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBeNull()
+  })
+
+  it('filters expired stored rows when another draft is edited', () => {
+    const expired = buildValidForecastRow(111, TEST_DATE.minus({ days: 1 }))
+    const current = buildValidForecastRow(222, TEST_DATE)
+    const edited = buildValidForecastRow(333, TEST_DATE)
+    seedDraft([expired, current])
+
+    draft.updateStoredDraftForecasts([edited], TEST_DATE)
+
+    const stored = draft.getStoredDraftForecasts()!
+    expect(stored.rows.map(row => row.id)).toEqual([current.id, edited.id])
+    expect(stored.lastEdited.toISO()).toBe(TEST_DATE.toISO())
+  })
+
+  it('preserves the edit timestamp when published rows are deleted', () => {
+    const saved = buildValidForecastRow(111, TEST_DATE)
+    const remaining = buildValidForecastRow(222, TEST_DATE)
+    seedDraft([saved, remaining])
+
+    draft.deleteRowsFromStoredDraft([saved])
+
+    expect(draft.getStoredDraftForecasts()!.rows.map(row => row.id)).toEqual([remaining.id])
+    expect(draft.getStoredDraftForecasts()!.lastEdited.toISO()).toBe(lastEdited.toISO())
+  })
+
+  it('removes the storage key when the final draft is published', () => {
+    const saved = buildValidForecastRow(111, TEST_DATE)
+    seedDraft([saved])
+
+    draft.deleteRowsFromStoredDraft([saved])
+
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBeNull()
+    expect(draft.getLastSavedDraftDateTime()).toBeUndefined()
+  })
+
+  it('hides the draft indicator for an empty stored draft and clears it on reconciliation', () => {
+    seedDraft([])
+    const original = localStorage.getItem(draft.STORAGE_KEY)
+    expect(draft.getStoredDraftForecasts()).toBeUndefined()
+    expect(draft.hasDraftForecastStored()).toBe(false)
+    expect(draft.getLastSavedDraftDateTime()).toBeUndefined()
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBe(original)
+
+    draft.reconcileWithActuals([])
+
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBeNull()
+  })
+
+  it('does not store empty drafts', () => {
+    draft.createStoredForecast([], TEST_DATE)
+    expect(localStorage.getItem(draft.STORAGE_KEY)).toBeNull()
   })
 })
