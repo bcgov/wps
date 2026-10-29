@@ -9,6 +9,20 @@
     "@psu/cffdrs_ts",
     "aiobotocore"
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)Dockerfile[^/]*$/",
+        "/^\\.github/workflows/integration\\.yml$/"
+      ],
+      "matchStrings": [
+        "corepack@(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "corepack",
+      "datasourceTemplate": "npm"
+    }
+  ],
   "packageRules": [
     {
       "matchPackageNames": [
@@ -21,10 +35,12 @@
         "node",
         "library/node",
         "docker.io/library/node",
-        "@types/node"
+        "@types/node",
+        "corepack"
       ],
       "groupName": "Node.js",
-      "groupSlug": "nodejs"
+      "groupSlug": "nodejs",
+      "separateMajorMinor": false
     }
   ]
 }
