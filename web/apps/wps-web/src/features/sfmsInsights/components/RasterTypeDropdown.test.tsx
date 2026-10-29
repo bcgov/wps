@@ -41,7 +41,7 @@ describe('RasterTypeDropdown', () => {
     const buiOption = screen.getByRole('option', { name: 'BUI' })
     expect(buiOption).toHaveAttribute('aria-disabled', 'true')
 
-    for (const name of ['TFC', 'CFB', 'HFI', 'Fire Size, 30 minutes']) {
+    for (const name of ['Danger Rating', 'TFC', 'CFB', 'HFI', 'Fire Size, 30 minutes']) {
       expect(screen.getByRole('option', { name })).toHaveAttribute('aria-disabled', 'true')
     }
   })
@@ -71,9 +71,18 @@ describe('RasterTypeDropdown', () => {
 
     expect(screen.getByRole('option', { name: 'SFC' })).not.toHaveAttribute('aria-disabled', 'true')
     expect(screen.getByRole('option', { name: 'FMC' })).not.toHaveAttribute('aria-disabled', 'true')
-    for (const name of ['TFC', 'CFB', 'HFI', 'Fire Size, 30 minutes']) {
+    for (const name of ['Danger Rating', 'TFC', 'CFB', 'HFI', 'Fire Size, 30 minutes']) {
       expect(screen.getByRole('option', { name })).not.toHaveAttribute('aria-disabled', 'true')
     }
+  })
+
+  it('allows selection of danger rating when raster data is available', () => {
+    render(<RasterTypeDropdown selectedRasterType="fwi" setSelectedRasterType={mockSetSelectedRasterType} />)
+
+    fireEvent.mouseDown(screen.getByRole('combobox'))
+    fireEvent.click(screen.getByRole('option', { name: 'Danger Rating' }))
+
+    expect(mockSetSelectedRasterType).toHaveBeenCalledWith('danger_rating')
   })
 
   it('defaults rasterDataAvailable to true when not provided', () => {
