@@ -188,10 +188,11 @@ class GLCX10ExpectedOutputs(NamedTuple):
 
 
 class GLCX10AreaCases(NamedTuple):
-    """The inputs that vectorized_elliptical_fire_area needs that are missing from GLCX10Inputs,
+    """The inputs the fire area calculation needs that are missing from GLCX10Inputs,
     including the expected area output.
 
-    time_min          - time of interest for each case (minutes)
+    time_min          - time of interest for each case (minutes), given to the FBP call as hr
+                        (hours) with accel on
     fmc               - Foliar Moisture Content (%), published rather than derived
     isi               - Initial Spread Index, published rather than derived
     expected_area_ha  - elliptical fire area at time_min (hectares)

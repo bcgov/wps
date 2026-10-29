@@ -1,6 +1,7 @@
 import { ModelChoice } from '@wps/api/moreCast2API'
 import type { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { buildValidActualRow, buildValidForecastRow } from 'features/moreCast2/rowFilters.test'
+import { getRowsToSave } from 'features/moreCast2/saveForecasts'
 import { createEmptyMoreCast2Row } from 'features/moreCast2/slices/dataSlice'
 import {
   calculateFWIs,
@@ -11,6 +12,8 @@ import {
   fillGrassCuringCWFIS,
   fillGrassCuringForecast,
   fillStationGrassCuringForward,
+  isBeforeToday,
+  isForecastRow,
   mapForecastChoiceLabels,
   parseForecastsHelper,
   rowIDHasher,
@@ -19,6 +22,7 @@ import {
   validForecastPredicate
 } from 'features/moreCast2/util'
 import { DateTime } from 'luxon'
+import { vi } from 'vitest'
 
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
 const TEST_DATE2 = '2023-02-17T20:00:00+00:00'
@@ -30,6 +34,29 @@ const TOMORROW = DateTime.fromISO(TEST_DATE).plus({ days: 1 })
 const REAL_YESTERDAY = DateTime.now().minus({ day: 1 })
 const REAL_TODAY = DateTime.now()
 const REAL_TOMORROW = DateTime.now().plus({ day: 1 })
+
+describe('Pacific forecast day', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it.each<[string, string, boolean]>([
+    ['2026-11-01T06:59:59.999Z', '2026-10-31T20:00:00Z', false],
+    ['2026-11-01T07:00:00Z', '2026-10-31T20:00:00Z', true],
+    ['2027-01-15T06:59:59.999Z', '2027-01-14T20:00:00Z', false],
+    ['2027-01-15T07:00:00Z', '2027-01-14T20:00:00Z', true]
+  ])('checks forecast eligibility at %s', (now, forecastDate, expired) => {
+    vi.spyOn(Date, 'now').mockReturnValue(DateTime.fromISO(now, { zone: 'utc' }).toMillis())
+    const forDate = DateTime.fromISO(forecastDate, { zone: 'utc' })
+    const rows = [0, 1, 2].map(day => buildValidForecastRow(111, forDate.plus({ days: day })))
+
+    expect(isBeforeToday(forDate)).toBe(expired)
+    expect(rows.map(isForecastRow)).toEqual([!expired, true, true])
+    expect(getRowsToSave(rows).map(row => row.forDate.toMillis())).toEqual(
+      rows.slice(expired ? 1 : 0).map(row => row.forDate.toMillis())
+    )
+  })
+})
 
 describe('createDateInterval', () => {
   it('should return array with single date when fromDate and toDate are the same', () => {

@@ -1,9 +1,12 @@
+import json
 import types
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
+from aiohttp import ClientResponse
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
+from wps_wf1.wfwx_client import WfwxClient
 
 
 # ---------------------------
@@ -166,7 +169,7 @@ def fake_config(monkeypatch):
             "WFWX_USER": "pytest-user",
             "WFWX_SECRET": "pytest-secret",
             "REDIS_AUTH_CACHE_EXPIRY": "600",
-            "REDIS_STATION_CACHE_EXPIRY": "604800",
+            "REDIS_STATION_CACHE_EXPIRY": "86400",
             "REDIS_HOURLIES_BY_STATION_CODE_CACHE_EXPIRY": "300",
             "REDIS_DAILIES_BY_STATION_CODE_CACHE_EXPIRY": "300",
             "REDIS_USE": "True",  # flip between True/False in tests as needed
@@ -293,8 +296,62 @@ async def test_get_station_data_uses_mapper_and_headers(monkeypatch, wfwx_api):
             collected.append({"parsed": item["stationCode"]})
         return collected
 
-    stations = await wfwx_api.get_station_data(mapper=mapper, use_no_cache_header=True)
+    stations = await wfwx_api.get_station_data(mapper=mapper, use_cache=False)
     assert stations == [{"parsed": 1}, {"parsed": 2}]
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "use_cache, expected_codes",
+    [(True, [100]), (False, [200])],
+    ids=["cached", "fresh"],
+)
+async def test_station_lookup_bypasses_stale_cache(
+    wfwx_api, mock_session, mock_cache, use_cache, expected_codes
+):
+    old_station = {
+        "id": "old",
+        "stationCode": 100,
+        "displayLabel": "Old station",
+        "stationStatus": {"id": "ACTIVE"},
+        "latitude": 49.1,
+        "longitude": -123.1,
+        "elevation": 100,
+        "zone": None,
+        "fireCentre": None,
+    }
+    new_station = {
+        **old_station,
+        "id": "new",
+        "stationCode": 200,
+        "displayLabel": "New station",
+    }
+    mock_cache.get.return_value = json.dumps(
+        {"_embedded": {"stations": [old_station]}, "page": {"totalPages": 1}}
+    ).encode("utf-8")
+    response = MagicMock(spec=ClientResponse)
+    response.json.return_value = {
+        "_embedded": {
+            "stations": [
+                {**old_station, "stationStatus": {"id": "INACTIVE"}},
+                new_station,
+            ]
+        },
+        "page": {"totalPages": 1},
+    }
+    mock_session.get.return_value.__aenter__.return_value = response
+    client = WfwxClient(mock_session, wfwx_api.wfwx_settings, mock_cache)
+    client.fetch_access_token = AsyncMock(return_value={"access_token": "token123"})
+    wfwx_api.wfwx_client = client
+
+    stations = await wfwx_api.get_wfwx_stations_from_station_codes([100, 200], use_cache=use_cache)
+
+    assert [station.code for station in stations] == expected_codes
+    assert mock_session.get.call_count == int(not use_cache)
+    assert mock_cache.get.call_count == int(use_cache)
+    mock_cache.set.assert_not_called()
+    if not use_cache:
+        assert mock_session.get.call_args.kwargs["headers"]["Cache-Control"] == "no-cache"
 
 
 @pytest.mark.anyio
@@ -632,9 +689,7 @@ async def test_get_wfwx_stations_from_station_codes_specific(monkeypatch, wfwx_a
 
     monkeypatch.setattr(api_mod, "wfwx_station_list_mapper", fake_wfwx_station_list_mapper)
 
-    res = await wfwx_api.get_wfwx_stations_from_station_codes(
-        station_codes=[101, 999], fire_centre_station_codes=[101, 202]
-    )
+    res = await wfwx_api.get_wfwx_stations_from_station_codes(station_codes=[101, 999])
     assert [s.code for s in res] == [101]
     # The missing one logs an error; we just ensure function doesn’t crash
 
@@ -768,40 +823,6 @@ async def test_get_dailies_for_stations_and_date(monkeypatch, wfwx_api):
         mapper=fake_mapper,
     )
     assert res == [{"mapped": 1}, {"mapped": 2}]
-
-
-@pytest.mark.anyio
-async def test_get_forecasts_for_stations_by_date_range(monkeypatch, wfwx_api):
-    async def fake_get_wfwx_stations(*args, **kwargs):
-        return [types.SimpleNamespace(wfwx_id="A", code=101)]
-
-    monkeypatch.setattr(wfwx_api, "get_wfwx_stations_from_station_codes", fake_get_wfwx_stations)
-
-    async def fake_dailies_generator(*args, **kwargs):
-        # validate flags forwarded
-        assert kwargs["check_cache"] is False
-        assert kwargs["use_no_cache_header"] is True
-        return async_gen([{"rec": 42}])
-
-    monkeypatch.setattr(wfwx_api, "get_dailies_generator", fake_dailies_generator)
-
-    async def fake_mapper(raw_gen, rec_type):
-        assert rec_type.name == "FORECAST"
-        items = []
-        async for it in raw_gen:
-            items.append({"mapped": it["rec"]})
-        return items
-
-    res = await wfwx_api.get_forecasts_for_stations_by_date_range(
-        start_time_of_interest=datetime(2025, 1, 1),
-        end_time_of_interest=datetime(2025, 1, 3),
-        unique_station_codes=[101],
-        fire_centre_station_codes=[101, 202],
-        check_cache=False,
-        mapper=fake_mapper,
-        use_no_cache_header=True,
-    )
-    assert res == [{"mapped": 42}]
 
 
 @pytest.mark.anyio

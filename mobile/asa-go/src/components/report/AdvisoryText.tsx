@@ -18,6 +18,7 @@ import {
   getMinStartAndMaxEndTime
 } from '@/utils/criticalHoursStartEndTime'
 import { getToday } from '@/utils/dataSliceUtils'
+import { formatDatetimeWithTimezone, getBCTimezoneLabel } from '@/utils/timezoneUtils'
 
 export interface AdvisoryTextProps {
   selectedFireCentre: FireCentre | undefined
@@ -194,7 +195,12 @@ const AdvisoryText = ({ selectedFireCentre, selectedFireZoneUnit }: AdvisoryText
     const hasCriticalHours = !isNil(minStartTime) && !isNil(maxEndTime)
     let message: React.ReactNode = null
     if (hasCriticalHours) {
-      const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(minStartTime, maxEndTime, false)
+      const [formattedStartTime, formattedEndTime] = formatCriticalHoursTimeText(
+        minStartTime,
+        maxEndTime,
+        false,
+        getBCTimezoneLabel(runParameter!.for_date)
+      )
       message = (
         <>
           There is a fire behaviour {zoneStatus?.toLowerCase()} in effect for {selectedFireZoneUnit?.mof_fire_zone_name}{' '}
@@ -227,9 +233,7 @@ const AdvisoryText = ({ selectedFireCentre, selectedFireZoneUnit }: AdvisoryText
 
         {runParameter?.run_datetime && (
           <AdvisoryTypography data-testid="bulletin-issue-date" sx={{ whiteSpace: 'pre-wrap' }}>
-            {`Issued on ${DateTime.fromISO(runParameter.run_datetime)?.toLocaleString(
-              DateTime.DATETIME_FULL
-            )} for ${displayForDate}.\n\n`}
+            {`Issued on ${formatDatetimeWithTimezone(DateTime.fromISO(runParameter.run_datetime))} for ${displayForDate}.\n\n`}
           </AdvisoryTypography>
         )}
 
