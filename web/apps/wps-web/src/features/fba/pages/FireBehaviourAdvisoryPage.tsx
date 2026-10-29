@@ -10,7 +10,7 @@ import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { StyledFormControl } from '@wps/ui/StyledFormControl'
 import { theme } from '@wps/ui/theme'
 import { ASA_DOC_TITLE, FIRE_BEHAVIOUR_ADVISORY_NAME } from '@wps/utils/constants'
-import { toBCPacificTime } from '@wps/utils/date'
+import { isBeforeNoonForecast, toBCPacificTime } from '@wps/utils/date'
 import { selectFireCentres, selectRunDates } from 'app/rootReducer'
 import type { AppDispatch } from 'app/store'
 import ActualForecastControl from 'features/fba/components/ActualForecastControl'
@@ -51,7 +51,7 @@ const FireBehaviourAdvisoryPage: React.FunctionComponent = () => {
   const [zoomSource, setZoomSource] = useState<'fireCentre' | 'fireShape' | undefined>('fireCentre')
   const [dateOfInterest, setDateOfInterest] = useState<DateTime<boolean>>(() => {
     const now = toBCPacificTime(DateTime.now())
-    return now.hour < 13 ? now : now.plus({ days: 1 })
+    return isBeforeNoonForecast(now) ? now : now.plus({ days: 1 })
   })
   const [runType, setRunType] = useState<RunType>(RunType.FORECAST)
   // Set some reasonable historical min and max dates for ASA (used by the DatePicker).

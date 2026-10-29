@@ -1,7 +1,7 @@
 import { bui, dc, dmc, ffmc, fwi, isi } from '@psu/cffdrs_ts'
 import { ModelChoice, type MoreCast2ForecastRecord, WeatherDeterminate } from '@wps/api/moreCast2API'
 import type { StationGroupMember } from '@wps/api/stationAPI'
-import { toBCPacificTime } from '@wps/utils/date'
+import { isBeforeNoonForecast, toBCPacificTime } from '@wps/utils/date'
 import type { MoreCast2ForecastRow, MoreCast2Row } from 'features/moreCast2/interfaces'
 import { isForecastRowPredicate } from 'features/moreCast2/saveForecasts'
 import { groupBy, isUndefined } from 'lodash'
@@ -282,6 +282,17 @@ export const isBeforeToday = (datetime: DateTime): boolean => {
   const today = toBCPacificTime(DateTime.now()).startOf('day')
 
   return datetime < today
+}
+
+/**
+ * Default date range for the Morecast page, starting 3 days back before the noon forecasts come out and 2 days back
+ * after. The range is chosen from the BC date but returned as local midnights, since the date picker and API read
+ * these dates in the device's timezone.
+ */
+export const getDefaultDateRange = (now: DateTime = DateTime.now()): { startDate: Date; endDate: Date } => {
+  const bcStart = toBCPacificTime(now).minus({ days: isBeforeNoonForecast(now) ? 3 : 2 })
+  const startDate = DateTime.fromObject({ year: bcStart.year, month: bcStart.month, day: bcStart.day })
+  return { startDate: startDate.toJSDate(), endDate: startDate.plus({ days: 4 }).toJSDate() }
 }
 
 export const rowContainsActual = (row: MoreCast2Row): boolean => {

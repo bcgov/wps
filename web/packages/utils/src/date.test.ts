@@ -5,6 +5,7 @@ import {
   formatISODateInPST,
   formatMonthAndDay,
   getBCTimezoneLabel,
+  isBeforeNoonForecast,
   toBCPacificTime
 } from './date'
 
@@ -52,6 +53,16 @@ describe('Date util functions', () => {
     it('should be PCT once BC moved to permanent Pacific Time', () => {
       expect(getBCTimezoneLabel('2026-11-01')).toEqual('PCT')
       expect(getBCTimezoneLabel('2027-07-01')).toEqual('PCT')
+    })
+  })
+  describe('isBeforeNoonForecast', () => {
+    it.each([
+      ['2026-07-15T19:59:00Z', true],
+      ['2026-07-15T20:00:00Z', false],
+      ['2026-11-15T19:59:00Z', true],
+      ['2026-11-15T20:00:00Z', false]
+    ])('at %s should be %s regardless of the source timezone', (instant, expected) => {
+      expect(isBeforeNoonForecast(DateTime.fromISO(instant, { zone: 'America/Toronto' }))).toBe(expected)
     })
   })
   describe('formatInBCPacificTime', () => {

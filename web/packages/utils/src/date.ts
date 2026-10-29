@@ -10,6 +10,11 @@ export const toBCPacificTime = (datetime: DateTime): DateTime => {
   return datetime.setZone(zone)
 }
 
+/**
+ * Whether it's before 13:00 BC time (20:00 UTC), when the day's noon forecasts come out.
+ */
+export const isBeforeNoonForecast = (now: DateTime = DateTime.now()): boolean => toBCPacificTime(now).hour < 13
+
 export const formatISODateInPST = (dateISOString: string): DateTime => {
   // Take a datetime ISO string, extract date ISO portion, set PST timezone and return as DateTime
   // E.g. 2021-08-02T20:00:00+00:00 becomes 2021-08-02T00:00-08:00
