@@ -13,12 +13,14 @@ import type { RasterType, SFMSNGRasterType } from '@/features/sfmsInsights/compo
 import {
   fuelCOGColourExpression,
   getSFMSNGRasterColourExpression,
+  nonFuelCOGColourExpression,
   snowStyler
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
 
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
+export const NON_FUEL_LAYER_NAME = 'nonFuelRaster'
 
 export const getSFMSNGRasterPath = (
   date: DateTime,
@@ -139,6 +141,16 @@ export const getFuelCOGTiles = (token?: string) => {
     }
   })
 }
+
+export const getNonFuelCOGTiles = (token?: string) =>
+  new WebGLTile({
+    source: getFuelGridCOG(token),
+    zIndex: 52.5,
+    opacity: 1,
+    extent: boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord))),
+    properties: { name: NON_FUEL_LAYER_NAME },
+    style: { color: nonFuelCOGColourExpression() }
+  })
 
 /**
  * Get the appropriate raster layer based on type
