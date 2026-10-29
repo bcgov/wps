@@ -29,14 +29,12 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 # Use the base image's python3; fail the build rather than download another.
 ENV UV_PYTHON_DOWNLOADS=never
 ENV PATH="/opt/venv/bin:$PATH"
-COPY pyproject.toml uv.lock /tmp/
-RUN cd /tmp && uv sync --locked --no-dev --no-build
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev --no-build
 
 # Copy scripts.
-COPY backup_to_s3.sh .
-COPY cleanup_bucket.sh .
-COPY prune.py .
-COPY prune_test.py .
+COPY backup_to_s3.sh cleanup_bucket.sh prune.py prune_test.py ./
 
 # Configure the default command to run.
 CMD sh backup_to_s3.sh
