@@ -11,6 +11,7 @@ import StationPanel from 'features/moreCast2/components/StationPanel'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { getWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
 import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
+import { getDefaultDateRange } from 'features/moreCast2/util'
 import { isEmpty } from 'lodash'
 import { DateTime } from 'luxon'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -55,18 +56,7 @@ const MoreCast2Page = () => {
   const { idir } = useSelector(selectAuthentication)
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
 
-  const currentTimeIsBeforeNoon = DateTime.now().hour < 13
-  let startDateTime: DateTime
-  if (currentTimeIsBeforeNoon) {
-    startDateTime = DateTime.now().minus({ days: 3 })
-  } else {
-    startDateTime = DateTime.now().minus({ days: 2 })
-  }
-  const endDateTime = startDateTime.plus({ days: 4 })
-  const [fromTo, setFromTo] = useState<DateRange>({
-    startDate: startDateTime.toJSDate(),
-    endDate: endDateTime.toJSDate()
-  })
+  const [fromTo, setFromTo] = useState<DateRange>(() => getDefaultDateRange())
   const [selectedGroupsMembers, setSelectedGroupsMembers] = useState([...members])
 
   const fetchWeatherIndeterminates = useCallback(() => {

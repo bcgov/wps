@@ -76,8 +76,7 @@ export interface RawHFIResultResponse {
   fire_start_ranges: FireStartRange[]
 }
 
-import { PACIFIC_IANA_TIMEZONE } from '@wps/utils/constants'
-import { formatISODateInPST } from '@wps/utils/date'
+import { formatISODateInPST, toBCPacificTime } from '@wps/utils/date'
 
 export interface FuelType {
   id: number
@@ -260,8 +259,8 @@ export async function getAllReadyStates(
   const { data } = await axios.get<HFIAllReadyStatesResponse>(url)
   return data.ready_states.map(planningAreaReadyState => ({
     ...planningAreaReadyState,
-    create_timestamp: DateTime.fromISO(planningAreaReadyState.create_timestamp).setZone(PACIFIC_IANA_TIMEZONE),
-    update_timestamp: DateTime.fromISO(planningAreaReadyState.update_timestamp).setZone(PACIFIC_IANA_TIMEZONE)
+    create_timestamp: toBCPacificTime(DateTime.fromISO(planningAreaReadyState.create_timestamp)),
+    update_timestamp: toBCPacificTime(DateTime.fromISO(planningAreaReadyState.update_timestamp))
   }))
 }
 
@@ -286,8 +285,8 @@ export async function toggleReadyState(
   const { data } = await axios.post<RawReadyPlanningAreaDetails>(url)
   return {
     ...data,
-    create_timestamp: DateTime.fromISO(data.create_timestamp).setZone(PACIFIC_IANA_TIMEZONE),
-    update_timestamp: DateTime.fromISO(data.update_timestamp).setZone(PACIFIC_IANA_TIMEZONE)
+    create_timestamp: toBCPacificTime(DateTime.fromISO(data.create_timestamp)),
+    update_timestamp: toBCPacificTime(DateTime.fromISO(data.update_timestamp))
   }
 }
 
