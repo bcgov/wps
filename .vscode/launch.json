@@ -12,11 +12,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python",
-            "env": {
-                "R_HOME": "/Library/Frameworks/R.framework/Resources",
-                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
-            }
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "api (main)",
@@ -33,11 +29,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python",
-            "env": {
-                "R_HOME": "/Library/Frameworks/R.framework/Resources",
-                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
-            }
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "api (asa-go)",
@@ -54,11 +46,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "cwd": "${workspaceFolder}/backend",
-            "python": "${workspaceFolder}/backend/.venv/bin/python",
-            "env": {
-                "R_HOME": "/Library/Frameworks/R.framework/Resources",
-                "DYLD_LIBRARY_PATH": "/Library/Frameworks/R.framework/Resources/lib"
-            }
+            "python": "${workspaceFolder}/backend/.venv/bin/python"
         },
         {
             "name": "api (sfms-fwi)",

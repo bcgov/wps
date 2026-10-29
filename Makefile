@@ -30,6 +30,8 @@ docker-shell-web:
 	# docker run -it --env-file app/.env --entrypoint bash wps-api_api:latest
 	docker compose exec web bash
 
+.PHONY: local-object-store-up local-object-store-down local-object-store-destroy local-object-store-reset
+
 local-object-store-up:
 	# start the loopback-only local object store and create empty application buckets
 	docker compose -f compose.object-store.yml up -d --wait
@@ -38,7 +40,11 @@ local-object-store-down:
 	# stop the local object store while preserving its data volume
 	docker compose -f compose.object-store.yml down
 
+local-object-store-destroy:
+	# stop the local object store and delete all its data
+	docker compose -f compose.object-store.yml down --volumes
+
 local-object-store-reset:
 	# delete all local object-store data, restart the service, and recreate empty buckets
-	docker compose -f compose.object-store.yml down --volumes
+	$(MAKE) local-object-store-destroy
 	$(MAKE) local-object-store-up

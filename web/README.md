@@ -42,7 +42,7 @@ Launches the Playwright test runner in interactive watch mode for end-to-end and
 
 Builds the app for production to `apps/wps-web/build`.
 
-##### Running in Docker
+##### Running in Docker, currently unsupported
 
 1. Create `.env` in `apps/wps-web/` using `apps/wps-web/.env.example` as a sample
 2. Run `docker compose build` and then `docker compose up`

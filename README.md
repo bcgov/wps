@@ -13,9 +13,10 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 ### Dependencies
 
-> **Note:** Docker Compose and the VS Code dev container are **currently
-> unsupported**. Native setup is the recommended (and supported) way to run the
-> project locally.
+> Run the API and frontend natively, with SeaweedFS for local S3 storage.
+> The full application Compose stack and VS Code dev container are unsupported.
+
+See the [external contributor guide](docs/EXTERNAL_CONTRIBUTORS.md) for setup without deployed S3 credentials.
 
 Run the backend and front end natively — see the per-component setup docs:
 
@@ -24,8 +25,8 @@ Run the backend and front end natively — see the per-component setup docs:
 
 ### Installing
 
-Native setup is the recommended and supported path. The Docker Compose and dev
-container flows further down are **currently unsupported** and may be out of date.
+Use native setup. The full application Compose and dev-container flows below are
+unsupported and may be out of date.
 
 #### Running the api (native — recommended)
 

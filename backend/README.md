@@ -21,13 +21,15 @@ backend/
 
 ## Getting Started
 
-You will need an environment file at the **repo root**: copy `.env.example` (in the repo root) to `.env`. python-decouple discovers it by walking up from the package directory, so it must live at the repo root, not in `backend/`. Contact current maintainers for current variable settings.
+Copy `.env.example` to `.env` at the repository root, where python-decouple can find
+it in a parent directory. For local settings without shared credentials, use the
+[external contributor guide](../docs/EXTERNAL_CONTRIBUTORS.md).
 
 ### Installing
 
 - Automated (mac only):
   - Run `setup/mac.sh` in parent folder
-  - Follow [manual setup](../docs/MANUAL_SETUP.md) for database setup notes as of Nov 2024.
+  - Follow [manual setup](../docs/MANUAL_SETUP.md#natively) for database and role setup.
   - Follow [vsc setup steps](../setup/VSC.md)
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
@@ -39,8 +41,10 @@ You will need an environment file at the **repo root**: copy `.env.example` (in 
 
 ### Install Dependencies
 
+From the repository root:
+
 ```bash
-cd wps/backend
+cd backend
 uv sync --all-extras
 ```
 

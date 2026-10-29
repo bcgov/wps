@@ -1,8 +1,10 @@
 # Contributing and the Contributor Covenant Code of Conduct
 
-##
+## Local development
 
-Technical details coming soon.
+See the [external contributor guide](docs/EXTERNAL_CONTRIBUTORS.md) for macOS setup
+without deployed S3 credentials and remaining feature limits. Test commands are in
+the [backend](backend/README.md) and [frontend](web/README.md) guides.
 
 ## Our Pledge
 

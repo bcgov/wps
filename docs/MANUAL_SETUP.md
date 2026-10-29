@@ -3,6 +3,7 @@
 The backend is a `uv`-managed Python workspace (see [backend/README.md](../backend/README.md)).
 On macOS most of this is automated by [`setup/mac.sh`](../setup/mac.sh); this document
 covers the manual steps and platform-specific notes.
+For local credentials and charts, see the [external contributor guide](EXTERNAL_CONTRIBUTORS.md).
 
 #### Local machine, in docker
 
@@ -23,10 +24,9 @@ docker compose build
 
 #### Local machine, running MacOS
 
-For native (non-docker) local development, copy the repo-root `.env.example` to `.env`
-(at the repo root — python-decouple discovers it by walking up from the package
-directory). Then change the database hosts from the docker-compose service name to
-`localhost`:
+For native development, copy `.env.example` to `.env` at the repository root,
+where python-decouple finds it in a parent directory. Use `external-contributor-api.env`
+instead for local S3 credentials. Set database hosts to `localhost`:
 
 ```
 POSTGRES_WRITE_HOST=localhost
@@ -39,67 +39,12 @@ there. Locally we use Homebrew's `postgresql@17` + `postgis`.
 
 #### Local object storage
 
-Contributors can run the API and web app natively while using a loopback-only SeaweedFS
-container instead of credentials for the deployed object stores. The sidecar pins
-SeaweedFS `4.47`, which is distributed under the
-[Apache License 2.0](https://github.com/seaweedfs/seaweedfs/blob/master/LICENSE). On
-macOS, see [Running Docker with Colima](COLIMA_SETUP.md) for a Docker Desktop-free
-runtime. Start the object store from the repository root:
+For local S3 storage with SeaweedFS, follow the [external guide](EXTERNAL_CONTRIBUTORS.md#4-start-storage-and-the-application).
 
-```bash
-make local-object-store-up
-```
+##### Frontend packages
 
-SeaweedFS creates empty `wps-local` and `wps-wx-local` buckets at startup. Data is stored
-in a Docker volume and survives restarts. The loopback-only SeaweedFS Admin UI is at
-<http://127.0.0.1:9001>. The S3 endpoint uses the local credentials in the contributor
-env file. Copy `external-contributor-api.env` to the repository root as `.env` for the
-API and backfill command. Copy `external-contributor-web.env` to
-`web/apps/wps-web/.env` for the web app.
-
-To generate Weather Toolkit charts, run `Weather - Local 4Panel Charts` from VS Code.
-Choose a published model date from the
-[public MSC Datamart](https://eccc-msc.github.io/open-data/msc-datamart/readme_en/),
-then select GDPS or RDPS and the `00` or `12` run. The launch downloads the required
-public GRIB files and generates charts through forecast hour 6. It does not need the
-chart status database. The existing RDPS and GDPS chart launches require GRIB inputs
-and Postgres.
-
-The same backfill is available from the repository root when working outside VS Code:
-
-```bash
-uv run --project backend --package wps-weather python \
-  -m wps_weather.wx_4panel_charts.backfill \
-  --model GDPS \
-  --init-ymd "$(date -u +%Y%m%d)" \
-  --model-run 00 \
-  --end-hour 12
-```
-
-The command is idempotent and skips objects already present. Use a recent archived date
-if today's `00` run is not available yet. GDPS hours must use a 6-hour interval and
-cannot exceed 240; RDPS hours must use a 3-hour interval and cannot exceed 84. Larger
-ranges download and process substantially more data. In Weather Toolkit, select the
-same model, date, and run hour used by the command.
-
-Stop SeaweedFS without deleting data with `make local-object-store-down`. To deliberately
-delete all locally generated object-store data and recreate empty buckets, run
-`make local-object-store-reset`.
-
-##### Artifactory npm repo config
-
-We currently publish the cffdrs_ts package to our internal artifactory instance. You need to configure credentials so npm can pull the cffdrs_ts package from this repo. To add the credentials to your global `~/.npmrc` run:
-
-```bash
-npm config set @psu:registry https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/
-npm config set //artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken {artifactory_token}
-```
-
-Alternatively, you can create a project specific `.npmrc` at the root of the `web` directory and add the following:
-`@psu:registry=https://artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/`
-`//artifacts.developer.gov.bc.ca/artifactory/api/npm/pe1e-psu-npm-local/:_authToken={artifactory_token}`
-
-The artifactory token is currently stored in Vault as gha_artifactory_token.
+The frontend uses a pinned public GitHub commit for `@psu/cffdrs_ts`; no Artifactory
+or private registry settings are needed. See the [frontend guide](../web/README.md).
 
 ##### Java
 
@@ -131,8 +76,8 @@ break gdal. Letting homebrew keep gdal consistent with its deps avoids that; if 
 ahead of the pinned version, `uv sync` fails loudly — that's the signal to bump.
 
 Keep the `ghcr.io/osgeo/gdal` base-image tag (`openshift/wps-api-base/docker/Dockerfile`)
-and the three `gdal==` pyproject pins in step. To bump: update the base-image tag + the
-three pins, `uv lock`, then `uv sync` (run `brew upgrade gdal` first if your local gdal is
+and all `gdal==` pyproject pins in step. To bump: update the base-image tag and
+all pins, `uv lock`, then `uv sync` (run `brew upgrade gdal` first if your local gdal is
 behind).
 
 ##### wkhtmltopdf
@@ -213,10 +158,13 @@ namespace", then:
 
 #### Local machine, running Linux
 
+These notes are incomplete and unverified. This branch pins GDAL bindings to 3.13.3;
+check system GDAL before installing Python packages. Distribution packages may be too old.
+
 ##### Ubuntu
 
 The production base image (`openshift/wps-api-base/docker/Dockerfile`) is the
-authoritative list of system dependencies. On a comparable Ubuntu host:
+authoritative list of system dependencies. Historical Ubuntu package notes:
 
 ```bash
 sudo apt install python3 python3-pip python3-dev python-is-python3
@@ -235,7 +183,7 @@ Install `uv` (<https://docs.astral.sh/uv/>) and run `uv sync --all-extras` from
 
 ##### Fedora
 
-Install system dependencies:
+Historical package note, not a complete setup:
 
 ```bash
 sudo dnf install unixODBC-devel
@@ -252,13 +200,14 @@ Install dependencies (required before running the program for the first time):
 cd backend && uv sync --all-extras
 ```
 
-Run the full stack in docker:
+The full application Docker stack remains unsupported:
 
 ```bash
 make docker-run        # docker compose up
 ```
 
-Run the API natively (from `backend/packages/wps-api`):
+Run the API natively from `backend/` so the contributor template's relative Java
+classpath resolves correctly:
 
 ```bash
 uv run --package wps-api python -m app.main
@@ -288,7 +237,8 @@ brew install postgresql@17 postgis
 brew services start postgresql@17
 ```
 
-Then create the database, extension and users (these match the `.env` defaults):
+Create the database, extension and users unless `setup/mac.sh` already did so.
+These values match the `.env` defaults:
 
 ```bash
 psql -d postgres -c "create database wps;"
@@ -296,11 +246,24 @@ psql -d wps -c "create extension postgis;"
 psql -d wps -c "
 CREATE USER wps;
 CREATE USER wpsread;
+"
+```
+
+Apply these role settings even after `setup/mac.sh`. Grants cover existing tables
+and future tables created by the migration role, `wps`:
+
+```bash
+psql -d wps -c "
 ALTER USER wps WITH LOGIN;
 ALTER USER wpsread WITH LOGIN;
 ALTER USER wps WITH SUPERUSER;
 ALTER USER wps WITH PASSWORD 'wps';
-grant connect on database wps to wpsread; grant usage on schema public to wpsread; grant select on all tables in schema public to wpsread;
+ALTER USER wpsread WITH PASSWORD 'wps';
+GRANT CONNECT ON DATABASE wps TO wpsread;
+GRANT USAGE ON SCHEMA public TO wpsread;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO wpsread;
+ALTER DEFAULT PRIVILEGES FOR ROLE wps IN SCHEMA public
+  GRANT SELECT ON TABLES TO wpsread;
 "
 ```
 
@@ -320,12 +283,6 @@ bundles Postgres + PostGIS. Create the database/users with the same SQL as above
 that Postgres.app bundles its own older `gdal-config`; if you add its `bin` to `PATH`,
 **append** it rather than prepend, so it doesn't shadow Homebrew's gdal during `uv sync`.
 
-#### ModuleNotFoundError: No module named 'pkg_resources'
-
-```bash
-cd backend && uv pip install --upgrade setuptools
-```
-
 ## New Workstation Setup
 
 ### Required Software
@@ -336,8 +293,8 @@ The following is a list of required software applications and packages. Some of 
   - using the "Python: Select Interpreter" command within VS Code, select `backend/.venv/bin/python`
 - Git CLI
 - GitHub CLI
-- Openshift CLI
-- Docker and Lima
+- OpenShift CLI for deployment work only
+- Docker with Compose for local object storage and container tests
 - Brew (for Mac)
 
 ### Optional but Recommended Software

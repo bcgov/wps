@@ -90,8 +90,7 @@ From the repository root, start SeaweedFS and create the local application bucke
 make local-object-store-up
 ```
 
-See [Manual Setup](MANUAL_SETUP.md#local-object-storage) for the contributor environment
-file and Weather Toolkit data-generation steps.
+See the [external guide](EXTERNAL_CONTRIBUTORS.md#2-configure-the-local-environment) for configuration and charts.
 
 Stop the object store while preserving its data:
 

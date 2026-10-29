@@ -1,6 +1,6 @@
-Assumes installation and setup is done in [backend/README.md](../../../backend/README.md)
+Set up dependencies using the [backend guide](../../README.md).
 
-Run API with:
+Run from `backend/` to resolve the contributor template's Java classpath:
 
 ```bash
 uv run --package wps-api python -m app.main
@@ -8,7 +8,7 @@ uv run --package wps-api python -m app.main
 
 ### Testing
 
-Code must pass all unit tests.
+Run all unit tests from `backend/`:
 
 ```bash
 uv run pytest
