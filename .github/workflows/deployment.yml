@@ -57,6 +57,9 @@ jobs:
             module: jobs
             docker_file: Dockerfile.jobs
             path_bc: openshift/templates/wps_jobs/wps_jobs_build.yaml
+          - name: S3 Backup
+            module: s3-backup
+            path_bc: openshift/s3-backup/openshift/build.yaml
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/oc-setup
@@ -190,6 +193,9 @@ jobs:
           END_HOUR=48 STEP=6 MODEL=GDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           echo "---" >>"${BATCH_FILE}"
           END_HOUR=15 STEP=3 MODEL=RDPS bash openshift/scripts/oc_provision_wx_4panel_charts_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          echo "---" >>"${BATCH_FILE}"
+          # 10:00 UTC daily; prod runs 4x a day
+          CPU_REQUEST=100m MEMORY_REQUEST=256Mi MEMORY_LIMIT=256Mi SCHEDULE="0 10 * * *" bash openshift/scripts/oc_provision_backup_s3_postgres_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           echo "---" >>"${BATCH_FILE}"
 
           echo "Applying batched manifests in one call..."
