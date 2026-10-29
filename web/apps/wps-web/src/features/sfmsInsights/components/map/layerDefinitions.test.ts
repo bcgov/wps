@@ -128,6 +128,14 @@ describe('layerDefinitions', () => {
       )
     })
 
+    it.each([RunType.ACTUAL, RunType.FORECAST])('should generate %s danger rating COG paths', runType => {
+      const rasterDate = DateTime.fromISO('2025-11-05')
+
+      expect(getSFMSNGRasterPath(rasterDate, 'danger_rating', runType)).toBe(
+        `sfms_ng/${runType}/2025/11/05/danger_rating_20251105_cog.tif`
+      )
+    })
+
     it('should generate run-specific SFC COG paths', () => {
       const rasterDate = DateTime.fromISO('2025-11-05')
 
@@ -232,7 +240,7 @@ describe('layerDefinitions', () => {
       expect(layer!.getProperties().rasterType).toBe('fwi')
     })
 
-    it.each(['sfc', 'fmc'] as const)('should return an %s raster layer', rasterType => {
+    it.each(['sfc', 'fmc', 'danger_rating'] as const)('should return an %s raster layer', rasterType => {
       const date = DateTime.fromISO('2025-11-05')
       const layer = getRasterLayer(date, rasterType, 'test-token', RunType.FORECAST)
 
