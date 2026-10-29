@@ -2,11 +2,13 @@ import * as ol from 'ol'
 import type Geometry from 'ol/geom/Geometry'
 import {
   CFB_COLOUR_BREAKS,
+  DANGER_RATING_COLOUR_BREAKS,
   FIRE_AREA_30MIN_COLOUR_BREAKS,
   FMC_COLOUR_BREAKS,
   FUEL_COLOUR_BREAKS,
   FUEL_TYPE_COLOURS,
   HFI_COLOUR_BREAKS,
+  RASTER_CONFIG,
   SFC_COLOUR_BREAKS,
   TFC_COLOUR_BREAKS
 } from '@/features/sfmsInsights/components/map/rasterConfig'
@@ -93,8 +95,12 @@ describe('fuelCOGColourExpression', () => {
 })
 
 describe('getSFMSNGRasterColourExpression', () => {
-  it('should use the normalized shared palettes for SFC and FMC', () => {
-    expect(SFC_COLOUR_BREAKS.map(colourBreak => colourBreak.colour)).toEqual([
+  it.each([
+    ['sfc', SFC_COLOUR_BREAKS],
+    ['tfc', TFC_COLOUR_BREAKS],
+    ['cfb', CFB_COLOUR_BREAKS]
+  ] as const)('should use the shared palette for %s', (_rasterType, colourBreaks) => {
+    expect(colourBreaks.map(colourBreak => colourBreak.colour)).toEqual([
       'rgb(0, 0, 255)',
       'rgb(102, 153, 204)',
       'rgb(0, 170, 0)',
@@ -103,6 +109,9 @@ describe('getSFMSNGRasterColourExpression', () => {
       'rgb(255, 170, 0)',
       'rgb(255, 0, 0)'
     ])
+  })
+
+  it('should use the shared palette for FMC', () => {
     expect(FMC_COLOUR_BREAKS.map(colourBreak => colourBreak.colour)).toEqual([
       'rgb(255, 170, 0)',
       'rgb(255, 255, 0)',
@@ -112,6 +121,15 @@ describe('getSFMSNGRasterColourExpression', () => {
       'rgb(0, 0, 255)'
     ])
   })
+
+  it.each(Object.entries(RASTER_CONFIG).filter(([rasterType]) => rasterType !== 'fuel'))(
+    'should keep neighbouring %s categories different colours',
+    (_rasterType, { colourBreaks }) => {
+      for (let index = 1; index < colourBreaks.length; index++) {
+        expect(colourBreaks[index].colour).not.toBe(colourBreaks[index - 1].colour)
+      }
+    }
+  )
 
   it('should make pixels with a zero alpha band transparent before applying color breaks', () => {
     const expr = getSFMSNGRasterColourExpression('fwi')
@@ -129,6 +147,7 @@ describe('getSFMSNGRasterColourExpression', () => {
   })
 
   it.each([
+    ['danger_rating', DANGER_RATING_COLOUR_BREAKS],
     ['sfc', SFC_COLOUR_BREAKS],
     ['fmc', FMC_COLOUR_BREAKS],
     ['tfc', TFC_COLOUR_BREAKS],
