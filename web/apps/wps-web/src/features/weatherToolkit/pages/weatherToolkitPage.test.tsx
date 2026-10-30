@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY } from '@/features/weatherToolkit/weatherToolkitStorage'
 import { ModelType, modelRegistry } from '@/features/weatherToolkit/weatherToolkitTypes'
 import WeatherToolkitPage from './WeatherToolkitPage'
 
@@ -44,6 +45,8 @@ const currentHour = () => Number(getTimeline().dataset.currentHour)
 describe('WeatherToolkitPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.restoreAllMocks()
+    localStorage.clear()
   })
 
   describe('layout', () => {
@@ -86,6 +89,38 @@ describe('WeatherToolkitPage', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Toggle expand' }))
       await userEvent.click(screen.getByRole('button', { name: 'Toggle expand' }))
       expect(screen.getByTestId('footer')).toBeInTheDocument()
+    })
+  })
+
+  describe('remembering the expanded state', () => {
+    it('starts expanded when it was saved as expanded', () => {
+      localStorage.setItem(WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY, 'true')
+      render(<WeatherToolkitPage />)
+      expect(screen.queryByTestId('header')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('footer')).not.toBeInTheDocument()
+    })
+
+    it('saves the expanded state when the chart is expanded', async () => {
+      render(<WeatherToolkitPage />)
+      await userEvent.click(screen.getByRole('button', { name: 'Toggle expand' }))
+      expect(localStorage.getItem(WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY)).toBe('true')
+    })
+
+    it('saves the collapsed state when the chart is collapsed', async () => {
+      render(<WeatherToolkitPage />)
+      await userEvent.click(screen.getByRole('button', { name: 'Toggle expand' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Toggle expand' }))
+      expect(localStorage.getItem(WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY)).toBe('false')
+    })
+
+    it('still expands when saving fails', async () => {
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('local storage unavailable')
+      })
+      render(<WeatherToolkitPage />)
+      await userEvent.click(screen.getByRole('button', { name: 'Toggle expand' }))
+      expect(screen.queryByTestId('header')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('footer')).not.toBeInTheDocument()
     })
   })
 
