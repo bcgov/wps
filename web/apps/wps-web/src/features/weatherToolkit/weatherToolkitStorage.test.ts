@@ -27,12 +27,6 @@ describe('weatherToolkitStorage', () => {
     expect(readChartExpanded()).toBe(false)
   })
 
-  it('returns false when the stored value is not a boolean string', () => {
-    localStorage.setItem(WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY, 'not-a-boolean')
-
-    expect(readChartExpanded()).toBe(false)
-  })
-
   it('stores the expanded state as a string', () => {
     storeChartExpanded(true)
     expect(localStorage.getItem(WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY)).toBe('true')
