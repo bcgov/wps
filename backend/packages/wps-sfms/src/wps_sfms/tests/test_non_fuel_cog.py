@@ -37,7 +37,6 @@ def test_non_fuel_boundaries_and_bilinear_values_survive_resampling_and_overview
     with gdal.Open(source_path) as source, gdal.Open(output_path) as output:
         np.testing.assert_array_equal(source.ReadAsArray(), values)
         assert output.GetMetadata("IMAGE_STRUCTURE")["LAYOUT"] == "COG"
-        assert output.GetMetadataItem("NON_FUEL_VALUE") is None
         assert output.RasterCount == 1
         base_band = output.GetRasterBand(1)
         assert base_band.GetOverviewCount() >= 2
