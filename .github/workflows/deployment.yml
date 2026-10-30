@@ -159,6 +159,7 @@ jobs:
           bash openshift/scripts/oc_provision_ec_hrdps_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_ec_rdps_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_noaa_rrfs_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_ecmwf_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
