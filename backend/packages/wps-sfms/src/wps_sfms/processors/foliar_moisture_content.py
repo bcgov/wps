@@ -43,7 +43,7 @@ class FoliarMoistureContentKeys:
 
 @dataclass(frozen=True)
 class FoliarMoistureContentDatasets:
-    fuel: WPSDataset  # fuel is only used for grid validation, not in the FMC calculation
+    fuel: WPSDataset  # defines the grid and the COG's Non-fuel mask, not the FMC calculation
     elevation: WPSDataset
     latitude: WPSDataset
     longitude: WPSDataset
@@ -207,6 +207,8 @@ class FoliarMoistureContentProcessor:
             )
             with self._open_datasets(input_dataset_context, inputs) as datasets:
                 self._validate_grids(datasets)
+                fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
+                non_fuel_mask = np.isin(fuel, [99, 102])  # BC base-grid Non-fuel and water
 
                 with open_bc_mask_dataset() as mask:
                     for target_date, output_key in outputs_to_process.items():
@@ -224,6 +226,7 @@ class FoliarMoistureContentProcessor:
                                 s3_client=s3_client,
                                 dataset=output_ds,
                                 output_key=output_key,
+                                cog_non_fuel_mask=non_fuel_mask,
                             )
 
                         logger.info(

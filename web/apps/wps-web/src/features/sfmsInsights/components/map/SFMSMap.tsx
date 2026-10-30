@@ -6,6 +6,7 @@ import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
 import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
 import {
   BASEMAP_LAYER_NAME,
+  getNonFuelCOGTiles,
   getRasterLayer,
   getSnowPMTilesLayer
 } from 'features/sfmsInsights/components/map/layerDefinitions'
@@ -56,6 +57,9 @@ const SFMSMap = ({
     pixel: null
   })
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  // The classification and numeric rasters load independently; neither should hide the other's error.
+  const [classificationLoading, setClassificationLoading] = useState(false)
+  const [classificationError, setClassificationError] = useState<RasterError | null>(null)
   const [rasterError, setRasterError] = useState<RasterError | null>(null)
   // Initialized to a detached div so the type is non-nullable — React replaces it with the
   // rendered element during commit, which always happens before effects fire.
@@ -76,6 +80,16 @@ const SFMSMap = ({
 
   const rasterLayerManagerRef = useRef(new LayerManager({ onLoadingChange: handleLoadingChange, trackLoading: true }))
   const snowLayerManagerRef = useRef(new LayerManager({ trackLoading: false }))
+  // Keep the fuel overlay and its loading lifecycle separate from the numeric output layer.
+  const classificationLayerManagerRef = useRef(
+    new LayerManager({
+      onLoadingChange: (loading, error) => {
+        setClassificationLoading(loading)
+        setClassificationError(error ?? null)
+      },
+      trackLoading: true
+    })
+  )
   const fireCentreLineLayer = useMemo(() => getFireCentreLinePMTilesLayer({ zIndex: 54 }), [])
 
   useEffect(() => {
@@ -99,6 +113,7 @@ const SFMSMap = ({
 
     rasterLayerManagerRef.current.setMap(mapObject)
     snowLayerManagerRef.current.setMap(mapObject)
+    classificationLayerManagerRef.current.setMap(mapObject)
 
     const loadBaseMap = async () => {
       const style = await getStyleJson(BASEMAP_STYLE_URL)
@@ -108,6 +123,8 @@ const SFMSMap = ({
     loadBaseMap()
 
     return () => {
+      // Remove the added overlay and clear its loading timeout when the map unmounts.
+      classificationLayerManagerRef.current.dispose()
       mapObject.setTarget('')
     }
   }, [fireCentreLineLayer])
@@ -127,6 +144,16 @@ const SFMSMap = ({
       rasterLayerManagerRef.current.updateLayer(null)
     }
   }, [rasterDate, rasterType, runType, token])
+
+  useEffect(() => {
+    setClassificationError(null)
+    // Removing a layer does not emit a loading-complete callback.
+    setClassificationLoading(false)
+    // Only fire-behaviour outputs need Non-fuel/Water labels; weather and FWI stay numeric.
+    classificationLayerManagerRef.current.updateLayer(
+      rasterDate && RASTER_CONFIG[rasterType].group === 'fbp' ? getNonFuelCOGTiles(token) : null
+    )
+  }, [rasterDate, rasterType, token])
 
   return (
     <ErrorBoundary>
@@ -148,7 +175,8 @@ const SFMSMap = ({
             decimalPlaces={RASTER_CONFIG[rasterType].tooltipDecimalPlaces}
           />
           <RasterLegend rasterType={rasterType} />
-          {isLoading && (
+          {/* Both layers are needed to interpret a fire-behaviour pixel. */}
+          {(isLoading || classificationLoading) && (
             <Box
               sx={{
                 position: 'absolute',
@@ -175,6 +203,11 @@ const SFMSMap = ({
             onClose={handleErrorClose}
             rasterLabel={RASTER_CONFIG[rasterType].label}
             runType={rasterType === 'fmc' ? undefined : runType}
+          />
+          <RasterErrorNotification
+            error={classificationError}
+            onClose={() => setClassificationError(null)}
+            rasterLabel="Non-fuel classification"
           />
         </Box>
       </MapContext.Provider>

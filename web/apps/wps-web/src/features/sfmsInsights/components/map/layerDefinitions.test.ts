@@ -1,6 +1,13 @@
 import { RunType } from '@wps/api/runType'
 import { DateTime } from 'luxon'
-import { getRasterLayer, getSFMSNGRasterLayer, getSFMSNGRasterPath, getSnowPMTilesLayer } from './layerDefinitions'
+import {
+  getNonFuelCOGTiles,
+  getRasterLayer,
+  getSFMSNGRasterLayer,
+  getSFMSNGRasterPath,
+  getSnowPMTilesLayer,
+  NON_FUEL_LAYER_NAME
+} from './layerDefinitions'
 
 type Listener = (...args: unknown[]) => void
 
@@ -73,6 +80,16 @@ vi.mock('ol-pmtiles', () => ({
 }))
 
 describe('layerDefinitions', () => {
+  it('should place classification above numeric rasters and below snow without selecting it as numeric data', () => {
+    const date = DateTime.fromISO('2025-11-02')
+    const classification = getNonFuelCOGTiles('test-token')
+    expect(classification.getZIndex()).toBeGreaterThan(getSFMSNGRasterLayer(date, 'cfb', undefined).getZIndex()!)
+    expect(classification.getZIndex()).toBeLessThan(getSnowPMTilesLayer(date).getZIndex()!)
+    expect(classification.getOpacity()).toBe(1)
+    expect(classification.getProperties().name).toBe(NON_FUEL_LAYER_NAME)
+    expect(classification.getProperties().rasterType).toBeUndefined()
+  })
+
   describe('getSnowPMTilesLayer', () => {
     it('should create snow layer with zIndex 53', () => {
       const snowDate = DateTime.fromISO('2025-11-02')
