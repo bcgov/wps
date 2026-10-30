@@ -12,6 +12,7 @@ import {
   fillGrassCuringCWFIS,
   fillGrassCuringForecast,
   fillStationGrassCuringForward,
+  getDefaultDateRange,
   isBeforeToday,
   isForecastRow,
   mapForecastChoiceLabels,
@@ -21,7 +22,7 @@ import {
   validActualPredicate,
   validForecastPredicate
 } from 'features/moreCast2/util'
-import { DateTime } from 'luxon'
+import { DateTime, Settings } from 'luxon'
 import { vi } from 'vitest'
 
 const TEST_DATE = '2023-02-16T20:00:00+00:00'
@@ -55,6 +56,25 @@ describe('Pacific forecast day', () => {
     expect(getRowsToSave(rows).map(row => row.forDate.toMillis())).toEqual(
       rows.slice(expired ? 1 : 0).map(row => row.forDate.toMillis())
     )
+  })
+})
+
+describe('getDefaultDateRange', () => {
+  const defaultZone = Settings.defaultZone
+  afterEach(() => {
+    Settings.defaultZone = defaultZone
+  })
+
+  it.each<[string, string, string, string]>([
+    ['America/Vancouver', '2026-11-02T19:59:00Z', '2026-10-30', '2026-11-03'],
+    ['America/Vancouver', '2026-11-02T20:00:00Z', '2026-10-31', '2026-11-04'],
+    // 00:30 on Nov 3 in Toronto is still Nov 2 in BC
+    ['America/Toronto', '2026-11-03T05:30:00Z', '2026-10-31', '2026-11-04']
+  ])('in %s at %s should start on the BC date', (zone, now, expectedStart, expectedEnd) => {
+    Settings.defaultZone = zone
+    const { startDate, endDate } = getDefaultDateRange(DateTime.fromISO(now))
+    expect(DateTime.fromJSDate(startDate).toISODate()).toEqual(expectedStart)
+    expect(DateTime.fromJSDate(endDate).toISODate()).toEqual(expectedEnd)
   })
 })
 

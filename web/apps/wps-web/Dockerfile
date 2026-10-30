@@ -1,4 +1,4 @@
-FROM node:24-alpine AS builder
+FROM node:26-alpine AS builder
 WORKDIR /app
 
 # Copy workspace config first (better layer caching)
@@ -12,7 +12,11 @@ COPY packages/api/package.json       packages/api/
 COPY packages/ui/package.json        packages/ui/
 COPY apps/wps-web/package.json       apps/wps-web/
 
-RUN yarn install --immutable
+# install Corepack explicitly because Node 26 no longer bundles it
+RUN npm install --global --ignore-scripts \
+    "corepack@$(node -p 'require("./package.json").devDependencies.corepack')" \
+    && corepack enable \
+    && yarn install --immutable
 
 # Copy all source
 COPY packages/ packages/

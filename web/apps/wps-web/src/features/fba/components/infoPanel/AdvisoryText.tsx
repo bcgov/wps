@@ -2,7 +2,7 @@ import { Box, Skeleton, styled, Typography } from '@mui/material'
 import type { AdvisoryMinWindStats, FireShape, FireZoneFuelStats, FireZoneHFIStats } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
-import { formatDatetimeWithTimezone, getBCTimezoneLabel } from '@wps/utils/date'
+import { formatDatetimeWithTimezone, getBCTimezoneLabel, toBCPacificTime } from '@wps/utils/date'
 import { selectProvincialSummary } from 'features/fba/slices/provincialSummarySlice'
 import { groupBy, isEmpty, isNil, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
@@ -243,7 +243,7 @@ const AdvisoryText = ({ issueDate, forDate, selectedFireCentre, selectedFireZone
 
   const renderAdvisoryText = () => {
     const zoneTitle = `${selectedFireZoneUnit?.mof_fire_zone_name}:\n\n`
-    const forToday = forDate.toISODate() === DateTime.now().toISODate()
+    const forToday = forDate.toISODate() === toBCPacificTime(DateTime.now()).toISODate()
     const displayForDate = forToday ? 'today' : forDate.toLocaleString({ month: 'short', day: 'numeric' })
     const minWindSpeedText = getZoneMinWindStatsText(selectedFilteredZoneUnitFuelStats.min_wind_stats)
 

@@ -3,9 +3,8 @@ import { createTheme, ThemeProvider } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import type { StationDaily } from '@wps/api/hfiCalculatorAPI'
 import { theme } from '@wps/ui/theme'
-import { PST_UTC_OFFSET } from '@wps/utils/constants'
+import { formatInBCPacificTime } from '@wps/utils/date'
 import { maxBy } from 'lodash'
-import { DateTime } from 'luxon'
 import React from 'react'
 
 const PREFIX = 'LastUpdatedHeader'
@@ -37,27 +36,11 @@ const lastUpdatedTheme = createTheme({
   }
 })
 
-const findLastUpdate = (dailies?: StationDaily[]) => {
-  const forecasts = dailies?.filter(daily => daily.status === 'FORECAST')
-  const lastUpdatedDaily: StationDaily | undefined = maxBy(forecasts, forecast => forecast.last_updated)
-  if (lastUpdatedDaily?.last_updated) {
-    return DateTime.fromObject(
-      {
-        year: lastUpdatedDaily.last_updated.year,
-        month: lastUpdatedDaily.last_updated.month,
-        day: lastUpdatedDaily.last_updated.day,
-        hour: lastUpdatedDaily.last_updated.hour,
-        minute: lastUpdatedDaily.last_updated.minute
-      },
-      { zone: `UTC${PST_UTC_OFFSET}` }
-    )
-  }
-}
-
 const LastUpdatedHeader = (props: LastUpdatedHeaderProps) => {
-  const lastUpdate = findLastUpdate(props.dailies)
+  const forecasts = props.dailies?.filter(daily => daily.status === 'FORECAST')
+  const lastUpdate = maxBy(forecasts, forecast => forecast.last_updated)?.last_updated
   if (lastUpdate) {
-    const dateString = `${lastUpdate.toFormat('MMMM d, HH:mm')} PST`
+    const dateString = formatInBCPacificTime(lastUpdate, 'MMMM d, HH:mm')
 
     return (
       <ThemeProvider theme={lastUpdatedTheme}>

@@ -1,6 +1,7 @@
 export type RasterType =
   | 'fuel'
   | 'fwi'
+  | 'danger_rating'
   | 'dmc'
   | 'dc'
   | 'ffmc'
@@ -55,17 +56,10 @@ const RASTER_COLOURS = {
   orange: 'rgb(255, 170, 0)',
   red: 'rgb(255, 0, 0)',
   magenta: 'rgb(180, 0, 140)',
-  fireBehaviourBlue: 'rgb(0, 0, 245)',
-  fireBehaviourBlueGrey: 'rgb(113, 152, 201)',
-  fireBehaviourGreen: 'rgb(76, 168, 48)',
-  fireBehaviourLime: 'rgb(175, 253, 79)',
-  fireBehaviourYellow: 'rgb(255, 255, 85)',
-  fireBehaviourOrange: 'rgb(243, 174, 61)',
-  fireBehaviourRed: 'rgb(234, 51, 35)',
-  hfiLightBlue: 'rgb(0, 116, 255)',
-  hfiDarkGreen: 'rgb(0, 116, 0)',
-  hfiOrange: 'rgb(255, 160, 0)',
-  fireAreaLime: 'rgb(150, 255, 0)'
+  paleCyan: 'rgb(210, 255, 255)',
+  burntRed: 'rgb(190, 50, 0)',
+  darkRed: 'rgb(127, 0, 0)',
+  darkBlue: 'rgb(0, 0, 128)'
 } as const
 
 export const FWI_COLOUR_BREAKS: ColourBreak[] = [
@@ -75,6 +69,14 @@ export const FWI_COLOUR_BREAKS: ColourBreak[] = [
   { min: 27, max: 38, colour: RASTER_COLOURS.yellow, label: '27-38' },
   { min: 38, max: 47, colour: RASTER_COLOURS.orange, label: '38-47' },
   { min: 47, max: null, colour: RASTER_COLOURS.red, label: '47+' }
+]
+
+export const DANGER_RATING_COLOUR_BREAKS: ColourBreak[] = [
+  { min: 1, max: 1.5, colour: RASTER_COLOURS.blue, label: 'Very Low' },
+  { min: 1.5, max: 2.5, colour: RASTER_COLOURS.lime, label: 'Low' },
+  { min: 2.5, max: 3.5, colour: RASTER_COLOURS.yellow, label: 'Moderate' },
+  { min: 3.5, max: 4.5, colour: RASTER_COLOURS.orange, label: 'High' },
+  { min: 4.5, max: null, colour: RASTER_COLOURS.red, label: 'Extreme' }
 ]
 
 export const DMC_COLOUR_BREAKS: ColourBreak[] = [
@@ -104,17 +106,17 @@ export const BUI_COLOUR_BREAKS: ColourBreak[] = [
 ]
 
 export const FFMC_COLOUR_BREAKS: ColourBreak[] = [
-  { min: 0, max: 25, colour: 'rgb(210, 255, 255)', label: '0-25' },
-  { min: 25, max: 35, colour: 'rgb(160, 210, 255)', label: '25-35' },
+  { min: 0, max: 25, colour: RASTER_COLOURS.paleCyan, label: '0-25' },
+  { min: 25, max: 35, colour: RASTER_COLOURS.paleBlue, label: '25-35' },
   { min: 35, max: 45, colour: RASTER_COLOURS.lightBlue, label: '35-45' },
   { min: 45, max: 55, colour: RASTER_COLOURS.blue, label: '45-55' },
   { min: 55, max: 65, colour: RASTER_COLOURS.green, label: '55-65' },
-  { min: 65, max: 75, colour: 'rgb(0, 127, 0)', label: '65-75' },
+  { min: 65, max: 75, colour: RASTER_COLOURS.darkGreen, label: '65-75' },
   { min: 75, max: 85, colour: RASTER_COLOURS.yellow, label: '75-85' },
   { min: 85, max: 90, colour: RASTER_COLOURS.orange, label: '85-90' },
   { min: 90, max: 93, colour: RASTER_COLOURS.red, label: '90-93' },
-  { min: 93, max: 96, colour: 'rgb(190, 50, 0)', label: '93-96' },
-  { min: 96, max: null, colour: 'rgb(127, 0, 0)', label: '96+' }
+  { min: 93, max: 96, colour: RASTER_COLOURS.burntRed, label: '93-96' },
+  { min: 96, max: null, colour: RASTER_COLOURS.darkRed, label: '96+' }
 ]
 
 export const ISI_COLOUR_BREAKS: ColourBreak[] = [
@@ -137,32 +139,32 @@ export const SFC_COLOUR_BREAKS: ColourBreak[] = [
 ]
 
 export const TFC_COLOUR_BREAKS: ColourBreak[] = [
-  { min: 0, max: 2, colour: RASTER_COLOURS.fireBehaviourBlue, label: '0-2' },
-  { min: 2, max: 4, colour: RASTER_COLOURS.fireBehaviourBlueGrey, label: '2-4' },
-  { min: 4, max: 6, colour: RASTER_COLOURS.fireBehaviourGreen, label: '4-6' },
-  { min: 6, max: 8, colour: RASTER_COLOURS.fireBehaviourLime, label: '6-8' },
-  { min: 8, max: 10, colour: RASTER_COLOURS.fireBehaviourYellow, label: '8-10' },
-  { min: 10, max: 15, colour: RASTER_COLOURS.fireBehaviourOrange, label: '10-15' },
-  { min: 15, max: null, colour: RASTER_COLOURS.fireBehaviourRed, label: '15+' }
+  { min: 0, max: 2, colour: RASTER_COLOURS.blue, label: '0-2' },
+  { min: 2, max: 4, colour: RASTER_COLOURS.blueGrey, label: '2-4' },
+  { min: 4, max: 6, colour: RASTER_COLOURS.darkGreen, label: '4-6' },
+  { min: 6, max: 8, colour: RASTER_COLOURS.lime, label: '6-8' },
+  { min: 8, max: 10, colour: RASTER_COLOURS.yellow, label: '8-10' },
+  { min: 10, max: 15, colour: RASTER_COLOURS.orange, label: '10-15' },
+  { min: 15, max: null, colour: RASTER_COLOURS.red, label: '15+' }
 ]
 
 export const CFB_COLOUR_BREAKS: ColourBreak[] = [
-  { min: 0, max: 0.1, colour: RASTER_COLOURS.fireBehaviourBlue, label: '0-10%' },
-  { min: 0.1, max: 0.3, colour: RASTER_COLOURS.fireBehaviourBlueGrey, label: '10-30%' },
-  { min: 0.3, max: 0.5, colour: RASTER_COLOURS.fireBehaviourGreen, label: '30-50%' },
-  { min: 0.5, max: 0.6, colour: RASTER_COLOURS.fireBehaviourLime, label: '50-60%' },
-  { min: 0.6, max: 0.8, colour: RASTER_COLOURS.fireBehaviourYellow, label: '60-80%' },
-  { min: 0.8, max: 0.9, colour: RASTER_COLOURS.fireBehaviourOrange, label: '80-90%' },
-  { min: 0.9, max: null, colour: RASTER_COLOURS.fireBehaviourRed, label: '90-100%' }
+  { min: 0, max: 0.1, colour: RASTER_COLOURS.blue, label: '0-10%' },
+  { min: 0.1, max: 0.3, colour: RASTER_COLOURS.blueGrey, label: '10-30%' },
+  { min: 0.3, max: 0.5, colour: RASTER_COLOURS.darkGreen, label: '30-50%' },
+  { min: 0.5, max: 0.6, colour: RASTER_COLOURS.lime, label: '50-60%' },
+  { min: 0.6, max: 0.8, colour: RASTER_COLOURS.yellow, label: '60-80%' },
+  { min: 0.8, max: 0.9, colour: RASTER_COLOURS.orange, label: '80-90%' },
+  { min: 0.9, max: null, colour: RASTER_COLOURS.red, label: '90-100%' }
 ]
 
 export const HFI_COLOUR_BREAKS: ColourBreak[] = [
   { min: 0, max: 10, colour: RASTER_COLOURS.blue, label: '0-10' },
-  { min: 10, max: 500, colour: RASTER_COLOURS.hfiLightBlue, label: '10-500' },
-  { min: 500, max: 2000, colour: RASTER_COLOURS.hfiDarkGreen, label: '500-2,000' },
+  { min: 10, max: 500, colour: RASTER_COLOURS.lightBlue, label: '10-500' },
+  { min: 500, max: 2000, colour: RASTER_COLOURS.darkGreen, label: '500-2,000' },
   { min: 2000, max: 4000, colour: RASTER_COLOURS.green, label: '2,000-4,000' },
   { min: 4000, max: 10000, colour: RASTER_COLOURS.yellow, label: '4,000-10,000' },
-  { min: 10000, max: 30000, colour: RASTER_COLOURS.hfiOrange, label: '10,000-30,000' },
+  { min: 10000, max: 30000, colour: RASTER_COLOURS.orange, label: '10,000-30,000' },
   { min: 30000, max: null, colour: RASTER_COLOURS.red, label: '30,000+' }
 ]
 
@@ -170,7 +172,7 @@ export const FIRE_AREA_30MIN_COLOUR_BREAKS: ColourBreak[] = [
   { min: 0, max: 2, colour: RASTER_COLOURS.blue, label: '0-2 ha' },
   { min: 2, max: 5, colour: RASTER_COLOURS.blueGrey, label: '2-5 ha' },
   { min: 5, max: 10, colour: RASTER_COLOURS.darkGreen, label: '5-10 ha' },
-  { min: 10, max: 20, colour: RASTER_COLOURS.fireAreaLime, label: '10-20 ha' },
+  { min: 10, max: 20, colour: RASTER_COLOURS.lime, label: '10-20 ha' },
   { min: 20, max: 30, colour: RASTER_COLOURS.yellow, label: '20-30 ha' },
   { min: 30, max: 50, colour: RASTER_COLOURS.orange, label: '30-50 ha' },
   { min: 50, max: null, colour: RASTER_COLOURS.red, label: '50+ ha' }
@@ -246,7 +248,7 @@ export const PRECIPITATION_COLOUR_BREAKS: ColourBreak[] = [
   { min: 2.5, max: 5, colour: RASTER_COLOURS.darkGreen, label: '2.5 - 5.0 mm' },
   { min: 5, max: 10, colour: RASTER_COLOURS.blueGrey, label: '5 - 10 mm' },
   { min: 10, max: 25, colour: RASTER_COLOURS.blue, label: '10 - 25 mm' },
-  { min: 25, max: null, colour: 'rgb(0, 0, 128)', label: '25+ mm' }
+  { min: 25, max: null, colour: RASTER_COLOURS.darkBlue, label: '25+ mm' }
 ]
 
 // Fuel type color mappings based on BCWS standard colors
@@ -290,6 +292,7 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   isi: { group: 'fwi', label: 'ISI', colourBreaks: ISI_COLOUR_BREAKS },
   bui: { group: 'fwi', label: 'BUI', colourBreaks: BUI_COLOUR_BREAKS },
   fwi: { group: 'fwi', label: 'FWI', colourBreaks: FWI_COLOUR_BREAKS },
+  danger_rating: { group: 'fwi', label: 'Danger Rating', colourBreaks: DANGER_RATING_COLOUR_BREAKS },
   fmc: { group: 'fbp', label: 'FMC', colourBreaks: FMC_COLOUR_BREAKS },
   sfc: { group: 'fbp', label: 'SFC', colourBreaks: SFC_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },
   ros: { group: 'fbp', label: 'ROS', colourBreaks: ROS_COLOUR_BREAKS, tooltipDecimalPlaces: 1 },

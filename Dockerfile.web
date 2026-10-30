@@ -6,7 +6,7 @@
 ARG NODE_OPTIONS="--v8-pool-size=4"
 
 # PHASE 1 - build frontend.
-FROM docker.io/library/node:24-alpine AS static
+FROM docker.io/library/node:26-alpine AS static
 # Switch to root user for package installs
 USER 0
 WORKDIR /app
@@ -22,7 +22,10 @@ COPY web/packages/ui/package.json        packages/ui/
 COPY web/apps/wps-web/package.json       apps/wps-web/
 
 # do install first so it will be cached
-RUN corepack enable \
+# install Corepack explicitly because Node 26 no longer bundles it
+RUN npm install --global --ignore-scripts \
+    "corepack@$(node -p 'require("./package.json").devDependencies.corepack')" \
+    && corepack enable \
     && yarn install --immutable
 
 # Copy all source

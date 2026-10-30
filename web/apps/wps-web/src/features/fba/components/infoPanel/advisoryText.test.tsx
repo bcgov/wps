@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import type { FireShape, FireShapeStatusDetail, FireZoneHFIStats } from '@wps/api/fbaAPI'
 import type { FireCentre } from '@wps/types/fireCentre'
 import { AdvisoryStatus } from '@wps/utils/constants'
-import { formatDatetimeWithTimezone } from '@wps/utils/date'
+import { formatDatetimeWithTimezone, toBCPacificTime } from '@wps/utils/date'
 import AdvisoryText, {
   getTopFuelsByArea,
   getTopFuelsByProportion,
@@ -31,7 +31,7 @@ const lastCoreSeasonDate = createDateTime(2025, 9, 30)
 const postCoreSeasonDate = createDateTime(2025, 10, 1)
 
 const issueDate = DateTime.now()
-const forDate = DateTime.now()
+const forDate = toBCPacificTime(DateTime.now())
 
 const mockFireCentre: FireCentre = {
   id: 1,
