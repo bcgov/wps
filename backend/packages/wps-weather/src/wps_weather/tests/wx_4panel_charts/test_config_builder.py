@@ -108,11 +108,11 @@ class TestValidTimeStr:
 
     def test_fh_zero_equals_init_time(self, builder):
         result = builder._valid_time_str(0)
-        assert result == "F000 Valid: Tue 2026-02-17 00Z"
+        assert result == "T+000H Valid: Tue 2026-02-17 00Z"
 
     def test_fh_advances_by_correct_hours(self, builder):
         result = builder._valid_time_str(24)
-        assert result == "F024 Valid: Wed 2026-02-18 00Z"
+        assert result == "T+024H Valid: Wed 2026-02-18 00Z"
 
     def test_fh_crosses_midnight(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
         # Use init_hh="12" so fh=12 crosses into the next day
@@ -131,15 +131,15 @@ class TestValidTimeStr:
             model=ECCCModel.GDPS,
         )
         result = b._valid_time_str(12)
-        assert result == "F012 Valid: Wed 2026-02-18 00Z"
+        assert result == "T+012H Valid: Wed 2026-02-18 00Z"
 
     def test_fh_format_zero_pads_to_three_digits(self, builder):
         result = builder._valid_time_str(6)
-        assert result.startswith("F006 ")
+        assert result.startswith("T+006H ")
 
     def test_fh_large_value_zero_pads_correctly(self, builder):
         result = builder._valid_time_str(240)
-        assert result.startswith("F240 ")
+        assert result.startswith("T+240H ")
 
     def test_valid_time_str_contains_valid_prefix(self, builder):
         result = builder._valid_time_str(12)
@@ -334,6 +334,7 @@ class TestBuildConfigForHourPcpn:
 # ---------------------------------------------------------------------------
 # Return value shape
 # ---------------------------------------------------------------------------
+
 
 class TestBuildConfigForHourReturnShape:
     @pytest.fixture()

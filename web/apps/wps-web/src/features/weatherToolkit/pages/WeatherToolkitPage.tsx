@@ -10,6 +10,7 @@ import ChartPanel from '@/features/weatherToolkit/components/ChartPanel'
 import SidePanel from '@/features/weatherToolkit/components/SidePanel'
 import TimelineController from '@/features/weatherToolkit/components/TimelineController'
 import { buildChartKey, buildModelRunKey, useWxChartCache } from '@/features/weatherToolkit/hooks/useWxChartCache'
+import { readChartExpanded, storeChartExpanded } from '@/features/weatherToolkit/weatherToolkitStorage'
 import { ModelRunHour, ModelType, modelRegistry } from '@/features/weatherToolkit/weatherToolkitTypes'
 
 const WeatherToolkitPage = () => {
@@ -17,7 +18,7 @@ const WeatherToolkitPage = () => {
   const [model, setModel] = useState<ModelType>(ModelType.RDPS)
   const [modelRunDate, setModelRunDate] = useState<DateTime>(DateTime.utc())
   const [modelRunHour, setModelRunHour] = useState<ModelRunHour>(ModelRunHour.ZERO)
-  const [isChartExpanded, setIsChartExpanded] = useState<boolean>(false)
+  const [isChartExpanded, setIsChartExpanded] = useState<boolean>(readChartExpanded)
   const currentModel = useMemo(() => {
     return modelRegistry[model]
   }, [model])
@@ -72,7 +73,11 @@ const WeatherToolkitPage = () => {
             chartKey={chartKey}
             isFailed={chartFailed.has(chartKey)}
             isExpanded={isChartExpanded}
-            onToggleExpand={() => setIsChartExpanded(prev => !prev)}
+            onToggleExpand={() => {
+              const nextIsExpanded = !isChartExpanded
+              storeChartExpanded(nextIsExpanded)
+              setIsChartExpanded(nextIsExpanded)
+            }}
           />
         </Box>
         <TimelineController
