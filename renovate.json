@@ -1,6 +1,6 @@
 {
   "extends": [
-    "github>bcgov/renovate-config#2026.9.26"
+    "github>bcgov/renovate-config#2026.10.29"
   ],
   "ignorePaths": [
     "openshift/s3-backup/docker/uv.lock"
