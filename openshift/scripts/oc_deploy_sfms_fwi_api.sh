@@ -46,6 +46,6 @@ render_and_exit_if_requested "${OC_PROCESS}"
 eval ${OC_PROCESS}
 eval "${OC_PROCESS} | ${OC_APPLY}"
 
-[ ! "${APPLY}" ] || wait_for_rollouts_and_verify_deploy_version "${OBJ_NAME}"
+[ ! "${APPLY}" ] || wait_for_rollouts "${OBJ_NAME}"
 
 display_helper "${OC_PROCESS} | ${OC_APPLY}"

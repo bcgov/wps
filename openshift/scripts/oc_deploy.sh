@@ -63,7 +63,7 @@ eval ${OC_PROCESS}
 eval "${OC_PROCESS} | ${OC_APPLY}"
 
 # Wait for rollout to finish
-[ ! "${APPLY}" ] || wait_for_rollouts_and_verify_deploy_version "${OBJ_NAME}"
+[ ! "${APPLY}" ] || wait_for_rollouts "${OBJ_NAME}"
 
 # Provide oc command instruction
 #

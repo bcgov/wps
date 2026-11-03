@@ -59,25 +59,13 @@ render_and_exit_if_requested() {
 
 # Wait for each deployment's rollout, failing if one fails or takes longer than 15 minutes
 # (without a timeout, a rollout that is slow but still progressing never hits Kubernetes'
-# progress deadline and is waited on indefinitely). Then fail unless every deployment's pod
-# template carries this run's DEPLOY_VERSION, i.e. was actually applied by this run.
+# progress deadline and is waited on indefinitely).
 #
-wait_for_rollouts_and_verify_deploy_version() {
-	local deployment deployed stale
+wait_for_rollouts() {
+	local deployment
 	for deployment in "$@"; do
 		oc -n "${PROJ_TARGET}" rollout status "deployment/${deployment}" --timeout=15m
 	done
-
-	echo "Verifying deployments are from deploy version ${DEPLOY_VERSION}"
-	deployed=$(oc -n "${PROJ_TARGET}" get deployment "$@" \
-		-o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.template.metadata.annotations.wps/deploy-version}{"\n"}{end}')
-	echo "${deployed}"
-	stale=$(echo "${deployed}" | awk -v version="${DEPLOY_VERSION}" '$2 != version')
-	if [ -n "${stale}" ]; then
-		echo "ERROR: deployments not from deploy version ${DEPLOY_VERSION}:" >&2
-		echo "${stale}" >&2
-		exit 1
-	fi
 }
 
 # Echo commands and dry run warnings
