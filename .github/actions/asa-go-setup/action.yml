@@ -10,17 +10,28 @@ runs:
       with:
         node-version-file: .nvmrc
 
+    # use Corepack to select the Yarn version pinned by each mobile project
+    - name: Install Corepack
+      working-directory: ./web
+      shell: bash
+      run: |
+        npm install --global --ignore-scripts \
+          "corepack@$(node -p 'require("./package.json").devDependencies.corepack')"
+        corepack enable
+
     - uses: actions/cache@v6
       id: asa-go-keycloak-cache
       with:
-        path: mobile/keycloak/node_modules
-        key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-keycloak-${{ hashFiles('mobile/keycloak/yarn.lock') }}
+        path: |
+          mobile/keycloak/node_modules
+          mobile/keycloak/.yarn/install-state.gz
+          ~/.yarn/berry/cache
+        key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-keycloak-${{ hashFiles('mobile/.yarnrc.yml', 'mobile/keycloak/package.json', 'mobile/keycloak/yarn.lock') }}
 
     - name: Install keycloak plugin
-      if: steps.asa-go-keycloak-cache.outputs.cache-hit != 'true'
       working-directory: ./mobile/keycloak
       shell: bash
-      run: yarn install
+      run: yarn install --immutable
 
     - name: Build keycloak plugin
       working-directory: ./mobile/keycloak
@@ -30,18 +41,13 @@ runs:
     - uses: actions/cache@v6
       id: asa-go-cache
       with:
-        path: mobile/asa-go/node_modules
-        key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-asa-go-${{ hashFiles('mobile/asa-go/yarn.lock', 'mobile/keycloak/yarn.lock') }}
+        path: |
+          mobile/asa-go/node_modules
+          mobile/asa-go/.yarn/install-state.gz
+          ~/.yarn/berry/cache
+        key: ${{ runner.os }}-node${{ steps.setup-node.outputs.node-version }}-asa-go-${{ hashFiles('mobile/.yarnrc.yml', 'mobile/asa-go/package.json', 'mobile/asa-go/yarn.lock', 'mobile/keycloak/package.json', 'mobile/keycloak/yarn.lock') }}
 
     - name: Install dependencies
-      if: steps.asa-go-cache.outputs.cache-hit != 'true'
       working-directory: ./mobile/asa-go
       shell: bash
-      run: yarn install
-
-    # keycloak is a local file dependency whose version never changes, so a cache hit keeps a stale copy
-    - name: Refresh keycloak plugin
-      if: steps.asa-go-cache.outputs.cache-hit == 'true'
-      working-directory: ./mobile/asa-go
-      shell: bash
-      run: rm -rf node_modules/keycloak && yarn install --frozen-lockfile --check-files --ignore-scripts
+      run: yarn install --immutable

@@ -7,10 +7,11 @@ This guide provides instructions for contributing to this Capacitor plugin.
 ### Local Setup
 
 1. Fork and clone the repo.
-1. Install the dependencies.
+1. Set up Node.js and Corepack using the [ASA Go build instructions](../asa-go/README.md#building).
+1. Install the dependencies from `mobile/keycloak/`.
 
     ```shell
-    npm install
+    yarn install --immutable
     ```
 
 1. Install SwiftLint if you're on macOS.
@@ -21,7 +22,7 @@ This guide provides instructions for contributing to this Capacitor plugin.
 
 ### Scripts
 
-#### `npm run build`
+#### `yarn build`
 
 Build the plugin web assets and generate plugin API documentation using [`@capacitor/docgen`](https://github.com/ionic-team/capacitor-docgen).
 
@@ -29,17 +30,17 @@ It will compile the TypeScript code from `src/` into ESM JavaScript in `dist/esm
 
 Then, Rollup will bundle the code into a single file at `dist/plugin.js`. This file is used in apps without bundlers by including it as a script in `index.html`.
 
-#### `npm run verify`
+#### `yarn verify`
 
 Build and validate the web and native projects.
 
 This is useful to run in CI to verify that the plugin builds for all platforms.
 
-#### `npm run lint` / `npm run fmt`
+#### `yarn lint` / `yarn fmt`
 
 Check formatting and code quality, autoformat/autofix if possible.
 
-This template is integrated with ESLint, Prettier, and SwiftLint. Using these tools is completely optional, but the [Capacitor Community](https://github.com/capacitor-community/) strives to have consistent code style and structure for easier cooperation.
+The project uses Biome, Prettier, and SwiftLint. SwiftLint runs through the Homebrew installation described above; its dependency install hook is not required.
 
 ## Publishing
 

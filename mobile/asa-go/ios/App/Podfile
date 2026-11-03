@@ -25,7 +25,7 @@ def capacitor_pods
   pod 'CapacitorSplashScreen', :path => '../../node_modules/@capacitor/splash-screen'
   pod 'CapacitorStatusBar', :path => '../../node_modules/@capacitor/status-bar'
   pod 'SentryCapacitor', :path => '../../node_modules/@sentry/capacitor'
-  pod 'Keycloak', :path => '../../node_modules/keycloak'
+  pod 'Keycloak', :path => '../../../keycloak'
 end
 
 target 'ASA Go' do

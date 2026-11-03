@@ -119,7 +119,7 @@ DEPENDENCIES:
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - FirebaseMessaging
-  - Keycloak (from `../../node_modules/keycloak`)
+  - Keycloak (from `../../../keycloak`)
   - "SentryCapacitor (from `../../node_modules/@sentry/capacitor`)"
 
 SPEC REPOS:
@@ -169,7 +169,7 @@ EXTERNAL SOURCES:
   CapacitorStatusBar:
     :path: "../../node_modules/@capacitor/status-bar"
   Keycloak:
-    :path: "../../node_modules/keycloak"
+    :path: "../../../keycloak"
   SentryCapacitor:
     :path: "../../node_modules/@sentry/capacitor"
 
@@ -204,6 +204,6 @@ SPEC CHECKSUMS:
   Sentry: e5d82a3c1f2d951f75c04c57215a0abb1facbd51
   SentryCapacitor: 0561def7ada7e47d0437324e7aa3db60d52bfe40
 
-PODFILE CHECKSUM: eb41f8e46385dd50a4a10cc728a95b7644b9cb8f
+PODFILE CHECKSUM: 1f750e414699d4e5ac760952694d2d22e55bad93
 
 COCOAPODS: 1.16.2

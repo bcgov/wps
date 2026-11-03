@@ -17,19 +17,19 @@ corepack enable
 
 Corepack selects the Yarn version pinned by `packageManager` in each mobile package. Run Yarn commands from the package directory.
 
-The keycloak plugin must be built before installing asa-go dependencies, as asa-go resolves it as a local path dependency.
+ASA Go links the local Keycloak folder through Yarn's `portal:` protocol. Build the plugin before the app so its generated types and JavaScript are available. Rebuilding the plugin makes its updated output available to ASA Go immediately.
+
+From the repository root:
 
 ```bash
-# 1. Build the keycloak plugin
-cd mobile/keycloak
-yarn install
-yarn build
+# build the Keycloak plugin
+(cd mobile/keycloak && yarn install --immutable && yarn build)
 
-# 2. Install and build asa-go
-cd mobile/asa-go
-yarn install
-yarn build
+# install and build ASA Go
+(cd mobile/asa-go && yarn install --immutable && yarn build)
 ```
+
+Dependency install scripts are disabled by default. Sharp is explicitly allowed to install the native binaries required for Capacitor asset generation.
 
 ## Setup live reload
 
@@ -130,17 +130,19 @@ These workflows build the app from the specified branch.
 
 ### Integration Tests (`.github/workflows/asa_go_integration.yml`)
 
-Runs on pull requests to `main` that touch `mobile/**`. Three parallel jobs:
+Runs on pull requests to `main` that touch the mobile projects or their build tooling. Five parallel jobs:
 
-- **`js_test`** — Runs Vitest unit tests with coverage on Ubuntu; uploads coverage to Codecov (`asa_go` flag)
-- **`ios_test`** — Runs `yarn cap sync ios`, then `xcodebuild test` for the Keycloak Swift plugin on macOS; uploads `.xcresult` coverage bundle to Codecov (`keycloak_ios` flag)
-- **`android_test`** — Runs `yarn cap sync android`, then `./gradlew jacocoTestReport` for both `asa-go/android` and `keycloak/android` on Ubuntu; uploads JaCoCo XML reports to Codecov (`android` flag)
+- `lint` checks ASA Go and Keycloak with Biome.
+- `js_test` runs Vitest with coverage on Ubuntu and uploads coverage to Codecov (`asa_go` flag).
+- `ios_build` syncs Capacitor and builds the ASA Go app for the iOS simulator.
+- `ios_test` runs `xcodebuild test` for the Keycloak Swift plugin and uploads coverage to Codecov (`keycloak_ios` flag).
+- `android_test` syncs Capacitor and runs `./gradlew jacocoTestReport` for both projects on Ubuntu, then uploads coverage to Codecov (`android` flag).
 
-All three jobs use the shared composite action `.github/actions/asa-go-setup`, which:
+All jobs use the shared composite action `.github/actions/asa-go-setup`, which:
 
-1. Sets up Node.js 20
-2. Caches and installs `mobile/keycloak` node_modules, then runs `yarn build`
-3. Caches and installs `mobile/asa-go` node_modules
+1. Sets up Node.js from `.nvmrc` and Corepack from `web/package.json`
+2. Restores the Keycloak dependency cache, runs `yarn install --immutable`, then builds the plugin
+3. Restores the ASA Go dependency cache and runs `yarn install --immutable`
 
 ### Android Release Build (`.github/workflows/asa_go_android_build.yml`)
 

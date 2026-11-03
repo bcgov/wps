@@ -54,7 +54,7 @@
     "axios": "^1.7.9",
     "firebase": "^12.9.0",
     "jwt-decode": "^4.0.0",
-    "keycloak": "../keycloak",
+    "keycloak": "portal:../keycloak",
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",
     "ol": "^10.4.0",
@@ -65,6 +65,11 @@
     "react-is": "19.3.1",
     "react-redux": "^9.2.0",
     "vitest": "^5.0.0"
+  },
+  "dependenciesMeta": {
+    "sharp": {
+      "built": true
+    }
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
@@ -89,5 +94,5 @@
     "typescript": "~7.0.0",
     "vite": "^8.0.0"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@4.18.1+sha512.b2e1e7524f654f2749d32b4ebcb4622473cb5bcbc485df2007e12a154e50162a4d795526768bc5f5b8f81717bfd79deb2472813d86fb5ae2eb551fa9c872b08f"
 }
