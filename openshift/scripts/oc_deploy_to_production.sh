@@ -47,9 +47,6 @@ PACKAGE=wps-weather bash $(dirname ${0})/oc_promote_gh.sh ${SUFFIX} ${RUN_TYPE}
 # saved is one less chance of a failed deploy.
 BATCH_FILE=$(mktemp)
 
-FUEL_RASTER_YEAR=2026
-FUEL_GRID_INSTALL_SUSPEND=true
-
 echo Configure NATS server
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats_server_config.sh prod render >>"${BATCH_FILE}"
 echo Provision database
@@ -71,7 +68,7 @@ echo ECCC Consumer
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod render >>"${BATCH_FILE}"
 
 echo Fuel Grid Install
-PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=${FUEL_RASTER_YEAR} FUEL_GRID_INSTALL_SUSPEND=${FUEL_GRID_INSTALL_SUSPEND} bash $(dirname ${0})/oc_provision_fuel_grid_install_job.sh prod render >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=2026 FUEL_GRID_INSTALL_SUSPEND=true bash $(dirname ${0})/oc_provision_fuel_grid_install_job.sh prod render >>"${BATCH_FILE}"
 
 echo S3 Data Retention
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.sh prod >>"${BATCH_FILE}"
@@ -135,8 +132,3 @@ wait_for_rollouts "${APP_NAME}-prod" "${APP_NAME}-prod-asa-go" "${APP_NAME}-prod
 # manifest doesn't roll it; restart it to pick up the newly promoted image.
 echo Restart ECCC Consumer
 oc -n ${PROJ_TARGET} rollout restart deployment/${APP_NAME}-prod-eccc-consumer
-
-if [ "${FUEL_GRID_INSTALL_SUSPEND}" != "true" ]; then
-	echo Unsuspend Fuel Grid Install
-	oc -n ${PROJ_TARGET} patch "job/fuel-grid-install-${FUEL_RASTER_YEAR}-${APP_NAME}-prod" --type=merge -p '{"spec":{"suspend":false}}'
-fi
