@@ -132,8 +132,9 @@ jobs:
         run: |
           # Archive the app
           xcodebuild \
-            -workspace App.xcworkspace \
+            -project App.xcodeproj \
             -scheme "ASA Go" \
+            -onlyUsePackageVersionsFromResolvedFile \
             -configuration Release \
             -destination "generic/platform=iOS" \
             -archivePath ${{ runner.temp }}/ASA-Go.xcarchive \
