@@ -212,21 +212,36 @@ class TestSfmsDailyMapper:
 
         assert sfms_daily_mapper([raw]) == []
 
-    def test_filters_invalid_site_type(self):
+    def test_maps_unknown_site_type(self):
         raw = _make_raw_daily(100, site_type="UNKNOWN_TYPE", temperature=20.0)
 
-        assert sfms_daily_mapper([raw]) == []
+        result = sfms_daily_mapper([raw])
+
+        assert len(result) == 1
+        assert result[0].code == 100
 
     def test_filters_unknown_record_type(self):
         raw = _make_raw_daily(100, record_type="UNKNOWN", temperature=20.0)
 
         assert sfms_daily_mapper([raw]) == []
 
-    def test_filters_missing_site_type(self):
+    def test_maps_missing_site_type(self):
         raw = _make_raw_daily(100, temperature=20.0)
         del raw["stationData"]["siteType"]
 
-        assert sfms_daily_mapper([raw]) == []
+        result = sfms_daily_mapper([raw])
+
+        assert len(result) == 1
+        assert result[0].code == 100
+
+    def test_maps_null_site_type(self):
+        raw = _make_raw_daily(100, temperature=20.0)
+        raw["stationData"]["siteType"] = None
+
+        result = sfms_daily_mapper([raw])
+
+        assert len(result) == 1
+        assert result[0].code == 100
 
     def test_filters_station_with_null_coordinates(self):
         raw = _make_raw_daily(100, lat=None, lon=None, temperature=20.0)
