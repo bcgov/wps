@@ -121,18 +121,15 @@ echo Configure RDPS 4panel charts
 PROJ_TARGET=${PROJ_TARGET} END_HOUR=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
 
 echo Logging alerts
+oc -n ${PROJ_TARGET} process --local -f $(dirname ${0})/../logging-alerts/nats_alerts.yaml >>"${BATCH_FILE}"
+oc -n ${PROJ_TARGET} process --local -f $(dirname ${0})/../logging-alerts/sfms_alerts.yaml >>"${BATCH_FILE}"
 oc -n ${PROJ_TARGET} process --local -f $(dirname ${0})/../logging-alerts/oom_alerts.yaml -p NAMESPACE=e1e498-prod -p SEVERITY=critical >>"${BATCH_FILE}"
-
-# The batch file is concatenated JSON with no separators (a YAML `---` between JSON
-# documents breaks oc's decoding). The plain YAML alert manifests are passed as their own
-# files to the same apply call instead.
-ALERT_FILES=(-f $(dirname ${0})/../logging-alerts/nats_alerts.yaml -f $(dirname ${0})/../logging-alerts/sfms_alerts.yaml)
 
 echo "Applying batched manifests in one call..."
 if [ "${RUN_TYPE}" = "apply" ]; then
-	oc -n ${PROJ_TARGET} apply -f "${BATCH_FILE}" "${ALERT_FILES[@]}"
+	oc -n ${PROJ_TARGET} apply -f "${BATCH_FILE}"
 else
-	oc -n ${PROJ_TARGET} apply -f "${BATCH_FILE}" "${ALERT_FILES[@]}" --dry-run
+	oc -n ${PROJ_TARGET} apply -f "${BATCH_FILE}" --dry-run
 	exit 0
 fi
 
