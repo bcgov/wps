@@ -14,15 +14,28 @@ import pytest
 from app.routers.sfms_fwi import _find_uploaded_hffmc_key
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
+from wps_shared.utils.s3_client import S3Client, get_s3_client
 
 BASE_URL = "/api/sfms/daily-fwi"
 
 
+@pytest.fixture(autouse=True)
+def shared_s3_client():
+    """Stand in for the client the app lifespan opens. It's a real (unopened) S3Client
+    so class-level patches like S3Client.read_object still apply to it."""
+    s3_client = S3Client(server="test", user_id="test", secret_key="test", bucket="some_bucket")
+    s3_client.client = AsyncMock()
+    overrides = app.sfms_fwi_main.api.dependency_overrides
+    overrides[get_s3_client] = lambda: s3_client
+    yield s3_client
+    overrides.pop(get_s3_client, None)
+
+
 @pytest.fixture()
 def mock_stream_object(monkeypatch):
-    """Mock S3Client.stream_object for streaming raster download tests."""
+    """Mock S3Client.stream for streaming raster download tests."""
 
-    async def _mock(key: str, byte_range: str = None, chunk_size: int = 65536):
+    async def _mock(self, key: str, byte_range: str = None, chunk_size: int = 65536):
         if "missing" in key:
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
 
@@ -31,29 +44,18 @@ def mock_stream_object(monkeypatch):
 
         return gen(), {"ContentType": "image/tiff", "ContentLength": 16}
 
-    monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _mock)
+    monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream", _mock)
 
 
 @pytest.fixture()
-def mock_list_hffmc_uploads(monkeypatch):
-    """Mock S3Client's list_objects_v2 for the hffmc upload-listing lookup."""
+def mock_list_hffmc_uploads(shared_s3_client):
+    """Mock the shared client's list_objects_v2 for the hffmc upload-listing lookup."""
 
     def _install(keys):
-        mock_s3 = AsyncMock()
-        mock_s3.list_objects_v2 = AsyncMock(return_value={"Contents": [{"Key": k} for k in keys]})
-
-        async def _aenter(self):
-            self.client = mock_s3
-            self.bucket = "some_bucket"
-            return self
-
-        async def _aexit(self, *args):
-            return None
-
-        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.__aenter__", _aenter)
-        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.__aexit__", _aexit)
-
-        return mock_s3.list_objects_v2
+        shared_s3_client.client.list_objects_v2 = AsyncMock(
+            return_value={"Contents": [{"Key": k} for k in keys]}
+        )
+        return shared_s3_client.client.list_objects_v2
 
     return _install
 
@@ -71,7 +73,7 @@ def _make_mock_dataset(extract_value=None):
 class TestFindUploadedHffmcKey:
     """Tests for the _find_uploaded_hffmc_key helper."""
 
-    async def test_returns_matching_key(self, mock_list_hffmc_uploads):
+    async def test_returns_matching_key(self, shared_s3_client, mock_list_hffmc_uploads):
         mock_list_hffmc_uploads(
             [
                 "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110204.tif",
@@ -79,26 +81,32 @@ class TestFindUploadedHffmcKey:
                 "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110216.tif",
             ]
         )
-        result = await _find_uploaded_hffmc_key(date(2025, 11, 2), 12)
+        result = await _find_uploaded_hffmc_key(shared_s3_client, date(2025, 11, 2), 12)
         assert result == "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"
 
-    async def test_returns_none_when_hour_not_uploaded(self, mock_list_hffmc_uploads):
+    async def test_returns_none_when_hour_not_uploaded(
+        self, shared_s3_client, mock_list_hffmc_uploads
+    ):
         mock_list_hffmc_uploads(
             ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110204.tif"]
         )
-        result = await _find_uploaded_hffmc_key(date(2025, 11, 2), 12)
+        result = await _find_uploaded_hffmc_key(shared_s3_client, date(2025, 11, 2), 12)
         assert result is None
 
-    async def test_returns_none_when_no_uploads_for_date(self, mock_list_hffmc_uploads):
+    async def test_returns_none_when_no_uploads_for_date(
+        self, shared_s3_client, mock_list_hffmc_uploads
+    ):
         mock_list_hffmc_uploads([])
-        result = await _find_uploaded_hffmc_key(date(2025, 11, 2), 12)
+        result = await _find_uploaded_hffmc_key(shared_s3_client, date(2025, 11, 2), 12)
         assert result is None
 
-    async def test_queries_for_date_directly_with_no_conversion(self, mock_list_hffmc_uploads):
+    async def test_queries_for_date_directly_with_no_conversion(
+        self, shared_s3_client, mock_list_hffmc_uploads
+    ):
         mock_list_objects_v2 = mock_list_hffmc_uploads(
             ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110204.tif"]
         )
-        result = await _find_uploaded_hffmc_key(date(2025, 11, 2), 4)
+        result = await _find_uploaded_hffmc_key(shared_s3_client, date(2025, 11, 2), 4)
         assert result == "sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110204.tif"
         _, kwargs = mock_list_objects_v2.call_args
         assert kwargs["Prefix"] == "sfms/uploads/hourlies/2025-11-02"
@@ -122,10 +130,10 @@ class TestDailyFWIRasterDownload:
             assert response.status_code == 200, f"Expected 200 for parameter {param!r}"
 
     def test_returns_404_for_missing_raster(self, monkeypatch):
-        async def _raise_not_found(key, byte_range=None, chunk_size=65536):
+        async def _raise_not_found(self, key, byte_range=None, chunk_size=65536):
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
 
-        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _raise_not_found)
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream", _raise_not_found)
         client = TestClient(app.sfms_fwi_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi")
         assert response.status_code == 404
@@ -140,7 +148,7 @@ class TestDailyFWIRasterDownload:
     def test_uses_actual_run_type_in_s3_key(self, monkeypatch):
         captured_keys = []
 
-        async def _capture_key(key, byte_range=None, chunk_size=65536):
+        async def _capture_key(self, key, byte_range=None, chunk_size=65536):
             captured_keys.append(key)
 
             async def gen():
@@ -148,7 +156,7 @@ class TestDailyFWIRasterDownload:
 
             return gen(), {"ContentType": "image/tiff", "ContentLength": 4}
 
-        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _capture_key)
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream", _capture_key)
         client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/ffmc")
         assert len(captured_keys) == 1
@@ -192,7 +200,7 @@ class TestHourlyFFMCRasterDownload:
         )
         captured_keys = []
 
-        async def _capture_key(key, byte_range=None, chunk_size=65536):
+        async def _capture_key(self, key, byte_range=None, chunk_size=65536):
             captured_keys.append(key)
 
             async def gen():
@@ -200,7 +208,7 @@ class TestHourlyFFMCRasterDownload:
 
             return gen(), {"ContentType": "image/tiff", "ContentLength": 4}
 
-        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream_object", _capture_key)
+        monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream", _capture_key)
         client = TestClient(app.sfms_fwi_main.app)
         client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert len(captured_keys) == 1
@@ -433,6 +441,46 @@ class TestHourlyFFMCValueAtPoint:
         assert len(captured_keys) == 1
         assert "sfms/uploads/hourlies" in captured_keys[0]
         assert "fine_fuel_moisture_code2025110212.tif" in captured_keys[0]
+
+
+class TestSharedS3ClientLifespan:
+    """Without the test override, requests get the one client the app lifespan opened."""
+
+    def test_requests_reuse_the_lifespan_client(self, monkeypatch):
+        app.sfms_fwi_main.api.dependency_overrides.pop(get_s3_client)
+        entered, exited, used = [], [], []
+
+        async def _aenter(self):
+            entered.append(self)
+            return self
+
+        async def _aexit(self, *args):
+            exited.append(self)
+
+        async def _read_object(self, key):
+            used.append(self)
+            return b"fake-bytes"
+
+        monkeypatch.setattr(S3Client, "__aenter__", _aenter)
+        monkeypatch.setattr(S3Client, "__aexit__", _aexit)
+        monkeypatch.setattr(S3Client, "read_object", _read_object)
+        monkeypatch.setattr(
+            "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(1.0)
+        )
+
+        with TestClient(app.sfms_fwi_main.app) as client:
+            assert (
+                client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0").status_code == 200
+            )
+            assert (
+                client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0").status_code
+                == 200
+            )
+
+        assert len(entered) == 1
+        assert exited == entered
+        assert len(used) == 7
+        assert all(c is entered[0] for c in used)
 
 
 class TestMainAPIDoesNotServeDailyFWI:

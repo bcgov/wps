@@ -2,11 +2,14 @@ import hashlib
 import io
 import logging
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any
 
 import aiofiles
 from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
+from fastapi import Request
 
 from wps_shared import config
 from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
@@ -218,6 +221,32 @@ class S3Client:
             await self.put_object(key=key, body=contents)
         return temp_geotiff
 
+    async def stream(self, key: str, byte_range: str = None, chunk_size: int = 65536):
+        """
+        Stream an object using this already-open client. The response body is closed
+        when the generator finishes; the client is left open for reuse.
+
+        :param key: s3 key to stream
+        :param byte_range: Optional byte range string (e.g., "bytes=0-1023")
+        :param chunk_size: size of chunks to yield (default: 64KB)
+        :return: tuple of (async generator, response dict)
+        """
+        params = {"Bucket": self.bucket, "Key": key}
+        if byte_range:
+            params["Range"] = byte_range
+
+        response = await self.client.get_object(**params)
+        stream = response["Body"]
+
+        async def iter_chunks():
+            try:
+                while chunk := await stream.read(chunk_size):
+                    yield chunk
+            finally:
+                stream.close()
+
+        return iter_chunks(), response
+
     @staticmethod
     async def _stream(
         s3_client: "S3Client", key: str, byte_range: str = None, chunk_size: int = 65536
@@ -226,29 +255,20 @@ class S3Client:
         await s3_client.__aenter__()
 
         try:
-            params = {"Bucket": s3_client.bucket, "Key": key}
-            if byte_range:
-                params["Range"] = byte_range
-
-            response = await s3_client.client.get_object(**params)
-            stream = response["Body"]
-
-            async def gen():
-                try:
-                    while True:
-                        chunk = await stream.read(chunk_size)
-                        if not chunk:
-                            break
-                        yield chunk
-                finally:
-                    stream.close()
-                    await s3_client.__aexit__(None, None, None)
-
-            return gen(), response
-
+            chunks, response = await s3_client.stream(key, byte_range, chunk_size)
         except Exception:
             await s3_client.__aexit__(None, None, None)
             raise
+
+        async def iter_chunks_and_close_client():
+            try:
+                async for chunk in chunks:
+                    yield chunk
+            finally:
+                await chunks.aclose()
+                await s3_client.__aexit__(None, None, None)
+
+        return iter_chunks_and_close_client(), response
 
     @staticmethod
     async def stream_object(key: str, byte_range: str = None, chunk_size: int = 65536):
@@ -279,3 +299,21 @@ class S3Client:
             bucket=config.get("WX_OBJECT_STORE_BUCKET"),
         )
         return await S3Client._stream(client, key, byte_range, chunk_size)
+
+
+@asynccontextmanager
+async def s3_client_lifespan(_app) -> AsyncIterator[dict]:
+    """
+    App lifespan that opens one S3Client for the life of the worker and exposes it to
+    every request as request.state.s3_client (see get_s3_client).
+
+    Prefer this over a new S3Client per request: each new aiobotocore session re-parses
+    botocore's service models increasing memory over time.
+    """
+    async with S3Client() as s3_client:
+        yield {"s3_client": s3_client}
+
+
+def get_s3_client(request: Request) -> S3Client:
+    """FastAPI dependency returning the S3Client opened by s3_client_lifespan."""
+    return request.state.s3_client
