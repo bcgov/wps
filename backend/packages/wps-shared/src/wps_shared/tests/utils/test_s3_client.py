@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 from osgeo import gdal
 from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 from wps_shared.tests.geospatial.dataset_common import create_mock_gdal_dataset
-from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.s3_client import S3Client, get_s3_client, s3_client_lifespan
 from pytest_mock import MockerFixture
 from unittest.mock import AsyncMock, MagicMock
 
@@ -349,6 +349,65 @@ async def test_stream_object_error_handling(mocker: MockerFixture):
 
     # Verify client context manager was properly exited even on error
     mock_client_context.__aexit__.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_stream_closes_body_but_not_client(mocker: MockerFixture):
+    """S3Client.stream uses the already-open client and leaves it open for reuse."""
+    mock_stream = AsyncMock()
+    mock_stream.read.side_effect = [b"a", b"b", b""]
+    mock_stream.close = MagicMock()
+
+    mock_s3_client = AsyncMock()
+    mock_s3_client.get_object.return_value = {"Body": mock_stream, "ContentType": "image/tiff"}
+
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    s3_client = S3Client(bucket="some_bucket")
+    await s3_client.__aenter__()
+    generator, response = await s3_client.stream("test/key.tif", byte_range="bytes=0-1")
+    chunks = [chunk async for chunk in generator]
+
+    assert chunks == [b"a", b"b"]
+    assert response["ContentType"] == "image/tiff"
+    mock_s3_client.get_object.assert_called_once_with(
+        Bucket="some_bucket", Key="test/key.tif", Range="bytes=0-1"
+    )
+    mock_stream.close.assert_called_once()
+    mock_client_context.__aexit__.assert_not_called()
+    assert s3_client.client is mock_s3_client
+
+
+@pytest.mark.anyio
+async def test_s3_client_lifespan_yields_one_open_client(mocker: MockerFixture):
+    """The lifespan opens one client, exposes it as state, and closes it on shutdown."""
+    mock_s3_client = AsyncMock()
+    mock_client_context = AsyncMock()
+    mock_client_context.__aenter__.return_value = mock_s3_client
+    mock_session = MagicMock()
+    mock_session.create_client.return_value = mock_client_context
+    mocker.patch("wps_shared.utils.s3_client.get_session", return_value=mock_session)
+
+    async with s3_client_lifespan(None) as state:
+        s3_client = state["s3_client"]
+        assert isinstance(s3_client, S3Client)
+        assert s3_client.client is mock_s3_client
+        mock_client_context.__aexit__.assert_not_called()
+
+    mock_session.create_client.assert_called_once()
+    mock_client_context.__aexit__.assert_called_once()
+
+
+def test_get_s3_client_returns_request_state_client():
+    s3_client = MagicMock()
+    request = MagicMock()
+    request.state.s3_client = s3_client
+
+    assert get_s3_client(request) is s3_client
 
 
 @pytest.mark.anyio

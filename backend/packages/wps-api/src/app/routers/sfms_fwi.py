@@ -14,11 +14,11 @@ from datetime import date, datetime, timezone
 from typing import Annotated
 
 from botocore.exceptions import ClientError
-from fastapi import APIRouter, HTTPException, Path, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from pydantic import BaseModel, Field
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIParameter
-from wps_shared.utils.s3_client import S3Client
+from wps_shared.utils.s3_client import S3Client, get_s3_client
 
 from app.routers.object_store_proxy import _proxy
 from app.sfms.raster_addresser import RasterKeyAddresser
@@ -51,6 +51,9 @@ _HOUR_EXAMPLE = 12
 # (see daily_fwi_processor.py). get_uploaded_index_key converts to Pacific time
 # internally, so passing midnight UTC would shift for_date back by one day.
 _SFMS_SAFE_UTC_HOUR = 20
+
+# The worker's shared S3 client, opened by the app lifespan (s3_client_lifespan).
+SharedS3Client = Annotated[S3Client, Depends(get_s3_client)]
 
 
 def _for_date_to_utc(for_date: date) -> datetime:
@@ -105,10 +108,9 @@ class DailyFWIValuesResponse(BaseModel):
     fwi: float | None = Field(description="Fire Weather Index")
 
 
-async def _load_raster(key: str) -> bytes:
+async def _load_raster(s3_client: S3Client, key: str) -> bytes:
     try:
-        async with S3Client() as s3_client:
-            return await s3_client.read_object(key)
+        return await s3_client.read_object(key)
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         if error_code == "NoSuchKey":
@@ -116,7 +118,7 @@ async def _load_raster(key: str) -> bytes:
         raise HTTPException(status_code=502, detail=f"S3 error: {error_code}")
 
 
-async def _find_uploaded_hffmc_key(for_date: date, hour: int) -> str | None:
+async def _find_uploaded_hffmc_key(s3_client: S3Client, for_date: date, hour: int) -> str | None:
     """Find the uploaded hFFMC key for the given date and hour by listing the
     date's upload prefix and matching on the hour suffix, the same discovery
     approach GET /sfms/hourlies uses. for_date and hour are taken as-is -- the
@@ -124,11 +126,10 @@ async def _find_uploaded_hffmc_key(for_date: date, hour: int) -> str | None:
     conversion."""
     dt = datetime(for_date.year, for_date.month, for_date.day, hour)
     hour_suffix = f"{dt.hour:02d}.tif"
-    async with S3Client() as s3_client:
-        response = await s3_client.client.list_objects_v2(
-            Bucket=s3_client.bucket,
-            Prefix=f"sfms/uploads/hourlies/{for_date}",
-        )
+    response = await s3_client.client.list_objects_v2(
+        Bucket=s3_client.bucket,
+        Prefix=f"sfms/uploads/hourlies/{for_date}",
+    )
     return next(
         (obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(hour_suffix)),
         None,
@@ -136,7 +137,7 @@ async def _find_uploaded_hffmc_key(for_date: date, hour: int) -> str | None:
 
 
 async def _sample_daily_fwi_value(
-    for_date: date, parameter: FWIParameter, lat: float, lon: float
+    s3_client: S3Client, for_date: date, parameter: FWIParameter, lat: float, lon: float
 ) -> float | None:
     """Load the uploaded daily FWI actuals raster for the given date/parameter and
     return its value at the WGS84 lat/lon point (None if outside the extent or on a
@@ -144,7 +145,7 @@ async def _sample_daily_fwi_value(
     key = _addresser.get_uploaded_index_key(_for_date_to_utc(for_date), parameter)
     logger.info("Sampling %s raster at (%s, %s) from %s", parameter.value, lat, lon, key)
 
-    raster_bytes = await _load_raster(key)
+    raster_bytes = await _load_raster(s3_client, key)
     ds = WPSDataset.from_bytes(raster_bytes)
     with ds:
         return ds.extract_value_at_point(lat, lon)
@@ -164,6 +165,7 @@ async def get_daily_fwi_values_at_point(
     for_date: Annotated[date, Path(description=_FOR_DATE_DESC, examples=[_FOR_DATE_EXAMPLE])],
     lat: Annotated[float, Query(ge=-90, le=90, description=_LAT_DESC, examples=[_LAT_EXAMPLE])],
     lon: Annotated[float, Query(ge=-180, le=180, description=_LON_DESC, examples=[_LON_EXAMPLE])],
+    s3_client: SharedS3Client,
 ):
     """
     Sample every daily FWI actuals raster (ffmc, dmc, dc, isi, bui, fwi) at a single
@@ -179,7 +181,10 @@ async def get_daily_fwi_values_at_point(
     nodata pixel. A 404 means any of the daily FWI rasters themselves don't exist for that date.
     """
     values = await asyncio.gather(
-        *(_sample_daily_fwi_value(for_date, parameter, lat, lon) for parameter in FWIParameter)
+        *(
+            _sample_daily_fwi_value(s3_client, for_date, parameter, lat, lon)
+            for parameter in FWIParameter
+        )
     )
     by_parameter = {parameter.value: value for parameter, value in zip(FWIParameter, values)}
 
@@ -202,6 +207,7 @@ async def get_hourly_ffmc_value_at_point(
     hour: Annotated[int, Query(ge=0, le=23, description=_HOUR_DESC, examples=[_HOUR_EXAMPLE])],
     lat: Annotated[float, Query(ge=-90, le=90, description=_LAT_DESC, examples=[_LAT_EXAMPLE])],
     lon: Annotated[float, Query(ge=-180, le=180, description=_LON_DESC, examples=[_LON_EXAMPLE])],
+    s3_client: SharedS3Client,
 ):
     """
     Sample the hourly FFMC (fine fuel moisture code) actuals raster at a single
@@ -215,14 +221,14 @@ async def get_hourly_ffmc_value_at_point(
     a nodata pixel, rather than a 404 -- a 404 means the raster itself doesn't exist
     for that date/hour.
     """
-    key = await _find_uploaded_hffmc_key(for_date, hour)
+    key = await _find_uploaded_hffmc_key(s3_client, for_date, hour)
     if key is None:
         raise HTTPException(
             status_code=404, detail=f"No hFFMC raster found for {for_date} hour {hour}"
         )
     logger.info("Sampling hourly FFMC raster at (%s, %s) from %s", lat, lon, key)
 
-    raster_bytes = await _load_raster(key)
+    raster_bytes = await _load_raster(s3_client, key)
     ds = WPSDataset.from_bytes(raster_bytes)
     with ds:
         value = ds.extract_value_at_point(lat, lon)
@@ -247,6 +253,7 @@ async def get_daily_fwi_value_at_point(
     parameter: Annotated[FWIParameter, Path(description=_PARAMETER_DESC, examples=["ffmc"])],
     lat: Annotated[float, Query(ge=-90, le=90, description=_LAT_DESC, examples=[_LAT_EXAMPLE])],
     lon: Annotated[float, Query(ge=-180, le=180, description=_LON_DESC, examples=[_LON_EXAMPLE])],
+    s3_client: SharedS3Client,
 ):
     """
     Sample the daily FWI actuals raster at a single WGS84 lat/lon coordinate, for
@@ -259,7 +266,7 @@ async def get_daily_fwi_value_at_point(
     a nodata pixel, rather than a 404 -- a 404 means the raster itself doesn't exist
     for that date/parameter.
     """
-    value = await _sample_daily_fwi_value(for_date, parameter, lat, lon)
+    value = await _sample_daily_fwi_value(s3_client, for_date, parameter, lat, lon)
 
     return FWIValueResponse(
         date=for_date.isoformat(),
@@ -279,6 +286,7 @@ async def get_hourly_ffmc_raster(
     request: Request,
     for_date: Annotated[date, Path(description=_FOR_DATE_DESC, examples=[_FOR_DATE_EXAMPLE])],
     hour: Annotated[int, Query(ge=0, le=23, description=_HOUR_DESC, examples=[_HOUR_EXAMPLE])],
+    s3_client: SharedS3Client,
 ):
     """
     Download the hourly FFMC (fine fuel moisture code) actuals raster, as a
@@ -290,13 +298,13 @@ async def get_hourly_ffmc_raster(
 
     Supports HTTP range requests (a `Range` header returns a 206 partial response).
     """
-    key = await _find_uploaded_hffmc_key(for_date, hour)
+    key = await _find_uploaded_hffmc_key(s3_client, for_date, hour)
     if key is None:
         raise HTTPException(
             status_code=404, detail=f"No hFFMC raster found for {for_date} hour {hour}"
         )
     logger.info("Streaming hourly FFMC raster: %s", key)
-    return await _proxy(key, request.headers.get("range"), S3Client.stream_object)
+    return await _proxy(key, request.headers.get("range"), s3_client.stream)
 
 
 @router.get(
@@ -308,6 +316,7 @@ async def get_daily_fwi_raster(
     request: Request,
     for_date: Annotated[date, Path(description=_FOR_DATE_DESC, examples=[_FOR_DATE_EXAMPLE])],
     parameter: Annotated[FWIParameter, Path(description=_PARAMETER_DESC, examples=["ffmc"])],
+    s3_client: SharedS3Client,
 ):
     """
     Download the daily FWI actuals raster for the given date and
@@ -320,4 +329,4 @@ async def get_daily_fwi_raster(
     """
     key = _addresser.get_uploaded_index_key(_for_date_to_utc(for_date), parameter)
     logger.info("Streaming daily FWI raster: %s", key)
-    return await _proxy(key, request.headers.get("range"), S3Client.stream_object)
+    return await _proxy(key, request.headers.get("range"), s3_client.stream)
