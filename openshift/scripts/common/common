@@ -50,9 +50,12 @@ fi
 # Renders JSON (oc process's default). Batches are concatenated JSON documents with no
 # separators: a YAML `---` separator between JSON documents breaks oc's decoding.
 #
+# Renders YAML (`oc process -o yaml`) to match the cronjob scripts, so the batch is one YAML
+# stream with `---` separators. A JSON document followed by `---` breaks oc's decoding.
+#
 render_and_exit_if_requested() {
 	if [ "${RENDER}" ]; then
-		eval "$1"
+		eval "${1/ process / process -o yaml }"
 		exit 0
 	fi
 }
