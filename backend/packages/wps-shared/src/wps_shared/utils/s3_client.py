@@ -238,14 +238,14 @@ class S3Client:
         response = await self.client.get_object(**params)
         stream = response["Body"]
 
-        async def gen():
+        async def iter_chunks():
             try:
                 while chunk := await stream.read(chunk_size):
                     yield chunk
             finally:
                 stream.close()
 
-        return gen(), response
+        return iter_chunks(), response
 
     @staticmethod
     async def _stream(
@@ -255,20 +255,20 @@ class S3Client:
         await s3_client.__aenter__()
 
         try:
-            body, response = await s3_client.stream(key, byte_range, chunk_size)
+            chunks, response = await s3_client.stream(key, byte_range, chunk_size)
         except Exception:
             await s3_client.__aexit__(None, None, None)
             raise
 
-        async def gen():
+        async def iter_chunks_and_close_client():
             try:
-                async for chunk in body:
+                async for chunk in chunks:
                     yield chunk
             finally:
-                await body.aclose()
+                await chunks.aclose()
                 await s3_client.__aexit__(None, None, None)
 
-        return gen(), response
+        return iter_chunks_and_close_client(), response
 
     @staticmethod
     async def stream_object(key: str, byte_range: str = None, chunk_size: int = 65536):
