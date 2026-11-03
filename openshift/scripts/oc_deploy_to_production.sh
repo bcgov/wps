@@ -47,6 +47,11 @@ PACKAGE=wps-weather bash $(dirname ${0})/oc_promote_gh.sh ${SUFFIX} ${RUN_TYPE}
 # saved is one less chance of a failed deploy.
 BATCH_FILE=$(mktemp)
 
+# One deploy version for every deployment rendered below, checked again after rollout.
+# The workflow sets it to "<run id>-<attempt>"; the deploy scripts would otherwise each
+# fall back to their own timestamp.
+export DEPLOY_VERSION="${DEPLOY_VERSION:-$(date +%s)}"
+
 FUEL_RASTER_YEAR=2026
 FUEL_GRID_INSTALL_SUSPEND=true
 
@@ -164,9 +169,7 @@ else
 fi
 
 echo Waiting for rollouts
-oc -n ${PROJ_TARGET} rollout status deployment/${APP_NAME}-prod
-oc -n ${PROJ_TARGET} rollout status deployment/${APP_NAME}-prod-asa-go
-oc -n ${PROJ_TARGET} rollout status deployment/${APP_NAME}-prod-sfms-fwi
+wait_for_rollouts_and_verify_deploy_version "${APP_NAME}-prod" "${APP_NAME}-prod-asa-go" "${APP_NAME}-prod-sfms-fwi"
 
 # The ECCC consumer's image tag (prod) doesn't change between releases, so re-applying its
 # manifest doesn't roll it; restart it to pick up the newly promoted image.

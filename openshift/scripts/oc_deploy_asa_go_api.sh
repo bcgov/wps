@@ -49,6 +49,6 @@ render_and_exit_if_requested "${OC_PROCESS}"
 eval ${OC_PROCESS}
 eval "${OC_PROCESS} | ${OC_APPLY}"
 
-oc -n ${PROJ_TARGET} rollout status deployment/${OBJ_NAME}
+[ ! "${APPLY}" ] || wait_for_rollouts_and_verify_deploy_version "${OBJ_NAME}"
 
 display_helper "${OC_PROCESS} | ${OC_APPLY}"

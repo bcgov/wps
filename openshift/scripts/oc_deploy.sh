@@ -63,7 +63,7 @@ eval ${OC_PROCESS}
 eval "${OC_PROCESS} | ${OC_APPLY}"
 
 # Wait for rollout to finish
-oc -n ${PROJ_TARGET} rollout status deployment/${OBJ_NAME}
+[ ! "${APPLY}" ] || wait_for_rollouts_and_verify_deploy_version "${OBJ_NAME}"
 
 # Provide oc command instruction
 #
