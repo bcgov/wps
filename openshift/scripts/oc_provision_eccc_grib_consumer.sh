@@ -30,7 +30,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 WEATHER_IMAGE="${WEATHER_IMAGE:-ghcr.io/bcgov/wps/wps-weather:${SUFFIX}}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/eccc_grib_consumer.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/eccc_grib_consumer.yaml \
 -p SUFFIX=${SUFFIX} \
 -p WEATHER_IMAGE=${WEATHER_IMAGE}"
 
@@ -47,6 +47,7 @@ OC_ROLLOUT_RESTART="oc -n ${PROJ_TARGET} rollout restart deployment/${APP_NAME}-
 
 # Execute commands
 #
+render_and_exit_if_requested "${OC_PROCESS}"
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
 eval "${OC_ROLLOUT_RESTART}"

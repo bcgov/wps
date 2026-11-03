@@ -16,6 +16,7 @@ IFS=$'\n\t'
 #
 SUFFIX=${1:-}
 APPLY=$([ "${2:-}" != "apply" ] || echo true)
+RENDER=$([ "${2:-}" != "render" ] || echo true)
 source "$(dirname ${0})/common/envars"
 
 # If no parameters have been passed show the help header from this script
@@ -31,11 +32,26 @@ source "$(dirname ${0})/common/envars"
 	exit
 }
 
-# Verify login
+# Verify login once per run; scripts called from this one inherit OC_LOGIN_VERIFIED and
+# skip the check. Render-only runs make no API calls, so they don't need a login. Fails
+# (exit 1) rather than silently skipping the rest of the script.
 #
-$(oc whoami &>/dev/null) || {
-	echo -e "\nPlease verify oc login\n"
-	exit
+if [ -z "${OC_LOGIN_VERIFIED:-}" ] && [ ! "${RENDER}" ]; then
+	oc whoami >/dev/null || {
+		echo -e "\nPlease verify oc login\n" >&2
+		exit 1
+	}
+	export OC_LOGIN_VERIFIED=true
+fi
+
+# Render-only run type: print the manifest for a caller that batches all of its applies
+# into one call (see oc_deploy_to_production.sh), then stop before applying anything.
+#
+render_and_exit_if_requested() {
+	if [ "${RENDER}" ]; then
+		eval "$1"
+		exit 0
+	fi
 }
 
 # Echo commands and dry run warnings

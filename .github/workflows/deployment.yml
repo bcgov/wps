@@ -204,7 +204,7 @@ jobs:
       - name: Logging alerts
         shell: bash
         run: |
-          oc process -f openshift/logging-alerts/oom_alerts.yaml -p NAMESPACE=e1e498-dev -p SEVERITY=warning | oc apply -f -
+          oc process --local -f openshift/logging-alerts/oom_alerts.yaml -p NAMESPACE=e1e498-dev -p SEVERITY=warning | oc apply -f -
 
   deploy-asa-go-dev:
     name: Deploy ASA Go API to Dev

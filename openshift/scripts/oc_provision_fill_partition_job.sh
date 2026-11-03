@@ -19,7 +19,7 @@ source "$(dirname ${0})/common/common"
 JOB="job/fill-partition-data-${SUFFIX}"
 
 # create the job
-oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/partition_filler_job.yaml \
+oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/partition_filler_job.yaml \
     -p SUFFIX=${SUFFIX} \
     -p PG_DATABASE=${PG_DATABASE} \
     -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \

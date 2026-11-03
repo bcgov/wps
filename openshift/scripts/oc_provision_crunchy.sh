@@ -31,7 +31,7 @@ IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-${PROJ_TOOLS}}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/crunchy.yaml \
 -p NAME=\"crunchy-${APP_NAME}-${SUFFIX}\" \
 -p SUFFIX=\"${SUFFIX}\" \
 -p CRUNCHY_NAME=\"${CRUNCHY_NAME}\" \
@@ -66,6 +66,7 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 # Execute commands
 #
 
+render_and_exit_if_requested "${OC_PROCESS}"
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
 

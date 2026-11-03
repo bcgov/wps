@@ -24,7 +24,7 @@ OBJ_NAME="${APP_NAME}-${MODULE_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substition)
 #​​
-OC_PROCESS="oc -n ${PROJ_TOOLS} process -f ${PATH_BC} \
+OC_PROCESS="oc -n ${PROJ_TOOLS} process --local -f ${PATH_BC} \
  -p APP_NAME=${APP_NAME} \
  -p MODULE_NAME=${MODULE_NAME} \
  -p SUFFIX=${SUFFIX} \
