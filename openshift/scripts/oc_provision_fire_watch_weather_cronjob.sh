@@ -34,7 +34,7 @@ SCHEDULE="${SCHEDULE:-$((14 + $RANDOM % 45)) * * * *}"
 
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/fire_watch_weather.cronjob.yaml -o yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/fire_watch_weather.cronjob.yaml -o json \
 -p JOB_NAME=fire-watch-weather-${APP_NAME}-${SUFFIX} \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME} \
