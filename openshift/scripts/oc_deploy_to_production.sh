@@ -127,8 +127,3 @@ fi
 
 echo Waiting for rollouts
 wait_for_rollouts "${APP_NAME}-prod" "${APP_NAME}-prod-asa-go" "${APP_NAME}-prod-sfms-fwi"
-
-# The ECCC consumer's image tag (prod) doesn't change between releases, so re-applying its
-# manifest doesn't roll it; restart it to pick up the newly promoted image.
-echo Restart ECCC Consumer
-oc -n ${PROJ_TARGET} rollout restart deployment/${APP_NAME}-prod-eccc-consumer
