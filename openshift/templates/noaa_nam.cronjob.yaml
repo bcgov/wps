@@ -45,6 +45,10 @@ objects:
       # Don't run on the hour - as a courtesy to NOAA, pick a random
       # number so that not everyone hits NOAA at the same time.
       schedule: ${SCHEDULE}
+      # NOAA deprecated NAM on Nov 3, 2026, so this job is suspended. Historical NAM station
+      # predictions are kept so MoreCast can still show them for past dates.
+      # https://www.weather.gov/media/notification/pdf_2026/scn26_78_Updated_HYSPLIT_%20v9.1_aaa.pdf
+      suspend: true
       # We use the "Forbid" policy, because cronjobs can take a long time to run, and it's possible
       # that a job will still be running when the next one is scheduled. If one job is still running,
       # we don't want to start another one, so we use "Forbid" so the running job will not be replaced.
