@@ -55,6 +55,10 @@ const WeatherToolkitPage = () => {
     return () => globalThis.removeEventListener('keydown', handleKeyDown)
   }, [currentModel])
 
+  useEffect(() => {
+    storeChartExpanded(isChartExpanded)
+  }, [isChartExpanded])
+
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflow: 'hidden' }}>
@@ -73,11 +77,7 @@ const WeatherToolkitPage = () => {
             chartKey={chartKey}
             isFailed={chartFailed.has(chartKey)}
             isExpanded={isChartExpanded}
-            onToggleExpand={() => {
-              const nextIsExpanded = !isChartExpanded
-              storeChartExpanded(nextIsExpanded)
-              setIsChartExpanded(nextIsExpanded)
-            }}
+            onToggleExpand={() => setIsChartExpanded(prev => !prev)}
           />
         </Box>
         <TimelineController
