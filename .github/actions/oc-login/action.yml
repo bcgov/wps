@@ -25,10 +25,11 @@ runs:
         OC_SERVER: ${{ inputs.oc-server }}
         OC_TOKEN: ${{ inputs.oc-token }}
       run: |
-        OC_TEMP_TOKEN=$(curl -sk -X POST \
+        set -euo pipefail
+        OC_TEMP_TOKEN=$(curl -skf -X POST \
           "${OC_SERVER}/api/v1/namespaces/${{ inputs.oc-namespace }}/serviceaccounts/${{ inputs.oc-service-account }}/token" \
           -H "Authorization: Bearer ${OC_TOKEN}" \
           -H "Content-Type: application/json" \
-          -d '{"spec": {"expirationSeconds": 600}}' \
+          -d '{"spec": {"expirationSeconds": 1800}}' \
           | jq -r '.status.token')
         oc login --token="${OC_TEMP_TOKEN}" --server="${OC_SERVER}"

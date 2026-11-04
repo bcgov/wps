@@ -23,7 +23,7 @@ OBJ_NAME="${APP_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substitution)
 #
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS_SERVER_CONFIG} \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${PATH_NATS_SERVER_CONFIG} \
  -p SUFFIX=${SUFFIX} \
  -p APP_NAME=${APP_NAME}"
 
@@ -34,6 +34,7 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 
 # Execute commands
 #
+render_and_exit_if_requested "${OC_PROCESS}"
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
 

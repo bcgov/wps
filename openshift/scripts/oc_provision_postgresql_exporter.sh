@@ -29,7 +29,7 @@ else
     exit 1
 fi
 
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/postgresql_exporter.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/postgresql_exporter.yaml \
 -p SUFFIX=${SUFFIX} \
 -p CRUNCHY_NAME=${CRUNCHY_NAME} \
 -p PROJECT_NAMESPACE=${PROJ_TARGET} \
