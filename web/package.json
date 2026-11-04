@@ -22,7 +22,7 @@
     "clean": "turbo clean"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
+    "@biomejs/biome": "2.6.3",
     "@vitest/coverage-v8": "^5.0.0",
     "corepack": "0.36.0",
     "turbo": "^2.0.0",

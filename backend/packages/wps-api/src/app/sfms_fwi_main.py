@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request, Response
 from starlette.applications import Starlette
 from wps_shared import config
 from wps_shared.chatops_notification import send_chatops_notification
+from wps_shared.utils.s3_client import s3_client_lifespan
 from wps_shared.wps_logging import configure_logging
 
 from app.routers import sfms_fwi
@@ -64,7 +65,7 @@ if config.get("ENVIRONMENT") == "production":
     )
 
 api = FastAPI(title="SFMS Daily FWI API", description=API_INFO, version="0.0.0")
-app = Starlette()
+app = Starlette(lifespan=s3_client_lifespan)
 app.mount("/api", app=api)
 
 

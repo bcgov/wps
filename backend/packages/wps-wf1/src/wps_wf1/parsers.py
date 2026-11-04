@@ -45,17 +45,6 @@ class WF1RecordTypeEnum(enum.Enum):
 WF1_RECORD_TYPE_IDS = frozenset(record_type.value for record_type in WF1RecordTypeEnum)
 
 
-SFMS_SITE_TYPE_IDS = (
-    "HUB_STN",
-    "WXSTN_GOES",
-    "WXSTN_MB",
-    "WXSTN_TEL",
-    "WXSTN_CELL",
-    "WXSTN_UHF",
-    "EXTERNAL",
-)
-
-
 def parse_wf1_datetime(raw_daily: dict) -> datetime:
     return datetime.fromtimestamp(raw_daily.get("weatherTimestamp") / 1000, tz=timezone.utc)
 
@@ -370,15 +359,11 @@ def is_sfms_daily(raw_daily: dict) -> bool:
     if station_data is None:
         return False
 
-    site_type_id = station_data.get("siteType", {}).get("id")
     station_status_id = station_data.get("stationStatus", {}).get("id")
     record_type_id = (raw_daily.get("recordType") or {}).get("id")
     return (
         is_station_valid(station_data)
         and station_status_id == "ACTIVE"
-        # Site types match those used to define APP_WF1_WEATHER.STATION_BC_ACTIVE_REPORTING_VW,
-        # the station source for legacy SFMS.
-        and site_type_id in SFMS_SITE_TYPE_IDS
         and record_type_id in WF1_RECORD_TYPE_IDS
     )
 

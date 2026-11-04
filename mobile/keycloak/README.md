@@ -13,11 +13,11 @@ npx cap sync
 
 <docgen-index>
 
-* [`authenticate(...)`](#authenticate)
-* [`refreshAuthState()`](#refreshauthstate)
-* [`clearAuthState()`](#clearauthstate)
-* [`addListener(string, ...)`](#addlistenerstring-)
-* [Interfaces](#interfaces)
+- [`authenticate(...)`](#authenticate)
+- [`refreshAuthState()`](#refreshauthstate)
+- [`clearAuthState()`](#clearauthstate)
+- [`addListener(string, ...)`](#addlistenerstring-)
+- [Interfaces](#interfaces)
 
 </docgen-index>
 
@@ -38,8 +38,7 @@ Authenticate against a Keycloak provider.
 
 **Returns:** <code>Promise&lt;<a href="#keycloakauthresponse">KeycloakAuthResponse</a>&gt;</code>
 
---------------------
-
+---
 
 ### refreshAuthState()
 
@@ -51,8 +50,7 @@ Refresh the stored native authentication state without launching browser auth.
 
 **Returns:** <code>Promise&lt;<a href="#keycloakauthresponse">KeycloakAuthResponse</a>&gt;</code>
 
---------------------
-
+---
 
 ### clearAuthState()
 
@@ -62,8 +60,7 @@ clearAuthState() => Promise<void>
 
 Clear any stored native authentication state.
 
---------------------
-
+---
 
 ### addListener(string, ...)
 
@@ -78,11 +75,9 @@ Add a listener for plugin events, specifically for token refreshes.
 | **`eventName`**    | <code>string</code>                 |
 | **`listenerFunc`** | <code>(data: any) =&gt; void</code> |
 
---------------------
-
+---
 
 ### Interfaces
-
 
 #### KeycloakAuthResponse
 

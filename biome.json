@@ -21,6 +21,7 @@
       "!mobile/asa-go/public",
       "!mobile/keycloak/android",
       "!mobile/keycloak/ios",
+      "!mobile/keycloak/README.md",
       "!web/apps/wps-web/src/serviceWorker.ts",
       "!**/*.svg",
       ".vscode/**"
