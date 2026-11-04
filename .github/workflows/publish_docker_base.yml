@@ -20,7 +20,7 @@ jobs:
       - name: Login to GitHub Container Registry
         # this step requires a GH_TOKEN with read:packages write:packages and delete:packages
         # tested with a classic token with the above permissions
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           registry: ghcr.io
           username: ${{github.actor}}
