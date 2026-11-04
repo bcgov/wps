@@ -134,7 +134,7 @@ jobs:
           xcodebuild \
             -project App.xcodeproj \
             -scheme "ASA Go" \
-            -onlyUsePackageVersionsFromResolvedFile \
+            -disableAutomaticPackageResolution \
             -configuration Release \
             -destination "generic/platform=iOS" \
             -archivePath ${{ runner.temp }}/ASA-Go.xcarchive \

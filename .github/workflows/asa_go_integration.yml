@@ -80,7 +80,7 @@ jobs:
           xcodebuild \
             -project App.xcodeproj \
             -scheme "ASA Go" \
-            -onlyUsePackageVersionsFromResolvedFile \
+            -disableAutomaticPackageResolution \
             -destination "platform=iOS Simulator,name=iPhone 17" \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
