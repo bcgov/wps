@@ -1,10 +1,12 @@
+import * as Sentry from '@sentry/react'
 export const WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY = 'wps-weather-toolkit-chart-expanded'
 
 export const readChartExpanded = () => {
   try {
     const storedValue = localStorage.getItem(WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY)
     return storedValue === 'true'
-  } catch {
+  } catch (error) {
+    Sentry.captureException(error)
     return false
   }
 }
@@ -12,7 +14,8 @@ export const readChartExpanded = () => {
 export const storeChartExpanded = (chartExpanded: boolean) => {
   try {
     localStorage.setItem(WEATHER_TOOLKIT_CHART_EXPANDED_STORAGE_KEY, String(chartExpanded))
-  } catch {
-    return
+  } catch (error) {
+    Sentry.captureException(error)
+    return false
   }
 }
