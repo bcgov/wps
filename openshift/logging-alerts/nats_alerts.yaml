@@ -1,29 +1,36 @@
-apiVersion: loki.grafana.com/v1
-kind: AlertingRule
+# A template (with no parameters) so `oc process --local` renders it to JSON for the
+# production deploy's JSON-only batch file (see oc_deploy_to_production.sh).
+kind: Template
+apiVersion: template.openshift.io/v1
 metadata:
-  labels:
-    openshift.io/loki: "true" # This is required for Loki to pick up the config
-    app: "nats-logging"
-  name: nats-alerts
-  namespace: e1e498-prod
-spec:
-  groups:
-    - interval: 1m
-      name: LoggingAlerts
-      repeat_interval: 30m
-      rules:
-        - alert: NatsErrors
-          annotations:
-            description: Alerts fire when any error/critical logs occur.
-            summary: Nats is generating too many errors
-          # Get the rate of error logs per second over the last minute, alert if any errors occurred.
-          # Uses regexp to parse the actual Python levelname from the log format rather than relying
-          # on the OpenShift collector's pre-extracted level label, which incorrectly tags logs from
-          # the critical_hours module as critical due to the module name containing "critical".
-          expr: |
-            sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | regexp `- (?P<level>[A-Z]+) -` | level=~"ERROR|CRITICAL" [1m])) > 0
-          for: 0s
-          labels:
-            namespace: e1e498-prod
-            severity: critical
-  tenantID: application
+  name: nats-alerts-template
+objects:
+  - apiVersion: loki.grafana.com/v1
+    kind: AlertingRule
+    metadata:
+      labels:
+        openshift.io/loki: "true" # This is required for Loki to pick up the config
+        app: "nats-logging"
+      name: nats-alerts
+      namespace: e1e498-prod
+    spec:
+      groups:
+        - interval: 1m
+          name: LoggingAlerts
+          repeat_interval: 30m
+          rules:
+            - alert: NatsErrors
+              annotations:
+                description: Alerts fire when any error/critical logs occur.
+                summary: Nats is generating too many errors
+              # Get the rate of error logs per second over the last minute, alert if any errors occurred.
+              # Uses regexp to parse the actual Python levelname from the log format rather than relying
+              # on the OpenShift collector's pre-extracted level label, which incorrectly tags logs from
+              # the critical_hours module as critical due to the module name containing "critical".
+              expr: |
+                sum(rate({ kubernetes_namespace_name="e1e498-prod", kubernetes_pod_name=~"wps-prod-nats.*" } | regexp `- (?P<level>[A-Z]+) -` | level=~"ERROR|CRITICAL" [1m])) > 0
+              for: 0s
+              labels:
+                namespace: e1e498-prod
+                severity: critical
+      tenantID: application
