@@ -1,6 +1,6 @@
 import AppAuth
 import Capacitor
-import Keycloak
+import KeycloakPlugin
 import UIKit
 import FirebaseCore
 import FirebaseMessaging

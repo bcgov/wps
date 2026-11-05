@@ -78,8 +78,9 @@ jobs:
         working-directory: ./mobile/asa-go/ios/App
         run: |
           xcodebuild \
-            -workspace App.xcworkspace \
+            -project App.xcodeproj \
             -scheme "ASA Go" \
+            -disableAutomaticPackageResolution \
             -destination "platform=iOS Simulator,name=iPhone 17" \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
