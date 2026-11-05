@@ -7,10 +7,19 @@ Fetches numerical weather prediction model output straight from the agencies' pu
 - **Concurrent.** Every step and variable of a request is fetched at once over a shared
   connection pool.
 - **Nothing on disk.** No download directory, cache or config file. Fields are held in memory
-  and decoded with eccodes on first use.
+  and decoded on first use.
 - **Mirrors.** Each model lists its mirrors in order. A mirror that is missing a file, returns
   errors or serves corrupt data is passed over for the next one, and a host that cannot be
   reached is skipped for five minutes rather than timing out on every request.
+
+## Installing
+
+| Depend on | To | Brings in |
+| --- | --- | --- |
+| `wps-nwp` | fetch fields and store or forward their GRIB | aiohttp, numpy |
+| `wps-nwp[decode]` | also read values: `sample`, `values`, `grid`, `nwp.sample` | eccodes |
+
+Without the extra, anything that decodes raises an `ImportError` naming it.
 
 ## Usage
 

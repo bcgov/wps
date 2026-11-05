@@ -273,9 +273,24 @@ _grids: dict[str, Grid] = {}
 _grids_lock = threading.Lock()
 
 
+def _eccodes():
+    """
+    The eccodes module, imported on first use.
+
+    It is an optional dependency, since fetching and storing GRIB does not need it, and
+    loading its library is not free.
+    """
+    try:
+        import eccodes
+    except ImportError as error:
+        raise ImportError(
+            "Reading values from a field needs eccodes. Install wps-nwp[decode]."
+        ) from error
+    return eccodes
+
+
 def _decode(grib: bytes) -> tuple[np.ndarray, Grid, str]:
-    # Imported here so that fetching without decoding does not load the eccodes library.
-    import eccodes
+    eccodes = _eccodes()
 
     handle = eccodes.codes_new_from_message(grib)
     try:
@@ -300,7 +315,7 @@ def _decode(grib: bytes) -> tuple[np.ndarray, Grid, str]:
 
 def _coordinates(grib: bytes) -> tuple[np.ndarray, np.ndarray]:
     """Latitude and longitude of every grid point of a message, in the order of its values."""
-    import eccodes
+    eccodes = _eccodes()
 
     handle = eccodes.codes_new_from_message(grib)
     try:
@@ -314,7 +329,7 @@ def _coordinates(grib: bytes) -> tuple[np.ndarray, np.ndarray]:
 
 def _axes(handle) -> _Axes | None:
     """The layout of a message's grid, or None if it is not one _Axes can describe."""
-    import eccodes
+    eccodes = _eccodes()
 
     def get(key: str):
         return eccodes.codes_get(handle, key)

@@ -1,3 +1,4 @@
+import sys
 from datetime import UTC, datetime
 
 import numpy as np
@@ -34,6 +35,14 @@ def test_decode():
     assert decoded.grid.shape == (3, 4)
     np.testing.assert_allclose(decoded.grid.lats[:, 0], [60, 59, 58])
     np.testing.assert_allclose(decoded.grid.lons[0], [-130, -129, -128, -127])
+
+
+def test_decoding_without_eccodes_says_how_to_get_it(monkeypatch):
+    grib = real_grib(VALUES)
+    monkeypatch.setitem(sys.modules, "eccodes", None)  # makes "import eccodes" fail
+
+    with pytest.raises(ImportError, match=r"Install wps-nwp\[decode\]"):
+        field(grib).values
 
 
 def test_missing_values_are_nan():
