@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 
 GFS_000_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5}
 GFS_003_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5, "apcp_sfc_0": 6, "cumulative_apcp_sfc_0": 7}
+# RRFS files are assembled by the RRFS job from .idx byte ranges, so we choose the band order (see
+# weather_model_jobs.rrfs.RRFS_RECORDS). Precipitation is the run-total accumulation, absent at hour 0.
+RRFS_RASTER_BANDS = {"tmp_tgl_2": 1, "rh_tgl_2": 2, "u_comp_wind_10m": 3, "v_comp_wind_10m": 4, "cumulative_apcp_sfc_0": 5}
 
 
 class PredictionModelNotFound(Exception):
@@ -229,6 +232,14 @@ class GribFileProcessor:
         # Need to know this to know which raster band ID we should use for GFS
         # grib files. Also, there won't be an accumulated precip band for the 000 interval.
         model_run_interval = (grib_info.prediction_timestamp - grib_info.model_run_timestamp).total_seconds() / (60 * 60)
+        if grib_info.model_enum == ModelEnum.RRFS:
+            return (
+                dataset.GetRasterBand(RRFS_RASTER_BANDS.get("tmp_tgl_2")),
+                dataset.GetRasterBand(RRFS_RASTER_BANDS.get("rh_tgl_2")),
+                dataset.GetRasterBand(RRFS_RASTER_BANDS.get("u_comp_wind_10m")),
+                dataset.GetRasterBand(RRFS_RASTER_BANDS.get("v_comp_wind_10m")),
+                None if model_run_interval == 0 else dataset.GetRasterBand(RRFS_RASTER_BANDS.get("cumulative_apcp_sfc_0")),
+            )
         if model_run_interval == 0:
             tmp_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get("tmp_tgl_2"))
             rh_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get("rh_tgl_2"))
@@ -291,6 +302,6 @@ class GribFileProcessor:
 
         if self.prediction_model.abbreviation in ["GDPS", "RDPS", "HRDPS"]:
             self.process_env_can_grib_file(session, dataset, grib_info, prediction_run)
-        elif self.prediction_model.abbreviation in ["GFS", "NAM"]:
+        elif self.prediction_model.abbreviation in ["GFS", "NAM", "RRFS"]:
             self.process_noaa_grib_file(session, dataset, grib_info, prediction_run)
         dataset = None

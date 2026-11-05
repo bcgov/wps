@@ -17,6 +17,7 @@ class ModelEnum(str, Enum):
     GFS = "GFS"
     NAM = "NAM"
     ECMWF = "ECMWF"
+    RRFS = "RRFS"
 
 
 class ModelRunInfo:
