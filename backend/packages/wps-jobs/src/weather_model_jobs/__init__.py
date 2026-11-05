@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional
 from enum import Enum
 from dataclasses import dataclass
-import xarray
+import numpy as np
 from wps_shared.weather_models import ProjectionEnum  # noqa: F401
 
 
@@ -34,4 +34,4 @@ class ModelRunInfo:
 class ModelRunProcessResult:
     model_run_info: ModelRunInfo
     url: str
-    data: xarray.Dataset
+    data: dict[str, np.ndarray]  # ModelRunPrediction field name -> one value per station

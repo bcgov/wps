@@ -3,7 +3,7 @@ apiVersion: template.openshift.io/v1
 metadata:
   name: ${JOB_NAME}-cronjob-template
   annotations:
-    description: "Scheduled task to download and process weather data from Herbie's ECMWF offering."
+    description: "Scheduled task to download and process weather data from ECMWF's open data."
     tags: "cronjob,ecmwf"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
