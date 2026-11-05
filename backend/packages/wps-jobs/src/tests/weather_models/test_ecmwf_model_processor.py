@@ -1,162 +1,69 @@
+from datetime import datetime, timezone
+
 import pytest
-import pandas as pd
-import xarray as xr
-from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock
+import wps_nwp as nwp
+from weather_model_jobs.ecmwf_model_processor import VARIABLES, station_values
+from wps_nwp.tests.fakes import real_grib
 from wps_shared.db.models.weather_models import ModelRunPrediction
-from weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor
-from weather_model_jobs import ModelEnum, ModelRunInfo, ModelRunProcessResult, ProjectionEnum
 
-TEST_DATETIME = datetime(2024, 10, 10, 6, tzinfo=timezone.utc)
-MOCK_GRIB_URL = "mock_grib_url"
+RUN = datetime(2024, 10, 10, 0, tzinfo=timezone.utc)
+
+# Two stations, each sitting on a point of the grid the fields below are on.
+STATION_LATS = [50.0, 50.0]
+STATION_LONS = [10.0, 10.25]
 
 
-@pytest.fixture
-def mock_herbie():
-    mock = MagicMock()
-    # Create a mock dataset for each weather parameter
-    temp_ds = xr.Dataset.from_dict(
-        {
-            "coords": {
-                "latitude": {"dims": ["latitude"], "data": [50.0, 49.75]},
-                "longitude": {"dims": ["longitude"], "data": [10.0, 10.25]},
-            },
-            "data_vars": {
-                "t2m": {
-                    "dims": ["latitude", "longitude"],
-                    "data": [[273.15, 273.16], [273.17, 273.18]],
-                    "attrs": {"units": "K", "long_name": "air temperature"},
-                }
-            },
-            "attrs": {
-                "description": "Temperature dataset with consistent latitude, longitude, x, and y coordinates"
-            },
-        }
-    )
-    dew_temp_ds = xr.Dataset.from_dict(
-        {
-            "coords": {
-                "latitude": {"dims": ["latitude"], "data": [50.0, 49.75]},
-                "longitude": {"dims": ["longitude"], "data": [10.0, 10.25]},
-            },
-            "data_vars": {
-                "d2m": {
-                    "dims": ["latitude", "longitude"],
-                    "data": [[273.15, 273.16], [273.17, 273.18]],
-                    "attrs": {"units": "K", "long_name": "air temperature"},
-                }
-            },
-            "attrs": {"description": "Trimmed dataset for testing purposes"},
-        }
-    )
-    wind_ds = xr.Dataset.from_dict(
-        {
-            "coords": {
-                "latitude": {"dims": ["latitude"], "data": [50.0, 49.75]},
-                "longitude": {"dims": ["longitude"], "data": [10.0, 10.25]},
-            },
-            "data_vars": {
-                "u10": {
-                    "dims": ["latitude", "longitude"],
-                    "data": [[5.0, 5.1], [4.9, 5.0]],
-                    "attrs": {"units": "m/s", "long_name": "u-component of wind"},
-                },
-                "v10": {
-                    "dims": ["latitude", "longitude"],
-                    "data": [[3.0, 3.1], [2.9, 3.0]],
-                    "attrs": {"units": "m/s", "long_name": "v-component of wind"},
-                },
-                "si10": {
-                    "dims": ["latitude", "longitude"],
-                    "data": [[5.83, 5.9], [5.7, 5.8]],
-                    "attrs": {"units": "m/s", "long_name": "wind speed"},
-                },
-                "wdir10": {
-                    "dims": ["latitude", "longitude"],
-                    "data": [[30.96, 31.0], [30.5, 30.7]],
-                    "attrs": {"units": "degrees", "long_name": "wind direction"},
-                },
-            },
-            "attrs": {
-                "description": "Wind dataset with consistent latitude, longitude, x, and y coordinates"
-            },
-        }
-    )
-    precip_ds = xr.Dataset.from_dict(
-        {
-            "coords": {
-                "latitude": {"dims": ["latitude"], "data": [50.0, 49.75]},
-                "longitude": {"dims": ["longitude"], "data": [10.0, 10.25]},
-            },
-            "data_vars": {
-                "tp": {
-                    "dims": ["latitude", "longitude"],
-                    "data": [[0.2, 0.23], [0.2, 0.23]],
-                    "attrs": {"units": "K", "long_name": "air temperature"},
-                }
-            },
-            "attrs": {"description": "Trimmed dataset for testing purposes"},
-        }
-    )
-
-    # Configure the mock to return these datasets
-    def mock_xarray(param, *args, **kwargs):
-        if param == ":2t:":
-            return temp_ds
-        elif param == ":2d:":
-            return dew_temp_ds
-        elif param == ":10[u|v]:":
-            return wind_ds
-        elif param == ":tp:":
-            return precip_ds
-
-    mock.xarray.side_effect = mock_xarray
-    mock.grib = MOCK_GRIB_URL
-    return mock
+def field(variable: nwp.Variable, short_name: str, values) -> nwp.Field:
+    """An ECMWF field on a 2x2 grid whose top row is at 50N, from 10E to 10.25E."""
+    grib = real_grib(values, short_name=short_name, first_lat=50.0, first_lon=10.0, spacing=0.25)
+    return nwp.Field("ifs", variable, RUN, 3, "mock_grib_url", grib)
 
 
 @pytest.fixture
-def mock_stations_df():
-    return pd.DataFrame({"point_code": [1], "latitude": [50.0], "longitude": [10.0]})
+def fields():
+    return [
+        field(nwp.Variable.T2M, "2t", [[273.15, 283.15], [273.17, 273.18]]),
+        field(nwp.Variable.D2M, "2d", [[273.15, 273.15], [273.17, 273.18]]),
+        field(nwp.Variable.U10, "10u", [[5.0, 0.0], [4.9, 5.0]]),
+        field(nwp.Variable.V10, "10v", [[3.0, -10.0], [2.9, 3.0]]),
+        field(nwp.Variable.PRECIP, "tp", [[0.2, 0.0], [0.2, 0.23]]),
+    ]
 
 
-@pytest.fixture
-def mock_model_run_info():
-    return ModelRunInfo(
-        model_enum=ModelEnum.ECMWF,
-        model_run_timestamp=TEST_DATETIME,
-        prediction_timestamp=TEST_DATETIME + timedelta(hours=0),
-        projection=ProjectionEnum.ECMWF_LATLON,
-    )
+def test_variables_are_what_the_stored_values_are_derived_from():
+    assert set(VARIABLES) == {
+        nwp.Variable.T2M,
+        nwp.Variable.D2M,
+        nwp.Variable.U10,
+        nwp.Variable.V10,
+        nwp.Variable.PRECIP,
+    }
 
 
-def test_process_grib_data(mock_herbie, mock_stations_df, mock_model_run_info):
-    processor = ECMWFModelProcessor(working_directory="/tmp")
+@pytest.mark.anyio
+async def test_station_values(fields):
+    values = await station_values(fields, STATION_LATS, STATION_LONS)
 
-    result = processor.process_grib_data(
-        herbie_instance=mock_herbie, grib_info=mock_model_run_info, stations_df=mock_stations_df
-    )
+    assert set(values) == set(ModelRunPrediction.get_weather_model_fields())
+    # kelvin to celsius
+    assert values[ModelRunPrediction.tmp_tgl_2.name] == pytest.approx([0.0, 10.0], abs=1e-2)
+    # from temperature and dewpoint: saturated, then a 10 degree dewpoint depression
+    assert values[ModelRunPrediction.rh_tgl_2.name] == pytest.approx([100.0, 49.83], abs=1e-1)
+    # metres to mm
+    assert values[ModelRunPrediction.apcp_sfc_0.name] == pytest.approx([200.0, 0.0], abs=1e-1)
+    # u and v in metres per second to speed in kilometres per hour
+    assert values[ModelRunPrediction.wind_tgl_10.name] == pytest.approx([20.99, 36.0], abs=1e-1)
+    # u and v to the direction the wind blows from: the second is blowing due south
+    wind_direction = values[ModelRunPrediction.wdir_tgl_10.name]
+    assert wind_direction[0] == pytest.approx(239.04, abs=1e-1)
+    assert min(wind_direction[1], 360 - wind_direction[1]) == pytest.approx(0.0, abs=1e-1)
 
-    assert isinstance(result, ModelRunProcessResult)
-    assert result.model_run_info == mock_model_run_info
-    assert result.url == MOCK_GRIB_URL
-    assert ModelRunPrediction.tmp_tgl_2.name in result.data
-    assert ModelRunPrediction.rh_tgl_2.name in result.data
-    assert ModelRunPrediction.apcp_sfc_0.name in result.data
-    assert ModelRunPrediction.wind_tgl_10.name in result.data
-    assert ModelRunPrediction.wdir_tgl_10.name in result.data
-    assert result.data[ModelRunPrediction.tmp_tgl_2.name].values[0] == pytest.approx(
-        0.0, rel=1e-6
-    )  # kelvin to celsius
-    assert result.data[ModelRunPrediction.rh_tgl_2.name].values[0] == pytest.approx(
-        100.0, rel=1e-6
-    )  # computed relative humidity
-    assert result.data[ModelRunPrediction.apcp_sfc_0.name].values[0] == pytest.approx(
-        200.0, rel=1e-6
-    )  # m to mm
-    assert result.data[ModelRunPrediction.wind_tgl_10.name].values[0] == pytest.approx(
-        21.0, rel=1e-2
-    )  # u, v to wind speed
-    assert result.data[ModelRunPrediction.wdir_tgl_10.name].values[0] == pytest.approx(
-        239.0, rel=1e-2
-    )  # u, v to wind direction
+
+@pytest.mark.anyio
+async def test_station_values_do_not_depend_on_the_order_of_the_fields(fields):
+    expected = await station_values(fields, STATION_LATS, STATION_LONS)
+
+    values = await station_values(fields[::-1], STATION_LATS, STATION_LONS)
+
+    for name in expected:
+        assert values[name] == pytest.approx(expected[name])

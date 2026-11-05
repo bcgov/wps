@@ -13,8 +13,7 @@ dependencies = [
     "asyncpg>=0.30.0,<1",
     "affine>=3,<4",
     "numpy==2.3.*",
-    "xarray>=2026.7,<2027",
-    "herbie-data>=2026.3,<2027",
+    "wps-nwp[decode]",
     "gdal==3.13.3",
     "wps-wf1",
     "aiofiles>=25.0.0,<26",
@@ -26,6 +25,7 @@ dependencies = [
 dev = ["ipykernel>=6.29.5,<7"]
 
 [tool.uv.sources]
+wps-nwp = { workspace = true }
 wps-shared = { workspace = true }
 wps-wf1 = { workspace = true }
 
