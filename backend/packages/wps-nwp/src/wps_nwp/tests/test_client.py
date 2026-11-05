@@ -166,8 +166,7 @@ async def test_stream_stops_downloading_when_the_caller_stops():
 
     async with client(session) as nwp:
         async with aclosing(nwp.stream("ifs", RUN, steps, "t2m", window=1)) as stream:
-            async for _ in stream:
-                break
+            await anext(stream)
         await asyncio.sleep(0.01)
 
     assert index_requests(session) == 1
@@ -231,6 +230,53 @@ async def test_next_mirror_is_used_when_the_first_fails(failure):
         (field,) = await nwp.fetch("ifs", RUN, 3, "t2m")
 
     assert field.url == IFS.url(GOOGLE, RUN, 3)
+
+
+@pytest.mark.anyio
+async def test_next_mirror_is_used_when_the_first_serves_something_that_is_not_grib():
+    garbage = b"x" * len(T2M)  # the length the index promises, so only its content gives it away
+    session = FakeSession(ifs_step(AWS, 3, {"2t": garbage}) | ifs_step(GOOGLE, 3, {"2t": T2M}))
+
+    async with client(session) as nwp:
+        (field,) = await nwp.fetch("ifs", RUN, 3, "t2m")
+
+    assert field.url == IFS.url(GOOGLE, RUN, 3)
+
+
+@pytest.mark.anyio
+async def test_fetch_error_when_no_mirror_serves_valid_grib():
+    garbage = b"x" * len(T2M)
+    session = FakeSession(ifs_step(AWS, 3, {"2t": garbage}) | ifs_step(GOOGLE, 3, {"2t": garbage}))
+
+    async with client(session) as nwp:
+        with pytest.raises(FetchError, match="not a complete GRIB message") as raised:
+            await nwp.fetch("ifs", RUN, 3, "t2m", skip_missing=True)
+
+    assert raised.value.url == IFS.url(GOOGLE, RUN, 3)
+
+
+@pytest.mark.anyio
+async def test_an_unexpected_error_is_raised_as_it_is_rather_than_trying_another_mirror():
+    session = FakeSession(
+        ifs_step(AWS, 3, {"2t": T2M})
+        | {IFS.url(AWS, RUN, 3): RuntimeError("a bug")}
+        | ifs_step(GOOGLE, 3, {"2t": T2M})
+    )
+
+    async with client(session) as nwp:
+        with pytest.raises(RuntimeError, match="a bug"):
+            await nwp.fetch("ifs", RUN, 3, "t2m", skip_missing=True)
+
+    assert all(url.startswith(AWS) for url in session.urls())
+
+
+@pytest.mark.anyio
+async def test_a_missing_native_variable_is_named_as_the_caller_wrote_it():
+    session = FakeSession(ifs_step(AWS, 3, {"2t": T2M}))
+
+    async with client(session) as nwp:
+        with pytest.raises(NotAvailable, match=r"\+3h: no t:850$"):
+            await nwp.fetch("ifs", RUN, 3, Native("t:850"))
 
 
 @pytest.mark.anyio

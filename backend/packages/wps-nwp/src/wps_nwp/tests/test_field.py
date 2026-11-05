@@ -6,7 +6,7 @@ import pytest
 
 from wps_nwp import Field, Grid, Native, Variable, sample
 from wps_nwp.field import extract
-from wps_nwp.tests.fakes import real_grib
+from wps_nwp.tests.fakes import fake_grib, real_grib, sample_grib
 
 RUN = datetime(2026, 11, 4, 12, tzinfo=UTC)
 VALUES = np.arange(12, dtype=float).reshape(3, 4)
@@ -187,6 +187,49 @@ def test_search_of_a_lat_lon_grid_agrees_with_brute_force(layout):
     assert_same_places(grid, found, haversine_nearest(grid, point_lats, point_lons))
 
 
+def test_search_copes_with_locations_spread_right_round_the_globe():
+    # Low latitudes, so the search box is limited in longitude, yet no box narrower than the
+    # whole globe holds all of them.
+    lats, lons = np.meshgrid(90.0 - 2 * np.arange(91), -180.0 + 2 * np.arange(180), indexing="ij")
+    grid = Grid(lats.shape, lambda: (lats.ravel(), lons.ravel()))
+    point_lats = np.array([10.3, 20.7, -10.2, 0.4, 5.9])
+    point_lons = np.array([-170.2, -90.6, 0.3, 90.1, 170.8])
+
+    found = grid.nearest(point_lats, point_lons)
+
+    assert_same_places(grid, found, haversine_nearest(grid, point_lats, point_lons))
+
+
+@pytest.mark.parametrize(
+    "grib",
+    [
+        pytest.param(lambda: sample_grib("regular_gg_sfc_grib2"), id="gaussian"),
+        pytest.param(
+            lambda: real_grib(
+                np.zeros((59, 115)),
+                first_lat=-12.3,
+                first_lon=-14.8,
+                spacing=0.5,
+                rotated_south_pole=(-36.1, -114.7),
+                rotation_angle=10.0,
+            ),
+            id="rotated and turned about its own pole",
+        ),
+    ],
+)
+def test_grid_without_a_layout_the_fast_search_handles_is_searched_by_its_coordinates(grib):
+    grid = field(grib(), Native("t")).grid
+    random = np.random.default_rng(2)
+    on_grid = random.integers(0, grid.lats.size, 40)
+    point_lats = np.clip(grid.lats.ravel()[on_grid] + random.uniform(-0.2, 0.2, 40), -90, 90)
+    point_lons = grid.lons.ravel()[on_grid] + random.uniform(-0.2, 0.2, 40)
+
+    found = grid.nearest(point_lats, point_lons)
+
+    assert grid._axes is None
+    assert_same_places(grid, found, haversine_nearest(grid, point_lats, point_lons))
+
+
 def test_sampling_a_lat_lon_grid_does_not_work_out_where_every_point_is():
     decoded = field(real_grib(VALUES + 3, first_lat=20.0, first_lon=30.0))
 
@@ -239,6 +282,19 @@ def test_extract_passes_a_whole_message_through():
 def test_extract_rejects_incomplete_messages(damaged):
     with pytest.raises(ValueError, match="not a complete GRIB message"):
         extract(damaged)
+
+
+@pytest.mark.parametrize(
+    "byte, value",
+    [(20, 9), (19, 0)],
+    ids=["a section number that does not exist", "a section too short to be one"],
+)
+def test_extract_rejects_a_message_whose_sections_are_damaged(byte, value):
+    damaged = bytearray(fake_grib(b"first", b"second"))
+    damaged[byte] = value  # the first section starts at byte 16: four of length, one of number
+
+    with pytest.raises(ValueError, match="malformed GRIB2 message"):
+        extract(bytes(damaged), 1)
 
 
 def sections(grib: bytes) -> dict[int, bytes]:

@@ -14,6 +14,42 @@ def transport(session: FakeSession, retries: int = 2) -> Transport:
 
 
 @pytest.mark.anyio
+async def test_transport_makes_its_own_session_on_first_use_and_closes_it(monkeypatch):
+    made = []
+
+    def make_session(**settings):
+        made.append((settings, FakeSession({URL: b"data"})))
+        return made[-1][1]
+
+    monkeypatch.setattr(aiohttp, "ClientSession", make_session)
+    http = Transport(concurrency=7, timeout=3, retries=0, backoff=0, session=None)
+    await http.close()  # nothing to close yet
+
+    assert await http.get(URL) == b"data"
+    assert await http.get(URL) == b"data"
+    await http.close()
+
+    ((settings, session),) = made  # one session for both requests
+    assert session.closed
+    assert settings["connector"].limit_per_host == 7
+    assert (settings["timeout"].sock_connect, settings["timeout"].sock_read) == (3, 3)
+    assert settings["timeout"].total is None
+    assert settings["trust_env"] is True
+    await settings["connector"].close()
+
+
+@pytest.mark.anyio
+async def test_a_session_that_was_passed_in_is_left_open():
+    session = FakeSession({URL: b"data"})
+    http = transport(session)
+    await http.get(URL)
+
+    await http.close()
+
+    assert not session.closed
+
+
+@pytest.mark.anyio
 async def test_get_whole_file():
     session = FakeSession({URL: b"0123456789"})
 

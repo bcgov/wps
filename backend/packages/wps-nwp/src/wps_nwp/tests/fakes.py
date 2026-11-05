@@ -16,6 +16,7 @@ class FakeSession:
         self.routes = routes
         self.honour_range = honour_range
         self.requests: list[tuple[str, str, str | None]] = []  # method, url, Range header
+        self.closed = False
 
     def request(self, method: str, url: str, headers: dict | None = None):
         byte_range = (headers or {}).get("Range")
@@ -27,6 +28,9 @@ class FakeSession:
 
     def urls(self) -> list[str]:
         return [url for _, url, _ in self.requests]
+
+    async def close(self) -> None:
+        self.closed = True
 
 
 class _Reply:
@@ -84,13 +88,15 @@ def real_grib(
     missing: float | None = None,
     south_to_north: bool = False,
     rotated_south_pole: tuple[float, float] | None = None,
+    rotation_angle: float = 0.0,
 ) -> bytes:
     """
     A decodable GRIB2 message on a regular lat/lon grid.
 
     Rows run north to south from first_lat unless south_to_north is set. With
     rotated_south_pole the grid is regular in a frame whose south pole is at that (lat, lon),
-    as RDPS and HRDPS are, and first_lat and first_lon are in that frame.
+    as RDPS and HRDPS are, and first_lat and first_lon are in that frame. rotation_angle
+    turns that frame about its own pole as well.
     """
     import eccodes  # optional for the package, so only needed by the tests that decode
 
@@ -115,13 +121,24 @@ def real_grib(
         if rotated_south_pole:
             keys["latitudeOfSouthernPoleInDegrees"] = rotated_south_pole[0]
             keys["longitudeOfSouthernPoleInDegrees"] = rotated_south_pole[1] % 360
-            keys["angleOfRotationInDegrees"] = 0.0
+            keys["angleOfRotationInDegrees"] = rotation_angle
         for key, value in keys.items():
             eccodes.codes_set(handle, key, value)
         if missing is not None:
             eccodes.codes_set(handle, "bitmapPresent", 1)
             eccodes.codes_set(handle, "missingValue", missing)
         eccodes.codes_set_values(handle, values.ravel())
+        return eccodes.codes_get_message(handle)
+    finally:
+        eccodes.codes_release(handle)
+
+
+def sample_grib(name: str) -> bytes:
+    """One of the example messages that ship with eccodes, for grids real_grib cannot make."""
+    import eccodes
+
+    handle = eccodes.codes_grib_new_from_samples(name)
+    try:
         return eccodes.codes_get_message(handle)
     finally:
         eccodes.codes_release(handle)
