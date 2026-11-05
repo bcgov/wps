@@ -108,11 +108,11 @@ class TestValidTimeStr:
 
     def test_fh_zero_equals_init_time(self, builder):
         result = builder._valid_time_str(0)
-        assert result == "F000 Valid: Tue 2026-02-17 00Z"
+        assert result == "T+000H Valid: Tue 2026-02-17 00Z"
 
     def test_fh_advances_by_correct_hours(self, builder):
         result = builder._valid_time_str(24)
-        assert result == "F024 Valid: Wed 2026-02-18 00Z"
+        assert result == "T+024H Valid: Wed 2026-02-18 00Z"
 
     def test_fh_crosses_midnight(self, mock_raster_addresser, mock_file_name_builder, base_cfg):
         # Use init_hh="12" so fh=12 crosses into the next day
@@ -131,15 +131,15 @@ class TestValidTimeStr:
             model=ECCCModel.GDPS,
         )
         result = b._valid_time_str(12)
-        assert result == "F012 Valid: Wed 2026-02-18 00Z"
+        assert result == "T+012H Valid: Wed 2026-02-18 00Z"
 
     def test_fh_format_zero_pads_to_three_digits(self, builder):
         result = builder._valid_time_str(6)
-        assert result.startswith("F006 ")
+        assert result.startswith("T+006H ")
 
     def test_fh_large_value_zero_pads_correctly(self, builder):
         result = builder._valid_time_str(240)
-        assert result.startswith("F240 ")
+        assert result.startswith("T+240H ")
 
     def test_valid_time_str_contains_valid_prefix(self, builder):
         result = builder._valid_time_str(12)
@@ -289,6 +289,10 @@ class TestBuildConfigForHourPcpn:
         *_, cfgpcpn = gdps_builder.build_config_for_hour(0)
         assert "pcpn_grib" not in cfgpcpn
 
+    def test_fh0_pcpn_accum_hrs_not_set(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(0)
+        assert "pcpn_accum_hrs" not in cfgpcpn
+
     # fh > 0 — precip enabled
     def test_fh_nonzero_show_precip_is_true(self, gdps_builder):
         *_, cfgpcpn = gdps_builder.build_config_for_hour(12)
@@ -309,6 +313,10 @@ class TestBuildConfigForHourPcpn:
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
         assert not any("Precip-Accum3h" in c for c in calls)
 
+    def test_gdps_pcpn_accum_hrs_is_6(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(6)
+        assert cfgpcpn["pcpn_accum_hrs"] == 6
+
     # RDPS uses 3h accumulation
     def test_rdps_uses_3h_precip_accumulation(self, rdps_builder, mock_file_name_builder):
         rdps_builder.build_config_for_hour(6)
@@ -319,6 +327,10 @@ class TestBuildConfigForHourPcpn:
         rdps_builder.build_config_for_hour(6)
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
         assert not any("Precip-Accum12h" in c for c in calls)
+
+    def test_rdps_pcpn_accum_hrs_is_3(self, rdps_builder):
+        *_, cfgpcpn = rdps_builder.build_config_for_hour(6)
+        assert cfgpcpn["pcpn_accum_hrs"] == 3
 
     def test_precip_grib_uses_sfc_level(self, gdps_builder, mock_file_name_builder):
         gdps_builder.build_config_for_hour(6)
@@ -334,6 +346,7 @@ class TestBuildConfigForHourPcpn:
 # ---------------------------------------------------------------------------
 # Return value shape
 # ---------------------------------------------------------------------------
+
 
 class TestBuildConfigForHourReturnShape:
     @pytest.fixture()

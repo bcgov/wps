@@ -57,11 +57,11 @@ def gdps_fname(init_ymd: str, init_hh: str, field: str, level: str | None, fh: i
 
 def _valid_time_str(init_ymd: str, init_hh: str, fh: int) -> str:
     """
-    Build "F036 Valid: Tue 2025-12-30 00Z" (UTC)
+    Build "T+036H Valid: Tue 2025-12-30 00Z" (UTC)
     """
     init_dt = datetime.strptime(f"{init_ymd}{init_hh}", "%Y%m%d%H")
     valid_dt = init_dt + timedelta(hours=int(fh))
-    return f"F{fh:03d} Valid: {valid_dt:%a %Y-%m-%d %HZ}"
+    return f"T+{fh:03d}H Valid: {valid_dt:%a %Y-%m-%d %HZ}"
 
 
 def build_cfgs_for_fh(init_ymd: str, init_hh: str, fh: int,
