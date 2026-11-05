@@ -4121,16 +4121,21 @@ version = "0.1.0"
 source = { editable = "packages/wps-nwp" }
 dependencies = [
     { name = "aiohttp" },
-    { name = "eccodes" },
     { name = "numpy" },
+]
+
+[package.optional-dependencies]
+decode = [
+    { name = "eccodes" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.14.4,<4" },
-    { name = "eccodes", specifier = ">=2.45.0" },
+    { name = "eccodes", marker = "extra == 'decode'", specifier = ">=2.45.0" },
     { name = "numpy", specifier = "==2.3.*" },
 ]
+provides-extras = ["decode"]
 
 [[package]]
 name = "wps-sfms"

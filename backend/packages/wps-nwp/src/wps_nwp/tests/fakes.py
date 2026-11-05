@@ -1,6 +1,5 @@
 """Stand-ins for the network and for model output, so tests never leave the process."""
 
-import eccodes
 import numpy as np
 
 
@@ -93,6 +92,8 @@ def real_grib(
     rotated_south_pole the grid is regular in a frame whose south pole is at that (lat, lon),
     as RDPS and HRDPS are, and first_lat and first_lon are in that frame.
     """
+    import eccodes  # optional for the package, so only needed by the tests that decode
+
     values = np.asarray(values, dtype=float)
     rows, columns = values.shape
     lat_step = spacing if south_to_north else -spacing
