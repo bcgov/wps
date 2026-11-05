@@ -27,8 +27,8 @@ jobs:
         uses: bcgov/actions/builder@091f1da89c669d36bf4899830381e5b12d2c889a # v0.11.0
         with:
           package: wps-weather
-          build_context: .
-          build_file: backend/packages/wps-weather/Dockerfile
+          context: .
+          file: backend/packages/wps-weather/Dockerfile
           tags: ${{ env.SUFFIX }}
 
   deployments:
@@ -59,3 +59,8 @@ jobs:
         shell: bash
         run: |
           DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" bash openshift/scripts/oc_provision_eccc_grib_consumer.sh ${SUFFIX} apply
+
+      - name: Copy 4-Panel Charts and GRIBs to Lowercase Keys
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_copy_objects_to_lowercase_job.sh ${SUFFIX} | oc -n e1e498-dev apply -f -

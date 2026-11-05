@@ -179,9 +179,9 @@ class TestSimpleDownloader:
 
     @pytest.mark.anyio
     async def test_download_and_upload_success(self):
-        """Downloader should successfully download and upload files"""
+        """Downloader should successfully download and upload files under both keys"""
         s3_client = MockS3Client()
-        file = FileToDownload(url="https://example.com/test.grib2", s3_key="prefix/test.grib2")
+        file = FileToDownload(url="https://example.com/TEST.grib2", s3_key="prefix/TEST.grib2")
 
         # Mock aiohttp response
         mock_response = AsyncMock()
@@ -203,8 +203,23 @@ class TestSimpleDownloader:
                 result = await downloader.download_and_upload(file)
 
             assert result is True
-            assert s3_client.put_count == 1
+            assert s3_client.put_count == 2
+            assert s3_client.objects["prefix/TEST.grib2"] == b"test data"
             assert s3_client.objects["prefix/test.grib2"] == b"test data"
+
+    @pytest.mark.anyio
+    async def test_download_redownloads_when_only_original_key_exists(self):
+        """A file missing its lowercase copy should be uploaded again, not skipped"""
+        s3_client = MockS3Client()
+        s3_client.objects["prefix/TEST.grib2"] = b"existing data"
+        file = FileToDownload(url="https://example.com/TEST.grib2", s3_key="prefix/TEST.grib2")
+
+        with patch("aiohttp.ClientSession", return_value=MockSession(lambda *a, **k: MockGetResult(False))):
+            async with GribDownloader(s3_client, max_retries=3) as downloader:
+                result = await downloader.download_and_upload(file)
+
+        assert result is True
+        assert s3_client.objects["prefix/test.grib2"] == b"test data"
 
     @pytest.mark.anyio
     async def test_download_skips_existing(self):
@@ -245,7 +260,7 @@ class TestSimpleDownloader:
 
         assert result is True
         assert attempt_count == 2  # Failed once, succeeded on retry
-        assert s3_client.put_count == 1
+        assert s3_client.put_count == 2  # Original and lowercase keys
 
     @pytest.mark.anyio
     async def test_download_fails_after_max_retries(self):

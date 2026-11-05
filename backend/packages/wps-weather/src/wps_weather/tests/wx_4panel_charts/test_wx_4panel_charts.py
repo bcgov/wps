@@ -346,6 +346,32 @@ class TestMake4PanelCharts:
         runner._make_4panel_chart.assert_called_once()
 
     @pytest.mark.anyio
+    async def test_existing_chart_check_uses_lowercase_key(self, monkeypatch):
+        runner, s3_client = self._make_runner(object_exists=False, all_objects_exist=True)
+        monkeypatch.setattr(
+            _raster_addresser_mock.WX4PanelChartAddresser.return_value.get_4panel_key,
+            "return_value",
+            "4panel/GDPS_F003.png",
+        )
+
+        await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 3, 3, 3)
+
+        s3_client.object_exists.assert_called_once_with("4panel/gdps_f003.png")
+
+    @pytest.mark.anyio
+    async def test_save_chart_writes_original_then_lowercase_key(self):
+        s3_client = MagicMock()
+        s3_client.put_object = AsyncMock()
+        runner = make_runner(s3_client)
+
+        await runner._save_chart("4panel/GDPS_F003.png", b"chart")
+
+        assert s3_client.put_object.await_args_list == [
+            call("4panel/GDPS_F003.png", b"chart"),
+            call("4panel/gdps_f003.png", b"chart"),
+        ]
+
+    @pytest.mark.anyio
     async def test_stops_processing_on_missing_files(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=False)
 
