@@ -130,11 +130,20 @@ class Field:
         return self._decoded[2]
 
     def sample(self, lats, lons) -> np.ndarray:
-        """Values at the grid points nearest to each (lat, lon)."""
-        return self.values.ravel()[self.grid.nearest(lats, lons)]
+        """
+        Values at the grid points nearest to each (lat, lon).
+
+        Unlike values, this does not keep the decoded grid on the field, so sampling every
+        field of a run costs the memory of one grid rather than one per field.
+        """
+        values, grid, _ = self.__dict__.get("_decoded") or self._decode()
+        return values.ravel()[grid.nearest(lats, lons)]
 
     @cached_property
     def _decoded(self) -> tuple[np.ndarray, Grid, str]:
+        return self._decode()
+
+    def _decode(self) -> tuple[np.ndarray, Grid, str]:
         values, grid, units = _decode(self.grib)
         # Every supported model encodes the Variables in the same units, bar one: ECMWF
         # reports precipitation in metres where the others use kg m-2, which is mm.
