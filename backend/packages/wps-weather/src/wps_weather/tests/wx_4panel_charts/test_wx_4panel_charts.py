@@ -145,6 +145,7 @@ def make_mock_configs():
     cfgpcpn = {
         "show_precip": True,
         "pcpn_grib": "k/pcpn.grib2",
+        "pcpn_accum_hrs": 3,
         "show_jet_core": True,
         "jet_spd_grib": "k/jet.grib2",
     }

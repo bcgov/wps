@@ -69,7 +69,7 @@ from plot_precip_rdps import plot_pcpn3_rdps
 def _valid_time_str(init_ymd: str, init_hh: str, fh: int) -> str:
     init_dt = datetime.strptime(f"{init_ymd}{init_hh}", "%Y%m%d%H")
     valid_dt = init_dt + timedelta(hours=int(fh))
-    return f"F{fh:03d} Valid: {valid_dt:%a %Y-%m-%d %HZ}"
+    return f"T+{fh:03d}H Valid: {valid_dt:%a %Y-%m-%d %HZ}"
 
 
 # -----------------------------

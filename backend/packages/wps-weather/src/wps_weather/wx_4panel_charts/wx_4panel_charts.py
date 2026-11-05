@@ -114,7 +114,6 @@ class FourPanelChartRunner:
         dpi: int,
         output_key: str,
         plotter_factory: PlotterFactory,
-        step: int,
     ):
         proj = ccrs.LambertConformal(
             central_longitude=cfg500.get("central_longitude", -130.0),
@@ -140,7 +139,7 @@ class FourPanelChartRunner:
                 logger.info(f"Creating 500hpa panel for {output_key}")
                 plotter_500hpa = plotter_factory.get_500hpa_plotter()
                 plotter_500hpa(cfg500, ax=ax500, ds_z500=ds_z500, ds_vort=ds_vort)
-                add_panel_title(ax500, "500 hPa Height + Abs Vorticity", loc="bl")
+                add_panel_title(ax500, "500 HPA HEIGHT & ABS VORTICITY ×10⁻⁵s⁻¹", loc="bl")
 
             async with (
                 self._dataset(cfgmslp["mslp_grib"]) as ds_msl,
@@ -149,7 +148,7 @@ class FourPanelChartRunner:
                 logger.info(f"Creating mslp panel for {output_key}")
                 plotter_mslp_thickness = plotter_factory.get_mslp_thickness_plotter()
                 plotter_mslp_thickness(cfgmslp, ax=axmslp, ds_msl=ds_msl, ds_thk=ds_thk)
-                add_panel_title(axmslp, "MSLP + 1000–500 Thickness", loc="bl")
+                add_panel_title(axmslp, "MSLP HPA & 1000-500 HPA THICKNESS", loc="bl")
 
             async with (
                 self._dataset(cfg700["z700_grib"]) as ds_z700,
@@ -167,7 +166,7 @@ class FourPanelChartRunner:
                     ds_rh700=ds_rh700,
                     ds_rh500=ds_rh500,
                 )
-                add_panel_title(ax700, "700 hPa Height + 850-500 Relative Humidity", loc="bl")
+                add_panel_title(ax700, "700 HPA HEIGHT & 850-500 HPA RELATIVE HUMIDITY", loc="bl")
 
             ds_p: Optional[xr.Dataset] = None
             ds_js: Optional[xr.Dataset] = None
@@ -185,7 +184,9 @@ class FourPanelChartRunner:
 
                 add_panel_title(
                     axpcpn,
-                    f"{step}H PCPN" if cfgpcpn.get("show_precip", True) else "No PCPN at 00H",
+                    f"PREV {cfgpcpn['pcpn_accum_hrs']}H PCPN"
+                    if cfgpcpn.get("show_precip", True)
+                    else "NO PCPN AT 00H",
                     loc="bl",
                 )
             except Exception as e:
@@ -301,7 +302,6 @@ class FourPanelChartRunner:
                     DEFAULT_DPI,
                     output_key,
                     plotter_factory,
-                    step,
                 )
             except TypeError:
                 # Error was logged when thrown. Continue processing of remaining 4panel charts.
