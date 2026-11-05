@@ -83,23 +83,39 @@ def real_grib(
     first_lon: float = -130.0,
     spacing: float = 1.0,
     missing: float | None = None,
+    south_to_north: bool = False,
+    rotated_south_pole: tuple[float, float] | None = None,
 ) -> bytes:
-    """A decodable GRIB2 message on a regular lat/lon grid, rows running north to south."""
+    """
+    A decodable GRIB2 message on a regular lat/lon grid.
+
+    Rows run north to south from first_lat unless south_to_north is set. With
+    rotated_south_pole the grid is regular in a frame whose south pole is at that (lat, lon),
+    as RDPS and HRDPS are, and first_lat and first_lon are in that frame.
+    """
     values = np.asarray(values, dtype=float)
     rows, columns = values.shape
-    handle = eccodes.codes_grib_new_from_samples("regular_ll_sfc_grib2")
+    lat_step = spacing if south_to_north else -spacing
+    sample = "rotated_ll_sfc_grib2" if rotated_south_pole else "regular_ll_sfc_grib2"
+    handle = eccodes.codes_grib_new_from_samples(sample)
     try:
-        for key, value in {
+        keys = {
             "Ni": columns,
             "Nj": rows,
+            "jScansPositively": int(south_to_north),
             "latitudeOfFirstGridPointInDegrees": first_lat,
             "longitudeOfFirstGridPointInDegrees": first_lon % 360,
-            "latitudeOfLastGridPointInDegrees": first_lat - spacing * (rows - 1),
+            "latitudeOfLastGridPointInDegrees": first_lat + lat_step * (rows - 1),
             "longitudeOfLastGridPointInDegrees": (first_lon + spacing * (columns - 1)) % 360,
             "iDirectionIncrementInDegrees": spacing,
             "jDirectionIncrementInDegrees": spacing,
             "shortName": short_name,
-        }.items():
+        }
+        if rotated_south_pole:
+            keys["latitudeOfSouthernPoleInDegrees"] = rotated_south_pole[0]
+            keys["longitudeOfSouthernPoleInDegrees"] = rotated_south_pole[1] % 360
+            keys["angleOfRotationInDegrees"] = 0.0
+        for key, value in keys.items():
             eccodes.codes_set(handle, key, value)
         if missing is not None:
             eccodes.codes_set(handle, "bitmapPresent", 1)

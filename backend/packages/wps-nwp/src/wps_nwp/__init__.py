@@ -2,7 +2,7 @@
 
 from wps_nwp.client import Client
 from wps_nwp.errors import FetchError, NotAvailable, NwpError
-from wps_nwp.field import Field, Grid
+from wps_nwp.field import Field, Grid, sample
 from wps_nwp.models import (
     AIFS,
     GDPS,
@@ -40,4 +40,5 @@ __all__ = [
     "NotAvailable",
     "NwpError",
     "Variable",
+    "sample",
 ]
