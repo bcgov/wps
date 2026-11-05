@@ -346,10 +346,12 @@ class TestMake4PanelCharts:
         runner._make_4panel_chart.assert_called_once()
 
     @pytest.mark.anyio
-    async def test_existing_chart_check_uses_lowercase_key(self):
+    async def test_existing_chart_check_uses_lowercase_key(self, monkeypatch):
         runner, s3_client = self._make_runner(object_exists=False, all_objects_exist=True)
-        _raster_addresser_mock.WX4PanelChartAddresser.return_value.get_4panel_key.return_value = (
-            "4panel/GDPS_F003.png"
+        monkeypatch.setattr(
+            _raster_addresser_mock.WX4PanelChartAddresser.return_value.get_4panel_key,
+            "return_value",
+            "4panel/GDPS_F003.png",
         )
 
         await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 3, 3, 3)
