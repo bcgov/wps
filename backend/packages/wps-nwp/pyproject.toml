@@ -1,0 +1,18 @@
+[project]
+name = "wps-nwp"
+version = "0.1.0"
+description = "Fast, direct access to numerical weather prediction model output (ECMWF, ECCC, NOAA)"
+authors = []
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "aiohttp>=3.14.4,<4",
+    "numpy==2.3.*",
+    "eccodes>=2.45.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wps_nwp"]

@@ -7,6 +7,7 @@ members = [
     "cffdrs-vec",
     "wps-api",
     "wps-jobs",
+    "wps-nwp",
     "wps-sfms",
     "wps-shared",
     "wps-tools",
@@ -4076,6 +4077,23 @@ requires-dist = [
     { name = "xarray", specifier = ">=2026.7,<2027" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "wps-nwp"
+version = "0.1.0"
+source = { editable = "packages/wps-nwp" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "eccodes" },
+    { name = "numpy" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp", specifier = ">=3.14.4,<4" },
+    { name = "eccodes", specifier = ">=2.45.0" },
+    { name = "numpy", specifier = "==2.3.*" },
+]
 
 [[package]]
 name = "wps-sfms"
