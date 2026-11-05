@@ -1,4 +1,8 @@
+import asyncio
+import gc
 import json
+import weakref
+from contextlib import aclosing
 from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
@@ -95,6 +99,103 @@ async def test_fields_packed_into_one_message_are_separated():
 
     assert (u.grib, v.grib) == (fake_grib(b"u wind"), fake_grib(b"v wind"))
     assert session.requests[1:] == [("GET", url, "bytes=50-")]
+
+
+def index_requests(session: FakeSession) -> int:
+    return sum(url.endswith(".index") for url in session.urls())
+
+
+@pytest.mark.anyio
+async def test_stream_yields_one_step_at_a_time():
+    session = FakeSession(
+        ifs_step(AWS, 0, {"2t": T2M, "tp": PRECIP}) | ifs_step(AWS, 3, {"2t": D2M, "tp": PRECIP})
+    )
+
+    async with client(session) as nwp:
+        steps = [fields async for fields in nwp.stream("ifs", RUN, [0, 3], ["precip", "t2m"])]
+
+    assert sorted([(f.step, f.variable, f.grib) for f in fields] for fields in steps) == [
+        [(0, Variable.PRECIP, PRECIP), (0, Variable.T2M, T2M)],
+        [(3, Variable.PRECIP, PRECIP), (3, Variable.T2M, D2M)],
+    ]
+
+
+@pytest.mark.anyio
+async def test_stream_downloads_no_more_than_a_window_ahead_of_the_caller():
+    steps = [0, 3, 6, 9, 12, 15]
+    routes = {}
+    for step in steps:
+        routes |= ifs_step(AWS, step, {"2t": T2M})
+    session = FakeSession(routes)
+    started = []
+
+    async with client(session) as nwp:
+        async for _ in nwp.stream("ifs", RUN, steps, "t2m", window=2):
+            await asyncio.sleep(0.01)  # time for every step that is allowed to start to do so
+            started.append(index_requests(session))
+
+    assert started == [2, 3, 4, 5, 6, 6]
+
+
+@pytest.mark.anyio
+async def test_stream_lets_go_of_steps_the_caller_has_finished_with():
+    steps = [0, 3, 6, 9]
+    routes = {}
+    for step in steps:
+        routes |= ifs_step(AWS, step, {"2t": T2M})
+    delivered = []
+    still_alive = []
+
+    async with client(FakeSession(routes)) as nwp:
+        async for fields in nwp.stream("ifs", RUN, steps, "t2m", window=1):
+            gc.collect()
+            still_alive.append(sum(field() is not None for field in delivered))
+            delivered.append(weakref.ref(fields[0]))
+
+    assert still_alive == [0, 0, 0, 0]
+
+
+@pytest.mark.anyio
+async def test_stream_stops_downloading_when_the_caller_stops():
+    steps = [0, 3, 6, 9]
+    routes = {}
+    for step in steps:
+        routes |= ifs_step(AWS, step, {"2t": T2M})
+    session = FakeSession(routes)
+    tasks_before = asyncio.all_tasks()
+
+    async with client(session) as nwp:
+        async with aclosing(nwp.stream("ifs", RUN, steps, "t2m", window=1)) as stream:
+            async for _ in stream:
+                break
+        await asyncio.sleep(0.01)
+
+    assert index_requests(session) == 1
+    assert asyncio.all_tasks() == tasks_before  # the steps still waiting were abandoned
+
+
+@pytest.mark.anyio
+async def test_stream_raises_once_it_reaches_a_step_that_is_not_published():
+    session = FakeSession(ifs_step(AWS, 0, {"2t": T2M}))
+    received = []
+
+    async with client(session) as nwp:
+        with pytest.raises(NotAvailable, match=r"\+3h: no t2m"):
+            async for fields in nwp.stream("ifs", RUN, [0, 3], "t2m", window=1):
+                received.append(fields[0].step)
+
+    assert received == [0]
+
+
+@pytest.mark.anyio
+async def test_stream_leaves_out_steps_with_nothing_published():
+    session = FakeSession(ifs_step(AWS, 3, {"2t": T2M}))
+
+    async with client(session) as nwp:
+        stream = nwp.stream("ifs", RUN, [0, 3, 6], "t2m", skip_missing=True, window=1)
+        steps = [fields[0].step async for fields in stream]
+
+    assert steps == [3]
 
 
 @pytest.mark.anyio

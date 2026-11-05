@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 import numpy as np
 import pytest
 
-from wps_nwp import Field, Grid, Native, Variable
+from wps_nwp import Field, Grid, Native, Variable, sample
 from wps_nwp.field import extract
 from wps_nwp.tests.fakes import real_grib
 
@@ -86,37 +86,132 @@ def test_fields_on_the_same_grid_share_one_grid_and_one_search():
     assert first.grid.nearest(lats, lons) is second.grid.nearest(lats, lons)
 
 
+def scattered_points(count: int = 40):
+    """
+    Locations spread over the globe, then two either side of the date line, two by the
+    poles and two near 50N 140W.
+    """
+    random = np.random.default_rng(0)
+    lats = np.concatenate([random.uniform(-90, 90, count), [10.0, 10.2, 89.9, -89.9, 50.1, 43]])
+    lons = np.concatenate(
+        [random.uniform(-180, 180, count), [179.9, -179.9, 45.0, -45.0, -139.8, -110.3]]
+    )
+    return lats, lons
+
+
+def assert_same_places(grid: Grid, found, expected):
+    """Compare positions rather than indices: at a pole every column is the same place."""
+    lats, lons = np.radians(grid.lats.ravel()), np.radians(grid.lons.ravel())
+    for index in (found, expected):
+        assert index.shape == found.shape
+    np.testing.assert_allclose(lats[found], lats[expected])
+    np.testing.assert_allclose(
+        np.cos(lats[found]) * np.sin(lons[found]),
+        np.cos(lats[expected]) * np.sin(lons[expected]),
+        atol=1e-12,
+    )
+
+
 @pytest.mark.parametrize(
     "first_lat, first_lon, rows, columns",
     [(90.0, -180.0, 361, 720), (90.0, 0.0, 361, 720), (62.0, -140.0, 41, 61)],
     ids=["global from -180", "global from 0", "regional"],
 )
-def test_nearest_agrees_with_brute_force(first_lat, first_lon, rows, columns):
+def test_search_of_an_arbitrary_grid_agrees_with_brute_force(first_lat, first_lon, rows, columns):
     spacing = 0.5
     lats, lons = np.meshgrid(
         first_lat - spacing * np.arange(rows),
         (first_lon + spacing * np.arange(columns) + 180) % 360 - 180,
         indexing="ij",
     )
-    grid = Grid(lats, lons)
-    random = np.random.default_rng(0)
-    # Points spread over the globe, so most lie far outside the regional grid, then two
-    # either side of the date line, two by the poles and two just inside the regional grid.
-    point_lats = np.concatenate([random.uniform(-90, 90, 40), [10.0, 10.2, 89.9, -89.9, 50.1, 43]])
-    point_lons = np.concatenate(
-        [random.uniform(-180, 180, 40), [179.9, -179.9, 45.0, -45.0, -139.8, -110.3]]
-    )
+    grid = Grid(lats.shape, lambda: (lats.ravel(), lons.ravel()))
+    point_lats, point_lons = scattered_points()
 
-    for sample in (slice(None), slice(0, 5), slice(40, 42), slice(42, 44), slice(44, 46)):
-        found = grid.nearest(point_lats[sample], point_lons[sample])
-        expected = haversine_nearest(grid, point_lats[sample], point_lons[sample])
-        np.testing.assert_allclose(lats.ravel()[found], lats.ravel()[expected])
-        # At the poles every longitude is the same place, so compare positions on the sphere.
-        np.testing.assert_allclose(
-            np.cos(np.radians(lats.ravel()[found])) * np.sin(np.radians(lons.ravel()[found])),
-            np.cos(np.radians(lats.ravel()[expected])) * np.sin(np.radians(lons.ravel()[expected])),
-            atol=1e-12,
-        )
+    for subset in (slice(None), slice(0, 5), slice(40, 42), slice(42, 44), slice(44, 46)):
+        found = grid.nearest(point_lats[subset], point_lons[subset])
+        expected = haversine_nearest(grid, point_lats[subset], point_lons[subset])
+        assert_same_places(grid, found, expected)
+
+
+@pytest.mark.parametrize(
+    "layout",
+    [
+        dict(first_lat=90.0, first_lon=-180.0, shape=(361, 720)),
+        dict(first_lat=90.0, first_lon=0.0, shape=(361, 720)),
+        dict(first_lat=-90.0, first_lon=0.0, shape=(361, 720), south_to_north=True),
+        dict(first_lat=62.0, first_lon=-140.0, shape=(41, 61)),
+        dict(first_lat=-12.3, first_lon=-14.8, shape=(59, 115), rotated_south_pole=(-36.1, -114.7)),
+        dict(
+            first_lat=-48.8,
+            first_lon=-53.9,
+            shape=(190, 207),
+            rotated_south_pole=(-31.8, -92.4),
+            south_to_north=True,
+        ),
+    ],
+    ids=[
+        "global from -180",
+        "global from 0",
+        "south to north",
+        "regional",
+        "rotated",
+        "rotated over the pole",
+    ],
+)
+def test_search_of_a_lat_lon_grid_agrees_with_brute_force(layout):
+    shape = layout.pop("shape")
+    grid = field(real_grib(np.zeros(shape), spacing=0.5, **layout)).grid
+    random = np.random.default_rng(1)
+    point_lats, point_lons = scattered_points()
+    # Also locations known to be on the grid, wherever it is, each nudged off its grid point.
+    on_grid = random.integers(0, grid.lats.size, 60)
+    point_lats = np.concatenate(
+        [point_lats, grid.lats.ravel()[on_grid] + random.uniform(-0.2, 0.2, 60)]
+    )
+    point_lons = np.concatenate(
+        [point_lons, grid.lons.ravel()[on_grid] + random.uniform(-0.2, 0.2, 60)]
+    )
+    point_lats = np.clip(point_lats, -90, 90)
+
+    found = grid.nearest(point_lats, point_lons)
+
+    assert_same_places(grid, found, haversine_nearest(grid, point_lats, point_lons))
+
+
+def test_sampling_a_lat_lon_grid_does_not_work_out_where_every_point_is():
+    decoded = field(real_grib(VALUES + 3, first_lat=20.0, first_lon=30.0))
+
+    decoded.sample([19.2, 18.1], [30.4, 32.9])
+
+    assert "_lat_lon" not in vars(decoded.grid)
+
+
+def test_grid_spacing_does_not_drift_with_the_rounded_increment():
+    # RDPS declares an increment of 0.090298 where its first and last points imply 0.0902978.
+    # Stepping by the declared one puts the last of its 1045 rows 0.0002 degrees too far north.
+    rows = 1045
+    grib = real_grib(
+        np.zeros((rows, 2)), first_lat=-48.805954, spacing=0.0902978, south_to_north=True
+    )
+    grid = field(grib).grid
+    just_nearer_the_last_row = grid.lats[-1, 0] - 0.0451
+
+    (found,) = grid.nearest([just_nearer_the_last_row], [-130.0])
+
+    assert found // 2 == rows - 1
+
+
+@pytest.mark.anyio
+async def test_sample_several_fields_in_threads():
+    fields = [field(real_grib(VALUES + offset)) for offset in range(6)]
+    lats, lons = [59.9, 58.4], [-129.6, -127.1]
+
+    sampled = await sample(fields, lats, lons, workers=3)
+
+    assert len(sampled) == 6
+    for offset, values in enumerate(sampled):
+        np.testing.assert_allclose(values, np.array([0, 11]) + offset, atol=1e-3)
+    assert not any("_decoded" in vars(f) for f in fields)
 
 
 def test_nearest_of_nothing():

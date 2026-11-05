@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from collections.abc import Coroutine, Iterable, Sequence
+from collections.abc import AsyncIterator, Iterable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -24,7 +24,8 @@ class Client:
             fields = await client.fetch("ifs", run, steps=[0, 3, 6], variables=["t2m", "precip"])
 
     Only the bytes of the requested fields are downloaded, concurrently, from the first of
-    the model's mirrors that has them.
+    the model's mirrors that has them. For a whole run, stream does the same without holding
+    every field in memory at once.
     """
 
     def __init__(
@@ -84,9 +85,40 @@ class Client:
         :raises FetchError: a field could not be retrieved from any mirror
         :raises ValueError: the model has no such variable or does not run at that hour
         """
+        steps = [steps] if isinstance(steps, int) else list(dict.fromkeys(steps))
+        by_step = {}
+        async for fields in self.stream(
+            model, run, steps, variables, skip_missing=skip_missing, window=max(1, len(steps))
+        ):
+            by_step[fields[0].step] = fields
+        return [field for step in steps for field in by_step.get(step, [])]
+
+    async def stream(
+        self,
+        model: Model | str,
+        run: datetime,
+        steps: int | Iterable[int],
+        variables: Variable | Native | str | Iterable[Variable | Native | str],
+        *,
+        skip_missing: bool = False,
+        window: int = 8,
+    ) -> AsyncIterator[list[Field]]:
+        """
+        Fetch like fetch does, but hand over each step as soon as it has arrived.
+
+            async for fields in client.stream("hrdps", run, range(1, 49), ["t2m", "precip"]):
+                values = await sample(fields, lats, lons)
+
+        Each item is one step's fields, ordered by variable. Steps come in the order they
+        finish downloading, not the order requested. At most window steps are downloaded
+        ahead of the caller, so memory stays flat however long the run is, where fetch holds
+        every field at once. Arguments and errors are those of fetch.
+
+        :param window: how many steps may be in flight or waiting to be handed over
+        """
         model = _model(model)
         run = _run_time(model, run)
-        steps = [steps] if isinstance(steps, int) else list(steps)
+        steps = [steps] if isinstance(steps, int) else list(dict.fromkeys(steps))
         if isinstance(variables, (str, Native)):
             variables = [variables]
         variables = list(
@@ -95,10 +127,29 @@ class Client:
         for variable in variables:
             model.selector(variable)  # fail on unknown variables before making any request
 
-        per_step = await _gather(
-            self._fetch_step(model, run, step, variables, skip_missing) for step in steps
-        )
-        return [field for fields in per_step for field in fields]
+        slots = asyncio.Semaphore(window)
+
+        async def fetch_step(step: int) -> list[Field]:
+            await slots.acquire()  # given back once the caller has finished with the step
+            return await self._fetch_step(model, run, step, variables, skip_missing)
+
+        tasks = {asyncio.ensure_future(fetch_step(step)) for step in steps}
+        try:
+            async for finished in asyncio.as_completed(tasks):
+                # A finished task holds on to its result, so it must not be kept: dropping it
+                # here is what lets a step's fields be freed once the caller is done with them.
+                tasks.discard(finished)
+                fields = finished.result()
+                del finished
+                if fields:
+                    yield fields
+                del fields
+                slots.release()
+        finally:
+            # Reached on an error, or when the caller stops early: abandon what is left.
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     async def latest_run(
         self,
@@ -240,18 +291,6 @@ def _plan(parts: Iterable[Part]) -> list[_Request]:
 def _slice(body: bytes, part: Part, body_offset: int) -> bytes:
     start = part.offset - body_offset
     return body[start : None if part.length is None else start + part.length]
-
-
-async def _gather(coroutines: Iterable[Coroutine]) -> list:
-    """asyncio.gather, except that the first failure cancels the rest instead of orphaning them."""
-    tasks = [asyncio.ensure_future(coroutine) for coroutine in coroutines]
-    try:
-        return await asyncio.gather(*tasks)
-    except BaseException:
-        for task in tasks:
-            task.cancel()
-        await asyncio.gather(*tasks, return_exceptions=True)
-        raise
 
 
 def _model(model: Model | str) -> Model:

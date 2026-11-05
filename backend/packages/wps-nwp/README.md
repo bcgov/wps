@@ -47,6 +47,28 @@ whatever is published instead, which is the usual choice when polling a run that
 coming in. A field that exists but could not be retrieved from any mirror always raises
 `FetchError`.
 
+### A whole run
+
+`fetch` returns every field at once, which for a full run is hundreds of megabytes of GRIB.
+`stream` takes the same arguments and hands over one step at a time, downloading no more than
+`window` steps (8 by default) ahead of the loop, so memory stays flat however long the run is:
+
+```python
+async with nwp.Client() as client:
+    async for fields in client.stream("hrdps", run, range(1, 49), ["t2m", "rh2m", "precip"]):
+        for field, values in zip(fields, await nwp.sample(fields, lats, lons)):
+            store(field.step, field.variable, values)
+```
+
+Each item is one step's fields, ordered by variable. Steps arrive in the order they finish
+downloading, not the order requested.
+
+`nwp.sample` is `Field.sample` for several fields at once, run in worker threads. ECMWF and
+NOAA fields decode in a few milliseconds, but ECCC's are JPEG2000 and take 60 to 260 ms each.
+Awaiting `nwp.sample` keeps the downloads going while they decode and uses more than one core;
+`workers` (2 by default) sets how many decode at a time, each costing one decoded grid of
+memory.
+
 ## Models
 
 | Name | Model | Source | Runs (UTC) |
@@ -107,5 +129,12 @@ nwp.Native("AirTemp_IsbL-0850")  # ECCC: variable and level from the file name
 ## Sampling
 
 `Field.sample` and `Grid.nearest` pick the nearest grid point by great-circle distance on any
-grid. The search is done once per set of points and reused for every field on the same grid.
-A location outside a regional model's domain gets the closest point on its edge.
+grid. A location outside a regional model's domain gets the closest point on its edge.
+
+Every model here except NAM is on a regular or rotated lat/lon grid, where the nearest point
+is found from the grid's layout in under a millisecond, without working out the coordinates
+of its millions of points. Those are only computed if you ask for `grid.lats` or `grid.lons`,
+or sample NAM. The search is done once per set of locations and reused for every field on the
+same grid.
+
+`sample` does not keep the decoded array; `values` does, for as long as the field is alive.
