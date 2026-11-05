@@ -9,6 +9,7 @@ backend/
 ├── packages/
 │   ├── wps-api/      # Main API application
 │   ├── wps-jobs/     # Background jobs
+│   ├── wps-nwp/      # Weather model data access (ECMWF, ECCC, NOAA)
 │   ├── wps-sfms/     # SFMS processing
 │   ├── wps-shared/   # Shared utilities
 │   ├── wps-tools/    # Tooling / scripts
@@ -58,6 +59,7 @@ uv run pytest
 # Run tests for a specific package (see pytest.ini for the full list of test paths)
 uv run pytest packages/wps-api/src
 uv run pytest packages/wps-jobs/src
+uv run pytest packages/wps-nwp/src
 uv run pytest packages/wps-sfms/src
 uv run pytest packages/wps-shared/src
 uv run pytest packages/wps-weather/src

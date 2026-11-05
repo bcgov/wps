@@ -152,6 +152,25 @@ jobs:
           name: wps-wf1-coverage-report
           path: ./backend/packages/wps-wf1/coverage-reports/wps-wf1-coverage-report.xml
 
+  test-wps-nwp:
+    name: Python - WPS NWP Test with coverage
+    runs-on: ubuntu-26.04
+    container: *api-base-image
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/python-setup
+      - name: Unit Test with coverage (wps_nwp)
+        working-directory: ./backend
+        run: |
+          uv run pytest --cov=packages/wps-nwp/src/wps_nwp --cov-branch --cov-report=xml:packages/wps-nwp/coverage-reports/wps-nwp-coverage-report.xml packages/wps-nwp/src/wps_nwp/tests -x -o log_cli=true --disable-warnings -vvv
+      - name: Archive coverage report (wps_nwp)
+        uses: actions/upload-artifact@v7
+        with:
+          name: wps-nwp-coverage-report
+          path: ./backend/packages/wps-nwp/coverage-reports/wps-nwp-coverage-report.xml
+
   lint-and-test-web:
     name: Web - Lint, Test with coverage
     runs-on: ubuntu-26.04
@@ -216,6 +235,7 @@ jobs:
         test-wps-shared,
         test-wps-jobs,
         test-wps-wf1,
+        test-wps-nwp,
       ]
     steps:
       - name: Checkout repo
