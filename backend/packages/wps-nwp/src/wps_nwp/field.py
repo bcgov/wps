@@ -28,6 +28,8 @@ class Grid:
         :param coordinates: called once, if lats or lons are asked for, to get both as flat
             arrays. Deferred because sampling a regular grid never needs them.
         :param axes: how the grid is laid out, if it is regular enough to describe that way
+
+        Nothing is computed here: the grid only records how to find things out later.
         """
         self.shape = shape
         self._coordinates = coordinates
@@ -37,16 +39,31 @@ class Grid:
 
     @property
     def lats(self) -> np.ndarray:
-        """Degrees north, same shape as Field.values."""
+        """
+        Degrees north, same shape as Field.values.
+
+        Worked out for the whole grid on first access, along with lons, and then kept.
+        """
         return self._lat_lon[0]
 
     @property
     def lons(self) -> np.ndarray:
-        """Degrees east in [-180, 180), same shape as Field.values."""
+        """
+        Degrees east in [-180, 180), same shape as Field.values.
+
+        Worked out for the whole grid on first access, along with lats, and then kept.
+        """
         return self._lat_lon[1]
 
     @cached_property
     def _lat_lon(self) -> tuple[np.ndarray, np.ndarray]:
+        """
+        The latitude and longitude of every grid point, worked out once.
+
+        Calls the coordinates function the grid was built with, reshapes both arrays to the
+        grid's rows and columns, and brings longitudes into [-180, 180). The function is then
+        let go of, because it holds the GRIB message this grid was first seen in.
+        """
         lats, lons = self._coordinates()
         self._coordinates = None  # it may be holding on to a GRIB message
         return lats.reshape(self.shape), _wrap(lons).reshape(self.shape)
@@ -58,6 +75,14 @@ class Grid:
         Points outside a regional model's domain get its closest edge point, so check the
         domain yourself if that matters. The most recent result is remembered, which makes
         sampling many fields at the same points cost one search.
+
+        An index is into the flattened grid, as in Field.values.ravel()[index].
+
+        How it works: the locations are converted to float arrays, and their raw bytes are
+        the key to the remembered result. If they are the locations of the previous call, the
+        indices found then are returned. Otherwise _locate does the search and its result
+        replaces the remembered one. The lock makes threads that ask at the same moment wait
+        for one search rather than each doing their own.
         """
         lats = np.atleast_1d(np.asarray(lats, dtype=float))
         lons = np.atleast_1d(np.asarray(lons, dtype=float))
@@ -70,6 +95,13 @@ class Grid:
             return self._nearest[2]
 
     def _locate(self, lats: np.ndarray, lons: np.ndarray) -> np.ndarray:
+        """
+        Find the nearest grid points by the cheapest method that is exact.
+
+        A grid with a regular layout is searched arithmetically by _Axes.nearest, which needs
+        no coordinates. Locations it reports as outside the grid, and every location on any
+        other kind of grid, go through _search instead.
+        """
         if self._axes is None:
             return self._search(lats, lons)
         result, inside = self._axes.nearest(lats, lons)
@@ -80,7 +112,22 @@ class Grid:
         return result
 
     def _search(self, lats: np.ndarray, lons: np.ndarray) -> np.ndarray:
-        """Nearest points on any grid, by comparing against the coordinates of its points."""
+        """
+        Nearest points on any grid, by comparing against the coordinates of its points.
+
+        Locations and grid points are turned into unit vectors on the sphere, where the
+        nearest point is the one with the largest dot product. Comparing every location with
+        every point of a grid of millions is slow, so it is done in two passes:
+
+        1. Only the grid points inside a latitude and longitude box around the locations are
+           compared. The box is padded by _SEARCH_PAD_DEGREES. In longitude the pad is divided
+           by the cosine of the highest latitude, because a degree of distance spans more
+           longitude towards the poles. The longitude limits are dropped altogether above 85
+           degrees, or when the box would reach round the globe.
+        2. A match nearer than the pad is certain to be the true nearest, because every grid
+           point that near is inside the box. Any location whose best match is further away,
+           or for which the box held no points, is compared against the whole grid.
+        """
         grid_lats, grid_lons = self.lats.ravel(), self.lons.ravel()
         points = _unit_vectors(lats, lons)
 
@@ -130,7 +177,26 @@ class _Axes:
     rotation: np.ndarray | None  # turns a true unit vector into one in the rotated frame
 
     def nearest(self, lats: np.ndarray, lons: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        """Flat index of the nearest grid point, and whether each location is within the grid."""
+        """
+        Flat index of the nearest grid point, and whether each location is within the grid.
+
+        1. On a rotated grid the locations are first turned into the rotated frame, in which
+           the grid is an ordinary lat/lon grid. Rotating the sphere keeps distances, so the
+           nearest point there is the nearest point.
+        2. Each location is expressed in fractional rows and columns from the first grid
+           point. Longitude is taken modulo 360 in the direction the columns run, so it makes
+           no difference whether the grid counts from -180 or from 0.
+        3. The nearest grid point is one of the four corners of the cell the location is in.
+           The great-circle distance to each corner is compared, as a dot product of unit
+           vectors, and the nearest kept. Rounding the row and the column separately would
+           not do, because columns draw together towards the pole. On a grid that goes all
+           the way round, the column after the last is the first.
+
+        A location is within the grid if its row is between the first and the last and, on a
+        grid that does not go all the way round, its column is too. For a location outside,
+        the index is only the nearest corner of the cell at the edge, and the caller has to
+        search for the true nearest point.
+        """
         points = _unit_vectors(lats, lons)
         if self.rotation is not None:
             # Rotating the sphere keeps distances, so nearest in the rotated frame is nearest.
@@ -163,16 +229,30 @@ class _Axes:
 
 
 def _wrap(degrees):
+    """Bring angles in degrees into [-180, 180)."""
     return (degrees + 180) % 360 - 180
 
 
 def _unit_vectors(lats: np.ndarray, lons: np.ndarray) -> np.ndarray:
+    """
+    Points on the unit sphere for latitudes and longitudes in degrees.
+
+    The result has a last axis of (x, y, z). The dot product of two such vectors is the
+    cosine of the angle between the two places, so the largest dot product is the nearest.
+    """
     lat, lon = np.radians(lats), np.radians(lons)
     return np.stack([np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)], axis=-1)
 
 
 def _closest(points: np.ndarray, grid_lats: np.ndarray, grid_lons: np.ndarray):
-    """Index of, and cosine of the angle to, the grid point closest to each unit vector."""
+    """
+    Index of, and cosine of the angle to, the grid point closest to each unit vector.
+
+    The locations' vectors are multiplied by the grid points' in one matrix product, and the
+    largest entry in each row is that location's nearest point. The product has a row per
+    location and a column per grid point, so locations are taken a few at a time to keep it
+    under _CHUNK_ELEMENTS elements.
+    """
     grid = _unit_vectors(grid_lats, grid_lons).T
     index = np.empty(len(points), dtype=np.intp)
     cosine = np.empty(len(points))
@@ -203,20 +283,38 @@ class Field:
 
     @property
     def valid_time(self) -> datetime:
+        """The time the forecast is for: the run time plus the step in hours."""
         return self.run + timedelta(hours=self.step)
 
     @property
     def values(self) -> np.ndarray:
-        """2D array in the order the model stores it, NaN where missing. See grid for locations."""
+        """
+        2D array in the order the model stores it, NaN where missing. See grid for locations.
+
+        The message is decoded on first access and the result kept on the field, which costs
+        a whole grid of memory for as long as the field is alive. Use sample when only the
+        values at some locations are wanted.
+        """
         return self._decoded[0]
 
     @property
     def grid(self) -> Grid:
+        """
+        Where each of values is on the earth.
+
+        Fields on the same model grid share one Grid. Like values, this decodes the message
+        on first access and keeps the result.
+        """
         return self._decoded[1]
 
     @property
     def units(self) -> str:
-        """The Variable's units, or for a Native field whatever the GRIB message declares."""
+        """
+        The Variable's units, or for a Native field whatever the GRIB message declares.
+
+        A Variable's units are fixed, so nothing is decoded. A Native field is decoded, on
+        first access, to read them from the message.
+        """
         if isinstance(self.variable, Variable):
             return self.variable.units
         return self._decoded[2]
@@ -227,15 +325,31 @@ class Field:
 
         Unlike values, this does not keep the decoded grid on the field, so sampling every
         field of a run costs the memory of one grid rather than one per field.
+
+        How it works: if values has already been read, that decoded array is used. Otherwise
+        the message is decoded, the points wanted are picked out of it with the indices from
+        Grid.nearest, and the decoded array is thrown away.
         """
         values, grid, _ = self.__dict__.get("_decoded") or self._decode()
         return values.ravel()[grid.nearest(lats, lons)]
 
     @cached_property
     def _decoded(self) -> tuple[np.ndarray, Grid, str]:
+        """
+        The decoded values, grid and units, computed on first access and kept on the field.
+
+        This is what values, grid and units read from.
+        """
         return self._decode()
 
     def _decode(self) -> tuple[np.ndarray, Grid, str]:
+        """
+        Decode the message without keeping the result.
+
+        Returns the values, their grid and the units the message declares. Precipitation
+        from ECMWF is multiplied by 1000, in place, to turn metres into mm. Nothing else is
+        converted.
+        """
         values, grid, units = _decode(self.grib)
         # Every supported model encodes the Variables in the same units, bar one: ECMWF
         # reports precipitation in metres where the others use kg m-2, which is mm.
@@ -257,10 +371,15 @@ async def sample(
     :param workers: fields decoded at a time. Each costs a decoded grid of memory while it
         runs, and more than the number of cores available gains nothing.
     :return: one array per field, in the order given
+
+    How it works: each field's sample runs in a thread from asyncio's default pool. That
+    runs in parallel because the decoder releases the interpreter lock while it works. A
+    semaphore lets at most workers of them run at a time, and the rest wait their turn.
     """
     limit = asyncio.Semaphore(workers)
 
     async def one(field: Field) -> np.ndarray:
+        """Sample one field in a worker thread, once a worker is free."""
         async with limit:
             return await asyncio.to_thread(field.sample, lats, lons)
 
@@ -290,6 +409,22 @@ def _eccodes():
 
 
 def _decode(grib: bytes) -> tuple[np.ndarray, Grid, str]:
+    """
+    Decode a GRIB message into its values, its grid and its units.
+
+    eccodes unpacks the values as a flat float64 array. If the message has a bitmap marking
+    points with no value, eccodes is told to write a sentinel at those points, which is then
+    replaced by NaN.
+
+    The grid is looked up by the checksum eccodes computes over the message's grid
+    definition. The first message seen on a grid creates its Grid, with the layout read from
+    the header and the coordinates left to be worked out later if anything asks for them.
+    Every later message on that grid reuses it. The lock stops two threads that decode at the
+    same moment from each creating it.
+
+    The values are returned reshaped to the grid's rows and columns, in the order the
+    message stores them.
+    """
     eccodes = _eccodes()
 
     handle = eccodes.codes_new_from_message(grib)
@@ -314,7 +449,13 @@ def _decode(grib: bytes) -> tuple[np.ndarray, Grid, str]:
 
 
 def _coordinates(grib: bytes) -> tuple[np.ndarray, np.ndarray]:
-    """Latitude and longitude of every grid point of a message, in the order of its values."""
+    """
+    Latitude and longitude of every grid point of a message, in the order of its values.
+
+    eccodes works them out from the message's grid definition, which it can do for any kind
+    of grid. For a grid of millions of points that is slow and large, which is why Grid only
+    calls this if it has to.
+    """
     eccodes = _eccodes()
 
     handle = eccodes.codes_new_from_message(grib)
@@ -328,10 +469,26 @@ def _coordinates(grib: bytes) -> tuple[np.ndarray, np.ndarray]:
 
 
 def _axes(handle) -> _Axes | None:
-    """The layout of a message's grid, or None if it is not one _Axes can describe."""
+    """
+    The layout of a message's grid, or None if it is not one _Axes can describe.
+
+    A grid qualifies if it is a regular or rotated lat/lon grid, stored row by row with
+    every row running the same way, and has at least two rows and two columns.
+
+    For a rotated grid a 3x3 matrix is built whose rows are the axes of the rotated frame,
+    written in true coordinates. Multiplying a true unit vector by it gives the same point
+    in the rotated frame. A grid that is also turned about its own pole is left to the
+    general search.
+
+    The first grid point comes from the header. The spacing is the distance from the first
+    point to the last divided by the number of gaps. For longitude that distance is taken
+    modulo 360 in the direction the columns run, so that a grid crossing the 0 or 180
+    meridian comes out right.
+    """
     eccodes = _eccodes()
 
     def get(key: str):
+        """Read one key from the message header."""
         return eccodes.codes_get(handle, key)
 
     grid_type = get("gridType")
@@ -386,6 +543,17 @@ def extract(raw: bytes, subfield: int | None = None) -> bytes:
     NOAA packs related fields (the u and v wind components, typically) into a single GRIB2
     message. eccodes only reads the first field of a message held in memory, so subfield
     picks one out and rebuilds it as a message of its own.
+
+    How it works: a complete message starts with "GRIB" and ends with "7777", and anything
+    else raises ValueError. With no subfield the message is returned as it is. Otherwise its
+    sections are walked in order, remembering the latest copy of each numbered section. A
+    field is complete each time a section 7, the data, has been read. When the field wanted
+    is reached, the remembered sections are joined in order behind a copy of the indicator
+    section with the new total length written into it, and "7777" is added to the end.
+
+    :param subfield: which field of the message to return, counting from 0, or None for a
+        message that holds one field
+    :raises ValueError: raw is not a complete message, or has no such field
     """
     if raw[:4] != b"GRIB" or raw[-4:] != b"7777":
         raise ValueError("not a complete GRIB message")

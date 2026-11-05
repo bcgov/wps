@@ -44,6 +44,9 @@ class Client:
         :param backoff: seconds before the first retry; doubles on each one after
         :param session: use this session instead of creating one. The caller closes it, and
             its connector and timeouts replace concurrency and timeout.
+
+        Nothing is opened here. The HTTP session is created on the first request, because it
+        has to be made inside a running event loop.
         """
         self._http = Transport(
             concurrency=concurrency,
@@ -54,12 +57,19 @@ class Client:
         )
 
     async def __aenter__(self) -> "Client":
+        """Return the client itself. Connections are opened lazily, on the first request."""
         return self
 
     async def __aexit__(self, *exc_info) -> None:
+        """Close the client on leaving the async with block, whether or not it raised."""
         await self.close()
 
     async def close(self) -> None:
+        """
+        Close the HTTP session and its pooled connections.
+
+        A session that was passed in to the constructor is left open for its owner to close.
+        """
         await self._http.close()
 
     async def fetch(
@@ -84,6 +94,12 @@ class Client:
         :raises NotAvailable: a field is not published, unless skip_missing is set
         :raises FetchError: a field could not be retrieved from any mirror
         :raises ValueError: the model has no such variable or does not run at that hour
+
+        How it works: this is stream with its window opened to the whole request. Every step
+        is downloaded concurrently and collected as it finishes, keyed by its step, and the
+        steps are then put back into the order asked for. A step repeated in steps is fetched
+        once. A step that produced no fields, which can only happen with skip_missing,
+        contributes nothing.
         """
         steps = [steps] if isinstance(steps, int) else list(dict.fromkeys(steps))
         by_step = {}
@@ -115,6 +131,23 @@ class Client:
         every field at once. Arguments and errors are those of fetch.
 
         :param window: how many steps may be in flight or waiting to be handed over
+
+        How it works:
+
+        1. The model, run time and variables are checked, so a bad request raises before
+           anything is downloaded.
+        2. One task is created per step, but each must take a slot from a semaphore of size
+           window before it starts downloading. Slots are handed out in the order the steps
+           were given.
+        3. Steps are yielded as their tasks finish. A slot is only given back when the
+           caller's loop comes back for the next item, which is what stops downloads running
+           ahead of a slow caller.
+        4. Each finished task is dropped as its step is yielded. A task keeps its result, so
+           holding on to it would keep every step's GRIB alive until the end.
+        5. If a step fails, its error is raised out of the caller's loop, after any steps
+           that finished before it have been yielded.
+        6. On an error, or when the caller stops early and the generator is closed, the tasks
+           that are left are cancelled and waited for.
         """
         model = _model(model)
         run = _run_time(model, run)
@@ -130,6 +163,7 @@ class Client:
         slots = asyncio.Semaphore(window)
 
         async def fetch_step(step: int) -> list[Field]:
+            """Wait for a free slot, then fetch one step."""
             await slots.acquire()  # given back once the caller has finished with the step
             return await self._fetch_step(model, run, step, variables, skip_missing)
 
@@ -165,7 +199,16 @@ class Client:
         Models publish a run's steps in order, so pass the last step you need to get a run
         that is complete as far as you are concerned.
 
+        :param step: the forecast hour that must be published for a run to count
+        :param now: the time to search back from, for testing; defaults to the current time
+        :param lookback: how far back to search before giving up
         :raises NotAvailable: no run in the lookback period has published that step
+        :raises FetchError: the mirrors could not be asked
+
+        How it works: starting at the current hour and going back an hour at a time, each
+        hour at which the model runs is tested with _published, which asks the mirrors
+        whether that run's step exists. The first run that has it is returned, so this
+        normally costs one to three small requests.
         """
         model = _model(model)
         now = _utc(now) if now else datetime.now(UTC)
@@ -177,6 +220,15 @@ class Client:
         raise NotAvailable(f"{model.name}: no run since {now - lookback:%Y-%m-%d %H}Z has +{step}h")
 
     async def _published(self, model: Model, run: datetime, step: int) -> bool:
+        """
+        Whether any mirror has published this step of this run.
+
+        Each mirror in turn is sent a HEAD request for the model's probe URL, a small file
+        that exists once the step is out. The first mirror to have it settles the matter. If
+        none has it the answer is False, unless the last mirror to be asked failed instead of
+        answering. That failure is raised, so that an outage is not mistaken for a run that
+        has not been published.
+        """
         failure = None
         for mirror in model.mirrors:
             try:
@@ -197,6 +249,31 @@ class Client:
         variables: Sequence[Variable | Native],
         skip_missing: bool,
     ) -> list[Field]:
+        """
+        Fetch every requested variable for one step, trying the model's mirrors in order.
+
+        For each mirror:
+
+        1. The model locates the variables still outstanding. For ECMWF and NOAA this
+           downloads the step's index; for ECCC it only builds URLs. A mirror that does not
+           have the step is skipped. One that fails is skipped too, and the failure is
+           remembered against every outstanding variable.
+        2. The parts located are grouped into as few requests as possible by _plan and
+           downloaded concurrently.
+        3. The outcome is recorded for each variable: a Field if it arrived, the failure if
+           the mirror failed, nothing if the file was not there.
+        4. Variables this mirror's index did not list are given up on, since a step that
+           exists without a variable lacks it on every mirror. Only what this mirror located
+           but did not deliver is asked of the next one. If nothing is left, the remaining
+           mirrors are not contacted.
+
+        What happens to a variable still missing at the end depends on the last mirror that
+        was asked for it. If that mirror failed, its FetchError is raised, even with
+        skip_missing: a failure is never reported as data that is not published. Otherwise
+        the variable is not published, which raises NotAvailable unless skip_missing is set.
+
+        :return: the fields found, in the order the variables were requested
+        """
         found: dict[Variable | Native, Field] = {}
         # Why each variable is still outstanding, going by the last mirror that was asked:
         # a FetchError if that mirror failed, no entry if it simply does not have the data.
@@ -252,6 +329,16 @@ class Client:
         return [found[v] for v in variables if v in found]
 
     async def _download(self, request: "_Request") -> list[tuple[Part, bytes]]:
+        """
+        Download one planned request and cut it back into its fields.
+
+        The body is sliced at each part's offset from the start of the request. Each slice
+        goes through extract, which checks that it is a complete GRIB message and, for a
+        field packed into a message with others, pulls that field out. A slice that is not a
+        valid message means the mirror served something other than the data, such as an error
+        page or a file that does not match its index. That is raised as a FetchError, so the
+        next mirror is tried.
+        """
         length = None if request.end is None else request.end - request.offset
         body = await self._http.get(request.url, request.offset, length)
         try:
@@ -274,7 +361,17 @@ class _Request:
 
 
 def _plan(parts: Iterable[Part]) -> list[_Request]:
-    """Group parts so that fields stored back to back, or in the same message, share a request."""
+    """
+    Group parts so that fields stored back to back, or in the same message, share a request.
+
+    The parts are sorted by file and offset and walked in order. A part joins the previous
+    request when it is in the same file and starts at or before the byte where that request
+    ends. That covers fields that follow one another directly, and fields packed into one
+    message, which have the same offset. The request is extended to whichever end is later.
+    Any other part starts a new request, so fields with other data between them are fetched
+    separately rather than downloading what lies between. A request with no end reads to the
+    end of the file, and so takes in every later part of that file.
+    """
     requests: list[_Request] = []
     for part in sorted(parts, key=lambda p: (p.url, p.offset)):
         end = None if part.length is None else part.offset + part.length
@@ -289,11 +386,21 @@ def _plan(parts: Iterable[Part]) -> list[_Request]:
 
 
 def _slice(body: bytes, part: Part, body_offset: int) -> bytes:
+    """
+    The bytes of one part, cut from the body of the request that covered it.
+
+    :param body_offset: where in the file the body starts
+    """
     start = part.offset - body_offset
     return body[start : None if part.length is None else start + part.length]
 
 
 def _model(model: Model | str) -> Model:
+    """
+    Turn the name of a built-in model into its Model, ignoring case.
+
+    A Model is returned as it is. An unknown name raises ValueError listing the names there are.
+    """
     if isinstance(model, Model):
         return model
     try:
@@ -303,10 +410,22 @@ def _model(model: Model | str) -> Model:
 
 
 def _utc(moment: datetime) -> datetime:
+    """
+    The same moment as an aware UTC datetime.
+
+    A naive datetime is taken to be in UTC already and is only labelled as such. An aware
+    one is converted.
+    """
     return moment.replace(tzinfo=UTC) if moment.tzinfo is None else moment.astimezone(UTC)
 
 
 def _run_time(model: Model, run: datetime) -> datetime:
+    """
+    Convert a run time to UTC and check that the model runs then.
+
+    Raises ValueError unless the time is exactly on the hour and that hour is one of the
+    model's cycles, so that a mistake fails here rather than as an unexplained 404.
+    """
     run = _utc(run)
     if run.hour not in model.cycles or run != run.replace(minute=0, second=0, microsecond=0):
         hours = ", ".join(f"{hour:02d}Z" for hour in model.cycles)
