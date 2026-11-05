@@ -22,6 +22,7 @@ class Variable(StrEnum):
 
     @property
     def units(self) -> str:
+        """The units this variable's values are returned in, whichever model they are from."""
         return _UNITS[self]
 
 
@@ -52,4 +53,5 @@ class Native:
     selector: str
 
     def __str__(self) -> str:
+        """The selector, so that messages name the variable as the caller wrote it."""
         return self.selector
