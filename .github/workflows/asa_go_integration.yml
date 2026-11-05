@@ -78,8 +78,9 @@ jobs:
         working-directory: ./mobile/asa-go/ios/App
         run: |
           xcodebuild \
-            -workspace App.xcworkspace \
+            -project App.xcodeproj \
             -scheme "ASA Go" \
+            -disableAutomaticPackageResolution \
             -destination "platform=iOS Simulator,name=iPhone 17" \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
@@ -138,7 +139,7 @@ jobs:
           distribution: temurin
           java-version: "21"
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Test ASA Go Android
         working-directory: ./mobile/asa-go/android
         run: ./gradlew jacocoTestReport

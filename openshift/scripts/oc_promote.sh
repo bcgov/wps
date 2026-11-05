@@ -24,25 +24,6 @@ source "$(dirname ${0})/common/common"
 # Source and destination
 #
 
-tag_if_exists_or_fail() {
-    SOURCE="$1"
-    DEST="$2"
-
-    if oc -n "${PROJ_TOOLS}" get istag "${SOURCE}" >/dev/null 2>&1; then
-        oc -n "${PROJ_TOOLS}" tag "${SOURCE}" "${DEST}"
-    else
-		# We don't always build the weather image if nothing has changed, so allow it to be missing.
-        if [ "${MODULE_NAME}" = "weather" ]; then
-            echo "Image ${SOURCE} not found (allowed for weather module) — skipping."
-        else
-            echo "ERROR: Image ${SOURCE} not found." >&2
-            exit 1
-        fi
-    fi
-
-	return 0
-}
-
 IMG_DEST="${APP_NAME}-${MODULE_NAME}-${TAG_PROD}"
 PR_IMAGE="${APP_NAME}-${MODULE_NAME}-${SUFFIX}:${SUFFIX}"
 PROD_IMAGE="${IMG_DEST}:${SUFFIX}"
@@ -51,34 +32,24 @@ PROD_TAG_IMAGE="${IMG_DEST}:${TAG_PROD}"
 # Get list of images to prune.
 #
 TAGS=$(oc -n ${PROJ_TOOLS} get is/${IMG_DEST} --output=json --ignore-not-found=true | python $(dirname ${0})/prune.py)
-declare -a OC_IMG_PRUNE=()
+declare -a PRUNE_TAGS=()
 for TAG in ${TAGS}; do
-	OC_IMG_PRUNE+=("oc -n ${PROJ_TOOLS} tag -d ${IMG_DEST}:${TAG}")
+	PRUNE_TAGS+=("${IMG_DEST}:${TAG}")
 done
 
+# Tag the PR image into the prod stream as both its PR tag and the prod tag, then delete the
+# pruned tags, one oc call each. oc tag fails if the PR image doesn't exist.
+#
+OC_TAG="oc -n ${PROJ_TOOLS} tag ${PR_IMAGE} ${PROD_IMAGE} ${PROD_TAG_IMAGE}"
+OC_PRUNE=""
+# (printf joins with spaces; IFS is newline/tab here, so ${PRUNE_TAGS[*]} would join with newlines)
+[ "${#PRUNE_TAGS[@]}" -eq 0 ] || OC_PRUNE="oc -n ${PROJ_TOOLS} tag -d $(printf '%s ' "${PRUNE_TAGS[@]}")"
 
-# Promote images
 if [ "${APPLY}" ]; then
-    # Tag PR image to prod stream
-    tag_if_exists_or_fail "${PR_IMAGE}" "${PROD_IMAGE}"
-
-    # Tag prod stream to prod latest
-    tag_if_exists_or_fail "${PROD_IMAGE}" "${PROD_TAG_IMAGE}"
-
-	if [ "${#OC_IMG_PRUNE[@]}" -gt 0 ]; then
-		for PRUNE in "${OC_IMG_PRUNE[@]}"; do
-			eval "${PRUNE}"
-		done
-	fi
+	eval "${OC_TAG}"
+	[ -z "${OC_PRUNE}" ] || eval "${OC_PRUNE}"
 fi
 
 # Provide oc command instruction
 #
-DISPLAY_STREAM="oc -n ${PROJ_TOOLS} tag ${PR_IMAGE} ${PROD_IMAGE}"
-DISPLAY_LATEST="oc -n ${PROJ_TOOLS} tag ${PROD_IMAGE} ${PROD_TAG_IMAGE}"
-
-if [ "${#OC_IMG_PRUNE[@]}" -gt 0 ]; then
-    display_helper "${DISPLAY_STREAM}" "${DISPLAY_LATEST}" "${OC_IMG_PRUNE[@]}"
-else
-    display_helper "${DISPLAY_STREAM}" "${DISPLAY_LATEST}"
-fi
+display_helper "${OC_TAG}" ${OC_PRUNE:+"${OC_PRUNE}"}

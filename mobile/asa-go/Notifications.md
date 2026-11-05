@@ -129,3 +129,5 @@ APP_ENV=prod ionic capacitor run android -l --external
 ```
 
 On iOS, `APP_ENV=dev` selects the `ASA Go Dev` scheme and `APP_ENV=prod` selects `ASA Go`.
+
+The iOS app and Firebase Messaging plugin use Swift Package Manager. After syncing, open `ios/App/App.xcodeproj` or run `yarn cap open ios`. Both schemes link the same Capacitor package, but each target includes only its own Firebase plist.

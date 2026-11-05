@@ -28,7 +28,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 OBJ_NAME="tileserv-${SUFFIX}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/tileserv/tileserv.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/tileserv/tileserv.yaml \
 -p SUFFIX=${SUFFIX}"
 
 # Apply a template (apply or use --dry-run=client)

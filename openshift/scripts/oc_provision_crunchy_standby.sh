@@ -34,7 +34,7 @@ IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-${PROJ_TOOLS}}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/crunchy_standby.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/crunchy_standby.yaml \
 -p SUFFIX=${SUFFIX} \
 -p TARGET_NAMESPACE=${PROJ_TARGET} \
 -p CRUNCHY_NAME=${CRUNCHY_NAME} \

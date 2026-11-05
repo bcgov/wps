@@ -24,7 +24,7 @@ OBJ_NAME="${APP_NAME}-${SUFFIX}"
 
 # Process a template (mostly variable substitution)
 #
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_NATS} \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${PATH_NATS} \
  -p POD_NAMESPACE=${PROJ_TARGET} \
  -p SUFFIX=${SUFFIX} \
  -p IMAGE_NAME=${APP_NAME}-api-${SUFFIX} \
@@ -45,6 +45,7 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 
 # Execute commands
 #
+render_and_exit_if_requested "${OC_PROCESS}"
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
 

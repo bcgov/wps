@@ -24,6 +24,9 @@ parameters:
       by default, or the internal OpenShift ImageStream when the GHCR build/promotion
       fallback path was used.
     required: true
+  - name: DEPLOY_VERSION
+    description: Changes to force a single rollout after image builds complete
+    required: true
 objects:
   - apiVersion: apps/v1
     kind: Deployment
@@ -43,6 +46,11 @@ objects:
         metadata:
           labels:
             app: ${APP_NAME}-${SUFFIX}
+          annotations:
+            # changes once per deploy so the pod template rolls one time and pulls the
+            # freshly-pushed image. Unlike the internal OpenShift registry, ghcr.io isn't
+            # watched by an ImageStream trigger, and the image tag itself doesn't change.
+            wps/deploy-version: ${DEPLOY_VERSION}
 
         spec:
           containers:

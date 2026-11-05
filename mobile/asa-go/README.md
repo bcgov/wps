@@ -47,6 +47,10 @@ yarn build
 
 `APP_ENV=dev` selects the `ASA Go Dev` iOS scheme and `APP_ENV=prod` selects `ASA Go`.
 
+iOS dependencies use Swift Package Manager. Open `ios/App/App.xcodeproj` directly or run `yarn cap open ios` after syncing. Xcode resolves native dependencies using the committed `Package.resolved` file.
+
+Both shared schemes link the local `CapApp-SPM` package. Capacitor updates its manifest and plugin registration during `cap sync`, so add or remove plugins through Yarn and sync again. Do not edit the generated package manifest by hand.
+
 ### Building/Running Android
 
 1. Install Android Studio (Jetbrains Toolbox recommended: <https://www.jetbrains.com/toolbox-app/>)
@@ -130,13 +134,14 @@ These workflows build the app from the specified branch.
 
 ### Integration Tests (`.github/workflows/asa_go_integration.yml`)
 
-Runs on pull requests to `main` that touch `mobile/**`. Three parallel jobs:
+Runs on pull requests to `main` that touch `mobile/**`. Jobs include:
 
 - **`js_test`** — Runs Vitest unit tests with coverage on Ubuntu; uploads coverage to Codecov (`asa_go` flag)
-- **`ios_test`** — Runs `yarn cap sync ios`, then `xcodebuild test` for the Keycloak Swift plugin on macOS; uploads `.xcresult` coverage bundle to Codecov (`keycloak_ios` flag)
+- **`ios_build`** builds and syncs the prod app, then builds the `ASA Go` scheme through `App.xcodeproj` on macOS. Xcode resolves native dependencies through Swift Package Manager.
+- **`ios_test`** runs `xcodebuild test` for the Keycloak Swift package on macOS and uploads the `.xcresult` coverage bundle to Codecov with the `keycloak_ios` flag.
 - **`android_test`** — Runs `yarn cap sync android`, then `./gradlew jacocoTestReport` for both `asa-go/android` and `keycloak/android` on Ubuntu; uploads JaCoCo XML reports to Codecov (`android` flag)
 
-All three jobs use the shared composite action `.github/actions/asa-go-setup`, which:
+The jobs use the shared composite action `.github/actions/asa-go-setup`, which:
 
 1. Sets up Node.js 20
 2. Caches and installs `mobile/keycloak` node_modules, then runs `yarn build`

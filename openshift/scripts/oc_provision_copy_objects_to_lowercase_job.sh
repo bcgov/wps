@@ -28,7 +28,7 @@ PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 WEATHER_IMAGE="${WEATHER_IMAGE:-ghcr.io/bcgov/wps/wps-weather:${SUFFIX}}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/copy_objects_to_lowercase.job.yaml -o yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/copy_objects_to_lowercase.job.yaml -o json \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
 -p WEATHER_IMAGE=${WEATHER_IMAGE}"

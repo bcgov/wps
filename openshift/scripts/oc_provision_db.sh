@@ -31,7 +31,7 @@ IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-${PROJ_TOOLS}}
 EPHEMERAL_STORAGE=${EPHEMERAL_STORAGE:-'False'}
 
 # Process pre-requisite template
-OC_PROCESS_PREREQUISITE="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni_prerequisite.yaml \
+OC_PROCESS_PREREQUISITE="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/patroni_prerequisite.yaml \
 -p NAME=\"patroni-${APP_NAME}-${SUFFIX}\" \
 -p PARENT_NAME=\"${APP_NAME}\" \
 -p TARGET_NAMESPACE=${PROJ_TARGET} \
@@ -45,7 +45,7 @@ OC_PROCESS_PREREQUISITE="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patron
  ${MEMORY_LIMIT:+ "-p MEMORY_LIMIT=${MEMORY_LIMIT}"}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/patroni.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/patroni.yaml \
 -p NAME=\"patroni-${APP_NAME}-${SUFFIX}\" \
 -p APP_USER=\"${APP_NAME}\" \
 -p PARENT_NAME=\"${APP_NAME}\" \
