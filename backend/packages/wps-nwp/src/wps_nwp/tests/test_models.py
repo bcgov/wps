@@ -93,6 +93,23 @@ async def test_eccc_models_have_one_file_per_variable(model, expected):
     assert model.probe(model.mirrors[0], RUN, 3) == expected
 
 
+def test_parse_idx_ignores_blank_lines():
+    assert parse_idx("\n1:0:first\n\n2:5:second\n\n") == [
+        ("1:0:first", 0, 5, None),
+        ("2:5:second", 5, None, None),
+    ]
+
+
+@pytest.mark.anyio
+async def test_noaa_locate_leaves_out_variables_the_index_does_not_list():
+    mirror = GFS.mirrors[0]
+    get = getter({GFS.url(mirror, RUN, 9) + ".idx": GFS_IDX})
+
+    parts = await GFS.locate(get, mirror, RUN, 9, [Variable.D2M, Variable.T2M])
+
+    assert [part.variable for part in parts] == [Variable.T2M]
+
+
 def test_parse_idx_derives_lengths_from_the_next_message():
     rows = parse_idx(GFS_IDX.decode())
 

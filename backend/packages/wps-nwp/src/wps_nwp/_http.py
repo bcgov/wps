@@ -121,7 +121,8 @@ class Transport:
                 trust_env=True,
             )
         host = urlsplit(url).netloc
-        for attempt in range(self._retries + 1):
+        attempt = 0
+        while True:
             if self._unreachable_until.get(host, 0) > time.monotonic():
                 raise FetchError(url, f"{host} is unreachable")
             delay = self._backoff * 2**attempt + random.uniform(0, self._backoff)
@@ -140,18 +141,20 @@ class Transport:
             except (aiohttp.ClientError, TimeoutError) as error:
                 reason = f"{type(error).__name__}: {error}".rstrip(": ")
             if attempt == self._retries:
-                break
+                if status is None:
+                    logger.warning(
+                        "%s is unreachable (%s); skipping it for %ds",
+                        host,
+                        reason,
+                        HOST_COOLDOWN_SECONDS,
+                    )
+                    self._unreachable_until[host] = time.monotonic() + HOST_COOLDOWN_SECONDS
+                raise FetchError(url, reason, status)
+            attempt += 1
             logger.warning(
-                "%s for %s; retry %d/%d in %.1fs", reason, url, attempt + 1, self._retries, delay
+                "%s for %s; retry %d/%d in %.1fs", reason, url, attempt, self._retries, delay
             )
             await asyncio.sleep(delay)
-
-        if status is None:
-            logger.warning(
-                "%s is unreachable (%s); skipping it for %ds", host, reason, HOST_COOLDOWN_SECONDS
-            )
-            self._unreachable_until[host] = time.monotonic() + HOST_COOLDOWN_SECONDS
-        raise FetchError(url, reason, status)
 
 
 def _retry_after(header: str | None) -> float:
