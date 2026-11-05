@@ -15,9 +15,7 @@ export const buildChartKey = (
   const { ecccPath, resolution } = modelRegistry[model]
   const dateStr = modelRunDate.toFormat('yyyyMMdd')
   const hourStr = hour.toString().padStart(3, '0')
-  const key = `wx_4panel_charts/${dateStr}/${ecccPath}/${resolution}/${modelRunHour}/${hourStr}/${model}_${dateStr}T${modelRunHour}Z_F${hourStr}_4panel.png`
-  // Charts are read from their lowercase keys in the object store.
-  return key.toLowerCase()
+  return `wx_4panel_charts/${dateStr}/${ecccPath}/${resolution}/${modelRunHour}/${hourStr}/${model}_${dateStr}T${modelRunHour}Z_F${hourStr}_4panel.png`.toLowerCase()
 }
 
 export const buildModelRunKey = (model: ModelType, modelRunDate: DateTime, modelRunHour: ModelRunHour): string => {
