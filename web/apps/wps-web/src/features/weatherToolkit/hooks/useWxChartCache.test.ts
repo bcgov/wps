@@ -25,20 +25,20 @@ afterEach(() => {
 })
 
 describe('buildChartKey', () => {
-  it('builds the correct S3 key for GDPS', () => {
+  it('builds the lowercase S3 key for GDPS', () => {
     const key = buildChartKey(ModelType.GDPS, MODEL_RUN_DATE, ModelRunHour.ZERO, 6)
-    expect(key).toBe('wx_4panel_charts/20240601/model_gdps/15km/00/006/GDPS_20240601T00Z_F006_4panel.png')
+    expect(key).toBe('wx_4panel_charts/20240601/model_gdps/15km/00/006/gdps_20240601t00z_f006_4panel.png')
   })
 
-  it('builds the correct S3 key for RDPS', () => {
+  it('builds the lowercase S3 key for RDPS', () => {
     const key = buildChartKey(ModelType.RDPS, MODEL_RUN_DATE, ModelRunHour.TWELVE, 3)
-    expect(key).toBe('wx_4panel_charts/20240601/model_rdps/10km/12/003/RDPS_20240601T12Z_F003_4panel.png')
+    expect(key).toBe('wx_4panel_charts/20240601/model_rdps/10km/12/003/rdps_20240601t12z_f003_4panel.png')
   })
 
   it('pads the hour to 3 digits', () => {
     const key = buildChartKey(ModelType.GDPS, MODEL_RUN_DATE, ModelRunHour.ZERO, 0)
     expect(key).toContain('/000/')
-    expect(key).toContain('F000_')
+    expect(key).toContain('f000_')
   })
 })
 

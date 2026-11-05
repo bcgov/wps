@@ -30,4 +30,6 @@ class WX4PanelChartAddresser:
         return f"{FOUR_PANEL_PREFIX}/{self._init_ymd}/{self._model_path}/{self._grid_size}/{self._init_hh}/{fh:03d}/{fname}"
 
     def get_grib_key(self, fh: int, fname: str):
-        return f"{WEATHER_MODEL_PREFIX}/{self._init_ymd}/{self._model_path}/{self._grid_size}/{self._init_hh}/{fh:03d}/{fname}"
+        """The lowercase key a GRIB is read from. GRIBs are stored under lowercase keys for GeoDrive."""
+        key = f"{WEATHER_MODEL_PREFIX}/{self._init_ymd}/{self._model_path}/{self._grid_size}/{self._init_hh}/{fh:03d}/{fname}"
+        return key.lower()
