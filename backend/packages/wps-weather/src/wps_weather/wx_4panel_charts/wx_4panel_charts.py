@@ -209,8 +209,7 @@ class FourPanelChartRunner:
                 fig.savefig(f.name, dpi=dpi, bbox_inches=None, pad_inches=0.0, facecolor="white")
                 await f.seek(0)
                 body = await f.read()
-                await self._s3_client.put_object(output_key, body)
-                logger.info(f"Saved: {output_key}")
+                await self._save_chart(output_key, body)
         finally:
             plt.close(fig)
             # matplotlib Figure/Axes/Artist objects form reference cycles that plain
@@ -218,6 +217,16 @@ class FourPanelChartRunner:
             # without this, RSS climbs ~365-420MB per panel across a run (gc.collect() finds
             # 20,000+ collectable objects per panel); with it, RSS is flat after the first panel.
             gc.collect()
+
+    async def _save_chart(self, output_key: str, body: bytes):
+        """
+        Save a chart under both its original and lowercase keys while the web app moves to
+        lowercase. The lowercase key goes last: it's what marks a chart as already generated, so
+        a failure between the two writes regenerates the chart rather than leaving one key missing.
+        """
+        await self._s3_client.put_object(output_key, body)
+        await self._s3_client.put_object(output_key.lower(), body)
+        logger.info(f"Saved: {output_key} and its lowercase copy")
 
     async def _make_4panel_charts(
         self,
@@ -254,7 +263,7 @@ class FourPanelChartRunner:
             output_key = raster_addresser.get_4panel_key(fh, output_name)
 
             # If a 4panel chart already exists don't re-create it.
-            if await self._s3_client.object_exists(output_key):
+            if await self._s3_client.object_exists(output_key.lower()):
                 logger.info(f"Skipping: 4 panel chart already exists: {output_name}")
                 continue
 

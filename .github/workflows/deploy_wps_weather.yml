@@ -59,3 +59,8 @@ jobs:
         shell: bash
         run: |
           bash openshift/scripts/oc_provision_eccc_grib_consumer.sh ${SUFFIX} apply
+
+      - name: Copy 4-Panel Charts and GRIBs to Lowercase Keys
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_copy_objects_to_lowercase_job.sh ${SUFFIX} | oc -n e1e498-dev apply -f -

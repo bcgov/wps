@@ -86,8 +86,8 @@ class GribDownloader:
         :param file: FileToDownload with URL and S3 key
         :return: True if success, False otherwise
         """
-        # skip if already exists
-        if await self.s3_client.object_exists(file.s3_key):
+        # skip if already exists. The lowercase key is written last, so if it exists both do.
+        if await self.s3_client.object_exists(file.s3_key.lower()):
             logger.debug(f"Skipping existing file: {file.s3_key}")
             return True
 
@@ -101,8 +101,10 @@ class GribDownloader:
                     response.raise_for_status()
                     data = await response.read()
 
+                # Written under both keys while readers move to lowercase.
                 await self.s3_client.put_object(key=file.s3_key, body=data)
-                logger.info(f"✅ Uploaded {file.s3_key}")
+                await self.s3_client.put_object(key=file.s3_key.lower(), body=data)
+                logger.info(f"✅ Uploaded {file.s3_key} and its lowercase copy")
                 return True
 
             except Exception as e:

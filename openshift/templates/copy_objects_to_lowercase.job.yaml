@@ -1,0 +1,82 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: copy-objects-to-lowercase-job-template
+  annotations:
+    description: "One-off job to copy 4 panel charts and GRIBs to lowercase keys. Originals are kept."
+    tags: "job,4panel"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: WEATHER_IMAGE
+    description: Full image reference for wps-weather.
+    required: true
+objects:
+  - kind: Job
+    apiVersion: batch/v1
+    metadata:
+      name: copy-objects-to-lowercase-${NAME}-${SUFFIX}
+    spec:
+      parallelism: 1
+      completions: 1
+      activeDeadlineSeconds: 21600
+      # Keeps the result around to check. If a later deploy re-creates the job it only copies what's missing.
+      ttlSecondsAfterFinished: 604800
+      backoffLimit: 2
+      template:
+        spec:
+          containers:
+            - name: copy-objects-to-lowercase
+              image: ${WEATHER_IMAGE}
+              imagePullPolicy: "Always"
+              command:
+                [
+                  "uv",
+                  "run",
+                  "--package",
+                  "wps-weather",
+                  "--no-sync",
+                  "python",
+                  "-m",
+                  "wps_weather.copy_objects_to_lowercase",
+                ]
+              env:
+                - name: UV_NO_CACHE
+                  value: "1"
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: WX_OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-user-id
+                - name: WX_OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-secret
+                - name: WX_OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: wx-object-store-bucket
+              resources:
+                limits:
+                  memory: 1Gi
+                requests:
+                  cpu: "75m"
+                  memory: 512Mi
+          restartPolicy: OnFailure
