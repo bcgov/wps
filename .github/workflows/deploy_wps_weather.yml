@@ -27,8 +27,8 @@ jobs:
         uses: bcgov/actions/builder@091f1da89c669d36bf4899830381e5b12d2c889a # v0.11.0
         with:
           package: wps-weather
-          build_context: .
-          build_file: backend/packages/wps-weather/Dockerfile
+          context: .
+          file: backend/packages/wps-weather/Dockerfile
           tags: ${{ env.SUFFIX }}
 
   deployments:
