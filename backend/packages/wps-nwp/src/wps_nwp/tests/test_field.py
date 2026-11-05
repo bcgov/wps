@@ -68,6 +68,16 @@ def test_sample_takes_the_nearest_grid_point():
     np.testing.assert_allclose(sampled, [0, 11, 6], atol=1e-3)
 
 
+def test_sample_does_not_keep_the_decoded_grid():
+    decoded = field(real_grib(VALUES))
+
+    sampled = decoded.sample([59.0], [-128.4])
+
+    assert "_decoded" not in vars(decoded)
+    np.testing.assert_allclose(sampled, decoded.values[1, 2])
+    np.testing.assert_allclose(decoded.sample([59.0], [-128.4]), sampled)
+
+
 def test_fields_on_the_same_grid_share_one_grid_and_one_search():
     first, second = field(real_grib(VALUES)), field(real_grib(VALUES + 1))
     lats, lons = [59.2, 58.1], [-129.9, -127.3]
