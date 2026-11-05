@@ -114,7 +114,6 @@ class FourPanelChartRunner:
         dpi: int,
         output_key: str,
         plotter_factory: PlotterFactory,
-        step: int,
     ):
         proj = ccrs.LambertConformal(
             central_longitude=cfg500.get("central_longitude", -130.0),
@@ -185,7 +184,9 @@ class FourPanelChartRunner:
 
                 add_panel_title(
                     axpcpn,
-                    f"PREV {step}H PCPN" if cfgpcpn.get("show_precip", True) else "NO PCPN AT 00H",
+                    f"PREV {cfgpcpn['pcpn_accum_hrs']}H PCPN"
+                    if cfgpcpn.get("show_precip", True)
+                    else "NO PCPN AT 00H",
                     loc="bl",
                 )
             except Exception as e:
@@ -292,7 +293,6 @@ class FourPanelChartRunner:
                     DEFAULT_DPI,
                     output_key,
                     plotter_factory,
-                    step,
                 )
             except TypeError:
                 # Error was logged when thrown. Continue processing of remaining 4panel charts.

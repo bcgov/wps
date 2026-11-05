@@ -289,6 +289,10 @@ class TestBuildConfigForHourPcpn:
         *_, cfgpcpn = gdps_builder.build_config_for_hour(0)
         assert "pcpn_grib" not in cfgpcpn
 
+    def test_fh0_pcpn_accum_hrs_not_set(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(0)
+        assert "pcpn_accum_hrs" not in cfgpcpn
+
     # fh > 0 — precip enabled
     def test_fh_nonzero_show_precip_is_true(self, gdps_builder):
         *_, cfgpcpn = gdps_builder.build_config_for_hour(12)
@@ -309,6 +313,10 @@ class TestBuildConfigForHourPcpn:
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
         assert not any("Precip-Accum3h" in c for c in calls)
 
+    def test_gdps_pcpn_accum_hrs_is_6(self, gdps_builder):
+        *_, cfgpcpn = gdps_builder.build_config_for_hour(6)
+        assert cfgpcpn["pcpn_accum_hrs"] == 6
+
     # RDPS uses 3h accumulation
     def test_rdps_uses_3h_precip_accumulation(self, rdps_builder, mock_file_name_builder):
         rdps_builder.build_config_for_hour(6)
@@ -319,6 +327,10 @@ class TestBuildConfigForHourPcpn:
         rdps_builder.build_config_for_hour(6)
         calls = [str(c) for c in mock_file_name_builder.call_args_list]
         assert not any("Precip-Accum12h" in c for c in calls)
+
+    def test_rdps_pcpn_accum_hrs_is_3(self, rdps_builder):
+        *_, cfgpcpn = rdps_builder.build_config_for_hour(6)
+        assert cfgpcpn["pcpn_accum_hrs"] == 3
 
     def test_precip_grib_uses_sfc_level(self, gdps_builder, mock_file_name_builder):
         gdps_builder.build_config_for_hour(6)
