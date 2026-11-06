@@ -1,5 +1,5 @@
 kind: DraftDataset
-name: psu-sfms-daily-fwi-${SUFFIX}
+name: psu-sfms-${SUFFIX}
 title: SFMS API${DISPLAY_SUFFIX}
 notes: |
   The Spatial Fire Management System API provides raster downloads and point

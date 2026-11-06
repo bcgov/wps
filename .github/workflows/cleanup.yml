@@ -92,10 +92,10 @@ jobs:
           TOKEN=$(grep 'api_key:' "${HOME}/.gwa-config.yaml" | awk '{print $2}')
           BASE="https://${APS_HOST}/ds/api/v3/gateways/${GATEWAY_ID}"
 
-          curl -sf -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-${SUFFIX}" \
+          curl -sf -X DELETE "${BASE}/datasets/psu-sfms-${SUFFIX}" \
             -H "Authorization: Bearer ${TOKEN}" || echo "Dataset not found or already deleted"
 
-          PRODUCT_NAME="SFMS Daily Fire Weather Index (${SUFFIX})"
+          PRODUCT_NAME="SFMS API (${SUFFIX})"
           PRODUCT_APP_ID=$(curl -sf "${BASE}/products" \
             -H "Authorization: Bearer ${TOKEN}" | \
             jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
