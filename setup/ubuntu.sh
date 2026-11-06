@@ -67,15 +67,13 @@ stop_progress() {
 stage() {
   stop_progress
   if (( STAGE_NUMBER > 0 )); then
-    printf '%s[DONE] Stage %s/7 (%ss) | Overall: %s%%%s\n' \
-      "$GREEN" "$STAGE_NUMBER" "$((SECONDS - STAGE_STARTED))" "$((STAGE_NUMBER * 100 / 7))" "$RESET" >&3
+    printf '%s[DONE] Stage %s/7 (%ss)%s\n' \
+      "$GREEN" "$STAGE_NUMBER" "$((SECONDS - STAGE_STARTED))" "$RESET" >&3
   fi
   STAGE_NUMBER=$((STAGE_NUMBER + 1))
   STAGE_STARTED=$SECONDS
   printf '\n%s============================================================\n  %s\n============================================================%s\n' \
     "$CYAN" "$1" "$RESET" >&3
-  printf 'Overall: %s%% (%s/7 stages completed)\n' \
-    "$(((STAGE_NUMBER - 1) * 100 / 7))" "$((STAGE_NUMBER - 1))" >&3
   printf '\n=== %s ===\n' "$1"
 
   # Live updates require a terminal; redirected output keeps stable stage summaries.
@@ -101,9 +99,9 @@ stage() {
             build_progress=" | GDAL build: $reported%"
           fi
         fi
-        printf '\r\033[2K%s[%s] Working | Elapsed: %ss | Overall: %s%%%s%s' \
+        printf '\r\033[2K%s[%s] Working | Elapsed: %ss%s%s' \
           "$CYAN" "${frames:frame:1}" "$((SECONDS - STAGE_STARTED))" \
-          "$(((STAGE_NUMBER - 1) * 100 / 7))" "$build_progress" "$RESET" >&3
+          "$build_progress" "$RESET" >&3
         frame=$(((frame + 1) % 4))
         sleep 1
       done
@@ -115,6 +113,16 @@ stage() {
 warning() {
   printf 'WARNING: %s\n' "$1" >&2
   printf '%sWARNING: %s%s\n' "$YELLOW" "$1" "$RESET" >&4
+}
+
+# Authentication happens before logging starts; never allow a later hidden password prompt.
+sudo() {
+  if ! command sudo -n -v; then
+    printf '\n%sSudo authentication is unavailable or expired. Rerun setup to authenticate at the visible initial prompt.%s\n' \
+      "$RED" "$RESET" >&4
+    return 1
+  fi
+  command sudo -n "$@"
 }
 
 finish() {
@@ -340,11 +348,12 @@ source "$NVM_DIR/nvm.sh" --no-use
   corepack enable
 
   echo "Installing web dependencies; see setup/ubuntu.md if registry authentication fails."
-  yarn install
+  # Setup already requests pinned Yarn; prevent a hidden download prompt or other interactive waits.
+  COREPACK_ENABLE_DOWNLOAD_PROMPT=0 yarn install </dev/null
 )
 
 stop_progress
-printf '%s[DONE] Stage 7/7 (%ss) | Overall: 100%%%s\n' \
+printf '%s[DONE] Stage 7/7 (%ss)%s\n' \
   "$GREEN" "$((SECONDS - STAGE_STARTED))" "$RESET" >&3
 printf '\n%s[OK] Local machine, backend, and web dependencies installed.%s\nFull log: %s\n' \
   "$GREEN" "$RESET" "$LOG_FILE" >&3
