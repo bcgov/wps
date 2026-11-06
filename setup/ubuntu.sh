@@ -187,7 +187,7 @@ GDAL_SHA256="5e0c388d83da2d686cc00a40272882432cdb54edff43d4af173e532844a0a0ea"
 # Install into /usr/local without overwriting apt-managed files in /usr.
 if ! command -v gdal-config >/dev/null 2>&1 || [[ "$(gdal-config --version)" != "$GDAL_VERSION" ]]; then
   echo "Building GDAL $GDAL_VERSION from source; this may take a while."
-  curl -fsSL "https://github.com/OSGeo/gdal/releases/download/v$GDAL_VERSION/gdal-$GDAL_VERSION.tar.gz" \
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "https://github.com/OSGeo/gdal/releases/download/v$GDAL_VERSION/gdal-$GDAL_VERSION.tar.gz" \
     -o "$WORK_DIR/gdal.tar.gz"
 
   # Reject an unexpected archive before extracting or compiling it.
@@ -229,7 +229,7 @@ else
   case "$ARCH" in
     amd64|arm64)
       WKHTMLTOPDF_PKG_URL="https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_$ARCH.deb"
-      if curl -fsSL "$WKHTMLTOPDF_PKG_URL" -o "$WORK_DIR/wkhtmltox.deb" \
+      if curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "$WKHTMLTOPDF_PKG_URL" -o "$WORK_DIR/wkhtmltox.deb" \
         && sudo apt-get install -y --no-remove "$WORK_DIR/wkhtmltox.deb" \
         && wkhtmltopdf --version; then
         echo "wkhtmltopdf installed."
@@ -248,7 +248,7 @@ fi
 stage "[4/7] Installing uv and configuring its shell profile"
 
 # Re-run the installer to configure PATH even after an earlier profile-free install.
-curl -fsSL https://astral.sh/uv/install.sh -o "$WORK_DIR/uv-install.sh"
+curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL https://astral.sh/uv/install.sh -o "$WORK_DIR/uv-install.sh"
 
 # The installer skips profiles when its install directory is already on PATH.
 env -u UV_NO_MODIFY_PATH -u INSTALLER_NO_MODIFY_PATH -u UV_UNMANAGED_INSTALL \
@@ -324,7 +324,7 @@ stage "[6/7] Installing backend dependencies and verifying Python GDAL"
 stage "[7/7] Installing Node, Yarn, and web dependencies"
 export NVM_DIR="$HOME/.nvm"
 if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then
-  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh \
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh \
     -o "$WORK_DIR/nvm-install.sh"
   bash "$WORK_DIR/nvm-install.sh"
 fi
