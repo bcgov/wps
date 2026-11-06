@@ -1,6 +1,6 @@
 import { Grid, Icon, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { type ColourBreak, RASTER_CONFIG, type RasterType } from './rasterConfig'
+import { type ColourBreak, NON_FUEL_COLOUR_BREAKS, RASTER_CONFIG, type RasterType } from './rasterConfig'
 
 const LegendGrid = styled(Grid)({
   position: 'absolute',
@@ -32,7 +32,8 @@ interface RasterLegendProps {
 }
 
 const RasterLegend = ({ rasterType }: RasterLegendProps) => {
-  const { label, colourBreaks } = RASTER_CONFIG[rasterType]
+  const { label, colourBreaks, group } = RASTER_CONFIG[rasterType]
+  const legendBreaks = group === 'fbp' ? [...colourBreaks, ...NON_FUEL_COLOUR_BREAKS] : colourBreaks
 
   return (
     <LegendGrid>
@@ -40,7 +41,7 @@ const RasterLegend = ({ rasterType }: RasterLegendProps) => {
         {label}
       </LegendTitle>
       <List dense={true} sx={{ padding: 0 }}>
-        {colourBreaks.map((colourBreak: ColourBreak) => (
+        {legendBreaks.map((colourBreak: ColourBreak) => (
           <ListItem disablePadding key={colourBreak.label}>
             <ListItemIcon>
               <LegendSymbol sx={{ backgroundColor: colourBreak.colour }} />

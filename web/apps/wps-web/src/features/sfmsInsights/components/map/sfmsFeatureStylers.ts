@@ -62,6 +62,16 @@ export const fuelCOGColourExpression = () => {
   return ['case', ...colourCases]
 }
 
+export const nonFuelCOGColourExpression = () => [
+  'case',
+  ...transparentWhenAlphaBandIsZero(),
+  ['==', ['band', RASTER_BAND], 99],
+  [130, 130, 130, 1],
+  ['==', ['band', RASTER_BAND], 102],
+  [115, 223, 255, 1],
+  [0, 0, 0, 0]
+]
+
 // Generate color expression dynamically from color breaks
 export const getSFMSNGRasterColourExpression = (rasterType: SFMSNGRasterType) => {
   const colourBreaks = RASTER_CONFIG[rasterType].colourBreaks

@@ -29,6 +29,7 @@ vi.mock('@/features/sfmsInsights/components/map/layerManager', () => ({
     onLoadingChange: LoadingChangeFn | undefined
     setMap = vi.fn()
     updateLayer = vi.fn()
+    dispose = vi.fn()
     constructor(options?: { onLoadingChange?: LoadingChangeFn; trackLoading?: boolean }) {
       this.onLoadingChange = options?.onLoadingChange
       mockLayerManagerInstances.push(this)
@@ -43,7 +44,8 @@ vi.mock('@/features/sfmsInsights/components/map/layerDefinitions', async () => {
   return {
     ...actual,
     getSnowPMTilesLayer: vi.fn(),
-    getRasterLayer: vi.fn()
+    getRasterLayer: vi.fn(),
+    getNonFuelCOGTiles: vi.fn()
   }
 })
 
@@ -94,6 +96,7 @@ describe('SFMSMap', () => {
     ;(createVectorTileLayer as Mock).mockResolvedValue(createLayerMock('base'))
     ;(layerDefinitions.getSnowPMTilesLayer as Mock).mockReturnValue(mockSnowLayer)
     ;(layerDefinitions.getRasterLayer as Mock).mockReturnValue(mockFireWeatherLayer)
+    ;(layerDefinitions.getNonFuelCOGTiles as Mock).mockReturnValue(createLayerMock('nonFuelRaster'))
     ;(getFireCentreLinePMTilesLayer as Mock).mockReturnValue(mockFireCentreLineLayer)
   })
 
@@ -101,6 +104,60 @@ describe('SFMSMap', () => {
     const { getByTestId } = renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />)
     const map = getByTestId('sfms-map')
     expect(map).toBeVisible()
+  })
+
+  it.each(['sfc', 'tfc', 'cfb', 'hfi', 'ros', 'fmc', 'fire_area_30min'] as const)(
+    'should load a separate Non-fuel overlay for %s and remove it for weather',
+    rasterType => {
+      const store = makeStore()
+      const rasterDate = DateTime.fromISO('2025-11-02')
+      const { rerender } = render(
+        <Provider store={store}>
+          <SFMSMap snowDate={null} rasterDate={rasterDate} rasterType={rasterType} />
+        </Provider>
+      )
+      expect(layerDefinitions.getNonFuelCOGTiles).toHaveBeenCalledWith('test-token')
+      // SFMSMap creates managers in this order: numeric raster, snow, classification.
+      const classificationManager = mockLayerManagerInstances[2]
+      expect(classificationManager.updateLayer).toHaveBeenLastCalledWith(
+        expect.objectContaining({ getProperties: expect.any(Function) })
+      )
+      rerender(
+        <Provider store={store}>
+          <SFMSMap snowDate={null} rasterDate={rasterDate} rasterType="temperature" />
+        </Provider>
+      )
+      expect(classificationManager.updateLayer).toHaveBeenLastCalledWith(null)
+    }
+  )
+
+  it('should not load classification without an output date', () => {
+    renderWithStore(<SFMSMap snowDate={null} rasterDate={null} rasterType="cfb" />)
+    expect(layerDefinitions.getNonFuelCOGTiles).not.toHaveBeenCalled()
+  })
+
+  it.each(['fuel', 'temperature', 'wind_speed', 'ffmc', 'dmc', 'dc', 'isi', 'bui', 'fwi'] as const)(
+    'should leave %s unmasked',
+    rasterType => {
+      renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} rasterType={rasterType} />)
+      expect(layerDefinitions.getNonFuelCOGTiles).not.toHaveBeenCalled()
+    }
+  )
+
+  it('should track classification loading and errors independently of the numeric layer', () => {
+    renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} rasterType="cfb" />)
+    // Trigger the classification manager's callbacks without fetching real raster tiles.
+    const classificationManager = mockLayerManagerInstances[2]
+    act(() => classificationManager.onLoadingChange?.(true))
+    expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    act(() =>
+      classificationManager.onLoadingChange?.(false, { type: 'network', message: 'Classification unavailable' })
+    )
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    expect(screen.getByText(/Non-fuel classification/)).toBeInTheDocument()
+    // Loading the numeric raster successfully must not clear the classification error.
+    act(() => getRasterOnLoadingChange()(false))
+    expect(screen.getByText(/Non-fuel classification/)).toBeInTheDocument()
   })
 
   it('should create only the persistent fire centre boundary layer above raster layers', () => {

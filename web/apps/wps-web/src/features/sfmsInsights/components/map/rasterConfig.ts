@@ -279,6 +279,8 @@ export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value,
   label: fuelCode
 }))
 
+export const NON_FUEL_COLOUR_BREAKS = FUEL_COLOUR_BREAKS.filter(({ min }) => min === 99 || min === 102)
+
 export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   fuel: { group: 'fuel', label: 'Fuel', colourBreaks: FUEL_COLOUR_BREAKS },
   temperature: { group: 'weather', label: 'Temperature', colourBreaks: TEMPERATURE_COLOUR_BREAKS },

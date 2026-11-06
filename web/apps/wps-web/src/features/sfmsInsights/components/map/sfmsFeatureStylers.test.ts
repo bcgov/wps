@@ -18,6 +18,7 @@ import {
   getSFMSNGRasterColourExpression,
   isNodataValue,
   NODATA_THRESHOLD,
+  nonFuelCOGColourExpression,
   SNOW_FILL,
   snowStyler
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
@@ -91,6 +92,21 @@ describe('fuelCOGColourExpression', () => {
     const expr = fuelCOGColourExpression()
     const fallback = expr[expr.length - 1]
     expect(fallback).toEqual([0, 0, 0, 0])
+  })
+})
+
+describe('nonFuelCOGColourExpression', () => {
+  it('should show only Non-fuel and water, preserving transparent NoData', () => {
+    expect(nonFuelCOGColourExpression()).toEqual([
+      'case',
+      ['==', ['band', 2], 0],
+      [0, 0, 0, 0],
+      ['==', ['band', 1], 99],
+      [130, 130, 130, 1],
+      ['==', ['band', 1], 102],
+      [115, 223, 255, 1],
+      [0, 0, 0, 0]
+    ])
   })
 })
 

@@ -1,3 +1,4 @@
+import { RASTER_CONFIG, type RasterType } from './rasterConfig'
 import {
   findRasterLayer,
   getDataAtPixel,
@@ -8,6 +9,18 @@ import {
 import { NODATA_THRESHOLD } from './sfmsFeatureStylers'
 
 describe('getRasterTooltipData', () => {
+  it.each((Object.keys(RASTER_CONFIG) as RasterType[]).filter(type => RASTER_CONFIG[type].group === 'fbp'))(
+    'should preserve valid zero and NoData in %s',
+    rasterType => {
+      // Zero is valid over combustible fuel; CFB formats it as a percentage.
+      expect(getRasterTooltipData(new Float32Array([0, 255]), rasterType).value).toBe(rasterType === 'cfb' ? '0%' : 0)
+      // OpenLayers can return zero for a masked pixel; alpha 0 distinguishes it from valid zero.
+      expect(getRasterTooltipData(new Float32Array([0, 0]), rasterType).value).toBeNull()
+      // Check the source NoData value independently of the alpha mask.
+      expect(getRasterTooltipData(new Float32Array([-3.4028235e38, 255]), rasterType).value).toBeNull()
+    }
+  )
+
   describe('should return null value for invalid data', () => {
     it.each([
       ['null data', null, undefined, 'FWI'],

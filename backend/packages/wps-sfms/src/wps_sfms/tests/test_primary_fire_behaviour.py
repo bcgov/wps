@@ -529,6 +529,44 @@ async def test_processor_publishes_six_outputs_with_values_and_metadata(
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize(
+    "fuel_grid_value, expected_excluded",
+    [
+        pytest.param(101, True, id="non-fuel"),
+        pytest.param(102, True, id="water"),
+        pytest.param(1, False, id="combustible-fuel"),
+    ],
+)
+async def test_processor_passes_national_non_fuel_and_water_mask_to_every_cog(
+    mocker: MockerFixture,
+    output_mask: WPSDataset,
+    fuel_grid_value: int,
+    expected_excluded: bool,
+):
+    """Pass the same fuel-based exclusion mask to all six fire-behaviour COGs."""
+    datasets = make_datasets(np.array([[fuel_grid_value]], dtype=np.float32))
+    # Keep the pixel inside the BC boundary so only its fuel classification determines exclusion.
+    output_mask.as_gdal_ds().GetRasterBand(1).Fill(1)
+    publish = mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.publish_dataset",
+        new=AsyncMock(),
+    )
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+
+    await PrimaryFireBehaviourProcessor(TEST_DATETIME).process(
+        s3_client,
+        make_dataset_context(datasets),
+        make_inputs(),
+    )
+
+    # SFC, ROS, HFI, TFC, CFB and 30-minute fire size must all receive the mask.
+    assert publish.await_count == 6
+    expected_mask = np.array([[expected_excluded]], dtype=bool)
+    for call in publish.await_args_list:
+        np.testing.assert_array_equal(call.kwargs["cog_non_fuel_mask"], expected_mask)
+
+
+@pytest.mark.anyio
 async def test_processor_publish_failure_propagates_and_clears_cache(
     mocker: MockerFixture,
     output_mask: WPSDataset,

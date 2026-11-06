@@ -1,10 +1,18 @@
 import type { MapBrowserEvent } from 'ol'
 import type { EventsKey } from 'ol/events'
 import { Interaction } from 'ol/interaction'
+import WebGLTileLayer from 'ol/layer/WebGLTile'
 import { unByKey } from 'ol/Observable'
-import { SNOW_LAYER_NAME } from './layerDefinitions'
+import { NON_FUEL_LAYER_NAME, SNOW_LAYER_NAME } from './layerDefinitions'
 import { RASTER_CONFIG } from './rasterConfig'
-import { findRasterLayer, getDataAtPixel, getRasterType, type RasterTooltipValue } from './rasterTooltipHandler'
+import {
+  findRasterLayer,
+  getDataAtPixel,
+  getRasterData,
+  getRasterTooltipData,
+  getRasterType,
+  type RasterTooltipValue
+} from './rasterTooltipHandler'
 
 export interface RasterTooltipData extends RasterTooltipValue {
   snowCovered?: boolean
@@ -84,6 +92,28 @@ export class RasterTooltipInteraction extends Interaction {
     if (snowCovered && (group === 'fwi' || group === 'fbp')) {
       this.onTooltipChange({ label: '', value: 'Snow', pixel, snowCovered })
       return
+    }
+
+    if (group === 'fbp') {
+      // The numeric COG masks Non-fuel and Water as NoData; the fuel overlay supplies their labels.
+      const classification = map
+        .getLayers()
+        .getArray()
+        .find(layer => layer.getProperties().name === NON_FUEL_LAYER_NAME)
+      const fuel =
+        classification instanceof WebGLTileLayer
+          ? getRasterTooltipData(getRasterData(classification, pixel), 'fuel').value
+          : null
+      // Without classification, do not show a numeric value that could belong to Non-fuel or Water.
+      if (fuel === null || fuel === 'Non-fuel' || fuel === 'Water') {
+        this.onTooltipChange({
+          value: fuel,
+          label: '',
+          pixel,
+          snowCovered
+        })
+        return
+      }
     }
 
     // Get tooltip data from the raster layer at the pixel location
