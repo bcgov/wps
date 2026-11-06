@@ -61,12 +61,12 @@
             }
         },
         {
-            "name": "api (sfms-fwi)",
+            "name": "api (sfms)",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "app.sfms_fwi_main:app",
+                "app.sfms_main:app",
                 "--host",
                 "0.0.0.0",
                 "--port",

@@ -3,9 +3,9 @@
 source "$(dirname ${0})/common/common"
 
 #%
-#% OpenShift SFMS Daily FWI API Deploy Helper
+#% OpenShift SFMS API Deploy Helper
 #%
-#%   Deploy the dedicated SFMS Daily FWI API service used behind APS.
+#%   Deploy the dedicated SFMS API service used behind APS.
 #%   The service has no public route — it is reachable only from the
 #%   APS gateway via NetworkPolicy.
 #%

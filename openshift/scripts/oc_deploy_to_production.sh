@@ -59,9 +59,9 @@ echo Deploy ASA Go API
 PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_asa_go_api.sh prod render >>"${BATCH_FILE}"
 echo Allow APS to reach ASA Go API
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_asa_go_gateway_networkpolicy.sh prod render >>"${BATCH_FILE}"
-echo Deploy SFMS Daily FWI API
+echo Deploy SFMS API
 PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_sfms_fwi_api.sh prod render >>"${BATCH_FILE}"
-echo Allow APS to reach SFMS Daily FWI API
+echo Allow APS to reach SFMS API
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_fwi_gateway_networkpolicy.sh prod render >>"${BATCH_FILE}"
 
 echo ECCC Consumer

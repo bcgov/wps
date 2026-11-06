@@ -3,7 +3,7 @@ description: Render, publish, and upload an APS gateway configuration. Requires 
 
 inputs:
   config-name:
-    description: Short name used for the rendered config path and artifact name (e.g. asa-go, sfms-fwi)
+    description: Short name used for the rendered config path and artifact name (e.g. asa-go, sfms)
     required: true
   render-script:
     description: Repo-relative render script; must accept [SUFFIX] [OUTPUT_PATH] args and read APS_NAMESPACE, PROJECT_NAMESPACE, and GW_HOST from the environment

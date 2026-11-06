@@ -3,10 +3,10 @@ kind: Template
 metadata:
   name: ${APP_NAME}-sfms-fwi-api
   annotations:
-    openshift.io/display-name: "wps sfms-fwi api"
-    description: "Wildfire Predictive Services - SFMS Daily FWI API"
-    openshift.io/long-description: "Wildfire Predictive Services - SFMS Daily FWI API. Internal service exposed only through the APS gateway."
-    tags: "wps,sfms-fwi"
+    openshift.io/display-name: "SFMS API"
+    description: "Spatial Fire Management System API for Wildfire Predictive Services"
+    openshift.io/long-description: "Spatial Fire Management System API for Wildfire Predictive Services. Internal service exposed only through the APS gateway."
+    tags: "wps,sfms"
     iconClass: icon-js
     openshift.io/provider-display-name: "Government of British Columbia"
     openshift.io/documentation-url: "https://github.com/bcgov/wps"
@@ -86,7 +86,7 @@ objects:
               name: ${APP_NAME}-sfms-fwi-api
               env:
                 - name: APP_MODULE
-                  value: app.sfms_fwi_main:app
+                  value: app.sfms_main:app
                 - name: POSTGRES_READ_USER
                   valueFrom:
                     secretKeyRef:

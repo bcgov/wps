@@ -57,7 +57,7 @@ jobs:
           name: asa-go-aps-gateway-config-cleanup-${{ env.SUFFIX }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
-      - name: Publish SFMS FWI APS cleanup config
+      - name: Publish SFMS APS cleanup config
         uses: ./.github/actions/gwa-publish
         with:
           gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
@@ -67,13 +67,13 @@ jobs:
           qualifier: fwi-${{ env.SUFFIX }}
           host: api-gov-bc-ca.test.api.gov.bc.ca
 
-      - name: Upload SFMS FWI APS cleanup config
+      - name: Upload SFMS APS cleanup config
         uses: actions/upload-artifact@v7
         with:
-          name: sfms-fwi-aps-gateway-config-cleanup-${{ env.SUFFIX }}
+          name: sfms-aps-gateway-config-cleanup-${{ env.SUFFIX }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
-      - name: Delete SFMS FWI dataset and product from API Directory
+      - name: Delete SFMS dataset and product from API Directory
         shell: bash
         env:
           GATEWAY_ID: ${{ env.APS_TEST_GATEWAY_ID }}

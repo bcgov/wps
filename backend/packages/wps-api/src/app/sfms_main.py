@@ -1,9 +1,4 @@
-"""Standalone entrypoint for the SFMS Daily FWI API service.
-
-This app exists so the SFMS Daily FWI endpoints can be deployed as a separate
-internal service (reachable only through the APS Kong gateway) while the main
-WPS API keeps its existing public /api surface.
-"""
+"""serve legacy SFMS and SFMS NG raster endpoints through the APS Kong gateway."""
 
 import logging
 
@@ -15,14 +10,17 @@ from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.utils.s3_client import s3_client_lifespan
 from wps_shared.wps_logging import configure_logging
 
-from app.routers import sfms_fwi
+from app.routers import sfms_fwi, sfms_ng
 
 configure_logging()
 
 logger = logging.getLogger(__name__)
 
 API_INFO = """
-    Description: API for SFMS daily FWI rasters
+    Description: SFMS raster downloads and point sampling.
+
+    Versioned daily endpoints provide SFMS NG actuals and forecasts for FWI, FBP,
+    and weather inputs. Existing daily FWI and hourly FFMC endpoints use legacy SFMS.
 
     Warranty Disclaimer:
 
@@ -64,7 +62,7 @@ if config.get("ENVIRONMENT") == "production":
         profiles_sample_rate=0.5,
     )
 
-api = FastAPI(title="SFMS Daily FWI API", description=API_INFO, version="0.0.0")
+api = FastAPI(title="SFMS Raster API", description=API_INFO, version="0.0.0")
 app = Starlette(lifespan=s3_client_lifespan)
 app.mount("/api", app=api)
 
@@ -84,6 +82,7 @@ app.middleware("http")(catch_exception_middleware)
 api.middleware("http")(catch_exception_middleware)
 
 api.include_router(sfms_fwi.router, tags=["SFMS Daily FWI"])
+api.include_router(sfms_ng.router)
 
 
 @api.get("/ready")

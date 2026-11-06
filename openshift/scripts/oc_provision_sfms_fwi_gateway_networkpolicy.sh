@@ -3,10 +3,10 @@
 source "$(dirname ${0})/common/common"
 
 #%
-#% OpenShift SFMS FWI API gateway network policy helper
+#% OpenShift SFMS API gateway network policy helper
 #%
 #%   Apply the NetworkPolicy that allows APS to reach the dedicated
-#%   SFMS Daily FWI API pods. Required for the SFMS Daily FWI APS
+#%   SFMS API pods. Required for the SFMS APS
 #%   gateway route.
 #%
 #% Usage:
