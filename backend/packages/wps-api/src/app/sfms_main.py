@@ -20,10 +20,10 @@ logger = logging.getLogger(__name__)
 API_INFO = dedent("""
     Description: SFMS raster downloads and point sampling.
 
-    Versioned daily endpoints provide SFMS NG actuals and forecasts for FWI, FBP,
-    and weather inputs. Existing daily FWI and hourly FFMC endpoints use legacy SFMS.
+    Versioned daily endpoints provide actuals and forecasts from the modernized SFMS
+    for FWI, FBP, and weather inputs. Existing daily FWI and hourly FFMC endpoints use legacy SFMS.
 
-    SFMS NG daily GET endpoints use URL query parameters.
+    Daily GET endpoints for the modernized SFMS use URL query parameters.
     Point sampling requires `lat` and `lon`. The optional `run_type` query parameter
     accepts `actual` or `forecast` and defaults to `actual`.
 

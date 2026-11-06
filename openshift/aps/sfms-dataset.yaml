@@ -4,9 +4,10 @@ title: SFMS API${DISPLAY_SUFFIX}
 notes: |
   The Spatial Fire Management System API provides raster downloads and point
   sampling for fire weather indices, fire behaviour predictions, and their inputs.
-  Currently available products include daily SFMS NG rasters and legacy SFMS hourly FFMC.
+  Currently available products include daily rasters from the modernized SFMS
+  and legacy SFMS hourly FFMC.
 
-  Endpoints under /api/sfms/v1/daily use SFMS NG. Select actuals or forecasts with
+  Endpoints under /api/sfms/v1/daily use the modernized SFMS. Select actuals or forecasts with
   run_type=actual or run_type=forecast. The default is actual.
 
   FWI outputs include ffmc, dmc, dc, isi, bui, fwi, and danger_rating.
@@ -17,7 +18,7 @@ notes: |
   date and run type, and is unavailable if that run has no recorded archived input.
 
   Existing /api/sfms/daily-fwi endpoints continue to provide legacy SFMS daily FWI
-  actuals and hourly FFMC. New hourly SFMS NG endpoints are not available yet.
+  actuals and hourly FFMC. Hourly endpoints for the modernized SFMS are not available yet.
   Each endpoint documents its source system. Downloads support HTTP range requests.
   Point samples return null on nodata or outside the raster extent.
 

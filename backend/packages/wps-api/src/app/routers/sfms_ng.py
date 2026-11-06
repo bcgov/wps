@@ -65,13 +65,13 @@ Longitude = Annotated[
 RequestedRunType = Annotated[
     RunType,
     Query(
-        description="SFMS NG run type query parameter. Defaults to actual.",
+        description="Run type query parameter for the modernized SFMS. Defaults to actual.",
         examples=["actual", "forecast"],
     ),
 ]
 
 _SOURCE_DESCRIPTION = """
-Source system: SFMS NG. Select actuals or forecasts with `run_type`.
+Source system: modernized SFMS. Select actuals or forecasts with `run_type`.
 The date identifies the target day, not the time the forecast was issued.
 Daily output rasters can be overwritten by later runs and are not an atomic snapshot.
 FMC is shared by date across actual and forecast runs. Grass curing is the archived
@@ -115,7 +115,7 @@ _RASTER_RESPONSES = {
 
 class DailyPointResponse(BaseModel):
     date: Date = Field(description="Target date of the sampled rasters")
-    run_type: RunType = Field(description="Requested SFMS NG run type")
+    run_type: RunType = Field(description="Requested modernized SFMS run type")
     latitude: float = Field(description="Latitude supplied in the request")
     longitude: float = Field(description="Longitude supplied in the request")
 
