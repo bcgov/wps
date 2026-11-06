@@ -8,13 +8,13 @@ objects:
     metadata:
       name: allow-gateway-to-${APP_NAME}-${SUFFIX}-sfms-fwi
       labels:
-        app: ${APP_NAME}-${SUFFIX}-sfms-fwi
+        app: ${APP_NAME}-${SUFFIX}-sfms
     spec:
       policyTypes:
         - Ingress
       podSelector:
         matchLabels:
-          name: ${APP_NAME}-${SUFFIX}-sfms-fwi
+          name: ${APP_NAME}-${SUFFIX}-sfms
       ingress:
         - from:
             - namespaceSelector:

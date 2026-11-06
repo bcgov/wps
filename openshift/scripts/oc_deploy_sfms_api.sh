@@ -21,10 +21,10 @@ source "$(dirname ${0})/common/common"
 #
 
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
-OBJ_NAME="${APP_NAME}-${SUFFIX}-sfms-fwi"
+OBJ_NAME="${APP_NAME}-${SUFFIX}-sfms"
 DEPLOY_VERSION="${DEPLOY_VERSION:-$(date +%s)}"
 
-OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/sfms_fwi_api.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/sfms_api.yaml \
  -p APP_NAME=${APP_NAME} \
  -p SUFFIX=${SUFFIX} \
  -p POSTGRES_DATABASE=${POSTGRES_DATABASE:-${APP_NAME}} \

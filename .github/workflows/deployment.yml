@@ -231,12 +231,12 @@ jobs:
       - name: Deploy SFMS API to Dev
         shell: bash
         run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_fwi_api.sh ${SUFFIX} apply
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_api.sh ${SUFFIX} apply
 
       - name: Allow APS to reach SFMS API
         shell: bash
         run: |
-          bash openshift/scripts/oc_provision_sfms_fwi_gateway_networkpolicy.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_sfms_gateway_networkpolicy.sh ${SUFFIX} apply
 
   publish-aps-gateway-dev:
     name: Publish APS Gateway Config to Dev

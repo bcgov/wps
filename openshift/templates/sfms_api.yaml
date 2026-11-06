@@ -1,7 +1,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: ${APP_NAME}-sfms-fwi-api
+  name: ${APP_NAME}-sfms-api
   annotations:
     openshift.io/display-name: "SFMS API"
     description: "Spatial Fire Management System API for Wildfire Predictive Services"
@@ -12,8 +12,8 @@ metadata:
     openshift.io/documentation-url: "https://github.com/bcgov/wps"
     openshift.io/support-url: "https://github.com/bcgov/wps"
 labels:
-  app.kubernetes.io/part-of: "${APP_NAME}-sfms-fwi-api"
-  app: ${APP_NAME}-${SUFFIX}-sfms-fwi
+  app.kubernetes.io/part-of: "${APP_NAME}-sfms-api"
+  app: ${APP_NAME}-${SUFFIX}-sfms
 parameters:
   - name: APP_NAME
     description: Application name
@@ -62,19 +62,19 @@ objects:
     kind: Deployment
     metadata:
       labels:
-        app: ${APP_NAME}-${SUFFIX}-sfms-fwi
-      name: ${APP_NAME}-${SUFFIX}-sfms-fwi
+        app: ${APP_NAME}-${SUFFIX}-sfms
+      name: ${APP_NAME}-${SUFFIX}-sfms
     spec:
       replicas: ${{REPLICAS}}
       selector:
         matchLabels:
-          name: ${APP_NAME}-${SUFFIX}-sfms-fwi
+          name: ${APP_NAME}-${SUFFIX}-sfms
       strategy:
         type: RollingUpdate
       template:
         metadata:
           labels:
-            name: ${APP_NAME}-${SUFFIX}-sfms-fwi
+            name: ${APP_NAME}-${SUFFIX}-sfms
           annotations:
             # changes once per deploy so the pod template rolls one time
             wps/deploy-version: ${DEPLOY_VERSION}
@@ -83,7 +83,7 @@ objects:
           containers:
             - image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${APP_NAME}-api-${SUFFIX}:${SUFFIX}
               imagePullPolicy: Always
-              name: ${APP_NAME}-sfms-fwi-api
+              name: ${APP_NAME}-sfms-api
               env:
                 - name: APP_MODULE
                   value: app.sfms_main:app
@@ -189,7 +189,7 @@ objects:
     kind: Service
     metadata:
       labels:
-        app: ${APP_NAME}-${SUFFIX}-sfms-fwi
+        app: ${APP_NAME}-${SUFFIX}-sfms
       name: ${APP_NAME}-sfms-fwi-api-${SUFFIX}
     spec:
       ports:
@@ -198,4 +198,4 @@ objects:
           port: 80
           targetPort: 8080
       selector:
-        name: ${APP_NAME}-${SUFFIX}-sfms-fwi
+        name: ${APP_NAME}-${SUFFIX}-sfms

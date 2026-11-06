@@ -1,6 +1,7 @@
 """daily raster downloads and point sampling for SFMS NG."""
 
 import asyncio
+import logging
 import math
 from datetime import date as Date
 from datetime import datetime, time, timezone
@@ -21,6 +22,8 @@ from wps_shared.sfms.raster_addresser import (
 from wps_shared.utils.s3_client import S3Client, get_s3_client
 
 from app.routers.object_store_proxy import _proxy
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 daily_router = APIRouter(prefix="/daily", tags=["SFMS Daily rasters"])
@@ -237,6 +240,14 @@ async def _sample_value(
     lon: float,
 ) -> float | None:
     key = await _raster_key(s3_client, for_date, parameter, run_type)
+    logger.info(
+        "Sampling %s %s raster at (%s, %s) from %s",
+        run_type.value,
+        parameter.value,
+        lat,
+        lon,
+        key,
+    )
     raster_bytes = await _read_object(s3_client, key)
     with WPSDataset.from_bytes(raster_bytes) as dataset:
         value = dataset.extract_value_at_point(lat, lon)
@@ -270,6 +281,7 @@ async def _values_response(s3_client, for_date, parameters, run_type, lat, lon):
 
 async def _download_raster(request, s3_client, for_date, parameter, run_type):
     key = await _raster_key(s3_client, for_date, parameter, run_type)
+    logger.info("Streaming %s %s raster: %s", run_type.value, parameter.value, key)
     return await _proxy(key, request.headers.get("range"), s3_client.stream)
 
 
