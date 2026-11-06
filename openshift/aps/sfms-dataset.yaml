@@ -4,18 +4,13 @@ title: SFMS API${DISPLAY_SUFFIX}
 notes: |
   The Spatial Fire Management System API provides raster downloads and point
   sampling for fire weather indices, fire behaviour predictions, and their inputs.
-  Currently available products include daily rasters from the modernized SFMS
+  Currently available products include daily actuals and forecasts from the modernized SFMS
   and legacy SFMS hourly FFMC.
 
-  Endpoints under /api/sfms/v1/daily use the modernized SFMS. Select actuals or forecasts with
-  run_type=actual or run_type=forecast. The default is actual.
-
-  FWI outputs include ffmc, dmc, dc, isi, bui, fwi, and danger_rating.
-  FBP outputs include sfc, ros, hfi, tfc, cfb, fire_area_30min, and fmc.
-  Weather inputs include temperature, relative_humidity, wind_speed, wind_direction,
-  precipitation, and grass_curing. FMC is shared by date across run types.
-  Grass curing is the archived input from the latest successful run for the requested
-  date and run type, and is unavailable if that run has no recorded archived input.
+  FWI outputs include FFMC, DMC, DC, ISI, BUI, FWI, and danger rating.
+  FBP outputs include SFC, ROS, HFI, TFC, CFB, 30 minute fire size, and FMC.
+  Weather inputs include temperature, relative humidity, wind speed, wind direction,
+  precipitation, and grass curing.
 
   Existing /api/sfms/daily-fwi endpoints continue to provide legacy SFMS daily FWI
   actuals and hourly FFMC. Hourly endpoints for the modernized SFMS are not available yet.
@@ -31,7 +26,18 @@ notes: |
     for background on FBP.
 
   Access requires an API key issued through the API Services Portal.
-tags: [sfms, fwi, fbp, weather, fire-weather-index, wildfire, fire-danger, cffdrs, openapi]
+tags:
+  [
+    sfms,
+    fwi,
+    fbp,
+    weather,
+    fire-weather-index,
+    wildfire,
+    fire-danger,
+    cffdrs,
+    openapi,
+  ]
 organization: ministry-of-forests
 organizationUnit: bc-wildfire-service
 # License options: https://bcgov.github.io/data-publication/pages/dps_licences.html
