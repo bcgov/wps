@@ -1,6 +1,6 @@
 #!/bin/sh -l
 #
-#% SFMS Daily FWI APS dataset and product resource render helper
+#% SFMS APS dataset and product resource render helper
 #%
 #%   Render DraftDataset and Product YAML for a specific environment.
 #%   Output files are written to OUTPUT_DIR (default: openshift/aps/rendered/).
@@ -35,8 +35,8 @@ OUTPUT_DIR="${2:-$(dirname "$0")/../aps/rendered}"
 	exit 1
 }
 
-DATASET_TEMPLATE="${DATASET_TEMPLATE:-$(dirname "$0")/../aps/sfms-fwi-dataset.yaml}"
-PRODUCT_TEMPLATE="${PRODUCT_TEMPLATE:-$(dirname "$0")/../aps/sfms-fwi-product.yaml}"
+DATASET_TEMPLATE="${DATASET_TEMPLATE:-$(dirname "$0")/../aps/sfms-dataset.yaml}"
+PRODUCT_TEMPLATE="${PRODUCT_TEMPLATE:-$(dirname "$0")/../aps/sfms-product.yaml}"
 
 # DISPLAY_SUFFIX is empty for prod so directory titles stay clean.
 # ENV_TIER is the APS product environment tier shown to consumers (fixed set: dev/test/sandbox/prod).
@@ -58,8 +58,8 @@ fi
 
 mkdir -p "${OUTPUT_DIR}"
 
-DATASET_OUT="${OUTPUT_DIR}/sfms-fwi-dataset-${SUFFIX}.yaml"
-PRODUCT_OUT="${OUTPUT_DIR}/sfms-fwi-product-${SUFFIX}.yaml"
+DATASET_OUT="${OUTPUT_DIR}/sfms-dataset-${SUFFIX}.yaml"
+PRODUCT_OUT="${OUTPUT_DIR}/sfms-product-${SUFFIX}.yaml"
 
 export SUFFIX
 export DISPLAY_SUFFIX

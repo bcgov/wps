@@ -1,6 +1,6 @@
 #!/bin/sh -l
 #
-#% SFMS Daily FWI APS gateway config render helper
+#% SFMS APS gateway config render helper
 #%
 #%   Render the declarative APS gateway config for a specific environment.
 #%
@@ -15,7 +15,7 @@
 #%   ${THIS_FILE} pr-0
 #%
 #%   PROJECT_NAMESPACE=e1e498-prod APS_NAMESPACE=gw-313f6 GW_HOST=sfms-fwi.api.gov.bc.ca \
-#%   ${THIS_FILE} prod /tmp/sfms-fwi-gw-config-prod.yaml
+#%   ${THIS_FILE} prod /tmp/sfms-gw-config-prod.yaml
 #
 
 set -euo pipefail
@@ -23,8 +23,8 @@ IFS=$'\n\t'
 
 THIS_FILE="$(dirname "$0")/$(basename "$0")"
 SUFFIX="${1:-}"
-OUTPUT_PATH="${2:-$(dirname "$0")/../aps/rendered/sfms-fwi-gw-config-${SUFFIX}.yaml}"
-TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/sfms-fwi-gw-config.yaml}"
+OUTPUT_PATH="${2:-$(dirname "$0")/../aps/rendered/sfms-gw-config-${SUFFIX}.yaml}"
+TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/sfms-gw-config.yaml}"
 
 [ -n "${SUFFIX}" ] || {
 	sed -n \
@@ -54,7 +54,7 @@ TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/sfms-fwi-gw-config.yaml}"
 	exit 1
 }
 
-FWI_SERVICE_NAME="${FWI_SERVICE_NAME:-psu-sfms-fwi-${SUFFIX}}"
+SFMS_SERVICE_NAME="${SFMS_SERVICE_NAME:-psu-sfms-fwi-${SUFFIX}}"
 
 mkdir -p "$(dirname "${OUTPUT_PATH}")"
 
@@ -62,10 +62,10 @@ export SUFFIX
 export PROJECT_NAMESPACE
 export APS_NAMESPACE
 export GW_HOST
-export FWI_SERVICE_NAME
+export SFMS_SERVICE_NAME
 
 envsubst \
-	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${GW_HOST} ${FWI_SERVICE_NAME}' \
+	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${GW_HOST} ${SFMS_SERVICE_NAME}' \
 	<"${TEMPLATE_PATH}" >"${OUTPUT_PATH}"
 
 echo "${OUTPUT_PATH}"

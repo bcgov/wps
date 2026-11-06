@@ -1,11 +1,7 @@
-"""Standalone entrypoint for the SFMS Daily FWI API service.
-
-This app exists so the SFMS Daily FWI endpoints can be deployed as a separate
-internal service (reachable only through the APS Kong gateway) while the main
-WPS API keeps its existing public /api surface.
-"""
+"""serve legacy SFMS and SFMS NG raster endpoints through the APS Kong gateway."""
 
 import logging
+from textwrap import dedent
 
 import sentry_sdk
 from fastapi import FastAPI, Request, Response
@@ -15,14 +11,27 @@ from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.utils.s3_client import s3_client_lifespan
 from wps_shared.wps_logging import configure_logging
 
-from app.routers import sfms_fwi
+from app.routers import sfms_fwi, sfms_ng
 
 configure_logging()
 
 logger = logging.getLogger(__name__)
 
-API_INFO = """
-    Description: API for SFMS daily FWI rasters
+API_INFO = dedent("""
+    Description: SFMS raster downloads and point sampling.
+
+    Versioned daily endpoints provide actuals and forecasts from the modernized SFMS
+    for FWI, FBP, and weather inputs. Existing daily FWI and hourly FFMC endpoints use legacy SFMS.
+
+    Daily GET endpoints for the modernized SFMS use URL query parameters.
+    Point sampling requires `lat` and `lon`. The optional `run_type` query parameter
+    accepts `actual` or `forecast` and defaults to `actual`.
+
+    Example request:
+
+    ```http
+    GET /api/sfms/v1/daily/fwi/2026-10-13/ffmc/value?lat=49.0&lon=-123.0&run_type=forecast
+    ```
 
     Warranty Disclaimer:
 
@@ -54,7 +63,7 @@ API_INFO = """
     other software to which this site is linked, including, without
     limitation, any lost profits, business interruption, or loss of
     programs or information, even if the Government of British Columbia
-    has been specifically advised of the possibility of such damages."""
+    has been specifically advised of the possibility of such damages.""")
 
 if config.get("ENVIRONMENT") == "production":
     sentry_sdk.init(
@@ -64,7 +73,7 @@ if config.get("ENVIRONMENT") == "production":
         profiles_sample_rate=0.5,
     )
 
-api = FastAPI(title="SFMS Daily FWI API", description=API_INFO, version="0.0.0")
+api = FastAPI(title="SFMS Raster API", description=API_INFO, version="1.0.0")
 app = Starlette(lifespan=s3_client_lifespan)
 app.mount("/api", app=api)
 
@@ -83,7 +92,8 @@ async def catch_exception_middleware(request: Request, call_next):
 app.middleware("http")(catch_exception_middleware)
 api.middleware("http")(catch_exception_middleware)
 
-api.include_router(sfms_fwi.router, tags=["SFMS Daily FWI"])
+api.include_router(sfms_fwi.router)
+api.include_router(sfms_ng.router, prefix="/sfms/v1")
 
 
 @api.get("/ready")
@@ -105,4 +115,4 @@ async def get_health():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="127.0.0.1", port=8080)

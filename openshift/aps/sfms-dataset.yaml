@@ -1,0 +1,47 @@
+kind: DraftDataset
+name: psu-sfms-${SUFFIX}
+title: SFMS API${DISPLAY_SUFFIX}
+notes: |
+  The Spatial Fire Management System API provides raster downloads and point
+  sampling for fire weather indices, fire behaviour predictions, and their inputs.
+  Currently available products include daily actuals and forecasts from the modernized SFMS
+  and legacy SFMS hourly FFMC.
+
+  FWI outputs include FFMC, DMC, DC, ISI, BUI, FWI, and danger rating.
+  FBP outputs include SFC, ROS, HFI, TFC, CFB, 30 minute fire size, and FMC.
+  Weather inputs include temperature, relative humidity, wind speed, wind direction,
+  precipitation, and grass curing.
+
+  Existing /api/sfms/daily-fwi endpoints continue to provide legacy SFMS daily FWI
+  actuals and hourly FFMC. Hourly endpoints for the modernized SFMS are not available yet.
+  Each endpoint documents its source system. Downloads support HTTP range requests.
+  Point samples return null on nodata or outside the raster extent.
+
+  Documentation and background:
+
+  - [SFMS API specification](https://${DOCS_HOST}/api/docs) for endpoint details.
+  - [Canada's Fire Weather Index System](https://natural-resources.canada.ca/forests-forestry/wildland-fires/canada-fire-weather-index-system)
+    for background on FWI.
+  - [Canada's Fire Behaviour Prediction System](https://natural-resources.canada.ca/forests-forestry/wildland-fires/canada-fire-behaviour-prediction-system)
+    for background on FBP.
+
+  Access requires an API key issued through the API Services Portal.
+tags:
+  [
+    sfms,
+    fwi,
+    fbp,
+    weather,
+    fire-weather-index,
+    wildfire,
+    fire-danger,
+    cffdrs,
+    openapi,
+  ]
+organization: ministry-of-forests
+organizationUnit: bc-wildfire-service
+# License options: https://bcgov.github.io/data-publication/pages/dps_licences.html
+license_title: Access Only
+view_audience: Government
+security_class: PUBLIC
+record_publish_date: "2026-06-30"

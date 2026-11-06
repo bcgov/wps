@@ -68,11 +68,11 @@ jobs:
           suffix: prod
           host: api.gov.bc.ca
 
-      - name: Render and publish SFMS FWI APS gateway config
+      - name: Render and publish SFMS APS gateway config
         uses: ./.github/actions/aps-publish
         with:
-          config-name: sfms-fwi
-          render-script: openshift/scripts/render_sfms_fwi_gateway_config.sh
+          config-name: sfms
+          render-script: openshift/scripts/render_sfms_gateway_config.sh
           gateway-id: ${{ env.APS_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
@@ -80,8 +80,8 @@ jobs:
           qualifier-prefix: fwi-
           host: api.gov.bc.ca
 
-      - name: Publish SFMS FWI dataset and product to API Directory
-        uses: ./.github/actions/sfms-fwi-aps-apply
+      - name: Publish SFMS dataset and product to API Directory
+        uses: ./.github/actions/sfms-aps-apply
         with:
           gateway-id: ${{ env.APS_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_ACCT_ID }}
