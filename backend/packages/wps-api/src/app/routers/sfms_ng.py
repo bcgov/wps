@@ -22,7 +22,7 @@ from wps_shared.utils.s3_client import S3Client, get_s3_client
 
 from app.routers.object_store_proxy import _proxy
 
-router = APIRouter(prefix="/sfms/v1")
+router = APIRouter()
 daily_router = APIRouter(prefix="/daily", tags=["SFMS Daily rasters"])
 _addresser = SFMSNGRasterAddresser()
 

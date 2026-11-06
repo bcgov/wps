@@ -73,7 +73,7 @@ if config.get("ENVIRONMENT") == "production":
         profiles_sample_rate=0.5,
     )
 
-api = FastAPI(title="SFMS Raster API", description=API_INFO, version="0.0.0")
+api = FastAPI(title="SFMS Raster API", description=API_INFO, version="1.0.0")
 app = Starlette(lifespan=s3_client_lifespan)
 app.mount("/api", app=api)
 
@@ -93,7 +93,7 @@ app.middleware("http")(catch_exception_middleware)
 api.middleware("http")(catch_exception_middleware)
 
 api.include_router(sfms_fwi.router)
-api.include_router(sfms_ng.router)
+api.include_router(sfms_ng.router, prefix="/sfms/v1")
 
 
 @api.get("/ready")
