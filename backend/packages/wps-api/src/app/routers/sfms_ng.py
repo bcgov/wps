@@ -22,7 +22,8 @@ from wps_shared.utils.s3_client import S3Client, get_s3_client
 
 from app.routers.object_store_proxy import _proxy
 
-router = APIRouter(prefix="/sfms/v1/daily", tags=["SFMS Daily rasters"])
+router = APIRouter(prefix="/sfms/v1")
+daily_router = APIRouter(prefix="/daily", tags=["SFMS Daily rasters"])
 _addresser = SFMSNGRasterAddresser()
 
 
@@ -272,7 +273,7 @@ async def _download_raster(request, s3_client, for_date, parameter, run_type):
     return await _proxy(key, request.headers.get("range"), s3_client.stream)
 
 
-@router.get(
+@daily_router.get(
     "/fwi/{for_date}/values",
     response_model=DailyFWIValuesResponse,
     responses=_ERROR_RESPONSES,
@@ -289,7 +290,7 @@ async def get_daily_fwi_values(
     return await _values_response(s3_client, for_date, DailyFWIParameter, run_type, lat, lon)
 
 
-@router.get(
+@daily_router.get(
     "/fbp/{for_date}/values",
     response_model=DailyFBPValuesResponse,
     responses=_ERROR_RESPONSES,
@@ -306,7 +307,7 @@ async def get_daily_fbp_values(
     return await _values_response(s3_client, for_date, DailyFBPParameter, run_type, lat, lon)
 
 
-@router.get(
+@daily_router.get(
     "/weather/{for_date}/values",
     response_model=DailyWeatherValuesResponse,
     responses=_ERROR_RESPONSES,
@@ -323,7 +324,7 @@ async def get_daily_weather_values(
     return await _values_response(s3_client, for_date, DailyWeatherParameter, run_type, lat, lon)
 
 
-@router.get(
+@daily_router.get(
     "/fwi/{for_date}/{parameter}/value",
     response_model=DailyValueResponse,
     responses=_ERROR_RESPONSES,
@@ -341,7 +342,7 @@ async def get_daily_fwi_value(
     return await _value_response(s3_client, for_date, parameter, run_type, lat, lon)
 
 
-@router.get(
+@daily_router.get(
     "/fbp/{for_date}/{parameter}/value",
     response_model=DailyValueResponse,
     responses=_ERROR_RESPONSES,
@@ -359,7 +360,7 @@ async def get_daily_fbp_value(
     return await _value_response(s3_client, for_date, parameter, run_type, lat, lon)
 
 
-@router.get(
+@daily_router.get(
     "/weather/{for_date}/{parameter}/value",
     response_model=DailyValueResponse,
     responses=_ERROR_RESPONSES,
@@ -377,7 +378,7 @@ async def get_daily_weather_value(
     return await _value_response(s3_client, for_date, parameter, run_type, lat, lon)
 
 
-@router.get(
+@daily_router.get(
     "/fwi/{for_date}/{parameter}",
     response_class=Response,
     responses=_RASTER_RESPONSES,
@@ -394,7 +395,7 @@ async def get_daily_fwi_raster(
     return await _download_raster(request, s3_client, for_date, parameter, run_type)
 
 
-@router.get(
+@daily_router.get(
     "/fbp/{for_date}/{parameter}",
     response_class=Response,
     responses=_RASTER_RESPONSES,
@@ -411,7 +412,7 @@ async def get_daily_fbp_raster(
     return await _download_raster(request, s3_client, for_date, parameter, run_type)
 
 
-@router.get(
+@daily_router.get(
     "/weather/{for_date}/{parameter}",
     response_class=Response,
     responses=_RASTER_RESPONSES,
@@ -426,3 +427,6 @@ async def get_daily_weather_raster(
     run_type: RequestedRunType = RunType.ACTUAL,
 ):
     return await _download_raster(request, s3_client, for_date, parameter, run_type)
+
+
+router.include_router(daily_router)
