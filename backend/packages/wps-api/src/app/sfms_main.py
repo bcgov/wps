@@ -1,6 +1,7 @@
 """serve legacy SFMS and SFMS NG raster endpoints through the APS Kong gateway."""
 
 import logging
+from textwrap import dedent
 
 import sentry_sdk
 from fastapi import FastAPI, Request, Response
@@ -16,11 +17,21 @@ configure_logging()
 
 logger = logging.getLogger(__name__)
 
-API_INFO = """
+API_INFO = dedent("""
     Description: SFMS raster downloads and point sampling.
 
     Versioned daily endpoints provide SFMS NG actuals and forecasts for FWI, FBP,
     and weather inputs. Existing daily FWI and hourly FFMC endpoints use legacy SFMS.
+
+    SFMS NG daily GET endpoints use URL query parameters.
+    Point sampling requires `lat` and `lon`. The optional `run_type` query parameter
+    accepts `actual` or `forecast` and defaults to `actual`.
+
+    Example request:
+
+    ```http
+    GET /api/sfms/v1/daily/fwi/2026-10-13/ffmc/value?lat=49.0&lon=-123.0&run_type=forecast
+    ```
 
     Warranty Disclaimer:
 
@@ -52,7 +63,7 @@ API_INFO = """
     other software to which this site is linked, including, without
     limitation, any lost profits, business interruption, or loss of
     programs or information, even if the Government of British Columbia
-    has been specifically advised of the possibility of such damages."""
+    has been specifically advised of the possibility of such damages.""")
 
 if config.get("ENVIRONMENT") == "production":
     sentry_sdk.init(

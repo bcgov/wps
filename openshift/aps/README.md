@@ -79,10 +79,10 @@ input from the latest successful manifest for the requested date and run type.
 Daily output keys can be overwritten by later runs, so requests do not provide an
 atomic snapshot of a completed run.
 
-The Directory title is `SFMS API`. The registered Product name remains
-`SFMS Daily Fire Weather Index${DISPLAY_SUFFIX}`, and its dataset identifier remains
-`psu-sfms-daily-fwi-${SUFFIX}`. Renaming or recreating the Product creates a new appId
-and would require consumers to obtain approval again.
+The Directory title is `SFMS API`. The Product name is
+`SFMS API${DISPLAY_SUFFIX}`, and the dataset identifier is `psu-sfms-${SUFFIX}`.
+For an existing Product, use Edit Product in the APS portal to rename it before
+publishing. This preserves its appId, environments, and existing approvals.
 
 The Kong service identifier `psu-sfms-fwi-${SUFFIX}`, gateway tags, publish qualifier,
 and OpenShift resource names also retain their original FWI names. Keep these stable
@@ -151,10 +151,10 @@ TOKEN=$(grep 'api_key:' ~/.gwa-config.yaml | awk '{print $2}')
 BASE="https://api-gov-bc-ca.test.api.gov.bc.ca/ds/api/v3/gateways/<test-gateway-id>"
 
 # Dataset: delete by name
-curl -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-<suffix>" -H "Authorization: Bearer ${TOKEN}"
+curl -X DELETE "${BASE}/datasets/psu-sfms-<suffix>" -H "Authorization: Bearer ${TOKEN}"
 
 # Product: the DELETE endpoint uses appId, not the product name
-PRODUCT_NAME="SFMS Daily Fire Weather Index (<suffix>)"
+PRODUCT_NAME="SFMS API (<suffix>)"
 PRODUCT_APP_ID=$(curl -s "${BASE}/products" -H "Authorization: Bearer ${TOKEN}" | \
   jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
 curl -X DELETE "${BASE}/products/${PRODUCT_APP_ID}" -H "Authorization: Bearer ${TOKEN}"

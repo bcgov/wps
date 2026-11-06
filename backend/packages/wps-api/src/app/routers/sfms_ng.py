@@ -58,10 +58,16 @@ class DailyWeatherParameter(StrEnum):
 DailyParameter = DailyFWIParameter | DailyFBPParameter | DailyWeatherParameter
 SharedS3Client = Annotated[S3Client, Depends(get_s3_client)]
 ForDate = Annotated[Date, Path(description="Target date of the raster", examples=["2026-10-13"])]
-Latitude = Annotated[float, Query(ge=-90, le=90, description="Latitude in WGS84")]
-Longitude = Annotated[float, Query(ge=-180, le=180, description="Longitude in WGS84")]
+Latitude = Annotated[float, Query(ge=-90, le=90, description="Latitude in WGS84", examples=[49.0])]
+Longitude = Annotated[
+    float, Query(ge=-180, le=180, description="Longitude in WGS84", examples=[-123.0])
+]
 RequestedRunType = Annotated[
-    RunType, Query(description="SFMS NG run type. Defaults to actual observations.")
+    RunType,
+    Query(
+        description="SFMS NG run type query parameter. Defaults to actual.",
+        examples=["actual", "forecast"],
+    ),
 ]
 
 _SOURCE_DESCRIPTION = """
@@ -81,16 +87,17 @@ Download the original GeoTIFF. Supports HTTP range requests with a 206 response.
 _VALUE_DESCRIPTION = (
     _SOURCE_DESCRIPTION
     + """
-Sample the raster at a WGS84 coordinate. Nodata and points outside the extent return
-`value: null`. A 404 means the raster or required archived input is unavailable.
+Sample the raster at a WGS84 coordinate supplied through the `lat` and `lon` query
+parameters. Nodata and points outside the extent return `value: null`. A 404 means
+the raster or required archived input is unavailable.
 """
 )
 _VALUES_DESCRIPTION = (
     _SOURCE_DESCRIPTION
     + """
-Sample every parameter in this family at a WGS84 coordinate. Each parameter is null
-on nodata or outside its raster extent. A missing required raster returns 404 for
-the entire request.
+`/values` samples all parameters in this family at one WGS84 coordinate supplied
+through the `lat` and `lon` query parameters. Each parameter is null on nodata or
+outside its raster extent. A missing required raster returns 404 for the entire request.
 """
 )
 _ERROR_RESPONSES = {
