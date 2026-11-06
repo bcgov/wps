@@ -65,7 +65,7 @@ gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier <suffix>
 The Spatial Fire Management System API provides raster downloads and point sampling.
 The dedicated `wps-sfms-fwi-api` service is reachable through the APS gateway, which
 requires an API key and applies rate limits. The service has no public OpenShift route.
-Its network policy is in `openshift/templates/allow_gateway_to_wps_sfms_fwi_api.yaml`.
+Its network policy is in `openshift/templates/allow_gateway_to_wps_sfms_api.yaml`.
 
 The authenticated gateway route exposes `/api/sfms/v1/daily/{fwi,fbp,weather}`
 for SFMS NG raster downloads and point sampling. Use `run_type=actual` or
