@@ -53,7 +53,7 @@ class ConfigBuilder:
             tzinfo=timezone.utc
         )
         valid_dt = init_dt + timedelta(hours=fh)
-        return f"F{fh:03d} Valid: {valid_dt:%a %Y-%m-%d %HZ}"
+        return f"T+{fh:03d}H Valid: {valid_dt:%a %Y-%m-%d %HZ}"
 
     def build_config_for_hour(self, fh: int) -> Tuple[Dict, Dict, Dict, Dict]:
         """
@@ -85,9 +85,13 @@ class ConfigBuilder:
         if fh == 0:
             cfgpcpn["show_precip"] = False  # jet-only at analysis time
         else:
-            precip_string = "Precip-Accum6h" if self.model == ECCCModel.GDPS else "Precip-Accum3h"
+            if self.model == ECCCModel.GDPS:
+                precip_string = "Precip-Accum6h"
+                cfgpcpn["pcpn_accum_hrs"] = 6
+            else:
+                precip_string = "Precip-Accum3h"
+                cfgpcpn["pcpn_accum_hrs"] = 3
             cfgpcpn["show_precip"] = True
             cfgpcpn["pcpn_grib"] = self._grib_key(fh, precip_string, "Sfc")
-
 
         return cfg500, cfgmslp, cfg700, cfgpcpn
