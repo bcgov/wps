@@ -92,7 +92,7 @@ async def catch_exception_middleware(request: Request, call_next):
 app.middleware("http")(catch_exception_middleware)
 api.middleware("http")(catch_exception_middleware)
 
-api.include_router(sfms_fwi.router, tags=["SFMS Daily FWI"])
+api.include_router(sfms_fwi.router, tags=["Legacy SFMS Daily FWI"])
 api.include_router(sfms_ng.router)
 
 
