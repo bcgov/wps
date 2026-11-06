@@ -19,7 +19,8 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 Run the backend and front end natively — see the per-component setup docs:
 
-- Backend: [backend/README.md](backend/README.md) (uv, GDAL, Postgres/PostGIS, Redis). On macOS, `setup/mac.sh` installs the system dependencies.
+- Ubuntu 26.04 LTS (WSL 2 or native Linux): complete backend and frontend setup [setup/ubuntu.md](setup/ubuntu.md).
+- Backend: [backend/README.md](backend/README.md) (uv, GDAL, Postgres/PostGIS, Redis; macOS dependencies via [`setup/mac.sh`](setup/mac.sh)).
 - Frontend: [web/README.md](web/README.md) (Node/yarn).
 
 ### Installing
@@ -29,7 +30,7 @@ container flows further down are **currently unsupported** and may be out of dat
 
 #### Running the api (native — recommended)
 
-Refer to [backend/packages/wps-api/README.md](backend/packages/wps-api/README.md) (setup in [backend/README.md](backend/README.md); on macOS, `setup/mac.sh` installs the dependencies).
+Refer to [backend/packages/wps-api/README.md](backend/packages/wps-api/README.md) (Ubuntu setup in [setup/ubuntu.md](setup/ubuntu.md); other backend setup in [backend/README.md](backend/README.md)).
 
 #### Running the front end (native — recommended)
 

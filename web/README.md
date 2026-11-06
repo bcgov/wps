@@ -4,6 +4,9 @@
 
 ### Dependencies
 
+On Ubuntu 26.04 LTS, follow the [complete Ubuntu setup guide](../setup/ubuntu.md).
+The manual steps below apply to other platforms or when updating dependencies.
+
 #### [Node.js](https://nodejs.org/en/)
 
 You'll need Node.js and Yarn. Use [nvm](https://github.com/nvm-sh/nvm#installation) or [nvm-windows](https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows) to switch Node versions between projects. The repository root contains a `.nvmrc` with the required version.

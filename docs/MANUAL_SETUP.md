@@ -1,8 +1,10 @@
 # Manual Setup
 
 The backend is a `uv`-managed Python workspace (see [backend/README.md](../backend/README.md)).
-On macOS most of this is automated by [`setup/mac.sh`](../setup/mac.sh); this document
-covers the manual steps and platform-specific notes.
+Most of this is automated by [`setup/mac.sh`](../setup/mac.sh) on macOS and
+[`setup/ubuntu.sh`](../setup/ubuntu.sh) on Ubuntu 26.04 LTS. For Ubuntu, use the
+[complete setup guide](../setup/ubuntu.md); this document covers other platforms
+and manual setup.
 
 #### Local machine, in docker
 
@@ -161,25 +163,10 @@ namespace", then:
 
 #### Local machine, running Linux
 
-##### Ubuntu
+##### Ubuntu 26.04 LTS
 
-The production base image (`openshift/wps-api-base/docker/Dockerfile`) is the
-authoritative list of system dependencies. On a comparable Ubuntu host:
-
-```bash
-sudo apt install python3 python3-pip python3-dev python-is-python3
-# geospatial / build dependencies
-sudo apt install libgdal-dev libproj-dev libgeos-dev libsqlite3-dev libxml2-dev cmake build-essential
-# required by cffdrs
-sudo apt install libudunits2-dev
-# postgres client headers (for psycopg2)
-sudo apt install libpq-dev
-# the jdk (for running tests against RedAPP)
-sudo apt install default-jdk
-```
-
-Install `uv` (<https://docs.astral.sh/uv/>) and run `uv sync --all-extras` from
-`backend/`. The python `gdal` package must match the system libgdal version.
+See [setup/ubuntu.md](../setup/ubuntu.md) for installation, environment configuration,
+migrations, backend/frontend startup, and troubleshooting.
 
 ##### Fedora
 
@@ -225,6 +212,9 @@ make docker-db         # docker compose up db
 Runs a local Postgres/PostGIS container and creates the `wps` database.
 
 #### Natively
+
+For Ubuntu, follow [setup/ubuntu.md](../setup/ubuntu.md). The Homebrew instructions
+below are macOS-specific.
 
 We use Homebrew `postgresql@17` + `postgis` locally. (This became viable once the
 project's GDAL pin moved to current homebrew-core — brew `postgis` links the same
@@ -278,7 +268,7 @@ cd backend && uv pip install --upgrade setuptools
 
 ### Required Software
 
-The following is a list of required software applications and packages. Some of these can be installed automatically using the `setup/mac.sh` script.
+The following is a list of required software applications and packages. Some can be installed automatically using [`setup/mac.sh`](../setup/mac.sh) or [`setup/ubuntu.sh`](../setup/ubuntu.sh).
 
 - VS Code (technically there are other options, but this is arguably the best)
   - using the "Python: Select Interpreter" command within VS Code, select `backend/.venv/bin/python`

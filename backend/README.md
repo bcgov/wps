@@ -32,6 +32,12 @@ You will need an environment file at the **repo root**: copy `.env.example` (in 
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
 
+#### Ubuntu
+
+For Ubuntu 26.04 LTS (WSL 2 or native Linux), follow the
+[complete Ubuntu setup guide](../setup/ubuntu.md). The automated script installs
+backend and frontend dependencies, including the Python dependencies below.
+
 ### Setup
 
 - Installation section above is completed
