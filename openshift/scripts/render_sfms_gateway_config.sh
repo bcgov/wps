@@ -11,10 +11,10 @@
 #%
 #% Examples:
 #%
-#%   PROJECT_NAMESPACE=e1e498-dev APS_NAMESPACE=dev GW_HOST=sfms-fwi-pr-0.api.gov.bc.ca \
+#%   PROJECT_NAMESPACE=e1e498-dev APS_NAMESPACE=dev GW_HOST=psu-pr-0.api.gov.bc.ca \
 #%   ${THIS_FILE} pr-0
 #%
-#%   PROJECT_NAMESPACE=e1e498-prod APS_NAMESPACE=gw-313f6 GW_HOST=sfms-fwi.api.gov.bc.ca \
+#%   PROJECT_NAMESPACE=e1e498-prod APS_NAMESPACE=gw-313f6 GW_HOST=psu.api.gov.bc.ca \
 #%   ${THIS_FILE} prod /tmp/sfms-gw-config-prod.yaml
 #
 

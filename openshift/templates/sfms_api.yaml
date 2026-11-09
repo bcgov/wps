@@ -190,7 +190,7 @@ objects:
     metadata:
       labels:
         app: ${APP_NAME}-${SUFFIX}-sfms
-      name: ${APP_NAME}-sfms-fwi-api-${SUFFIX}
+      name: ${APP_NAME}-sfms-api-${SUFFIX}
     spec:
       ports:
         - name: 8080-tcp

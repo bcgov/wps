@@ -1,12 +1,12 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: allow-gateway-to-wps-sfms-fwi-api
+  name: allow-gateway-to-wps-sfms-api
 objects:
   - apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
-      name: allow-gateway-to-${APP_NAME}-${SUFFIX}-sfms-fwi
+      name: allow-gateway-to-${APP_NAME}-${SUFFIX}-sfms
       labels:
         app: ${APP_NAME}-${SUFFIX}-sfms
     spec:
