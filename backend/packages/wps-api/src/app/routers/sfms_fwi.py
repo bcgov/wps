@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/sfms/daily-fwi",
     tags=["Legacy SFMS Daily FWI"],
+    deprecated=True,
 )
 
 # Used for looking up the existing SFMS system run by geospatial, uploaded to
