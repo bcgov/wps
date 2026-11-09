@@ -1,4 +1,4 @@
-"""serve legacy SFMS and SFMS NG raster endpoints through the APS Kong gateway."""
+"""Serves legacy SFMS and SFMS NG raster endpoints through the APS Kong gateway."""
 
 import logging
 from textwrap import dedent
