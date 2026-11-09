@@ -332,8 +332,23 @@ stage "[6/7] Installing backend dependencies and verifying Python GDAL"
   # Prefer the new native GDAL and rebuild cached bindings that may link to Ubuntu's older library.
   LDFLAGS="-L/usr/local/lib ${LDFLAGS:-}" uv sync --all-extras --locked --no-cache --reinstall-package gdal
 
-  # A successful wheel build alone does not prove the runtime loader finds the correct GDAL.
-  uv run python -c 'from osgeo import gdal; from importlib.metadata import version; assert gdal.__version__ == version("gdal"); print("Python GDAL", gdal.__version__)'
+  # Check the GDAL library loaded at runtime, not just the Python package's version metadata.
+  # GDAL's VERSION_NUM format is major*1000000 + minor*10000 + patch*100.
+  IFS=. read -r GDAL_MAJOR GDAL_MINOR GDAL_PATCH <<< "$GDAL_VERSION"
+  # Force base 10 so a component with a leading zero isn't parsed as octal.
+  GDAL_VERSION_NUM=$((10#$GDAL_MAJOR * 1000000 + 10#$GDAL_MINOR * 10000 + 10#$GDAL_PATCH * 100))
+  GDAL_VERSION_NUM="$GDAL_VERSION_NUM" uv run python - <<-'PY'
+	import os
+	from osgeo import gdal
+
+	# VersionInfo reports the native GDAL library the Python binding loaded.
+	expected_version = int(os.environ["GDAL_VERSION_NUM"])
+	loaded_version = int(gdal.VersionInfo("VERSION_NUM"))
+	assert loaded_version == expected_version, (
+	    f"Expected GDAL {expected_version}, but Python loaded {loaded_version}"
+	)
+	print("Loaded GDAL", gdal.VersionInfo("RELEASE_NAME"))
+	PY
 )
 
 ### node + yarn + web dependencies
