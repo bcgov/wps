@@ -2,9 +2,8 @@
 
 The backend is a `uv`-managed Python workspace (see [backend/README.md](../backend/README.md)).
 Most of this is automated by [`setup/mac.sh`](../setup/mac.sh) on macOS and
-[`setup/ubuntu.sh`](../setup/ubuntu.sh) on Ubuntu 26.04 LTS. For Ubuntu, use the
-[complete setup guide](../setup/ubuntu.md); this document covers other platforms
-and manual setup.
+[`setup/ubuntu.sh`](../setup/ubuntu.sh) on Ubuntu (see the
+[Ubuntu setup guide](../setup/ubuntu.md)).
 
 #### Local machine, in docker
 
@@ -163,7 +162,7 @@ namespace", then:
 
 #### Local machine, running Linux
 
-##### Ubuntu 26.04 LTS
+##### Ubuntu
 
 See [setup/ubuntu.md](../setup/ubuntu.md) for installation, environment configuration,
 migrations, backend/frontend startup, and troubleshooting.
