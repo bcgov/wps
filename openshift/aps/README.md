@@ -68,7 +68,7 @@ requires an API key and applies rate limits. The service has no public OpenShift
 Its network policy is in `openshift/templates/allow_gateway_to_wps_sfms_api.yaml`.
 
 The authenticated gateway route exposes `/api/sfms/v1/daily/{fwi,fbp,weather}`
-for SFMS NG raster downloads and point sampling. Use `run_type=actual` or
+for raster downloads and point sampling from the modernized SFMS. Use `run_type=actual` or
 `run_type=forecast`, with actual as the default. Each family provides
 `/{for_date}/{parameter}`, `/{for_date}/{parameter}/value`, and `/{for_date}/values`.
 The legacy `/api/sfms/daily-fwi` routes remain available for daily FWI and hourly FFMC.
@@ -85,7 +85,7 @@ For an existing Product, use Edit Product in the APS portal to rename it before
 publishing. This preserves its appId, environments, and existing approvals.
 
 The Kong service identifier `psu-sfms-fwi-${SUFFIX}`, gateway tags, publish qualifier,
-and OpenShift resource names also retain their original FWI names. Keep these stable
+and OpenShift Service and NetworkPolicy names retain their original FWI names. Keep these stable
 when publishing so updates use the existing resources and consumer access. The renderer
 accepts `SFMS_SERVICE_NAME` as an override, with the registered service name as its default.
 
