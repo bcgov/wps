@@ -4,7 +4,8 @@ import logging
 from textwrap import dedent
 
 import sentry_sdk
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
+from fastapi.security import APIKeyHeader
 from starlette.applications import Starlette
 from wps_shared import config
 from wps_shared.chatops_notification import send_chatops_notification
@@ -23,6 +24,10 @@ API_INFO = dedent("""
     Versioned daily endpoints provide actuals and forecasts from the modernized SFMS
     for FWI, FBP, and weather inputs. Existing daily FWI and hourly FFMC endpoints use legacy SFMS.
 
+    Request access to SFMS API through the [API Services Portal](https://api.gov.bc.ca).
+    Once approved, send your API key in the `X-API-Key` header on data requests.
+    In Swagger UI, select Authorize and enter your key. Documentation is publicly accessible.
+
     Daily GET endpoints for the modernized SFMS use URL query parameters.
     Point sampling requires `lat` and `lon`. The optional `run_type` query parameter
     accepts `actual` or `forecast` and defaults to `actual`.
@@ -31,6 +36,7 @@ API_INFO = dedent("""
 
     ```http
     GET /api/sfms/v1/daily/fwi/2026-10-13/ffmc/value?lat=49.0&lon=-123.0&run_type=forecast
+    X-API-Key: YOUR_API_KEY
     ```
 
     Warranty Disclaimer:
@@ -73,7 +79,15 @@ if config.get("ENVIRONMENT") == "production":
         profiles_sample_rate=0.5,
     )
 
-api = FastAPI(title="SFMS Raster API", description=API_INFO, version="1.0.0")
+api = FastAPI(
+    title="SFMS Raster API",
+    description=API_INFO,
+    version="1.0.0",
+    license_info={
+        "name": "Access Only",
+        "url": "https://www2.gov.bc.ca/gov/content/home/copyright",
+    },
+)
 app = Starlette(lifespan=s3_client_lifespan)
 app.mount("/api", app=api)
 
@@ -92,8 +106,29 @@ async def catch_exception_middleware(request: Request, call_next):
 app.middleware("http")(catch_exception_middleware)
 api.middleware("http")(catch_exception_middleware)
 
-api.include_router(sfms_fwi.router)
-api.include_router(sfms_ng.router, prefix="/sfms/v1")
+# the gateway strips credentials before forwarding requests, so missing keys must be accepted
+gateway_api_key = APIKeyHeader(
+    name="X-API-Key",
+    scheme_name="ApiKeyAuth",
+    description="API key issued through the API Services Portal at https://api.gov.bc.ca.",
+    auto_error=False,
+)
+GATEWAY_RESPONSES = {
+    401: {"description": "Gateway authentication failed: API key is missing or invalid"},
+    429: {"description": "Gateway rate limit exceeded: 60 requests per minute per consumer"},
+}
+
+api.include_router(
+    sfms_fwi.router,
+    dependencies=[Depends(gateway_api_key)],
+    responses=GATEWAY_RESPONSES,
+)
+api.include_router(
+    sfms_ng.router,
+    prefix="/sfms/v1",
+    dependencies=[Depends(gateway_api_key)],
+    responses=GATEWAY_RESPONSES,
+)
 
 
 @api.get("/ready")
