@@ -111,8 +111,6 @@ echo Configure GDPS 4panel charts
 PROJ_TARGET=${PROJ_TARGET} END_HOUR=240 STEP=6 MODEL=GDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
 echo Configure RDPS 4panel charts
 PROJ_TARGET=${PROJ_TARGET} END_HOUR=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
-echo Copy 4panel charts and GRIBs to lowercase keys
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_copy_objects_to_lowercase_job.sh prod >>"${BATCH_FILE}"
 
 echo Logging alerts
 oc -n ${PROJ_TARGET} process --local -f $(dirname ${0})/../logging-alerts/nats_alerts.yaml >>"${BATCH_FILE}"
