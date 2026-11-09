@@ -23,20 +23,19 @@ backend/
 
 You will need an environment file at the **repo root**: copy `.env.example` (in the repo root) to `.env`. python-decouple discovers it by walking up from the package directory, so it must live at the repo root, not in `backend/`. Contact current maintainers for current variable settings.
 
-### Installing
+### Automated Install (Mac or Ubuntu)
 
-- Automated (mac only):
+- For Mac:
   - Run `setup/mac.sh` in parent folder
   - Follow [manual setup](../docs/MANUAL_SETUP.md) for database setup notes as of Nov 2024.
   - Follow [vsc setup steps](../setup/VSC.md)
+
+- For Ubuntu (WSL 2 or native Linux): follow the [Ubuntu setup guide](../setup/ubuntu.md).
+
+### Manual Install on Linux
+
 - Manual (linux): See [manual setup](../docs/MANUAL_SETUP.md).
   Note: you may want to alias `python3` as `python` in your profile
-
-#### Ubuntu
-
-For Ubuntu 26.04 LTS (WSL 2 or native Linux), follow the
-[complete Ubuntu setup guide](../setup/ubuntu.md). The automated script installs
-backend and frontend dependencies, including the Python dependencies below.
 
 ### Setup
 
