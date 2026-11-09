@@ -30,7 +30,7 @@ vi.mock('@/features/fireWatch/components/DetailPanelContent', () => ({
   default: ({ row }: any) => <div data-testid="detail-panel">Detail: {row.title}</div>
 }))
 
-describe('FireWatchDashboard', async () => {
+describe('FireWatchDashboard', () => {
   let testStore: ReturnType<typeof createTestStore>
   beforeEach(() => {
     LicenseInfo.setLicenseKey(MUI_LICENSE)

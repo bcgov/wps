@@ -23,7 +23,7 @@ FUEL_GRID_INSTALL_SUSPEND="${FUEL_GRID_INSTALL_SUSPEND:-false}"
 JOB_NAME="fuel-grid-install-${FUEL_RASTER_YEAR}-${APP_NAME}-${SUFFIX}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/fuel_grid_install_job.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/fuel_grid_install_job.yaml \
 -p NAME=${APP_NAME} \
 -p SUFFIX=${SUFFIX} \
 -p CRUNCHYDB_USER=${CRUNCHY_NAME}-${SUFFIX}-pguser-${CRUNCHY_NAME}-${SUFFIX} \
@@ -38,6 +38,7 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 
 # Execute commands
 #
+render_and_exit_if_requested "${OC_PROCESS}"
 eval "${OC_PROCESS}"
 eval "${OC_PROCESS} | ${OC_APPLY}"
 

@@ -86,9 +86,10 @@ class GribDownloader:
         :param file: FileToDownload with URL and S3 key
         :return: True if success, False otherwise
         """
-        # skip if already exists
-        if await self.s3_client.object_exists(file.s3_key):
-            logger.debug(f"Skipping existing file: {file.s3_key}")
+        # GeoDrive expects lowercase keys in the object store.
+        key = file.s3_key.lower()
+        if await self.s3_client.object_exists(key):
+            logger.debug(f"Skipping existing file: {key}")
             return True
 
         for attempt in range(1, self.max_retries + 1):
@@ -101,8 +102,8 @@ class GribDownloader:
                     response.raise_for_status()
                     data = await response.read()
 
-                await self.s3_client.put_object(key=file.s3_key, body=data)
-                logger.info(f"✅ Uploaded {file.s3_key}")
+                await self.s3_client.put_object(key=key, body=data)
+                logger.info(f"✅ Uploaded {key}")
                 return True
 
             except Exception as e:

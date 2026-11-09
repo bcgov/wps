@@ -32,7 +32,7 @@ DEPLOY_VERSION="${DEPLOY_VERSION:-$(date +%s)}"
 
 # Process a template (mostly variable substition)
 #
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${PATH_DEPLOY} \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${PATH_DEPLOY} \
  -p SUFFIX=${SUFFIX} \
  -p PROJECT_NAMESPACE=${PROJ_TARGET} \
  -p POSTGRES_USER=${CRUNCHY_NAME}-${SUFFIX} \
@@ -56,13 +56,14 @@ OC_APPLY="oc -n ${PROJ_TARGET} apply -f -"
 [ "${APPLY}" ] || OC_APPLY="${OC_APPLY} --dry-run=client"
 
 # Run the OC_PROCESS command
+render_and_exit_if_requested "${OC_PROCESS}"
 eval ${OC_PROCESS}
 
 # Run OC_PROCESS and pipe it to OC_APPLY
 eval "${OC_PROCESS} | ${OC_APPLY}"
 
 # Wait for rollout to finish
-oc -n ${PROJ_TARGET} rollout status deployment/${OBJ_NAME}
+[ ! "${APPLY}" ] || wait_for_rollouts "${OBJ_NAME}"
 
 # Provide oc command instruction
 #

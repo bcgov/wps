@@ -24,11 +24,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Build and push WPS Weather image
-        uses: bcgov/actions/builder@122a9b1c6c082b1b1f18c300020fbdc417b6b0b2 # v0.10.0
+        uses: bcgov/actions/builder@091f1da89c669d36bf4899830381e5b12d2c889a # v0.11.0
         with:
           package: wps-weather
-          build_context: .
-          build_file: backend/packages/wps-weather/Dockerfile
+          context: .
+          file: backend/packages/wps-weather/Dockerfile
           tags: ${{ env.SUFFIX }}
 
   deployments:
@@ -58,4 +58,9 @@ jobs:
       - name: Deploy ECCC Consumer
         shell: bash
         run: |
-          bash openshift/scripts/oc_provision_eccc_grib_consumer.sh ${SUFFIX} apply
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" bash openshift/scripts/oc_provision_eccc_grib_consumer.sh ${SUFFIX} apply
+
+      - name: Delete Uppercase 4-Panel Charts and GRIBs
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_delete_uppercase_objects_job.sh ${SUFFIX} | oc -n e1e498-dev apply -f -

@@ -26,8 +26,6 @@ RUN_TYPE=$2
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 set -ex
-echo Configure
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats_server_config.sh prod ${RUN_TYPE}
 echo Promote
 MODULE_NAME=api bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 MODULE_NAME=web bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
@@ -43,106 +41,91 @@ MODULE_NAME=s3-backup bash $(dirname ${0})/oc_promote.sh ${SUFFIX} ${RUN_TYPE}
 # already default WEATHER_IMAGE to (since they're called with SUFFIX=prod).
 PACKAGE=wps-weather bash $(dirname ${0})/oc_promote_gh.sh ${SUFFIX} ${RUN_TYPE}
 
-echo Provision database
-PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=2 MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=15Gi REPLICAS=3 bash $(dirname ${0})/oc_provision_crunchy.sh prod ${RUN_TYPE}
+# Everything below is rendered locally (`oc process --local`, no API calls) into one file
+# and applied with a single `oc apply`, followed by rollout checks and post-apply steps.
+# Connections to the OpenShift API server intermittently fail mid-deploy, so every call
+# saved is one less chance of a failed deploy.
+BATCH_FILE=$(mktemp)
 
+echo Configure NATS server
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_nats_server_config.sh prod render >>"${BATCH_FILE}"
+echo Provision database
+PROJ_TARGET=${PROJ_TARGET} BUCKET=lwzrin CPU_REQUEST=2 MEMORY_REQUEST=2Gi MEMORY_LIMIT=16Gi DATA_SIZE=65Gi WAL_SIZE=15Gi REPLICAS=3 bash $(dirname ${0})/oc_provision_crunchy.sh prod render >>"${BATCH_FILE}"
 echo Provision NATS
-PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_provision_nats.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_provision_nats.sh prod render >>"${BATCH_FILE}"
 echo Deploy API
-MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m MEMORY_REQUEST=6Gi MEMORY_LIMIT=8Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy.sh prod ${RUN_TYPE}
+MODULE_NAME=api GUNICORN_WORKERS=8 CPU_REQUEST=100m MEMORY_REQUEST=6Gi MEMORY_LIMIT=8Gi REPLICAS=3 PROJ_TARGET=${PROJ_TARGET} VANITY_DOMAIN=psu.nrs.gov.bc.ca SECOND_LEVEL_DOMAIN=apps.silver.devops.gov.bc.ca ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy.sh prod render >>"${BATCH_FILE}"
 echo Deploy ASA Go API
-PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_asa_go_api.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_asa_go_api.sh prod render >>"${BATCH_FILE}"
 echo Allow APS to reach ASA Go API
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_asa_go_gateway_networkpolicy.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_asa_go_gateway_networkpolicy.sh prod render >>"${BATCH_FILE}"
 echo Deploy SFMS Daily FWI API
-PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_sfms_fwi_api.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_sfms_fwi_api.sh prod render >>"${BATCH_FILE}"
 echo Allow APS to reach SFMS Daily FWI API
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_fwi_gateway_networkpolicy.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_fwi_gateway_networkpolicy.sh prod render >>"${BATCH_FILE}"
 
 echo ECCC Consumer
-PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod ${RUN_TYPE}
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod render >>"${BATCH_FILE}"
 
 echo Fuel Grid Install
-PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=2026 FUEL_GRID_INSTALL_SUSPEND=true bash $(dirname ${0})/oc_provision_fuel_grid_install_job.sh prod ${RUN_TYPE}
-
-# Temporary batch file to apply all cronjobs in one call, to avoid hitting the OpenShift API rate limit.
-BATCH_FILE=$(mktemp)
+PROJ_TARGET=${PROJ_TARGET} FUEL_RASTER_YEAR=2026 FUEL_GRID_INSTALL_SUSPEND=true bash $(dirname ${0})/oc_provision_fuel_grid_install_job.sh prod render >>"${BATCH_FILE}"
 
 echo S3 Data Retention
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_s3_data_retention.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo Env Canada Subscriber
 PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_gdps_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_hrdps_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo NOAA Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo ECMWF Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ecmwf_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo VIIRS Snow
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo Grass Curing
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_grass_curing_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo RDPS for SFMS
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_rdps_sfms_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo SFMS Raster Calculations
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_calculations_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo SFMS Daily Actuals
 PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_sfms_daily_actuals_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo SFMS Forecast 15:00 UTC- 8:00 AM PDT
 PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=8am SCHEDULE="0 15 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo SFMS Forecast 00:45 UTC - 5:45 PM PDT
 PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi JOB_SUFFIX=545pm SCHEDULE="45 0 * * *" bash $(dirname ${0})/oc_provision_sfms_daily_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo Fire Watch Weather Calculations
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_fire_watch_weather_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo BC FireWeather cronjobs
 echo "Run forecast at 8h30 PDT and 16h30 PDT (so before and after noon)"
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="30 * * * *" bash $(dirname ${0})/oc_provision_wfwx_noon_forecasts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="15 * * * *" bash $(dirname ${0})/oc_provision_wfwx_hourly_actuals_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo "Configure partitioner to run every month on day 1 at 00:00"
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 6 1 * *" bash $(dirname ${0})/oc_provision_partitioner_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo Configure backups
 PROJ_TARGET=${PROJ_TARGET} CPU_REQUEST=1000m bash $(dirname ${0})/oc_provision_backup_s3_postgres_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo Configure hourly pruner
 PROJ_TARGET=${PROJ_TARGET} SCHEDULE="0 2 * * *" bash $(dirname ${0})/oc_provision_hourly_prune_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo Configure GDPS 4panel charts
 PROJ_TARGET=${PROJ_TARGET} END_HOUR=240 STEP=6 MODEL=GDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
 echo Configure RDPS 4panel charts
 PROJ_TARGET=${PROJ_TARGET} END_HOUR=84 STEP=3 MODEL=RDPS bash $(dirname ${0})/oc_provision_wx_4panel_charts_cronjob.sh prod >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
+echo Delete uppercase 4panel charts and GRIBs
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_delete_uppercase_objects_job.sh prod >>"${BATCH_FILE}"
 
 echo Logging alerts
-cat $(dirname ${0})/../logging-alerts/nats_alerts.yaml >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-cat $(dirname ${0})/../logging-alerts/sfms_alerts.yaml >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
-oc -n ${PROJ_TARGET} process -f $(dirname ${0})/../logging-alerts/oom_alerts.yaml -o yaml -p NAMESPACE=e1e498-prod -p SEVERITY=critical >>"${BATCH_FILE}"
-echo "---" >>"${BATCH_FILE}"
+oc -n ${PROJ_TARGET} process --local -f $(dirname ${0})/../logging-alerts/nats_alerts.yaml >>"${BATCH_FILE}"
+oc -n ${PROJ_TARGET} process --local -f $(dirname ${0})/../logging-alerts/sfms_alerts.yaml >>"${BATCH_FILE}"
+oc -n ${PROJ_TARGET} process --local -f $(dirname ${0})/../logging-alerts/oom_alerts.yaml -p NAMESPACE=e1e498-prod -p SEVERITY=critical >>"${BATCH_FILE}"
 
 echo "Applying batched manifests in one call..."
 if [ "${RUN_TYPE}" = "apply" ]; then
 	oc -n ${PROJ_TARGET} apply -f "${BATCH_FILE}"
 else
 	oc -n ${PROJ_TARGET} apply -f "${BATCH_FILE}" --dry-run
+	exit 0
 fi
+
+echo Waiting for rollouts
+wait_for_rollouts "${APP_NAME}-prod" "${APP_NAME}-prod-asa-go" "${APP_NAME}-prod-sfms-fwi"

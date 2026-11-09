@@ -21,6 +21,16 @@ const renderCenter = (store = createTestStore()) =>
     </Provider>
   )
 
+const testApp = (store: ReturnType<typeof createTestStore>, renderCount: number) => (
+  <Provider store={store}>
+    <ThemeProvider theme={theme}>
+      <div data-render-count={renderCount} style={{ position: 'relative' }}>
+        <NotificationCenter />
+      </div>
+    </ThemeProvider>
+  </Provider>
+)
+
 describe('NotificationCenter', () => {
   afterEach(() => vi.useRealTimers())
 
@@ -76,20 +86,10 @@ describe('NotificationCenter', () => {
     const store = createTestStore()
     store.dispatch(enqueueNotification({ message: 'Error' }))
 
-    const TestApp = ({ renderCount }: { renderCount: number }) => (
-      <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <div data-render-count={renderCount} style={{ position: 'relative' }}>
-            <NotificationCenter />
-          </div>
-        </ThemeProvider>
-      </Provider>
-    )
-
-    const view = render(<TestApp renderCount={0} />)
+    const view = render(testApp(store, 0))
     act(() => vi.advanceTimersByTime(3000))
 
-    view.rerender(<TestApp renderCount={1} />)
+    view.rerender(testApp(store, 1))
     act(() => vi.advanceTimersByTime(3000))
 
     expect(screen.queryByText('Error')).not.toBeInTheDocument()

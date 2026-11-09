@@ -26,7 +26,7 @@ source "$(dirname ${0})/common/common"
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
 # Process template
-OC_PROCESS="oc -n ${PROJ_TARGET} process -f ${TEMPLATE_PATH}/model_data_pruner.cronjob.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/model_data_pruner.cronjob.yaml \
 -p JOB_NAME=model-data-pruner-${APP_NAME}-${SUFFIX} \
 -p NAME=${APP_NAME}-api \
 -p APP_LABEL=${APP_NAME}-${SUFFIX} \
