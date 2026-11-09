@@ -19,7 +19,7 @@ Wildfire Predictive Services to support decision making in prevention, preparedn
 
 Run the backend and front end natively — see the per-component setup docs:
 
-- Ubuntu 26.04 LTS (WSL 2 or native Linux): complete backend and frontend setup [setup/ubuntu.md](setup/ubuntu.md).
+- Ubuntu (WSL 2 or native Linux): complete backend and frontend setup [setup/ubuntu.md](setup/ubuntu.md).
 - Backend: [backend/README.md](backend/README.md) (uv, GDAL, Postgres/PostGIS, Redis; macOS dependencies via [`setup/mac.sh`](setup/mac.sh)).
 - Frontend: [web/README.md](web/README.md) (Node/yarn).
 
