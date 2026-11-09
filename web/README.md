@@ -4,7 +4,7 @@
 
 ### Dependencies
 
-On Ubuntu 26.04 LTS, follow the [complete Ubuntu setup guide](../setup/ubuntu.md).
+On Ubuntu (WSL 2 or native Linux), follow the [complete Ubuntu setup guide](../setup/ubuntu.md).
 The manual steps below apply to other platforms or when updating dependencies.
 
 #### [Node.js](https://nodejs.org/en/)
