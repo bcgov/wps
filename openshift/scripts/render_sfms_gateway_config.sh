@@ -54,7 +54,7 @@ TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/sfms-gw-config.yaml}"
 	exit 1
 }
 
-SFMS_SERVICE_NAME="${SFMS_SERVICE_NAME:-psu-sfms-fwi-${SUFFIX}}"
+SFMS_SERVICE_NAME="${SFMS_SERVICE_NAME:-psu-sfms-${SUFFIX}}"
 
 mkdir -p "$(dirname "${OUTPUT_PATH}")"
 

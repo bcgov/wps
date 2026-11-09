@@ -6,4 +6,4 @@ environments:
     active: true
     approval: true
     flow: kong-api-key-only
-    services: [psu-sfms-fwi-${SUFFIX}]
+    services: [psu-sfms-${SUFFIX}]
