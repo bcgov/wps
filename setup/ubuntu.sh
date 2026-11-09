@@ -7,6 +7,28 @@
 set -euo pipefail
 trap 'echo "ERROR: Ubuntu setup failed at line $LINENO." >&2' ERR
 
+# Keep GDAL in sync with backend/packages/*/pyproject.toml and the API base image.
+# When updating it, also update its SHA-256 from the matching upstream archive:
+# https://github.com/OSGeo/gdal/releases
+GDAL_VERSION="3.13.3"
+GDAL_SHA256="5e0c388d83da2d686cc00a40272882432cdb54edff43d4af173e532844a0a0ea"
+
+# Keep uv in sync with .github/actions/python-setup/action.yml.
+UV_VERSION="0.13.6"
+
+# Pin the nvm installer. Check upstream releases when intentionally updating it:
+# https://github.com/nvm-sh/nvm/releases
+NVM_VERSION="0.41.0"
+
+# wkhtmltopdf is optional and archived. The Jammy package is used because Ubuntu 26.04
+# has no package; replace these pins if adopting a maintained PDF renderer.
+# https://github.com/wkhtmltopdf/packaging/releases
+WKHTMLTOPDF_VERSION="0.12.6.1-2"
+WKHTMLTOPDF_DISTRO="jammy"
+
+# Ubuntu 26.04's PostgreSQL package and local setup use major version 18.
+POSTGRES_VERSION="18"
+
 # User-level installers and profiles must belong to the developer, not root.
 if (( EUID == 0 )); then
   echo "ERROR: Run this script as your normal user, not root; it will request sudo when needed." >&2
@@ -179,10 +201,6 @@ WORK_DIR="$(mktemp -d -t wps-setup.XXXXXXXXXX)"
 
 stage "[2/7] Preparing GDAL (first build may take a while)"
 
-# Keep this version and checksum in step with the pyproject pins and API base image.
-GDAL_VERSION="3.13.3"
-GDAL_SHA256="5e0c388d83da2d686cc00a40272882432cdb54edff43d4af173e532844a0a0ea"
-
 # Ubuntu's libgdal-dev supplies build dependencies, but its GDAL is older than our pin.
 # Install into /usr/local without overwriting apt-managed files in /usr.
 if ! command -v gdal-config >/dev/null 2>&1 || [[ "$(gdal-config --version)" != "$GDAL_VERSION" ]]; then
@@ -220,7 +238,6 @@ gdalinfo --version
 
 stage "[3/7] Installing optional PDF renderer"
 
-# shortcut: upstream only provides older Jammy packages, replace when a maintained renderer is adopted.
 # A renderer failure must not block developers who do not need PDF generation.
 if command -v wkhtmltopdf >/dev/null 2>&1; then
   echo "wkhtmltopdf already installed; skipping."
@@ -228,7 +245,7 @@ else
   ARCH="$(dpkg --print-architecture)"
   case "$ARCH" in
     amd64|arm64)
-      WKHTMLTOPDF_PKG_URL="https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_$ARCH.deb"
+      WKHTMLTOPDF_PKG_URL="https://github.com/wkhtmltopdf/packaging/releases/download/$WKHTMLTOPDF_VERSION/wkhtmltox_${WKHTMLTOPDF_VERSION}.${WKHTMLTOPDF_DISTRO}_${ARCH}.deb"
       if curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "$WKHTMLTOPDF_PKG_URL" -o "$WORK_DIR/wkhtmltox.deb" \
         && sudo apt-get install -y --no-remove "$WORK_DIR/wkhtmltox.deb" \
         && wkhtmltopdf --version; then
@@ -247,8 +264,8 @@ fi
 
 stage "[4/7] Installing uv and configuring its shell profile"
 
-# Re-run the installer to configure PATH even after an earlier profile-free install.
-curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL https://astral.sh/uv/install.sh -o "$WORK_DIR/uv-install.sh"
+# Use the CI-pinned uv release and re-run its installer to configure PATH after a profile-free install.
+curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "https://astral.sh/uv/$UV_VERSION/install.sh" -o "$WORK_DIR/uv-install.sh"
 
 # The installer skips profiles when its install directory is already on PATH.
 env -u UV_NO_MODIFY_PATH -u INSTALLER_NO_MODIFY_PATH -u UV_UNMANAGED_INSTALL \
@@ -276,8 +293,8 @@ fi
 # Ignore personal psql startup files and abort on SQL errors so provisioning failures are visible.
 PSQL=(sudo -u postgres psql -X -v ON_ERROR_STOP=1 -h /var/run/postgresql -p 5432 -U postgres)
 PG_VERSION="$("${PSQL[@]}" -d postgres -Atc "SHOW server_version_num")"
-if [[ "$PG_VERSION" != 18* ]]; then
-  echo "ERROR: Expected PostgreSQL 18 on local port 5432; check pg_lsclusters before re-running." >&2
+if [[ "$PG_VERSION" != "$POSTGRES_VERSION"* ]]; then
+  echo "ERROR: Expected PostgreSQL $POSTGRES_VERSION on local port 5432; check pg_lsclusters before re-running." >&2
   exit 1
 fi
 
@@ -313,7 +330,7 @@ stage "[6/7] Installing backend dependencies and verifying Python GDAL"
   cd "$REPO_ROOT/backend"
 
   # Prefer the new native GDAL and rebuild cached bindings that may link to Ubuntu's older library.
-  LDFLAGS="-L/usr/local/lib ${LDFLAGS:-}" uv sync --all-extras --no-cache --reinstall-package gdal
+  LDFLAGS="-L/usr/local/lib ${LDFLAGS:-}" uv sync --all-extras --locked --no-cache --reinstall-package gdal
 
   # A successful wheel build alone does not prove the runtime loader finds the correct GDAL.
   uv run python -c 'from osgeo import gdal; from importlib.metadata import version; assert gdal.__version__ == version("gdal"); print("Python GDAL", gdal.__version__)'
@@ -324,7 +341,7 @@ stage "[6/7] Installing backend dependencies and verifying Python GDAL"
 stage "[7/7] Installing Node, Yarn, and web dependencies"
 export NVM_DIR="$HOME/.nvm"
 if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then
-  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh \
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/v$NVM_VERSION/install.sh" \
     -o "$WORK_DIR/nvm-install.sh"
   bash "$WORK_DIR/nvm-install.sh"
 fi
@@ -358,11 +375,11 @@ printf '%s[DONE] Stage 7/7 (%ss)%s\n' \
 printf '\n%s[OK] Local machine, backend, and web dependencies installed.%s\nFull log: %s\n' \
   "$GREEN" "$RESET" "$LOG_FILE" >&3
 
-# Leave shell replacement and migrations to the caller: profiles and database settings need their context.
-printf '\n%s============================================================\n  ACTION REQUIRED / TWO COMMANDS TO FINISH SETUP\n============================================================%s\n' \
+# Leave shell replacement to the caller. Application setup is covered by ubuntu.md.
+printf '\n%s============================================================\n  ACTION REQUIRED / ONE COMMAND TO FINISH SETUP\n============================================================%s\n' \
   "$YELLOW" "$RESET" >&3
 
-printf '%s[1/2] RELOAD YOUR UBUNTU SHELL%s\n\n  %sexec bash -l%s\n' \
+printf '%sRELOAD YOUR UBUNTU SHELL%s\n\n  %sexec bash -l%s\n' \
   "$CYAN" "$RESET" "$GREEN" "$RESET" >&3
 cat >&3 <<EOF
 
@@ -374,15 +391,7 @@ WARNING: This replaces your current shell with a Bash login
 shell, clears session-only shell settings, and may disrupt
 background jobs. Finish or save any running work first.
 
-Arrange application environment settings with an internal
-developer before running migrations or starting the apps.
-
-EOF
-printf '%s[2/2] RUN MIGRATIONS AFTER CONFIGURING YOUR ENVIRONMENT%s\n\n' \
-  "$CYAN" "$RESET" >&3
-printf '  %s(cd "%s/backend/packages/wps-api" && uv run --package wps-api alembic upgrade head)%s\n' \
-  "$GREEN" "$REPO_ROOT" "$RESET" >&3
-cat >&3 <<EOF
+For developer testing, continue with setup/ubuntu.md.
 
 The wps/wps database superuser credentials are for local development only.
 ============================================================
