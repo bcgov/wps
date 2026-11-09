@@ -12,7 +12,7 @@ notes: |
   Weather inputs include temperature, relative humidity, wind speed, wind direction,
   precipitation, and grass curing.
 
-  Existing /api/sfms/daily-fwi endpoints continue to provide legacy SFMS daily FWI
+  The deprecated /api/sfms/daily-fwi endpoints remain available for legacy SFMS daily FWI
   actuals and hourly FFMC. Hourly endpoints for the modernized SFMS are not available yet.
   Each endpoint documents its source system. Downloads support HTTP range requests.
   Point samples return null on nodata or outside the raster extent.
@@ -26,6 +26,9 @@ notes: |
     for background on FBP.
 
   Access requires an API key issued through the API Services Portal.
+
+  For SFMS API support, contact
+  [BCWS.PredictiveServices@gov.bc.ca](mailto:BCWS.PredictiveServices@gov.bc.ca).
 tags:
   [
     sfms,
