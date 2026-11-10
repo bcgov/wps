@@ -132,7 +132,7 @@ api.include_router(
 )
 
 
-@api.get("/ready")
+@api.get("/ready", include_in_schema=False)
 async def get_ready():
     """A simple endpoint for OpenShift readiness."""
     return Response()
