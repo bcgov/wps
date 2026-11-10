@@ -138,7 +138,7 @@ async def get_ready():
     return Response()
 
 
-@api.get("/health")
+@api.get("/health", include_in_schema=False)
 async def get_health():
     """A simple endpoint for OpenShift healthchecks.
 
