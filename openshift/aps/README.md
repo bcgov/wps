@@ -89,11 +89,6 @@ The Kong service name defaults to `psu-sfms-${SUFFIX}` and can be overridden wit
 `ns.${APS_NAMESPACE}.${SFMS_GATEWAY_QUALIFIER}`. The renderer uses `sfms-${SUFFIX}`
 for all environments.
 
-Deployment workflows clear the legacy `fwi-${SUFFIX}` scope before publishing `sfms-${SUFFIX}`.
-The first deployment recreates existing SFMS gateway resources and briefly interrupts requests.
-The Product and consumer credentials remain in place. PR cleanup clears both scopes.
-If publication fails after clearing the old scope, rerun SFMS publication to restore access.
-
 ### Two publishing flows, both split by PR vs. production tenant
 
 Both flows below publish to `gw-11008` on the **test** APS portal for PR builds
@@ -123,7 +118,6 @@ openshift/scripts/render_sfms_gateway_config.sh prod ./sfms-gw-config-prod.yaml
 gwa config set host api.gov.bc.ca
 gwa login
 gwa config set --gateway <gateway-id>
-gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier fwi-prod
 gwa publish-gateway ./sfms-gw-config-prod.yaml --qualifier sfms-prod
 ```
 
@@ -139,11 +133,10 @@ gwa apply -i /tmp/sfms-prod/sfms-product-prod.yaml
 
 ### Cleanup (PR)
 
-Publish empty gateway config under both SFMS qualifiers. This targets the **test** gateway
+Publish empty gateway config under the SFMS qualifier. This targets the **test** gateway
 (`gw-11008`), same as the PR publish above:
 
 ```bash
-gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier fwi-<suffix>
 gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier sfms-<suffix>
 ```
 
