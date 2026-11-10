@@ -1,5 +1,8 @@
 name: Deploy WPS Weather
 
+# jobs explicitly request the token permissions they need
+permissions: {}
+
 on:
   pull_request:
     types: [opened, reopened, synchronize, labeled]
