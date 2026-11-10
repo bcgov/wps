@@ -1,9 +1,9 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: copy-objects-to-lowercase-job-template
+  name: delete-uppercase-objects-job-template
   annotations:
-    description: "One-off job to copy 4 panel charts and GRIBs to lowercase keys. Originals are kept."
+    description: "One-off job to delete uppercase 4 panel charts and GRIBs that have a lowercase copy."
     tags: "job,4panel"
 labels:
   app.kubernetes.io/part-of: "${NAME}"
@@ -25,18 +25,18 @@ objects:
   - kind: Job
     apiVersion: batch/v1
     metadata:
-      name: copy-objects-to-lowercase-${NAME}-${SUFFIX}
+      name: delete-uppercase-objects-${NAME}-${SUFFIX}
     spec:
       parallelism: 1
       completions: 1
       activeDeadlineSeconds: 21600
-      # Keeps the result around to check. If a later deploy re-creates the job it only copies what's missing.
+      # Keeps the result around to check. If a later deploy re-creates the job it only deletes what's left.
       ttlSecondsAfterFinished: 604800
       backoffLimit: 2
       template:
         spec:
           containers:
-            - name: copy-objects-to-lowercase
+            - name: delete-uppercase-objects
               image: ${WEATHER_IMAGE}
               imagePullPolicy: "Always"
               command:
@@ -48,7 +48,7 @@ objects:
                   "--no-sync",
                   "python",
                   "-m",
-                  "wps_weather.copy_objects_to_lowercase",
+                  "wps_weather.delete_uppercase_objects",
                 ]
               env:
                 - name: UV_NO_CACHE
