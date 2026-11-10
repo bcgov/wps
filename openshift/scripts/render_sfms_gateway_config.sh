@@ -56,6 +56,13 @@ TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/sfms-gw-config.yaml}"
 
 SFMS_SERVICE_NAME="${SFMS_SERVICE_NAME:-psu-sfms-${SUFFIX}}"
 
+# keep production in its existing scope while dev tests the new qualifier
+if [ "${SUFFIX}" = "prod" ]; then
+	SFMS_GATEWAY_QUALIFIER="fwi-prod"
+else
+	SFMS_GATEWAY_QUALIFIER="sfms-${SUFFIX}"
+fi
+
 mkdir -p "$(dirname "${OUTPUT_PATH}")"
 
 export SUFFIX
@@ -63,9 +70,10 @@ export PROJECT_NAMESPACE
 export APS_NAMESPACE
 export GW_HOST
 export SFMS_SERVICE_NAME
+export SFMS_GATEWAY_QUALIFIER
 
 envsubst \
-	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${GW_HOST} ${SFMS_SERVICE_NAME}' \
+	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${GW_HOST} ${SFMS_SERVICE_NAME} ${SFMS_GATEWAY_QUALIFIER}' \
 	<"${TEMPLATE_PATH}" >"${OUTPUT_PATH}"
 
 echo "${OUTPUT_PATH}"
