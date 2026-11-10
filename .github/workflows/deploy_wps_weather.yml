@@ -2,44 +2,19 @@ name: Deploy WPS Weather
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, unlabeled]
+    types: [opened, reopened, synchronize, labeled]
     branches:
       - main
     paths:
       - "backend/packages/wps-weather/**"
 
-# share this group with Deployment and Cleanup so changes to dev do not overlap
-concurrency:
-  group: wps-dev-environments
-  queue: max
-  cancel-in-progress: false
-
 env:
   SUFFIX: pr-${{ github.event.number }}
 
 jobs:
-  check-dev-deployment:
-    name: Check dev deployment
-    if: github.event.action != 'unlabeled' || github.event.label.name == 'skip-dev-deploy'
-    permissions:
-      contents: read
-      pull-requests: read
-      issues: write
-    runs-on:
-      group: Larger Runners - OpenShift Static-IP
-    outputs:
-      deploy: ${{ steps.check.outputs.deploy }}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/dev-deploy-check
-        id: check
-        with:
-          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
-          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
-
   build-image:
     name: Build Image
-    if: github.event.action != 'unlabeled' || github.event.label.name == 'skip-dev-deploy'
+    if: github.event.action != 'labeled' || github.event.label.name == 'deploy-dev'
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -60,8 +35,11 @@ jobs:
 
   deployments:
     name: Deployments
-    needs: [build-image, check-dev-deployment]
-    if: needs.check-dev-deployment.outputs.deploy == 'true'
+    needs: [build-image]
+    # image builds run without the label; only provisioning requires it
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     permissions:

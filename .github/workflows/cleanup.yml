@@ -12,12 +12,6 @@ on:
         required: true
         type: number
 
-# share this group with both deployment workflows so cleanup cannot overlap deployment
-concurrency:
-  group: wps-dev-environments
-  queue: max
-  cancel-in-progress: false
-
 env:
   APS_TEST_GATEWAY_ID: gw-11008
   SUFFIX: pr-${{ github.event.number || inputs.pr_number }}
