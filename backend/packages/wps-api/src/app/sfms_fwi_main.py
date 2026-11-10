@@ -10,6 +10,7 @@ import logging
 import sentry_sdk
 from fastapi import FastAPI, Request, Response
 from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
 from wps_shared import config
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.utils.s3_client import s3_client_lifespan
@@ -80,7 +81,7 @@ async def catch_exception_middleware(request: Request, call_next):
         raise
 
 
-app.middleware("http")(catch_exception_middleware)
+app.add_middleware(BaseHTTPMiddleware, dispatch=catch_exception_middleware)
 api.middleware("http")(catch_exception_middleware)
 
 api.include_router(sfms_fwi.router, tags=["SFMS Daily FWI"])

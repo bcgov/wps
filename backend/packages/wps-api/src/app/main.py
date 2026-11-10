@@ -10,6 +10,7 @@ import sentry_sdk
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
 from wps_shared import config
 from wps_shared.auth import audit, authentication_required
 from wps_shared.chatops_notification import send_chatops_notification
@@ -115,7 +116,7 @@ async def catch_exception_middleware(request: Request, call_next):
         raise
 
 
-app.middleware("http")(catch_exception_middleware)
+app.add_middleware(BaseHTTPMiddleware, dispatch=catch_exception_middleware)
 
 api.add_middleware(
     CORSMiddleware,
