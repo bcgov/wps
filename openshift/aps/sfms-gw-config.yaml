@@ -5,7 +5,7 @@ services:
   # Qualifiers allow one gateway to hold multiple independent config sets without pruning
   # other service configs.
   - name: ${SFMS_SERVICE_NAME}
-    tags: [ns.${APS_NAMESPACE}.${SFMS_GATEWAY_QUALIFIER}] #
+    tags: [ns.${APS_NAMESPACE}.${SFMS_GATEWAY_QUALIFIER}] 
     host: wps-sfms-api-${SUFFIX}.${PROJECT_NAMESPACE}.svc
     port: 80
     protocol: http
