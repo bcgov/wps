@@ -602,9 +602,9 @@ async def test_processor_stores_fuel_classification_cog_with_nearest_neighbour(
 
 
 @pytest.mark.anyio
+@pytest.mark.usefixtures("output_mask")
 async def test_processor_publish_failure_propagates_and_clears_cache(
     mocker: MockerFixture,
-    output_mask: WPSDataset,
 ):
     datasets = make_datasets(np.array([[1]]))
     inputs = make_inputs()
