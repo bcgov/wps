@@ -222,8 +222,8 @@ jobs:
         run: |
           bash openshift/scripts/oc_provision_asa_go_gateway_networkpolicy.sh ${SUFFIX} apply
 
-  deploy-sfms-fwi-dev:
-    name: Deploy SFMS FWI API to Dev
+  deploy-sfms-dev:
+    name: Deploy SFMS API to Dev
     if: github.triggering_actor != 'renovate'
     needs: [build-image, prepare-dev-database]
     runs-on:
@@ -238,20 +238,20 @@ jobs:
           oc-token: ${{ secrets.OC4_DEV_TOKEN }}
           oc-namespace: e1e498-dev
 
-      - name: Deploy SFMS FWI API to Dev
+      - name: Deploy SFMS API to Dev
         shell: bash
         run: |
-          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_fwi_api.sh ${SUFFIX} apply
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_sfms_api.sh ${SUFFIX} apply
 
-      - name: Allow APS to reach SFMS FWI API
+      - name: Allow APS to reach SFMS API
         shell: bash
         run: |
-          bash openshift/scripts/oc_provision_sfms_fwi_gateway_networkpolicy.sh ${SUFFIX} apply
+          bash openshift/scripts/oc_provision_sfms_gateway_networkpolicy.sh ${SUFFIX} apply
 
   publish-aps-gateway-dev:
     name: Publish APS Gateway Config to Dev
     if: github.triggering_actor != 'renovate'
-    needs: [deploy-asa-go-dev, deploy-sfms-fwi-dev]
+    needs: [deploy-asa-go-dev, deploy-sfms-dev]
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
@@ -268,11 +268,11 @@ jobs:
           suffix: ${{ env.SUFFIX }}
           host: api-gov-bc-ca.test.api.gov.bc.ca
 
-      - name: Render and publish SFMS FWI APS gateway config
+      - name: Render and publish SFMS APS gateway config
         uses: ./.github/actions/aps-publish
         with:
-          config-name: sfms-fwi
-          render-script: openshift/scripts/render_sfms_fwi_gateway_config.sh
+          config-name: sfms
+          render-script: openshift/scripts/render_sfms_gateway_config.sh
           gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
           client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
@@ -280,8 +280,8 @@ jobs:
           qualifier-prefix: fwi-
           host: api-gov-bc-ca.test.api.gov.bc.ca
 
-      - name: Publish SFMS FWI dataset and product to test API Directory
-        uses: ./.github/actions/sfms-fwi-aps-apply
+      - name: Publish SFMS dataset and product to test API Directory
+        uses: ./.github/actions/sfms-aps-apply
         with:
           gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_TEST_ACCT_ID }}

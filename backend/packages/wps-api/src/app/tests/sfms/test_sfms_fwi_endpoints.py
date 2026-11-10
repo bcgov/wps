@@ -1,7 +1,7 @@
 """Tests for SFMS daily FWI raster endpoints.
 
 These endpoints are served by the standalone SFMS FWI service
-(app.sfms_fwi_main), which is not publicly exposed. Authentication is
+(app.sfms_main), which is not publicly exposed. Authentication is
 enforced by the APS Kong gateway (key-auth plugin). Tests verify routing,
 S3 key construction, and error handling.
 """
@@ -9,7 +9,7 @@ S3 key construction, and error handling.
 from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 
-import app.sfms_fwi_main
+import app.sfms_main
 import pytest
 from app.routers.sfms_fwi import _find_uploaded_hffmc_key
 from botocore.exceptions import ClientError
@@ -25,7 +25,7 @@ def shared_s3_client():
     so class-level patches like S3Client.read_object still apply to it."""
     s3_client = S3Client(server="test", user_id="test", secret_key="test", bucket="some_bucket")
     s3_client.client = AsyncMock()
-    overrides = app.sfms_fwi_main.api.dependency_overrides
+    overrides = app.sfms_main.api.dependency_overrides
     overrides[get_s3_client] = lambda: s3_client
     yield s3_client
     overrides.pop(get_s3_client, None)
@@ -117,14 +117,14 @@ class TestDailyFWIRasterDownload:
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_downloads_fwi_raster(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi")
         assert response.status_code == 200
         assert response.content == b"fake-tif-content"
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_downloads_each_parameter(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         for param in ("dc", "dmc", "bui", "ffmc", "isi", "fwi"):
             response = client.get(f"{BASE_URL}/2025-11-02/{param}")
             assert response.status_code == 200, f"Expected 200 for parameter {param!r}"
@@ -134,13 +134,13 @@ class TestDailyFWIRasterDownload:
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream", _raise_not_found)
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi")
         assert response.status_code == 404
 
     @pytest.mark.usefixtures("mock_stream_object")
     def test_invalid_parameter_returns_422(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/invalid_param")
         assert response.status_code == 422
 
@@ -157,7 +157,7 @@ class TestDailyFWIRasterDownload:
             return gen(), {"ContentType": "image/tiff", "ContentLength": 4}
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream", _capture_key)
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         client.get(f"{BASE_URL}/2025-11-02/ffmc")
         assert len(captured_keys) == 1
         assert "sfms/uploads" in captured_keys[0]
@@ -173,24 +173,24 @@ class TestHourlyFFMCRasterDownload:
         mock_list_hffmc_uploads(
             ["sfms/uploads/hourlies/2025-11-02/fine_fuel_moisture_code2025110212.tif"]
         )
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert response.status_code == 200
         assert response.content == b"fake-tif-content"
 
     def test_returns_404_when_no_upload_for_hour(self, mock_list_hffmc_uploads):
         mock_list_hffmc_uploads([])
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert response.status_code == 404
 
     def test_missing_hour_returns_422(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc")
         assert response.status_code == 422
 
     def test_invalid_hour_returns_422(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=25")
         assert response.status_code == 422
 
@@ -209,7 +209,7 @@ class TestHourlyFFMCRasterDownload:
             return gen(), {"ContentType": "image/tiff", "ContentLength": 4}
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.stream", _capture_key)
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         client.get(f"{BASE_URL}/2025-11-02/hffmc?hour=12")
         assert len(captured_keys) == 1
         assert "sfms/uploads/hourlies" in captured_keys[0]
@@ -227,7 +227,7 @@ class TestDailyFWIValueAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
         assert response.status_code == 200
         data = response.json()
@@ -244,7 +244,7 @@ class TestDailyFWIValueAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(None)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=0.0&lon=0.0")
         assert response.status_code == 200
         assert response.json()["value"] is None
@@ -254,7 +254,7 @@ class TestDailyFWIValueAtPoint:
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _raise_not_found)
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
         assert response.status_code == 404
 
@@ -263,18 +263,18 @@ class TestDailyFWIValueAtPoint:
             raise ClientError({"Error": {"Code": "InternalError"}}, "GetObject")
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _raise_s3_error)
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value?lat=49.0&lon=-123.0")
         assert response.status_code == 502
         assert "InternalError" in response.json()["detail"]
 
     def test_missing_lat_lon_returns_422(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/fwi/value")
         assert response.status_code == 422
 
     def test_invalid_parameter_returns_422(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/notaparam/value?lat=49.0&lon=-123.0")
         assert response.status_code == 422
 
@@ -290,7 +290,7 @@ class TestDailyFWIValueAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         client.get(f"{BASE_URL}/2025-11-02/ffmc/value?lat=49.0&lon=-123.0")
         assert len(captured_keys) == 1
         assert "sfms/uploads" in captured_keys[0]
@@ -309,7 +309,7 @@ class TestDailyFWIValuesAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0")
         assert response.status_code == 200
         data = response.json()
@@ -327,7 +327,7 @@ class TestDailyFWIValuesAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(None)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/values?lat=0.0&lon=0.0")
         assert response.status_code == 200
         data = response.json()
@@ -339,7 +339,7 @@ class TestDailyFWIValuesAtPoint:
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
 
         monkeypatch.setattr("wps_shared.utils.s3_client.S3Client.read_object", _raise_not_found)
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0")
         assert response.status_code == 404
 
@@ -358,12 +358,12 @@ class TestDailyFWIValuesAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(42.5)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0")
         assert response.status_code == 404
 
     def test_missing_lat_lon_returns_422(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/values")
         assert response.status_code == 422
 
@@ -379,7 +379,7 @@ class TestDailyFWIValuesAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(1.0)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0")
         assert len(captured_keys) == 6
         assert all("sfms/uploads" in key and "actual" in key for key in captured_keys)
@@ -401,7 +401,7 @@ class TestHourlyFFMCValueAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
         assert response.status_code == 200
         data = response.json()
@@ -411,13 +411,13 @@ class TestHourlyFFMCValueAtPoint:
         assert data["longitude"] == pytest.approx(-123.0)
 
     def test_missing_hour_returns_422(self):
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?lat=49.0&lon=-123.0")
         assert response.status_code == 422
 
     def test_returns_404_when_no_upload_for_hour(self, mock_list_hffmc_uploads):
         mock_list_hffmc_uploads([])
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         response = client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
         assert response.status_code == 404
 
@@ -436,7 +436,7 @@ class TestHourlyFFMCValueAtPoint:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(85.3)
         )
 
-        client = TestClient(app.sfms_fwi_main.app)
+        client = TestClient(app.sfms_main.app)
         client.get(f"{BASE_URL}/2025-11-02/hffmc/value?hour=12&lat=49.0&lon=-123.0")
         assert len(captured_keys) == 1
         assert "sfms/uploads/hourlies" in captured_keys[0]
@@ -447,7 +447,7 @@ class TestSharedS3ClientLifespan:
     """Without the test override, requests get the one client the app lifespan opened."""
 
     def test_requests_reuse_the_lifespan_client(self, monkeypatch):
-        app.sfms_fwi_main.api.dependency_overrides.pop(get_s3_client)
+        app.sfms_main.api.dependency_overrides.pop(get_s3_client)
         entered, exited, used = [], [], []
 
         async def _aenter(self):
@@ -468,7 +468,7 @@ class TestSharedS3ClientLifespan:
             "app.routers.sfms_fwi.WPSDataset.from_bytes", lambda b: _make_mock_dataset(1.0)
         )
 
-        with TestClient(app.sfms_fwi_main.app) as client:
+        with TestClient(app.sfms_main.app) as client:
             assert (
                 client.get(f"{BASE_URL}/2025-11-02/values?lat=49.0&lon=-123.0").status_code == 200
             )

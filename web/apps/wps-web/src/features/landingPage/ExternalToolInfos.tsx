@@ -7,19 +7,21 @@ import { API_ACCESS_COLOUR, PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
 import { BCWS_PREDICTIVE_SERVICES_MANAGED_BY, CSBC_PREDICTIVE_SERVICES_MANAGED_BY } from './managedBy'
 import type { ToolInfo } from './toolInfo'
 
-export const SFMS_DAILY_FIRE_WEATHER_INDEX_ROUTE = 'https://api.gov.bc.ca/devportal/api-directory/4336'
+export const SFMS_API_ROUTE = 'https://api.gov.bc.ca/devportal/api-directory/4445'
 export const WX_DATA_VIEWER_ROUTE = 'https://huggingface.co/spaces/ssidds/WX_data_viewer'
 export const WX_NETWORK_ALERTS_ROUTE = 'https://riodeoro.github.io/wx-network-alerts/'
 
-export const sfmsDailyFireWeatherIndexInfo: ToolInfo = {
-  name: 'SFMS Fire Weather Index',
-  route: SFMS_DAILY_FIRE_WEATHER_INDEX_ROUTE,
+export const sfmsApiInfo: ToolInfo = {
+  name: 'SFMS API',
+  route: SFMS_API_ROUTE,
   section: 'api',
   description: (
     <Typography>
-      Access the SFMS Fire Weather Index API through the API Services Portal. The available FWI data can be viewed{' '}
-      <Link href="https://wfapps.nrs.gov.bc.ca/pub/wfwx-info-war/sfms" rel="noreferrer" target="_blank">
-        here
+      Access daily fire weather indices, fire behaviour predictions, and weather inputs from the Spatial Fire Management
+      System. Download rasters or sample values at a point for actuals and forecasts. Request an API key through the API
+      Services Portal. View the{' '}
+      <Link href="https://psu.api.gov.bc.ca/api/docs" rel="noreferrer" target="_blank">
+        API documentation
       </Link>
       .
     </Typography>
@@ -59,4 +61,4 @@ export const wxNetworkAlertsInfo: ToolInfo = {
   isExternal: true
 }
 
-export const externalToolInfos = [wxDataViewerInfo, wxNetworkAlertsInfo, sfmsDailyFireWeatherIndexInfo]
+export const externalToolInfos = [wxDataViewerInfo, wxNetworkAlertsInfo, sfmsApiInfo]
