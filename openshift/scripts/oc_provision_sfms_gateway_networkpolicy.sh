@@ -3,10 +3,10 @@
 source "$(dirname ${0})/common/common"
 
 #%
-#% OpenShift SFMS FWI API gateway network policy helper
+#% OpenShift SFMS API gateway network policy helper
 #%
 #%   Apply the NetworkPolicy that allows APS to reach the dedicated
-#%   SFMS Daily FWI API pods. Required for the SFMS Daily FWI APS
+#%   SFMS API pods. Required for the SFMS APS
 #%   gateway route.
 #%
 #% Usage:
@@ -21,7 +21,7 @@ source "$(dirname ${0})/common/common"
 
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
-OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/allow_gateway_to_wps_sfms_fwi_api.yaml \
+OC_PROCESS="oc -n ${PROJ_TARGET} process --local -f ${TEMPLATE_PATH}/allow_gateway_to_wps_sfms_api.yaml \
  -p APP_NAME=${APP_NAME} \
  -p SUFFIX=${SUFFIX}"
 

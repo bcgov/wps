@@ -199,6 +199,13 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
             f"{target_date.day:02d}/fmc_{date_str}.tif"
         )
 
+    def get_run_manifest_prefix(self, run_type: RunType, for_date: date) -> S3Key:
+        """prefix for manifests of one target date and run type."""
+        return S3Key(
+            f"{self.root}/runs/{run_type.value}/{for_date.year:04d}/{for_date.month:02d}/"
+            f"{for_date.day:02d}/target-{for_date.isoformat()}_run-"
+        )
+
     def get_run_manifest_key(
         self, run_type: RunType, for_date: date, run_datetime: datetime
     ) -> S3Key:
@@ -212,10 +219,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         """
         assert_all_utc(run_datetime)
         run_datetime_str = run_datetime.strftime(RUN_DATETIME_FILENAME_FORMAT)
-        return S3Key(
-            f"{self.root}/runs/{run_type.value}/{for_date.year:04d}/{for_date.month:02d}/"
-            f"{for_date.day:02d}/target-{for_date.isoformat()}_run-{run_datetime_str}.json"
-        )
+        return S3Key(f"{self.get_run_manifest_prefix(run_type, for_date)}{run_datetime_str}.json")
 
     def get_fmc_inputs(
         self,

@@ -57,7 +57,7 @@ jobs:
           name: asa-go-aps-gateway-config-cleanup-${{ env.SUFFIX }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
-      - name: Publish SFMS FWI APS cleanup config
+      - name: Publish SFMS APS cleanup config
         uses: ./.github/actions/gwa-publish
         with:
           gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
@@ -67,13 +67,13 @@ jobs:
           qualifier: fwi-${{ env.SUFFIX }}
           host: api-gov-bc-ca.test.api.gov.bc.ca
 
-      - name: Upload SFMS FWI APS cleanup config
+      - name: Upload SFMS APS cleanup config
         uses: actions/upload-artifact@v7
         with:
-          name: sfms-fwi-aps-gateway-config-cleanup-${{ env.SUFFIX }}
+          name: sfms-aps-gateway-config-cleanup-${{ env.SUFFIX }}
           path: ${{ steps.asa_go_aps_config.outputs.config_path }}
 
-      - name: Delete SFMS FWI dataset and product from API Directory
+      - name: Delete SFMS dataset and product from API Directory
         shell: bash
         env:
           GATEWAY_ID: ${{ env.APS_TEST_GATEWAY_ID }}
@@ -92,10 +92,10 @@ jobs:
           TOKEN=$(grep 'api_key:' "${HOME}/.gwa-config.yaml" | awk '{print $2}')
           BASE="https://${APS_HOST}/ds/api/v3/gateways/${GATEWAY_ID}"
 
-          curl -sf -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-${SUFFIX}" \
+          curl -sf -X DELETE "${BASE}/datasets/psu-sfms-${SUFFIX}" \
             -H "Authorization: Bearer ${TOKEN}" || echo "Dataset not found or already deleted"
 
-          PRODUCT_NAME="SFMS Daily Fire Weather Index (${SUFFIX})"
+          PRODUCT_NAME="SFMS API (${SUFFIX})"
           PRODUCT_APP_ID=$(curl -sf "${BASE}/products" \
             -H "Authorization: Bearer ${TOKEN}" | \
             jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
