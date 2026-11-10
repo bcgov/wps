@@ -12,10 +12,12 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 logger = logging.getLogger(__name__)
 
 
-def _copy_with_values(source: gdal.Dataset, values: np.ndarray) -> gdal.Dataset:
+def _copy_with_values(source: gdal.Dataset, values: np.ndarray, nodata: float) -> gdal.Dataset:
     """In-memory copy of ``source`` (keeps georeferencing, NoData and band metadata) with new values."""
     copy = gdal.Translate("", source, format="MEM")
-    copy.GetRasterBand(1).WriteArray(values)
+    band = copy.GetRasterBand(1)
+    band.SetNoDataValue(nodata)
+    band.WriteArray(values)
     return copy
 
 
@@ -45,9 +47,11 @@ def generate_non_fuel_cog(
     target_srs = SpatialReferenceSystem.WEB_MERCATOR.srs
     with gdal.ExceptionMgr():
         values = source.GetRasterBand(1).ReadAsArray()
+        # GDAL must compare against the stored pixel value, not an unrepresentable Float64 marker.
+        nodata = values.dtype.type(nodata).item()
 
         # Warp with Non-fuel/water as NoData so only fuel pixels are interpolated.
-        fuel_only = _copy_with_values(source, np.where(non_fuel_mask, nodata, values))
+        fuel_only = _copy_with_values(source, np.where(non_fuel_mask, nodata, values), nodata)
         warped = warp_to_memory(fuel_only, target_srs, resample_alg)
 
         # Warp only the Non-fuel/water values with nearest neighbour. Both copies share the
@@ -55,7 +59,7 @@ def generate_non_fuel_cog(
         # Pixels outside the source footprint (e.g. outside BC) stay NoData even where the fuel
         # grid says Non-fuel, so only Non-fuel pixels that have a source value are kept.
         keep = non_fuel_mask & np.isfinite(values) & (values != nodata)
-        non_fuel_only = _copy_with_values(source, np.where(keep, values, nodata))
+        non_fuel_only = _copy_with_values(source, np.where(keep, values, nodata), nodata)
         warped_non_fuel = warp_to_memory(
             non_fuel_only, target_srs, GDALResamplingMethod.NEAREST_NEIGHBOUR
         )

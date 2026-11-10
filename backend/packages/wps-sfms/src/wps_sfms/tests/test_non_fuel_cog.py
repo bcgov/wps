@@ -2,11 +2,12 @@
 
 import numpy as np
 import pytest
-from osgeo import gdal
+from osgeo import gdal, osr
 from wps_shared.geospatial.cog import generate_and_store_cog
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
+from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.non_fuel_cog import generate_non_fuel_cog
 from wps_sfms.tests.raster_test_utils import create_test_wps_dataset
 
@@ -59,6 +60,35 @@ def test_non_fuel_outside_source_footprint_stays_nodata(tmp_path):
     # Only the half with source data is valid.
     assert 0.4 < actual.count() / actual.size < 0.6
     np.testing.assert_array_equal(actual.compressed(), 0)
+
+
+def test_float32_nodata_does_not_blend_into_neighbouring_fuel(tmp_path):
+    """SFMS's NoData literal rounds in Float32; GDAL must exclude that stored value."""
+    non_fuel = np.random.default_rng(42).random((200, 200)) < 0.5
+    values = np.where(non_fuel, 0, 0.25).astype(np.float32)
+    values[:10] = SFMS_NO_DATA
+    output_path = str(tmp_path / "output.tif")
+    nearest_path = str(tmp_path / "nearest.tif")
+
+    with create_test_wps_dataset("source.tif", values, nodata=SFMS_NO_DATA) as source:
+        # Match the production Lambert grid rather than the test helper's Albers grid.
+        srs = osr.SpatialReference()
+        srs.SetWellKnownGeogCS("NAD83")
+        srs.SetLCC(49, 77, 49, -125, 0, 0)
+        dataset = source.as_gdal_ds()
+        dataset.SetProjection(srs.ExportToWkt())
+        dataset.SetGeoTransform((-758000, 2000, 0, 1290000, 0, -2000))
+        generate_non_fuel_cog(source, output_path, non_fuel)
+        generate_and_store_cog(
+            dataset, nearest_path, resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR
+        )
+
+    with gdal.Open(output_path) as output, gdal.Open(nearest_path) as nearest:
+        actual = output.GetRasterBand(1).ReadAsMaskedArray()
+        expected = nearest.ReadAsArray()
+    expected_valid = expected != np.float32(SFMS_NO_DATA)
+    assert not np.any(np.ma.getmaskarray(actual) & expected_valid)
+    assert np.all(np.isin(actual.compressed(), [0, 0.25]))
 
 
 def test_value_and_fuel_cogs_share_a_grid(tmp_path):
