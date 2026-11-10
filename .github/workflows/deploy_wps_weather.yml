@@ -36,7 +36,7 @@ jobs:
   deployments:
     name: Deployments
     needs: [build-image]
-    # image builds run without the label; only provisioning requires it
+    # require deploy-dev to avoid exhausting shared dev resources
     if: >-
       contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
       (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')

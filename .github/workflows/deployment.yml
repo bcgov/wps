@@ -20,7 +20,7 @@ env:
 jobs:
   prepare-dev-database:
     name: Prepare Dev Database
-    # gate initial provisioning so dependent deployment jobs skip without the label
+    # require deploy-dev to avoid exhausting shared dev resources
     if: >-
       contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
       (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
@@ -89,7 +89,7 @@ jobs:
 
   configure-nats-server-name:
     name: Configure nats server name
-    # this job provisions independently of the database, so it needs the same gate
+    # require deploy-dev to avoid exhausting shared dev resources
     if: >-
       contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
       (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
