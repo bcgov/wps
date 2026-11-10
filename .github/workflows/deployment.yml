@@ -21,9 +21,7 @@ jobs:
   prepare-dev-database:
     name: Prepare Dev Database
     # require deploy-dev to avoid exhausting shared dev resources
-    if: >-
-      contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
-      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
+    if: contains(github.event.pull_request.labels.*.name, 'deploy-dev')
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     steps:
@@ -43,7 +41,6 @@ jobs:
 
   build-image:
     name: Build ${{ matrix.name }} Image
-    if: github.event.action != 'labeled' || github.event.label.name == 'deploy-dev'
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     strategy:
@@ -90,9 +87,7 @@ jobs:
   configure-nats-server-name:
     name: Configure nats server name
     # require deploy-dev to avoid exhausting shared dev resources
-    if: >-
-      contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
-      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
+    if: contains(github.event.pull_request.labels.*.name, 'deploy-dev')
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     steps:

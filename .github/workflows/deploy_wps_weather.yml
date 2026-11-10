@@ -14,7 +14,6 @@ env:
 jobs:
   build-image:
     name: Build Image
-    if: github.event.action != 'labeled' || github.event.label.name == 'deploy-dev'
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -37,9 +36,7 @@ jobs:
     name: Deployments
     needs: [build-image]
     # require deploy-dev to avoid exhausting shared dev resources
-    if: >-
-      contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
-      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
+    if: contains(github.event.pull_request.labels.*.name, 'deploy-dev')
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     permissions:

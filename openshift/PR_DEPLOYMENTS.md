@@ -1,22 +1,12 @@
 # PR dev deployments
 
-PRs do not deploy to dev by default. Add the `deploy-dev` label to request a
-deployment. Subsequent commits update the environment while the label remains.
-Tests and image builds run for relevant PRs regardless of the label. Weather
-retains its existing path filter.
+Tests and image builds run without a label, subject to the existing path filters.
 
-Both deployment workflows use the labels recorded in the event that triggered
-the run. Unrelated label additions do not start builds or provisioning. Developers
-choose which PRs consume dev capacity, and quota shortages remain ordinary
-deployment errors.
+Add `deploy-dev` to deploy a PR and update its environment on subsequent commits.
+Remove it to stop future deployments. Already-triggered runs may still deploy.
 
-Remove `deploy-dev` to stop future deployments. Already-triggered runs may still
-deploy after label removal, PR closure, or a newer commit. Existing environments
-remain. Add the label again to redeploy.
-
-The label never deletes resources. To free resources without closing a PR, use
-the existing manual Cleanup workflow with its PR number. This performs full cleanup,
-including database data, images, and backups. Closing a PR also requests full cleanup.
+Removing the label retains the environment. Close the PR or run Cleanup manually
+with its PR number to delete its resources, including database data, images, and backups.
 
 Create the repository label once before enabling these workflows:
 
