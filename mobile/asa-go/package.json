@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.4",
-    "@capacitor/assets": "^3.0.5",
+    "@capacitor/assets": "^4.0.0",
     "@capacitor/cli": "8.6.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^7.0.0",
