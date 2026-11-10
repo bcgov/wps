@@ -63,7 +63,7 @@ gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier <suffix>
 ## SFMS API
 
 The Spatial Fire Management System API provides raster downloads and point sampling.
-The dedicated `wps-sfms-fwi-api` service is reachable through the APS gateway, which
+The dedicated `wps-sfms-api-${SUFFIX}` service is reachable through the APS gateway, which
 requires an API key and applies rate limits. The service has no public OpenShift route.
 Its network policy is in `openshift/templates/allow_gateway_to_wps_sfms_api.yaml`.
 
@@ -84,10 +84,9 @@ The Directory title is `SFMS API`. The Product name is
 For an existing Product, use Edit Product in the APS portal to rename it before
 publishing. This preserves its appId, environments, and existing approvals.
 
-The Kong service identifier `psu-sfms-fwi-${SUFFIX}`, gateway tags, publish qualifier,
-and OpenShift Service and NetworkPolicy names retain their original FWI names. Keep these stable
-when publishing so updates use the existing resources and consumer access. The renderer
-accepts `SFMS_SERVICE_NAME` as an override, with the registered service name as its default.
+The Kong service name defaults to `psu-sfms-${SUFFIX}` and can be overridden with
+`SFMS_SERVICE_NAME`. Gateway resources use the tag `ns.${APS_NAMESPACE}.fwi-${SUFFIX}`.
+Publishing and cleanup use the matching qualifier `fwi-${SUFFIX}`.
 
 ### Two publishing flows, both split by PR vs. production tenant
 
