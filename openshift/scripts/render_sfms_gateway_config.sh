@@ -55,13 +55,7 @@ TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/sfms-gw-config.yaml}"
 }
 
 SFMS_SERVICE_NAME="${SFMS_SERVICE_NAME:-psu-sfms-${SUFFIX}}"
-
-# keep production in its existing scope while dev tests the new qualifier
-if [ "${SUFFIX}" = "prod" ]; then
-	SFMS_GATEWAY_QUALIFIER="fwi-prod"
-else
-	SFMS_GATEWAY_QUALIFIER="sfms-${SUFFIX}"
-fi
+SFMS_GATEWAY_QUALIFIER="sfms-${SUFFIX}"
 
 mkdir -p "$(dirname "${OUTPUT_PATH}")"
 

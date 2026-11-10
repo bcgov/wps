@@ -87,11 +87,12 @@ publishing. This preserves its appId, environments, and existing approvals.
 The Kong service name defaults to `psu-sfms-${SUFFIX}` and can be overridden with
 `SFMS_SERVICE_NAME`. Gateway resources use the tag
 `ns.${APS_NAMESPACE}.${SFMS_GATEWAY_QUALIFIER}`. The renderer uses `sfms-${SUFFIX}`
-for PRs and `fwi-prod` for production.
+for all environments.
 
-The dev workflow clears the legacy `fwi-${SUFFIX}` scope before publishing `sfms-${SUFFIX}`.
+Deployment workflows clear the legacy `fwi-${SUFFIX}` scope before publishing `sfms-${SUFFIX}`.
 The first deployment recreates existing SFMS gateway resources and briefly interrupts requests.
 The Product and consumer credentials remain in place. PR cleanup clears both scopes.
+If publication fails after clearing the old scope, rerun SFMS publication to restore access.
 
 ### Two publishing flows, both split by PR vs. production tenant
 
@@ -101,7 +102,7 @@ production releases (`production.yml`) — see "Gateway IDs" above. Each tenant 
 service account; production credentials aren't valid against the test portal, and vice versa.
 
 **Gateway config** (`gwa publish-gateway`) — deploys the Kong service/route/plugin config. The
-`--qualifier` (`sfms-<suffix>` for PRs, `fwi-prod` for production) further namespaces configs
+`--qualifier` (`sfms-<suffix>` for PRs, `sfms-prod` for production) further namespaces configs
 within whichever gateway is targeted, and `GW_HOST`/`PROJECT_NAMESPACE` control which actual
 OpenShift backend a route forwards to.
 
@@ -122,7 +123,8 @@ openshift/scripts/render_sfms_gateway_config.sh prod ./sfms-gw-config-prod.yaml
 gwa config set host api.gov.bc.ca
 gwa login
 gwa config set --gateway <gateway-id>
-gwa publish-gateway ./sfms-gw-config-prod.yaml --qualifier fwi-prod
+gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier fwi-prod
+gwa publish-gateway ./sfms-gw-config-prod.yaml --qualifier sfms-prod
 ```
 
 ```bash
