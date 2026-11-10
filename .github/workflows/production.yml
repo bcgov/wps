@@ -68,6 +68,16 @@ jobs:
           suffix: prod
           host: api.gov.bc.ca
 
+      - name: Clear legacy SFMS gateway scope
+        uses: ./.github/actions/gwa-publish
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          config-path: openshift/aps/empty-gw-config.yaml
+          qualifier: fwi-prod
+          host: api.gov.bc.ca
+
       - name: Render and publish SFMS APS gateway config
         uses: ./.github/actions/aps-publish
         with:
@@ -77,7 +87,7 @@ jobs:
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           suffix: prod
-          qualifier-prefix: fwi-
+          qualifier-prefix: sfms-
           host: api.gov.bc.ca
 
       - name: Publish SFMS dataset and product to API Directory
