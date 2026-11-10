@@ -55,7 +55,7 @@ TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/sfms-gw-config.yaml}"
 }
 
 SFMS_SERVICE_NAME="${SFMS_SERVICE_NAME:-psu-sfms-${SUFFIX}}"
-SFMS_GATEWAY_QUALIFIER="sfms-${SUFFIX}"
+SFMS_GATEWAY_QUALIFIER="${QUALIFIER_PREFIX-sfms-}${SUFFIX}"
 
 mkdir -p "$(dirname "${OUTPUT_PATH}")"
 
