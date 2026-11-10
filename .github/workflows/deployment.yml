@@ -5,6 +5,7 @@ permissions:
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, unlabeled]
     branches:
       - main
     paths-ignore:
@@ -12,13 +13,40 @@ on:
       - ".github/workflows/asa_go_android_build.yml"
       - ".github/workflows/asa_go_ios_build_deploy.yml"
 
+# share this group with Weather and Cleanup so changes to dev do not overlap
+concurrency:
+  group: wps-dev-environments
+  queue: max
+  cancel-in-progress: false
+
 env:
   APS_TEST_GATEWAY_ID: gw-11008
   SUFFIX: pr-${{ github.event.number }}
 
 jobs:
+  check-dev-deployment:
+    name: Check dev deployment
+    if: github.event.action != 'unlabeled' || github.event.label.name == 'skip-dev-deploy'
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
+    outputs:
+      deploy: ${{ steps.check.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/dev-deploy-check
+        id: check
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+
   prepare-dev-database:
     name: Prepare Dev Database
+    needs: check-dev-deployment
+    if: needs.check-dev-deployment.outputs.deploy == 'true'
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     steps:
@@ -38,6 +66,7 @@ jobs:
 
   build-image:
     name: Build ${{ matrix.name }} Image
+    if: github.event.action != 'unlabeled' || github.event.label.name == 'skip-dev-deploy'
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     strategy:
@@ -83,6 +112,8 @@ jobs:
 
   configure-nats-server-name:
     name: Configure nats server name
+    needs: check-dev-deployment
+    if: needs.check-dev-deployment.outputs.deploy == 'true'
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     steps:

@@ -13,6 +13,14 @@ on:
       - main
 
 jobs:
+  test-dev-capacity:
+    name: Dev memory check - Test
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test dev memory check
+        run: python3 -m unittest discover -s openshift/scripts/tests -p test_dev_deploy.py
+
   lint-api:
     name: Python - Lint
     runs-on: ubuntu-26.04

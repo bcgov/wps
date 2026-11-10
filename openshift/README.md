@@ -2,6 +2,8 @@
 
 Infrastructure is deployed to openshift using Openshift YAML templates. Many are automatically deployed in the dev namespace when a PR is created, see: [deployment.yml](https://github.com/bcgov/wps/blob/main/.github/workflows/deployment.yml)
 
+See [PR dev deployments](PR_DEPLOYMENTS.md) for memory checks and pausing a deployment.
+
 ## NATS
 
 https://docs.nats.io/nats-concepts/what-is-nats
