@@ -1,5 +1,5 @@
-name: SFMS FWI APS Apply
-description: Render and apply the SFMS Daily FWI DraftDataset and Product to the API Directory. Requires ./.github/actions/gwa-setup to have run earlier in the job.
+name: SFMS APS Apply
+description: Render and apply the SFMS DraftDataset and Product to the API Directory. Requires ./.github/actions/gwa-setup to have run earlier in the job.
 
 inputs:
   gateway-id:
@@ -21,19 +21,19 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Render SFMS FWI dataset and product
+    - name: Render SFMS dataset and product
       shell: bash
       env:
         SUFFIX: ${{ inputs.suffix }}
       run: |
         set -euo pipefail
-        OUTPUT_DIR=".github/tmp/sfms-fwi-aps-resources-${SUFFIX}"
+        OUTPUT_DIR=".github/tmp/sfms-aps-resources-${SUFFIX}"
         mkdir -p "${OUTPUT_DIR}"
-        bash "${{ github.workspace }}/openshift/scripts/render_sfms_fwi_aps_resources.sh" \
+        bash "${{ github.workspace }}/openshift/scripts/render_sfms_aps_resources.sh" \
           "${SUFFIX}" \
           "${OUTPUT_DIR}"
 
-    - name: Apply SFMS FWI dataset and product
+    - name: Apply SFMS dataset and product
       uses: ./.github/actions/gwa-apply
       with:
         gateway-id: ${{ inputs.gateway-id }}
@@ -41,11 +41,11 @@ runs:
         client-secret: ${{ inputs.client-secret }}
         host: ${{ inputs.host }}
         files: |
-          .github/tmp/sfms-fwi-aps-resources-${{ inputs.suffix }}/sfms-fwi-dataset-${{ inputs.suffix }}.yaml
-          .github/tmp/sfms-fwi-aps-resources-${{ inputs.suffix }}/sfms-fwi-product-${{ inputs.suffix }}.yaml
+          .github/tmp/sfms-aps-resources-${{ inputs.suffix }}/sfms-dataset-${{ inputs.suffix }}.yaml
+          .github/tmp/sfms-aps-resources-${{ inputs.suffix }}/sfms-product-${{ inputs.suffix }}.yaml
 
     - name: Upload rendered resources
       uses: actions/upload-artifact@v7
       with:
-        name: sfms-fwi-aps-resources-${{ inputs.suffix }}
-        path: .github/tmp/sfms-fwi-aps-resources-${{ inputs.suffix }}/
+        name: sfms-aps-resources-${{ inputs.suffix }}
+        path: .github/tmp/sfms-aps-resources-${{ inputs.suffix }}/
