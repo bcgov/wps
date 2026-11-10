@@ -8,6 +8,7 @@ import {
   FUEL_COLOUR_BREAKS,
   FUEL_TYPE_COLOURS,
   HFI_COLOUR_BREAKS,
+  NATIONAL_NON_FUEL_TYPES,
   RASTER_CONFIG,
   SFC_COLOUR_BREAKS,
   TFC_COLOUR_BREAKS
@@ -18,7 +19,6 @@ import {
   getSFMSNGRasterColourExpression,
   isNodataValue,
   NODATA_THRESHOLD,
-  nonFuelCOGColourExpression,
   SNOW_FILL,
   snowStyler
 } from '@/features/sfmsInsights/components/map/sfmsFeatureStylers'
@@ -95,22 +95,17 @@ describe('fuelCOGColourExpression', () => {
   })
 })
 
-describe('nonFuelCOGColourExpression', () => {
-  it('should show only Non-fuel and water, preserving transparent NoData', () => {
-    expect(nonFuelCOGColourExpression()).toEqual([
-      'case',
-      ['==', ['band', 2], 0],
-      [0, 0, 0, 0],
-      ['==', ['band', 1], 99],
-      [130, 130, 130, 1],
-      ['==', ['band', 1], 102],
-      [115, 223, 255, 1],
-      [0, 0, 0, 0]
-    ])
-  })
-})
-
 describe('getSFMSNGRasterColourExpression', () => {
+  it('should reuse Fuel colours and labels for national Non-fuel/Water classes', () => {
+    expect(NATIONAL_NON_FUEL_TYPES).toEqual([
+      { value: 101, fuelCode: 'Non-fuel', rgb: [130, 130, 130] },
+      { value: 102, fuelCode: 'Water', rgb: [115, 223, 255] }
+    ])
+    for (const fuel of NATIONAL_NON_FUEL_TYPES) {
+      expect(fuel.rgb).toBe(FUEL_TYPE_COLOURS.find(({ fuelCode }) => fuelCode === fuel.fuelCode)?.rgb)
+    }
+  })
+
   it.each([
     ['sfc', SFC_COLOUR_BREAKS],
     ['tfc', TFC_COLOUR_BREAKS],
@@ -154,6 +149,24 @@ describe('getSFMSNGRasterColourExpression', () => {
     expect(expr[1]).toEqual(['==', ['band', 2], 0])
     expect(expr[2]).toEqual([0, 0, 0, 0])
   })
+
+  it.each(['sfc', 'tfc', 'cfb', 'hfi', 'ros', 'fmc', 'fire_area_30min'] as const)(
+    'should label Non-fuel/Water from the fuel band before %s values',
+    rasterType => {
+      const expr = getSFMSNGRasterColourExpression(rasterType)
+
+      expect(expr.slice(0, 7)).toEqual([
+        'case',
+        ['==', ['band', 3], 0],
+        [0, 0, 0, 0],
+        ['==', ['band', 2], 101],
+        [130, 130, 130, 1],
+        ['==', ['band', 2], 102],
+        [115, 223, 255, 1]
+      ])
+      expect(expr).toContainEqual(['<', ['band', 1], -NODATA_THRESHOLD])
+    }
+  )
 
   it('should still handle large nodata sentinels explicitly', () => {
     const expr = getSFMSNGRasterColourExpression('fwi')

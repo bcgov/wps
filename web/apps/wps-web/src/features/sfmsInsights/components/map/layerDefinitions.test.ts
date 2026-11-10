@@ -1,15 +1,12 @@
 import { RunType } from '@wps/api/runType'
 import { DateTime } from 'luxon'
-import {
-  getNonFuelCOGTiles,
-  getRasterLayer,
-  getSFMSNGRasterLayer,
-  getSFMSNGRasterPath,
-  getSnowPMTilesLayer,
-  NON_FUEL_LAYER_NAME
-} from './layerDefinitions'
+import type { Options as GeoTIFFOptions } from 'ol/source/GeoTIFF'
+import { getRasterLayer, getSFMSNGRasterLayer, getSFMSNGRasterPath, getSnowPMTilesLayer } from './layerDefinitions'
+import { RASTER_CONFIG, type RasterType } from './rasterConfig'
 
 type Listener = (...args: unknown[]) => void
+
+const captureGeoTIFFOptions = vi.fn<(options: GeoTIFFOptions) => void>()
 
 // Mock pmtiles completely to prevent any parsing
 vi.mock('pmtiles', () => ({
@@ -28,6 +25,9 @@ vi.mock('pmtiles', () => ({
 // Mock ol/source/GeoTIFF to prevent background network fetches that cause unhandled rejections
 vi.mock('ol/source/GeoTIFF', () => ({
   default: class MockGeoTIFF {
+    constructor(options: GeoTIFFOptions) {
+      captureGeoTIFFOptions(options)
+    }
     getState() {
       return 'ready'
     }
@@ -80,14 +80,35 @@ vi.mock('ol-pmtiles', () => ({
 }))
 
 describe('layerDefinitions', () => {
-  it('should place classification above numeric rasters and below snow without selecting it as numeric data', () => {
+  it.each([RunType.ACTUAL, RunType.FORECAST])('should pair every FBP output with the %s run fuel COG', runType => {
     const date = DateTime.fromISO('2025-11-02')
-    const classification = getNonFuelCOGTiles('test-token')
-    expect(classification.getZIndex()).toBeGreaterThan(getSFMSNGRasterLayer(date, 'cfb', undefined).getZIndex()!)
-    expect(classification.getZIndex()).toBeLessThan(getSnowPMTilesLayer(date).getZIndex()!)
-    expect(classification.getOpacity()).toBe(1)
-    expect(classification.getProperties().name).toBe(NON_FUEL_LAYER_NAME)
-    expect(classification.getProperties().rasterType).toBeUndefined()
+    for (const rasterType of Object.keys(RASTER_CONFIG) as RasterType[]) {
+      if (rasterType === 'fuel' || RASTER_CONFIG[rasterType].group !== 'fbp') continue
+      getSFMSNGRasterLayer(date, rasterType, 'test-token', runType)
+      const valuePath =
+        rasterType === 'fmc'
+          ? 'sfms_ng/static/fmc/2025/11/02/fmc_20251102_cog.tif'
+          : `sfms_ng/${runType}/2025/11/02/${rasterType}_20251102_cog.tif`
+      expect(captureGeoTIFFOptions).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sources: [
+            { url: expect.stringContaining(valuePath), nodata: Number.NaN },
+            { url: expect.stringContaining(`sfms_ng/${runType}/2025/11/02/fuel_20251102_cog.tif`) }
+          ],
+          sourceOptions: { headers: { Authorization: 'Bearer test-token' } },
+          interpolate: false,
+          normalize: false,
+          projection: 'EPSG:3857'
+        })
+      )
+    }
+  })
+
+  it.each(['fwi', 'temperature'] as const)('should load %s from a single source', rasterType => {
+    getSFMSNGRasterLayer(DateTime.fromISO('2025-11-02'), rasterType, undefined)
+    expect(captureGeoTIFFOptions).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sources: [{ url: expect.stringContaining(`${rasterType}_20251102_cog.tif`) }] })
+    )
   })
 
   describe('getSnowPMTilesLayer', () => {

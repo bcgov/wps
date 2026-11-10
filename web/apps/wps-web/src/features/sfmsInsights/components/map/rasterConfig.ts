@@ -281,6 +281,11 @@ export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value,
 
 export const NON_FUEL_COLOUR_BREAKS = FUEL_COLOUR_BREAKS.filter(({ min }) => min === 99 || min === 102)
 
+// The per-run fuel COG paired with fbp outputs uses national codes (Non-fuel is 101, not BC 99).
+export const NATIONAL_NON_FUEL_TYPES: FuelTypeColourMapping[] = FUEL_TYPE_COLOURS.filter(
+  ({ value }) => value === 99 || value === 102
+).map(fuel => ({ ...fuel, value: fuel.value === 99 ? 101 : fuel.value }))
+
 export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   fuel: { group: 'fuel', label: 'Fuel', colourBreaks: FUEL_COLOUR_BREAKS },
   temperature: { group: 'weather', label: 'Temperature', colourBreaks: TEMPERATURE_COLOUR_BREAKS },

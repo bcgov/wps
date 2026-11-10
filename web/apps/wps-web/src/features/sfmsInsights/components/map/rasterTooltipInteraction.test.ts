@@ -1,8 +1,7 @@
 import type { MapBrowserEvent } from 'ol'
 import type { EventsKey } from 'ol/events'
-import WebGLTileLayer from 'ol/layer/WebGLTile'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { NON_FUEL_LAYER_NAME, SNOW_LAYER_NAME } from './layerDefinitions'
+import { SNOW_LAYER_NAME } from './layerDefinitions'
 import { type RasterTooltipData, RasterTooltipInteraction } from './rasterTooltipInteraction'
 
 interface MockMapWithHandler {
@@ -155,18 +154,14 @@ describe('RasterTooltipInteraction', () => {
     })
 
     it.each([
-      [99, 'Non-fuel'],
+      [101, 'Non-fuel'],
       [102, 'Water'],
-      // Combustible fuel permits the numeric tooltip; unknown classification suppresses it.
-      [2, '24%'],
-      [255, null]
-    ])('should use classification %s before reporting CFB', (fuel, expected) => {
-      const classification = new WebGLTileLayer({ properties: { name: NON_FUEL_LAYER_NAME } })
-      // OpenLayers returns the band value followed by alpha (255 means valid).
-      vi.spyOn(classification, 'getData').mockReturnValue(new Float32Array([fuel, 255]))
-      mockMap.getLayers.mockReturnValue({ getArray: () => [classification, mockRasterLayer] })
+      // Combustible fuel (national C-2) reports the CFB value.
+      [2, '24%']
+    ])('should use fuel band %s before reporting CFB', (fuel, expected) => {
       mockRasterLayer.getProperties.mockReturnValue({ rasterType: 'cfb' })
-      mockRasterLayer.getData.mockReturnValue(new Float32Array([0.24, 255]))
+      // fbp layers return [value, fuel, alpha]; alpha 255 means valid.
+      mockRasterLayer.getData.mockReturnValue(new Float32Array([0.24, fuel, 255]))
       mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
       expect(onTooltipChange).toHaveBeenLastCalledWith({
         label: expected === '24%' ? 'CFB' : '',
@@ -176,25 +171,16 @@ describe('RasterTooltipInteraction', () => {
       })
     })
 
-    it('should suppress numeric FBP tooltips while classification is unavailable', () => {
+    it.each([
+      // Value NoData keeps its raw sentinel because the value source's nodata is overridden.
+      [-3.4028235e38, 2, 255],
+      // Alpha 0 means neither source has data at this pixel.
+      [0, 0, 0],
+      [120, 101, 0],
+      [120, 102, 0]
+    ])('should report missing fbp data for %s with fuel %s and alpha %s', (value, fuel, alpha) => {
       mockRasterLayer.getProperties.mockReturnValue({ rasterType: 'cfb' })
-      mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
-      expect(onTooltipChange).toHaveBeenLastCalledWith({
-        label: '',
-        value: null,
-        pixel: [100, 200],
-        snowCovered: false
-      })
-      expect(mockRasterLayer.getData).not.toHaveBeenCalled()
-    })
-
-    it('should keep genuine missing data over combustible fuel missing', () => {
-      const classification = new WebGLTileLayer({ properties: { name: NON_FUEL_LAYER_NAME } })
-      vi.spyOn(classification, 'getData').mockReturnValue(new Float32Array([2, 255]))
-      mockMap.getLayers.mockReturnValue({ getArray: () => [classification, mockRasterLayer] })
-      mockRasterLayer.getProperties.mockReturnValue({ rasterType: 'cfb' })
-      // Alpha 0 means missing data, not a valid CFB value of zero.
-      mockRasterLayer.getData.mockReturnValue(new Float32Array([0, 0]))
+      mockRasterLayer.getData.mockReturnValue(new Float32Array([value, fuel, alpha]))
       mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
       expect(onTooltipChange).toHaveBeenLastCalledWith({
         label: 'CFB',

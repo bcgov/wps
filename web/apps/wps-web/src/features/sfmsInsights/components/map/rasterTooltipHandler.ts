@@ -1,11 +1,9 @@
 import type WebGLTileLayer from 'ol/layer/WebGLTile'
-import { FUEL_TYPE_COLOURS, RASTER_CONFIG, type RasterType } from './rasterConfig'
+import { FUEL_TYPE_COLOURS, NATIONAL_NON_FUEL_TYPES, RASTER_CONFIG, type RasterType } from './rasterConfig'
 import { isNodataValue } from './sfmsFeatureStylers'
 
 export type RasterData = Float32Array | Uint8Array | null
 export type RasterTooltipValue = { value: number | string | null; label: string }
-
-const ALPHA_BAND_INDEX = 1
 
 const roundToDecimalPlaces = (value: number, decimalPlaces: number): number => {
   const multiplier = 10 ** decimalPlaces
@@ -25,12 +23,19 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
   }
 
   const rawValue = data[0]
-  const alphaValue = data[ALPHA_BAND_INDEX]
+  const alphaValue = data.at(-1)
 
-  // openlayers appends an alpha band when GeoTIFF nodata exists; alpha 0 means
+  // openlayers appends an alpha band (always last) when GeoTIFF nodata exists; alpha 0 means
   // the pixel is transparent even when the raster band itself reads back as 0.
-  if (data.length > ALPHA_BAND_INDEX && alphaValue === 0) {
+  if (data.length > 1 && alphaValue === 0) {
     return { value: null, label: defaultLabel }
+  }
+
+  if (rasterType && RASTER_CONFIG[rasterType].group === 'fbp') {
+    const nonFuel = NATIONAL_NON_FUEL_TYPES.find(({ value }) => value === data[1])
+    if (nonFuel) {
+      return { value: nonFuel.fuelCode, label: '' }
+    }
   }
 
   // Check for NaN (can occur when undefined is coerced to number)
