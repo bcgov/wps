@@ -63,7 +63,7 @@ jobs:
           gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
           client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
-          config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+          config-path: openshift/aps/empty-gw-config.yaml
           qualifier: fwi-${{ env.SUFFIX }}
           host: api-gov-bc-ca.test.api.gov.bc.ca
 
@@ -73,7 +73,7 @@ jobs:
           gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
           client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
-          config-path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+          config-path: openshift/aps/empty-gw-config.yaml
           qualifier: sfms-${{ env.SUFFIX }}
           host: api-gov-bc-ca.test.api.gov.bc.ca
 
@@ -81,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: sfms-aps-gateway-config-cleanup-${{ env.SUFFIX }}
-          path: ${{ steps.asa_go_aps_config.outputs.config_path }}
+          path: openshift/aps/empty-gw-config.yaml
 
       - name: Delete SFMS dataset and product from API Directory
         shell: bash
