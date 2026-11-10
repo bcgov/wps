@@ -18,6 +18,8 @@ from cffdrs_vec.fbp import (
     vectorized_elliptical_fire_area,
     vectorized_fire_behaviour_prediction_with_spread,
 )
+from wps_shared.geospatial.cog import generate_and_store_cog
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FBPParameter, GDALPath
 from wps_shared.utils.s3 import gdal_s3_context
@@ -30,6 +32,7 @@ from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
 from wps_sfms.raster_output import create_masked_output_dataset, open_bc_mask_dataset
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -372,3 +375,17 @@ class PrimaryFireBehaviourProcessor:
                                 published.output_key,
                                 published.cog_key,
                             )
+
+                # The run's fuel grid (national codes), on the same grid as the output COGs so
+                # Insights can read both per pixel. Nearest neighbour keeps class codes intact.
+                addresser = SFMSNGRasterAddresser()
+                fuel_cog_key = generate_and_store_cog(
+                    datasets.fuel.as_gdal_ds(),
+                    addresser.get_cog_key(
+                        addresser.get_fuel_classification_key(
+                            self.datetime_to_process, inputs.run_type
+                        )
+                    ),
+                    resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
+                )
+                logger.info("Stored fuel classification COG: %s", fuel_cog_key)

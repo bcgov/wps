@@ -120,12 +120,19 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         self, datetime_utc: datetime, fbp_param: FBPParameter, run_type: RunType
     ) -> S3Key:
         """S3 key for a calculated FBP parameter raster."""
+        return self._get_run_date_key(datetime_utc, run_type, fbp_param.value)
+
+    def get_fuel_classification_key(self, datetime_utc: datetime, run_type: RunType) -> S3Key:
+        """S3 key for the fuel classification used by a run (only its COG is stored)."""
+        return self._get_run_date_key(datetime_utc, run_type, "fuel")
+
+    def _get_run_date_key(self, datetime_utc: datetime, run_type: RunType, name: str) -> S3Key:
         assert_all_utc(datetime_utc)
         date = datetime_utc.date()
         date_str = date.isoformat().replace("-", "")
         return S3Key(
             f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/"
-            f"{fbp_param.value}_{date_str}.tif"
+            f"{name}_{date_str}.tif"
         )
 
     def get_static_key(self, filename: str) -> S3Key:
