@@ -217,6 +217,8 @@ _ECMWF_VARIABLES = {
     Variable.U10: "10u",
     Variable.V10: "10v",
     Variable.PRECIP: "tp",
+    # surface geopotential, published with step 0 only; Field converts it to a height
+    Variable.SURFACE_HEIGHT: "z",
 }
 
 IFS = EcmwfOpenData(
@@ -238,13 +240,16 @@ _NOAA_VARIABLES = {
     Variable.RH2M: ":RH:2 m above ground:",
     Variable.U10: ":UGRD:10 m above ground:",
     Variable.V10: ":VGRD:10 m above ground:",
+    Variable.SURFACE_HEIGHT: ":HGT:surface:",
 }
+# Besides a 1, 3 or 6 hour bucket, GFS and RRFS give the total since the run started, which is
+# the bucket that starts at 0. GFS counts it in days from the fifth day.
+_NOAA_RUN_TOTAL_PRECIP = r":APCP:surface:0-\d+ (hour|day) acc"
 
 GFS = NoaaIdx(
     name="gfs",
     path="gfs.{run:%Y%m%d}/{run:%H}/atmos/gfs.t{run:%H}z.pgrb2.0p25.f{step:03d}",
-    # GFS also carries a 3 or 6 hour bucket; the one starting at 0 is the run total.
-    variables={**_NOAA_VARIABLES, Variable.PRECIP: r":APCP:surface:0-\d+ (hour|day) acc"},
+    variables={**_NOAA_VARIABLES, Variable.PRECIP: _NOAA_RUN_TOTAL_PRECIP},
     mirrors=(
         "https://noaa-gfs-bdp-pds.s3.amazonaws.com",
         "https://nomads.ncep.noaa.gov/pub/data/nccf/com/gfs/prod",
@@ -258,6 +263,16 @@ NAM = NoaaIdx(
     variables=_NOAA_VARIABLES,
     mirrors=("https://noaa-nam-pds.s3.amazonaws.com",),
 )
+# RRFS, which replaced NAM, on its 13 km North America grid: the only one of its domains that
+# covers all of British Columbia (the 3 km CONUS and Alaska grids each miss part of it). RRFS
+# runs every hour, but only the 00, 06, 12 and 18 UTC runs, which reach 84 hours, publish this
+# grid.
+RRFS = NoaaIdx(
+    name="rrfs",
+    path="rrfs.{run:%Y%m%d}/{run:%H}/rrfs.t{run:%H}z.2dfld.13km.f{step:03d}.na.grib2",
+    variables={**_NOAA_VARIABLES, Variable.PRECIP: _NOAA_RUN_TOTAL_PRECIP},
+    mirrors=("https://noaa-rrfs-ops-pds.s3.amazonaws.com",),
+)
 
 # HPFX has ten times the bandwidth of the Datamart but only best-effort uptime.
 _MSC_MIRRORS = ("https://hpfx.collab.science.gc.ca", "https://dd.weather.gc.ca")
@@ -270,6 +285,7 @@ _MSC_VARIABLES = {
     Variable.WIND_SPEED_10M: "WindSpeed_AGL-10m",
     Variable.WIND_DIR_10M: "WindDir_AGL-10m",
     Variable.PRECIP: "Precip-Accum_Sfc",
+    Variable.SURFACE_HEIGHT: "GeopotentialHeight_Sfc",  # step 0 only
 }
 _MSC_PATH = (
     "{{run:%Y%m%d}}/WXO-DD/{directory}/{{run:%H}}/{{step:03d}}/"
@@ -303,8 +319,11 @@ HRDPS = MscDatamart(
         Variable.WIND_SPEED_10M: "WIND_AGL-10m",
         Variable.WIND_DIR_10M: "WDIR_AGL-10m",
         Variable.PRECIP: "APCP_Sfc",
+        Variable.SURFACE_HEIGHT: "HGT_Sfc",
     },
     mirrors=_MSC_MIRRORS,
 )
 
-MODELS: dict[str, Model] = {model.name: model for model in (IFS, AIFS, GFS, NAM, GDPS, RDPS, HRDPS)}
+MODELS: dict[str, Model] = {
+    model.name: model for model in (IFS, AIFS, GFS, NAM, RRFS, GDPS, RDPS, HRDPS)
+}

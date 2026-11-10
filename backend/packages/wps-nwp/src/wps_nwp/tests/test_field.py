@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 import numpy as np
 import pytest
 
-from wps_nwp import Field, Grid, Native, Variable, sample
+from wps_nwp import Field, Grid, Native, Variable, sample, wind
 from wps_nwp.field import extract
 from wps_nwp.tests.fakes import fake_grib, real_grib, sample_grib
 
@@ -60,6 +60,20 @@ def test_precipitation_in_metres_is_converted_to_mm():
 
     np.testing.assert_allclose(field(grib, Variable.PRECIP).values, VALUES, atol=1e-3)
     assert field(grib, Variable.PRECIP).units == "mm"
+
+
+def test_surface_geopotential_is_converted_to_a_height():
+    # ECMWF publishes terrain as geopotential: height times standard gravity
+    grib = real_grib(VALUES * 1000 * 9.80665, short_name="z")
+
+    np.testing.assert_allclose(field(grib, Variable.SURFACE_HEIGHT).values, VALUES * 1000, atol=0.1)
+    assert field(grib, Variable.SURFACE_HEIGHT).units == "m"
+
+
+def test_surface_height_already_in_metres_is_left_alone():
+    grib = real_grib(VALUES * 100, short_name="orog")
+
+    np.testing.assert_allclose(field(grib, Variable.SURFACE_HEIGHT).values, VALUES * 100, atol=0.1)
 
 
 def test_native_fields_are_left_as_the_model_encodes_them():
@@ -319,3 +333,113 @@ def test_extract_separates_fields_packed_into_one_message():
     assert second.grid.shape == (3, 4)
     with pytest.raises(ValueError, match="has 2 fields, wanted number 3"):
         extract(packed, 2)
+
+
+# Placed well east of the rotated frame's origin, as the east of the HRDPS grid is, where its
+# axes are turned furthest from true east and north.
+ROTATED = dict(first_lat=-1.0, first_lon=20.0, spacing=0.1, rotated_south_pole=(-36.1, -114.7))
+
+
+def rotated_field(values, short_name: str, relative_to_grid: bool = True) -> Field:
+    """A wind component on a 5x5 grid rotated as HRDPS's is."""
+    grib = real_grib(values, short_name=short_name, relative_to_grid=relative_to_grid, **ROTATED)
+    return field(grib, Native(short_name))
+
+
+def exact_x_axis_angle(grid: Grid, index) -> np.ndarray:
+    """
+    The direction of increasing rotated longitude, from the rotation itself rather than from
+    neighbouring grid points: the independent check on Grid.x_axis_angle.
+    """
+    axes = grid._axes
+    rows, columns = np.divmod(np.asarray(index), grid.shape[1])
+    rotated_lon = np.radians(axes.first_lon + columns * axes.lon_step)
+    along = np.stack([-np.sin(rotated_lon), np.cos(rotated_lon), np.zeros(len(rows))], 1)
+    along = along @ axes.rotation  # from the rotated frame back to the true one
+    lat, lon = np.radians(grid.lats.ravel()[index]), np.radians(grid.lons.ravel()[index])
+    east = np.stack([-np.sin(lon), np.cos(lon), np.zeros(len(lon))], 1)
+    north = np.stack([-np.sin(lat) * np.cos(lon), -np.sin(lat) * np.sin(lon), np.cos(lat)], 1)
+    return np.arctan2((along * north).sum(1), (along * east).sum(1))
+
+
+def test_x_axis_points_east_on_a_regular_grid():
+    grid = field(real_grib(VALUES)).grid
+
+    np.testing.assert_allclose(grid.x_axis_angle(np.arange(12)), 0, atol=1e-12)
+
+
+def test_x_axis_angle_on_a_rotated_grid_agrees_with_the_rotation():
+    grid = rotated_field(np.zeros((5, 5)), "10u").grid
+    every_point = np.arange(25)
+    edge = np.isin(every_point % 5, (0, 4))  # the first and last columns have one neighbour
+
+    angle = grid.x_axis_angle(every_point)
+
+    exact = exact_x_axis_angle(grid, every_point)
+    np.testing.assert_allclose(angle[~edge], exact[~edge], atol=np.radians(0.001))
+    np.testing.assert_allclose(angle[edge], exact[edge], atol=np.radians(0.1))
+    assert np.degrees(np.abs(angle)).min() > 10  # far enough from east to mean something
+
+
+@pytest.mark.parametrize(
+    "u, v, direction",
+    [(0.0, -5.0, 0.0), (-5.0, 0.0, 90.0), (0.0, 5.0, 180.0), (5.0, 0.0, 270.0), (3.0, 4.0, 216.87)],
+    ids=["from the north", "from the east", "from the south", "from the west", "south-westerly"],
+)
+def test_wind_on_a_regular_grid(u, v, direction):
+    u_field = field(real_grib(np.full((3, 4), u), short_name="10u"), Variable.U10)
+    v_field = field(real_grib(np.full((3, 4), v), short_name="10v"), Variable.V10)
+
+    speed, blowing_from = wind(u_field, v_field, [59.0], [-128.0])
+
+    assert speed == pytest.approx([5.0], abs=1e-3)
+    assert min(abs(blowing_from[0] - direction), 360 - abs(blowing_from[0] - direction)) < 0.01
+    assert not u_field.relative_to_grid
+    assert "_decoded" not in vars(u_field)
+
+
+def test_wind_relative_to_a_rotated_grid_is_turned_to_true_north():
+    # a 10 m/s wind along the grid's y axis, which is not true north on this grid
+    u_field, v_field = (
+        rotated_field(np.zeros((5, 5)), "10u"),
+        rotated_field(np.full((5, 5), 10.0), "10v"),
+    )
+    index = np.arange(25)
+    lats, lons = u_field.grid.lats.ravel(), u_field.grid.lons.ravel()
+
+    speed, blowing_from = wind(u_field, v_field, lats, lons)
+
+    # blowing towards the grid's y axis, which is the x axis turned 90 degrees anticlockwise
+    towards = exact_x_axis_angle(u_field.grid, index) + np.pi / 2
+    expected = (270 - np.degrees(towards)) % 360
+    np.testing.assert_allclose(speed, 10.0, atol=1e-3)
+    np.testing.assert_allclose(blowing_from, expected, atol=0.1)
+    assert np.abs(blowing_from - 180).min() > 10  # which is not from due south
+
+
+def test_wind_given_relative_to_true_north_is_not_turned():
+    u_field = rotated_field(np.zeros((5, 5)), "10u", relative_to_grid=False)
+    v_field = rotated_field(np.full((5, 5), 10.0), "10v", relative_to_grid=False)
+    lats, lons = u_field.grid.lats.ravel(), u_field.grid.lons.ravel()
+
+    _, blowing_from = wind(u_field, v_field, lats, lons)
+
+    np.testing.assert_allclose(blowing_from, 180.0, atol=1e-3)
+
+
+def test_wind_uses_values_that_were_already_decoded():
+    u_field = field(real_grib(np.full((3, 4), 5.0), short_name="10u"), Variable.U10)
+    v_field = field(real_grib(np.zeros((3, 4)), short_name="10v"), Variable.V10)
+    u_field.values  # decodes and keeps the values
+
+    speed, _ = wind(u_field, v_field, [59.0], [-128.0])
+
+    assert speed == pytest.approx([5.0], abs=1e-3)
+
+
+def test_wind_components_must_be_on_the_same_grid():
+    u_field = field(real_grib(np.zeros((3, 4)), short_name="10u"), Variable.U10)
+    v_field = rotated_field(np.zeros((5, 5)), "10v")
+
+    with pytest.raises(ValueError, match="different grids"):
+        wind(u_field, v_field, [59.0], [-128.0])

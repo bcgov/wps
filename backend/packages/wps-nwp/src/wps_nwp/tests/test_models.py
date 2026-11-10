@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from wps_nwp import AIFS, GDPS, GFS, HRDPS, IFS, NAM, RDPS, Native, Variable
+from wps_nwp import AIFS, GDPS, GFS, HRDPS, IFS, NAM, RDPS, RRFS, Native, Variable
 from wps_nwp.models import Part, parse_idx
 
 RUN = datetime(2026, 11, 4, 12, tzinfo=UTC)
@@ -58,6 +58,12 @@ def getter(files: dict[str, bytes]):
             NAM,
             3,
             "https://noaa-nam-pds.s3.amazonaws.com/nam.20261104/nam.t12z.awphys03.tm00.grib2",
+        ),
+        (
+            RRFS,
+            7,
+            "https://noaa-rrfs-ops-pds.s3.amazonaws.com/rrfs.20261104/12/"
+            "rrfs.t12z.2dfld.13km.f007.na.grib2",
         ),
     ],
 )
@@ -172,3 +178,42 @@ async def test_noaa_locate_matches_idx_lines():
 def test_asking_for_a_variable_the_model_lacks_names_the_alternatives():
     with pytest.raises(ValueError, match="ifs does not provide 'rh2m'; it has t2m, d2m"):
         IFS.selector(Variable.RH2M)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "line, model",
+    [
+        ("6:600:d=2026110412:APCP:surface:0-1 hour acc fcst:", RRFS),
+        ("6:600:d=2026110412:APCP:surface:0-7 hour acc fcst:", RRFS),
+        ("6:600:d=2026110412:APCP:surface:0-5 day acc fcst:", GFS),
+    ],
+)
+async def test_noaa_precipitation_is_the_total_since_the_run_started(line, model):
+    mirror = model.mirrors[0]
+    idx = (
+        "1:0:d=2026110412:HGT:surface:7 hour fcst:\n"
+        "5:400:d=2026110412:APCP:surface:6-7 hour acc fcst:\n" + line + "\n"
+    )
+    get = getter({model.url(mirror, RUN, 7) + ".idx": idx.encode()})
+
+    parts = await model.locate(get, mirror, RUN, 7, [Variable.PRECIP, Variable.SURFACE_HEIGHT])
+
+    assert [(part.variable, part.offset) for part in parts] == [
+        (Variable.PRECIP, 600),
+        (Variable.SURFACE_HEIGHT, 0),
+    ]
+
+
+@pytest.mark.anyio
+async def test_ecmwf_surface_height_is_the_surface_geopotential_not_a_pressure_level():
+    mirror = IFS.mirrors[0]
+    index = (
+        b'{"param": "z", "levtype": "pl", "levelist": "500", "_offset": 0, "_length": 10}\n'
+        b'{"param": "z", "levtype": "sfc", "_offset": 10, "_length": 20}\n'
+    )
+    get = getter({IFS.probe(mirror, RUN, 0): index})
+
+    (part,) = await IFS.locate(get, mirror, RUN, 0, [Variable.SURFACE_HEIGHT])
+
+    assert (part.offset, part.length) == (10, 20)

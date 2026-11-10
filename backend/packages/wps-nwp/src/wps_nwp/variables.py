@@ -12,13 +12,17 @@ class Variable(StrEnum):
     T2M = "t2m"  # air temperature 2 m above ground
     D2M = "d2m"  # dewpoint 2 m above ground
     RH2M = "rh2m"  # relative humidity 2 m above ground
-    # Wind components are relative to the model grid, not to true north, on rotated and
-    # projected grids (RDPS, HRDPS, NAM). Use WIND_SPEED_10M / WIND_DIR_10M there.
+    # Wind components are as the model publishes them, which on rotated and projected grids
+    # (RDPS, HRDPS, NAM, RRFS) is relative to the grid rather than to true north. Turn them
+    # into a speed and a true direction with wps_nwp.wind, which allows for that.
     U10 = "u10"
     V10 = "v10"
     WIND_SPEED_10M = "wind_speed_10m"
     WIND_DIR_10M = "wind_dir_10m"  # direction the wind blows from
     PRECIP = "precip"  # precipitation accumulated since the start of the run
+    # Height of the model's terrain above mean sea level. It does not change from one step to
+    # the next, and some models publish it only with step 0.
+    SURFACE_HEIGHT = "surface_height"
 
     @property
     def units(self) -> str:
@@ -35,6 +39,7 @@ _UNITS = {
     Variable.WIND_SPEED_10M: "m s-1",
     Variable.WIND_DIR_10M: "degrees true",
     Variable.PRECIP: "mm",
+    Variable.SURFACE_HEIGHT: "m",
 }
 
 

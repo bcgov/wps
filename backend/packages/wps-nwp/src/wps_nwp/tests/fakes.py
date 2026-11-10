@@ -89,6 +89,7 @@ def real_grib(
     south_to_north: bool = False,
     rotated_south_pole: tuple[float, float] | None = None,
     rotation_angle: float = 0.0,
+    relative_to_grid: bool = False,
 ) -> bytes:
     """
     A decodable GRIB2 message on a regular lat/lon grid.
@@ -96,7 +97,8 @@ def real_grib(
     Rows run north to south from first_lat unless south_to_north is set. With
     rotated_south_pole the grid is regular in a frame whose south pole is at that (lat, lon),
     as RDPS and HRDPS are, and first_lat and first_lon are in that frame. rotation_angle
-    turns that frame about its own pole as well.
+    turns that frame about its own pole as well. relative_to_grid marks a wind component as
+    given along the grid's axes rather than true east and north.
     """
     import eccodes  # optional for the package, so only needed by the tests that decode
 
@@ -122,6 +124,7 @@ def real_grib(
             keys["latitudeOfSouthernPoleInDegrees"] = rotated_south_pole[0]
             keys["longitudeOfSouthernPoleInDegrees"] = rotated_south_pole[1] % 360
             keys["angleOfRotationInDegrees"] = rotation_angle
+        keys["uvRelativeToGrid"] = int(relative_to_grid)
         for key, value in keys.items():
             eccodes.codes_set(handle, key, value)
         if missing is not None:

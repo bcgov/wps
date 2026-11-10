@@ -17,6 +17,8 @@ _CHUNK_ELEMENTS = 4_000_000
 # How far past the first or last row or column, in cells, still counts as on the grid.
 _EDGE_TOLERANCE = 1e-6
 DEFAULT_WORKERS = 2
+# Standard gravity, which ECMWF divides geopotential by to get height: m s-2.
+_GRAVITY = 9.80665
 
 
 class Grid:
@@ -93,6 +95,34 @@ class Grid:
             if self._nearest is None or self._nearest[:2] != key:
                 self._nearest = (*key, self._locate(lats, lons))
             return self._nearest[2]
+
+    def x_axis_angle(self, index) -> np.ndarray:
+        """
+        The direction the grid's x axis points at each grid point, in radians anticlockwise
+        from true east.
+
+        It is 0 everywhere on a regular lat/lon grid, but not on a rotated or projected one,
+        where it is what turns vectors given relative to the grid into true ones.
+
+        How it works: the direction from the grid point before each one in its row to the
+        one after it is worked out from their latitudes and longitudes, on a plane tangent to
+        the earth. Spanning the point from both sides makes this accurate to a small fraction
+        of the angle by which the axis turns from one cell to the next. The first and last
+        points of a row use themselves in place of the neighbour they lack. This uses the
+        coordinates of the grid's points, which are worked out on first use.
+
+        :param index: flat indices of grid points, as returned by nearest
+        """
+        rows, columns = np.divmod(np.asarray(index), self.shape[1])
+        before = np.maximum(columns - 1, 0)
+        after = np.minimum(columns + 1, self.shape[1] - 1)
+        lats, lons = self.lats, self.lons
+        start_lat, start_lon = lats[rows, before], lons[rows, before]
+        end_lat, end_lon = lats[rows, after], lons[rows, after]
+        middle_lat = np.radians((start_lat + end_lat) / 2)
+        east = _wrap(end_lon - start_lon) * np.cos(middle_lat)
+        north = end_lat - start_lat
+        return np.arctan2(north, east)
 
     def _locate(self, lats: np.ndarray, lons: np.ndarray) -> np.ndarray:
         """
@@ -346,16 +376,31 @@ class Field:
         """
         Decode the message without keeping the result.
 
-        Returns the values, their grid and the units the message declares. Precipitation
-        from ECMWF is multiplied by 1000, in place, to turn metres into mm. Nothing else is
-        converted.
+        Returns the values, their grid and the units the message declares. Every supported
+        model encodes the Variables in the units Variable.units gives, bar two from ECMWF,
+        which are converted in place: precipitation in metres is multiplied by 1000 to give
+        mm, and terrain, published as surface geopotential, is divided by standard gravity
+        to give its height. Nothing else is converted.
         """
         values, grid, units = _decode(self.grib)
-        # Every supported model encodes the Variables in the same units, bar one: ECMWF
-        # reports precipitation in metres where the others use kg m-2, which is mm.
         if self.variable is Variable.PRECIP and units == "m":
             values *= 1000
+        elif self.variable is Variable.SURFACE_HEIGHT and units == "m**2 s**-2":
+            values /= _GRAVITY
         return values, grid, units
+
+    @property
+    def relative_to_grid(self) -> bool:
+        """
+        Whether the message gives vector components relative to its grid's axes rather than
+        to true east and north. It only means anything for a wind component.
+        """
+        eccodes = _eccodes()
+        handle = eccodes.codes_new_from_message(self.grib)
+        try:
+            return bool(eccodes.codes_get(handle, "uvRelativeToGrid"))
+        finally:
+            eccodes.codes_release(handle)
 
 
 async def sample(
@@ -384,6 +429,45 @@ async def sample(
             return await asyncio.to_thread(field.sample, lats, lons)
 
     return await asyncio.gather(*(one(field) for field in fields))
+
+
+def wind(u: Field, v: Field, lats, lons) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Wind speed, and the direction the wind blows from, at each (lat, lon).
+
+    Use it rather than working these out from sampled components, because on rotated and
+    projected grids (RDPS, HRDPS, NAM, RRFS) the components are relative to the grid, not
+    to true north, and a direction worked out from them as they stand is wrong by up to
+    tens of degrees. Speed is the same either way.
+
+    How it works: both fields are decoded, without keeping the result, and sampled at the
+    grid points nearest to the locations. If the u field says its components are relative
+    to the grid, they are turned through the angle Grid.x_axis_angle gives at each of those
+    points, which makes them true east and north components. Speed and direction follow from
+    those.
+
+    :param u: the eastward, or grid x, component, from U10 or a Native field
+    :param v: the matching northward, or grid y, component, for the same step
+    :return: speed in the fields' units (m s-1 for the Variables), and direction in degrees
+        clockwise from true north
+    :raises ValueError: u and v are not on the same grid
+    """
+    u_values, grid, _ = u.__dict__.get("_decoded") or u._decode()
+    v_values, v_grid, _ = v.__dict__.get("_decoded") or v._decode()
+    if v_grid is not grid:
+        raise ValueError("u and v are on different grids")
+
+    index = grid.nearest(lats, lons)
+    east, north = u_values.ravel()[index], v_values.ravel()[index]
+    if u.relative_to_grid:
+        angle = grid.x_axis_angle(index)
+        east, north = (
+            east * np.cos(angle) - north * np.sin(angle),
+            east * np.sin(angle) + north * np.cos(angle),
+        )
+    speed = np.hypot(east, north)
+    direction = (270 - np.degrees(np.arctan2(north, east))) % 360
+    return speed, direction
 
 
 # Fields from the same model share a grid, so each distinct grid is described once and kept

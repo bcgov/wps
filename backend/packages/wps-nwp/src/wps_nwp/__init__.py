@@ -2,7 +2,7 @@
 
 from wps_nwp.client import Client
 from wps_nwp.errors import FetchError, NotAvailable, NwpError
-from wps_nwp.field import Field, Grid, sample
+from wps_nwp.field import Field, Grid, sample, wind
 from wps_nwp.models import (
     AIFS,
     GDPS,
@@ -12,6 +12,7 @@ from wps_nwp.models import (
     MODELS,
     NAM,
     RDPS,
+    RRFS,
     EcmwfOpenData,
     Model,
     MscDatamart,
@@ -28,6 +29,7 @@ __all__ = [
     "MODELS",
     "NAM",
     "RDPS",
+    "RRFS",
     "Client",
     "EcmwfOpenData",
     "FetchError",
@@ -41,4 +43,5 @@ __all__ = [
     "NwpError",
     "Variable",
     "sample",
+    "wind",
 ]
