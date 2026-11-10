@@ -41,15 +41,12 @@ async def publish_dataset(
     *,
     cog_non_fuel_mask: NDArray[np.bool_] | None = None,
 ) -> PublishedRaster:
-    """Upload a GeoTIFF and generate its web COG, optionally excluding Non-fuel.
+    """Upload a GeoTIFF and generate its web COG, optionally keeping Non-fuel out of interpolation.
 
-    ``cog_non_fuel_mask`` identifies Non-fuel/water pixels on the dataset's grid.
-    It affects only the COG, not the uploaded GeoTIFF or its content hash.
+    ``cog_non_fuel_mask`` identifies Non-fuel/water pixels on the dataset's grid. The COG
+    interpolates fuel pixels only, then restores the Non-fuel/water values. The mask affects
+    only the COG, not the uploaded GeoTIFF or its content hash.
     """
-
-    # The masked COG helper uses bilinear resampling; do not silently ignore another method.
-    if cog_non_fuel_mask is not None and cog_resample_alg != GDALResamplingMethod.BILINEAR:
-        raise ValueError("Non-fuel COGs require bilinear continuous-data resampling")
 
     raster_addresser = SFMSNGRasterAddresser()
     s3_output_key = S3Key(str(output_key))
@@ -68,8 +65,7 @@ async def publish_dataset(
         await s3_client.put_object(key=s3_output_key, body=body)
 
         if cog_key is not None and cog_non_fuel_mask is not None:
-            # Exclude classified Non-fuel/water, not every zero; valid fuel zeros still contribute.
-            generate_non_fuel_cog(tmp_path, cog_key, cog_non_fuel_mask)
+            generate_non_fuel_cog(dataset, cog_key, cog_non_fuel_mask, cog_resample_alg)
         elif cog_key is not None:
             generate_web_optimized_cog(
                 input_path=tmp_path, output_path=cog_key, resample_alg=cog_resample_alg

@@ -86,8 +86,8 @@ async def test_publish_dataset_can_skip_cog_generation(mocker):
 
 
 @pytest.mark.anyio
-async def test_non_fuel_mask_changes_only_the_cog_not_the_uploaded_geotiff(mocker, tmp_path):
-    """Keep uploaded zeros unchanged while masking the same pixels in the real COG."""
+async def test_non_fuel_mask_keeps_source_values_in_the_geotiff_and_the_cog(mocker, tmp_path):
+    """Route masked publishes through the Non-fuel COG while the uploaded GeoTIFF keeps source values."""
     output_key = "sfms_ng/actual/2024/07/04/cfb_20240704.tif"
     cog_path = str(tmp_path / "cfb_cog.tif")
 
@@ -97,8 +97,8 @@ async def test_non_fuel_mask_changes_only_the_cog_not_the_uploaded_geotiff(mocke
     s3_client = MagicMock()
     s3_client.put_object = AsyncMock()
 
-    # All source pixels are zero and classified Non-fuel.
-    source_values = np.zeros((8, 8), dtype=np.float32)
+    # All source pixels are 5 and classified Non-fuel.
+    source_values = np.full((8, 8), 5, dtype=np.float32)
     non_fuel_mask = np.ones(source_values.shape, dtype=bool)
     gdal_ds = create_test_dataset(
         "cfb.tif",
@@ -106,7 +106,7 @@ async def test_non_fuel_mask_changes_only_the_cog_not_the_uploaded_geotiff(mocke
         8,
         (-124, -122, 49, 51),
         4326,
-        fill_value=0,
+        fill_value=5,
         no_data_value=-9999,
     )
 
@@ -126,13 +126,17 @@ async def test_non_fuel_mask_changes_only_the_cog_not_the_uploaded_geotiff(mocke
     assert published.content_hash == hashlib.sha256(upload["body"]).hexdigest()
     assert published.cog_key == cog_path
 
-    # The uploaded GeoTIFF must still contain zeros.
+    # The uploaded GeoTIFF must keep its source values.
     uploaded_path = tmp_path / "uploaded.tif"
     uploaded_path.write_bytes(upload["body"])
     with gdal.Open(str(uploaded_path)) as uploaded:
         np.testing.assert_array_equal(uploaded.ReadAsArray(), source_values)
 
-    # Only the COG should have those pixels replaced with its declared NoData value.
+    # The COG restores the original Non-fuel values after resampling. Masking itself is
+    # covered in test_non_fuel_cog.py.
     with gdal.Open(cog_path) as cog:
         cog_band = cog.GetRasterBand(1)
-        assert np.all(cog_band.ReadAsArray() == cog_band.GetNoDataValue())
+        cog_values = cog_band.ReadAsArray()
+        valid = cog_values != cog_band.GetNoDataValue()
+        assert valid.any()
+        assert np.all(cog_values[valid] == 5)

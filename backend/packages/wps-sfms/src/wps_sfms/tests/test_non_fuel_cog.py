@@ -1,68 +1,89 @@
-"""Tests for generating web COGs that exclude Non-fuel and Water pixels."""
+"""Tests for web COGs that preserve Non-fuel and Water without blending into fuel."""
 
 import numpy as np
 import pytest
 from osgeo import gdal
+from wps_shared.geospatial.cog import generate_and_store_cog
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
+from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from wps_sfms.non_fuel_cog import generate_non_fuel_cog
 from wps_sfms.tests.raster_test_utils import create_test_wps_dataset
 
+# Large enough that the COG driver builds overviews.
+SIZE = 600
 
-def test_non_fuel_does_not_lower_adjacent_fuel_values(tmp_path):
-    """Non-fuel pixels become NoData, so their zeros don't lower nearby fuel values in the COG."""
-    values = np.full((16, 16), 1, dtype=np.float32)
+
+def read_levels(path: str) -> list[np.ma.MaskedArray]:
+    """Full resolution followed by every overview, with NoData masked."""
+    with gdal.Open(path) as output:
+        band = output.GetRasterBand(1)
+        assert band.GetOverviewCount() > 0
+        return [band.ReadAsMaskedArray()] + [
+            band.GetOverview(i).ReadAsMaskedArray() for i in range(band.GetOverviewCount())
+        ]
+
+
+@pytest.mark.parametrize("non_fuel_value, fuel_value", [(0, 1), (120, 85)])
+def test_non_fuel_values_are_restored_without_blending_into_fuel(
+    tmp_path, non_fuel_value, fuel_value
+):
+    """Source values are preserved at every zoom level, including nonzero FMC over Non-fuel."""
+    values = np.full((SIZE, SIZE), fuel_value, dtype=np.float32)
     non_fuel = np.zeros(values.shape, dtype=bool)
-
-    # Left half is Non-fuel (0) and right half is fuel (1).
-    # Any valid output value below 1 would mean Non-fuel was blended into fuel.
-    non_fuel[:, :8] = True
-    values[non_fuel] = 0
-
-    source_path = str(tmp_path / "source.tif")
+    non_fuel[:, : SIZE // 2] = True
+    values[non_fuel] = non_fuel_value
     output_path = str(tmp_path / "output.tif")
+
     with create_test_wps_dataset("source.tif", values) as source:
-        source.export_to_geotiff(source_path)
+        generate_non_fuel_cog(source, output_path, non_fuel)
+        # The source dataset is not modified.
+        np.testing.assert_array_equal(source.read_array(), values)
 
-    generate_non_fuel_cog(source_path, output_path, non_fuel)
+    for level in read_levels(output_path):
+        # Any blended value would add a third value, so exactly two means nothing was averaged.
+        assert set(np.unique(level.compressed())) == {non_fuel_value, fuel_value}
 
-    # The original GeoTIFF is not modified.
-    with gdal.Open(source_path) as source:
-        np.testing.assert_array_equal(source.ReadAsArray(), values)
 
-    # Only the full-resolution image is checked. GDAL also skips NoData when building overviews.
-    # The masked array contains every output pixel, with NoData pixels hidden from calculations.
+def test_non_fuel_outside_source_footprint_stays_nodata(tmp_path):
+    """Non-fuel pixels with no source value (e.g. outside BC) stay NoData instead of being restored."""
+    values = np.zeros((SIZE, SIZE), dtype=np.float32)
+    values[:, : SIZE // 2] = -9999.0
+    output_path = str(tmp_path / "output.tif")
+
+    with create_test_wps_dataset("source.tif", values, nodata=-9999.0) as source:
+        generate_non_fuel_cog(source, output_path, np.ones(values.shape, dtype=bool))
+
     with gdal.Open(output_path) as output:
         actual = output.GetRasterBand(1).ReadAsMaskedArray()
-
-    # count() is the number of valid pixels and size is all pixels (including NoData).
-    # Some pixels must be valid fuel, while the rest are Non-fuel or outside the source area.
-    assert 0 < actual.count() < actual.size
-    # compressed() returns only valid pixel values, so every remaining fuel value must still be 1.
-    np.testing.assert_allclose(actual.compressed(), 1)
+    # Only the half with source data is valid.
+    assert 0.4 < actual.count() / actual.size < 0.6
+    np.testing.assert_array_equal(actual.compressed(), 0)
 
 
-@pytest.mark.parametrize("non_fuel", [False, True])
-def test_all_zero_raster_distinguishes_valid_zero_from_non_fuel(tmp_path, non_fuel):
-    """Zeros are excluded only when the mask marks them as Non-fuel and zero fuel values are kept."""
-    values = np.zeros((8, 8), dtype=np.float32)
-    source_path = str(tmp_path / "source.tif")
-    output_path = str(tmp_path / "output.tif")
+def test_value_and_fuel_cogs_share_a_grid(tmp_path):
+    """Insights reads value and fuel COGs per pixel, so their grids and overviews must match."""
+    values = np.ones((SIZE, SIZE), dtype=np.float32)
+    value_path = str(tmp_path / "value.tif")
+    fuel_path = str(tmp_path / "fuel.tif")
+
     with create_test_wps_dataset("source.tif", values) as source:
-        source.export_to_geotiff(source_path)
+        generate_non_fuel_cog(source, value_path, np.zeros(values.shape, dtype=bool))
+    with create_test_wps_dataset("fuel.tif", values) as fuel:
+        generate_and_store_cog(
+            fuel.as_gdal_ds(), fuel_path, resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR
+        )
 
-    generate_non_fuel_cog(source_path, output_path, np.full(values.shape, non_fuel))
-
-    # The masked array contains every output pixel, with NoData pixels hidden from calculations.
-    with gdal.Open(output_path) as output:
-        actual = output.GetRasterBand(1).ReadAsMaskedArray()
-
-    if non_fuel:
-        # count() is the number of valid pixels, so Non-fuel zeros must all be NoData.
-        assert actual.count() == 0
-    else:
-        # Fuel zeros stay valid. compressed() returns only those valid values.
-        assert actual.count() > 0
-        np.testing.assert_array_equal(actual.compressed(), 0)
+    with gdal.Open(value_path) as value_cog, gdal.Open(fuel_path) as fuel_cog:
+        assert value_cog.GetGeoTransform() == fuel_cog.GetGeoTransform()
+        assert (value_cog.RasterXSize, value_cog.RasterYSize) == (
+            fuel_cog.RasterXSize,
+            fuel_cog.RasterYSize,
+        )
+        assert (
+            value_cog.GetRasterBand(1).GetOverviewCount()
+            == fuel_cog.GetRasterBand(1).GetOverviewCount()
+        )
 
 
 @pytest.mark.parametrize(
@@ -74,44 +95,25 @@ def test_all_zero_raster_distinguishes_valid_zero_from_non_fuel(tmp_path, non_fu
 )
 def test_invalid_classification_is_rejected(tmp_path, mask, message):
     """Reject masks that are the wrong shape or not boolean."""
-    source_path = str(tmp_path / "source.tif")
     with create_test_wps_dataset("source.tif", np.zeros((2, 2))) as source:
-        source.export_to_geotiff(source_path)
-
-    with pytest.raises(ValueError, match=message):
-        generate_non_fuel_cog(source_path, str(tmp_path / "output.tif"), mask)
+        with pytest.raises(ValueError, match=message):
+            generate_non_fuel_cog(source, str(tmp_path / "output.tif"), mask)
 
 
 @pytest.mark.parametrize(
     "band_count, nodata, message",
-    [(2, -9999.0, "single-band"), (1, None, "NoData")],
+    [(2, -9999.0, "single-band"), (1, None, "nodata")],
     ids=["multi-band", "no-nodata"],
 )
 def test_unsupported_source_is_rejected(tmp_path, band_count, nodata, message):
-    """Reject multi-band sources and sources without NoData, since excluded pixels are set to NoData."""
-    source_path = str(tmp_path / "source.tif")
-    with gdal.GetDriverByName("GTiff").Create(
-        source_path, 2, 2, band_count, gdal.GDT_Float32
-    ) as source:
-        if nodata is not None:
-            for band_number in range(1, band_count + 1):
-                source.GetRasterBand(band_number).SetNoDataValue(nodata)
+    """Reject multi-band sources and sources without NoData, since Non-fuel is masked as NoData."""
+    source_ds = gdal.GetDriverByName("MEM").Create("", 2, 2, band_count, gdal.GDT_Float32)
+    if nodata is not None:
+        for band_number in range(1, band_count + 1):
+            source_ds.GetRasterBand(band_number).SetNoDataValue(nodata)
 
-    with pytest.raises(ValueError, match=message):
-        generate_non_fuel_cog(
-            source_path, str(tmp_path / "output.tif"), np.zeros((2, 2), dtype=bool)
-        )
-
-
-def test_missing_source_raises_gdal_error_without_changing_exception_mode(tmp_path):
-    """A missing source raises a GDAL error and leaves the global GDAL exception setting unchanged."""
-    exceptions_enabled = gdal.GetUseExceptions()
-
-    with pytest.raises(RuntimeError, match="missing.tif"):
-        generate_non_fuel_cog(
-            str(tmp_path / "missing.tif"),
-            str(tmp_path / "output.tif"),
-            np.zeros((2, 2), dtype=bool),
-        )
-
-    assert gdal.GetUseExceptions() == exceptions_enabled
+    with WPSDataset(ds_path=None, ds=source_ds) as source:
+        with pytest.raises(ValueError, match=message):
+            generate_non_fuel_cog(
+                source, str(tmp_path / "output.tif"), np.zeros((2, 2), dtype=bool)
+            )
