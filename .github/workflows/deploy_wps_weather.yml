@@ -17,8 +17,9 @@ env:
 jobs:
   deploy-requested:
     name: Dev deployment requested
-    # require deploy-dev to avoid exhausting shared dev resources
+    # require deploy-dev on an open PR to avoid exhausting shared dev resources
     if: >-
+      github.event.pull_request.state == 'open' &&
       contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
       (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
     runs-on: ubuntu-26.04
@@ -27,7 +28,9 @@ jobs:
 
   build-image:
     name: Build Image
-    if: github.event.action != 'labeled' || github.event.label.name == 'deploy-dev'
+    if: >-
+      github.event.pull_request.state == 'open' &&
+      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
     runs-on: ubuntu-26.04
     permissions:
       contents: read
