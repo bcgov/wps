@@ -83,7 +83,7 @@
     "@types/sinon": "^22.0.0",
     "@vitejs/plugin-react-swc": "^4.0.0",
     "@vitest/coverage-v8": "^5.0.0",
-    "jsdom": "^30.0.0",
+    "jsdom": "^31.0.0",
     "ol-mapbox-style": "^13.0.0",
     "sinon": "^22.0.0",
     "typescript": "~7.0.0",
