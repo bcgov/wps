@@ -77,7 +77,7 @@ jobs:
           client-id: ${{ secrets.GWA_ACCT_ID }}
           client-secret: ${{ secrets.GWA_ACCT_SECRET }}
           suffix: prod
-          qualifier-prefix: fwi-
+          qualifier-prefix: sfms-
           host: api.gov.bc.ca
 
       - name: Publish SFMS dataset and product to API Directory
