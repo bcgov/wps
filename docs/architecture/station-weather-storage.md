@@ -390,7 +390,7 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 
 ## Plan
 
-1. Test two concurrent writers to one Delta table on ECS. The result decides between shared tables and one table per writer.
+1. Check conditional PUTs on ECS. `backend/scripts/object_store_conditional_put_check.py` tests, one request at a time, whether the store honours them. If it does, run it again with `--race-rounds` to test many writers at once, then follow up with two concurrent writers to one Delta table. The result decides between shared tables and one table per writer.
 2. Have one model (GDPS) write to `runs` and `by_time` alongside its Postgres writes, with the maintenance job running.
 3. Compare every read query's results between the two, and time each read against ECS.
 4. Move the model readers over one at a time: `/weather_models` routes, fire watch, training, then MoreCast's model values.
