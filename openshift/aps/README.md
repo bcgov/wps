@@ -85,8 +85,9 @@ For an existing Product, use Edit Product in the APS portal to rename it before
 publishing. This preserves its appId, environments, and existing approvals.
 
 The Kong service name defaults to `psu-sfms-${SUFFIX}` and can be overridden with
-`SFMS_SERVICE_NAME`. Gateway resources use the tag `ns.${APS_NAMESPACE}.fwi-${SUFFIX}`.
-Publishing and cleanup use the matching qualifier `fwi-${SUFFIX}`.
+`SFMS_SERVICE_NAME`. Gateway resources use the tag
+`ns.${APS_NAMESPACE}.${SFMS_GATEWAY_QUALIFIER}`. The renderer uses `sfms-${SUFFIX}`
+for all environments.
 
 ### Two publishing flows, both split by PR vs. production tenant
 
@@ -96,7 +97,7 @@ production releases (`production.yml`) — see "Gateway IDs" above. Each tenant 
 service account; production credentials aren't valid against the test portal, and vice versa.
 
 **Gateway config** (`gwa publish-gateway`) — deploys the Kong service/route/plugin config. The
-`--qualifier` (`fwi-<suffix>` for PRs, `fwi-prod` for production) further namespaces configs
+`--qualifier` (`sfms-<suffix>` for PRs, `sfms-prod` for production) further namespaces configs
 within whichever gateway is targeted, and `GW_HOST`/`PROJECT_NAMESPACE` control which actual
 OpenShift backend a route forwards to.
 
@@ -117,7 +118,7 @@ openshift/scripts/render_sfms_gateway_config.sh prod ./sfms-gw-config-prod.yaml
 gwa config set host api.gov.bc.ca
 gwa login
 gwa config set --gateway <gateway-id>
-gwa publish-gateway ./sfms-gw-config-prod.yaml --qualifier fwi-prod
+gwa publish-gateway ./sfms-gw-config-prod.yaml --qualifier sfms-prod
 ```
 
 ```bash
@@ -132,11 +133,11 @@ gwa apply -i /tmp/sfms-prod/sfms-product-prod.yaml
 
 ### Cleanup (PR)
 
-Gateway config — publish empty config under the FWI qualifier. Targets the **test** gateway
+Publish empty gateway config under the SFMS qualifier. This targets the **test** gateway
 (`gw-11008`), same as the PR publish above:
 
 ```bash
-gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier fwi-<suffix>
+gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier sfms-<suffix>
 ```
 
 Dataset and Product — delete from the API Directory. Also targets the **test** gateway

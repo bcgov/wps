@@ -21,7 +21,7 @@ inputs:
     description: Config suffix used for service naming, tag scope, and the gwa qualifier
     required: true
   qualifier-prefix:
-    description: Optional prefix prepended to the suffix to form the gwa publish-gateway qualifier (e.g. "fwi-")
+    description: Optional prefix prepended to the suffix to form the gwa publish-gateway qualifier (e.g. "sfms-")
     required: false
     default: ""
   host:
@@ -37,6 +37,7 @@ runs:
         APS_NAMESPACE: ${{ inputs.gateway-id }}
         SUFFIX: ${{ inputs.suffix }}
         CONFIG_NAME: ${{ inputs.config-name }}
+        QUALIFIER_PREFIX: ${{ inputs.qualifier-prefix }}
       run: |
         set -euo pipefail
         # Prod uses the bare vanity host and prod namespace; PRs are suffixed and live in
