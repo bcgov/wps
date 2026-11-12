@@ -5,7 +5,7 @@
 #     "pyarrow==26.0.1",
 # ]
 # ///
-"""Benchmark for the lead-aware layouts in docs/architecture/station-predictions-storage.md.
+"""Benchmark for the lead-aware layouts in docs/architecture/station-weather-storage-evaluation.md.
 
 Writes one year of every model prediction at every lead, for two models, in two Parquet layouts,
 then times climatology reads that choose a lead at read time:

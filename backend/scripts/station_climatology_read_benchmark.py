@@ -6,7 +6,7 @@
 #     "pyarrow==26.0.1",
 # ]
 # ///
-"""Benchmark for the climatology screen reads in docs/architecture/station-predictions-storage.md.
+"""Benchmark for the climatology screen reads in docs/architecture/station-weather-storage-evaluation.md.
 
 Tests whether a screen can compute climatology statistics on demand from raw station history,
 rather than from a precomputed table. It writes one history file per station holding every year,

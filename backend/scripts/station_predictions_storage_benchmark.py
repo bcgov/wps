@@ -10,7 +10,7 @@
 #     "zarr==3.4.2",
 # ]
 # ///
-"""Benchmark for docs/architecture/station-predictions-storage.md.
+"""Benchmark for docs/architecture/station-weather-storage-evaluation.md.
 
 Writes the same synthetic station model predictions to Parquet, GeoParquet, Delta Lake, Zarr and
 Icechunk, then reports storage size, object count and read times for the queries our readers make.
