@@ -4,10 +4,10 @@ This directory contains APS gateway configuration for services exposed through t
 
 ## Services
 
-| Service        | Gateway config            | Dataset / Product                                |
-| -------------- | ------------------------- | ------------------------------------------------ |
-| ASA Go API     | `asa-go-gw-config.yaml`   | —                                                |
-| SFMS Daily FWI | `sfms-fwi-gw-config.yaml` | `sfms-fwi-dataset.yaml`, `sfms-fwi-product.yaml` |
+| Service    | Gateway config          | Dataset / Product                      |
+| ---------- | ----------------------- | -------------------------------------- |
+| ASA Go API | `asa-go-gw-config.yaml`  |                                        |
+| SFMS API   | `sfms-gw-config.yaml`    | `sfms-dataset.yaml`, `sfms-product.yaml` |
 
 ## Gateway IDs
 
@@ -16,7 +16,7 @@ Two different gateways are in play, on two different tenants, using different cr
 
 | Gateway ID | Tenant                | Used for                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ---------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gw-313f6` | Production APS portal | Real production releases only (`production.yml`) — both Kong gateway-config publishing (`gwa publish-gateway`) and, for SFMS FWI, Dataset/Product API Directory publishing (`gwa apply`). Credentials: `secrets.GWA_ACCT_ID` / `secrets.GWA_ACCT_SECRET`.                                                                                                                                                                       |
+| `gw-313f6` | Production APS portal | Real production releases only (`production.yml`) — both Kong gateway-config publishing (`gwa publish-gateway`) and, for SFMS, Dataset/Product API Directory publishing (`gwa apply`). Credentials: `secrets.GWA_ACCT_ID` / `secrets.GWA_ACCT_SECRET`.                                                                                                                                                                       |
 | `gw-11008` | Test APS portal       | All PR/dev builds (`deployment.yml`, `cleanup.yml`) — both gateway-config publishing and Dataset/Product publishing. Requires the `host: api-gov-bc-ca.test.api.gov.bc.ca` override; the test portal is a fully separate tenant, not reachable with the production credentials above. Credentials: `secrets.GWA_TEST_ACCT_ID` / `secrets.GWA_TEST_ACCT_SECRET`. Service account needs the same permissions as `gw-313f6` above. |
 
 ---
@@ -60,9 +60,34 @@ gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier <suffix>
 
 ---
 
-## SFMS Daily FWI
+## SFMS API
 
-Exposes `/api/sfms/daily-fwi` from the dedicated `wps-sfms-fwi-api` service via key-auth and rate-limiting. The service has no public route — it is reachable only from the APS gateway (see `openshift/templates/allow_gateway_to_wps_sfms_fwi_api.yaml`).
+The Spatial Fire Management System API provides raster downloads and point sampling.
+The dedicated `wps-sfms-api-${SUFFIX}` service is reachable through the APS gateway, which
+requires an API key and applies rate limits. The service has no public OpenShift route.
+Its network policy is in `openshift/templates/allow_gateway_to_wps_sfms_api.yaml`.
+
+The authenticated gateway route exposes `/api/sfms/v1/daily/{fwi,fbp,weather}`
+for raster downloads and point sampling from the modernized SFMS. Use `run_type=actual` or
+`run_type=forecast`, with actual as the default. Each family provides
+`/{for_date}/{parameter}`, `/{for_date}/{parameter}/value`, and `/{for_date}/values`.
+The legacy `/api/sfms/daily-fwi` routes remain available for daily FWI and hourly FFMC.
+New hourly SFMS NG routes are not available yet.
+
+FMC is shared by date across actual and forecast runs. Grass curing uses the archived
+input from the latest successful manifest for the requested date and run type.
+Daily output keys can be overwritten by later runs, so requests do not provide an
+atomic snapshot of a completed run.
+
+The Directory title is `SFMS API`. The Product name is
+`SFMS API${DISPLAY_SUFFIX}`, and the dataset identifier is `psu-sfms-${SUFFIX}`.
+For an existing Product, use Edit Product in the APS portal to rename it before
+publishing. This preserves its appId, environments, and existing approvals.
+
+The Kong service name defaults to `psu-sfms-${SUFFIX}` and can be overridden with
+`SFMS_SERVICE_NAME`. Gateway resources use the tag
+`ns.${APS_NAMESPACE}.${SFMS_GATEWAY_QUALIFIER}`. The renderer uses `sfms-${SUFFIX}`
+for all environments.
 
 ### Two publishing flows, both split by PR vs. production tenant
 
@@ -72,7 +97,7 @@ production releases (`production.yml`) — see "Gateway IDs" above. Each tenant 
 service account; production credentials aren't valid against the test portal, and vice versa.
 
 **Gateway config** (`gwa publish-gateway`) — deploys the Kong service/route/plugin config. The
-`--qualifier` (`fwi-<suffix>` for PRs, `fwi-prod` for production) further namespaces configs
+`--qualifier` (`sfms-<suffix>` for PRs, `sfms-prod` for production) further namespaces configs
 within whichever gateway is targeted, and `GW_HOST`/`PROJECT_NAMESPACE` control which actual
 OpenShift backend a route forwards to.
 
@@ -88,31 +113,31 @@ gateway/tenant for the build.
 APS_NAMESPACE="<gateway-id>" \
 PROJECT_NAMESPACE="<oc-namespace>" \
 GW_HOST="<public-host>" \
-openshift/scripts/render_sfms_fwi_gateway_config.sh prod ./sfms-fwi-gw-config-prod.yaml
+openshift/scripts/render_sfms_gateway_config.sh prod ./sfms-gw-config-prod.yaml
 
 gwa config set host api.gov.bc.ca
 gwa login
 gwa config set --gateway <gateway-id>
-gwa publish-gateway ./sfms-fwi-gw-config-prod.yaml --qualifier fwi-prod
+gwa publish-gateway ./sfms-gw-config-prod.yaml --qualifier sfms-prod
 ```
 
 ```bash
-openshift/scripts/render_sfms_fwi_aps_resources.sh prod /tmp/sfms-fwi-prod
+openshift/scripts/render_sfms_aps_resources.sh prod /tmp/sfms-prod
 
 gwa config set host api.gov.bc.ca
 gwa login
 gwa config set --gateway <gateway-id>
-gwa apply -i /tmp/sfms-fwi-prod/sfms-fwi-dataset-prod.yaml
-gwa apply -i /tmp/sfms-fwi-prod/sfms-fwi-product-prod.yaml
+gwa apply -i /tmp/sfms-prod/sfms-dataset-prod.yaml
+gwa apply -i /tmp/sfms-prod/sfms-product-prod.yaml
 ```
 
 ### Cleanup (PR)
 
-Gateway config — publish empty config under the FWI qualifier. Targets the **test** gateway
+Publish empty gateway config under the SFMS qualifier. This targets the **test** gateway
 (`gw-11008`), same as the PR publish above:
 
 ```bash
-gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier fwi-<suffix>
+gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier sfms-<suffix>
 ```
 
 Dataset and Product — delete from the API Directory. Also targets the **test** gateway
@@ -126,10 +151,10 @@ TOKEN=$(grep 'api_key:' ~/.gwa-config.yaml | awk '{print $2}')
 BASE="https://api-gov-bc-ca.test.api.gov.bc.ca/ds/api/v3/gateways/<test-gateway-id>"
 
 # Dataset: delete by name
-curl -X DELETE "${BASE}/datasets/psu-sfms-daily-fwi-<suffix>" -H "Authorization: Bearer ${TOKEN}"
+curl -X DELETE "${BASE}/datasets/psu-sfms-<suffix>" -H "Authorization: Bearer ${TOKEN}"
 
 # Product: the DELETE endpoint uses appId, not the product name
-PRODUCT_NAME="SFMS Daily Fire Weather Index (<suffix>)"
+PRODUCT_NAME="SFMS API (<suffix>)"
 PRODUCT_APP_ID=$(curl -s "${BASE}/products" -H "Authorization: Bearer ${TOKEN}" | \
   jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
 curl -X DELETE "${BASE}/products/${PRODUCT_APP_ID}" -H "Authorization: Bearer ${TOKEN}"

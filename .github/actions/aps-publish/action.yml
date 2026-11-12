@@ -3,7 +3,7 @@ description: Render, publish, and upload an APS gateway configuration. Requires 
 
 inputs:
   config-name:
-    description: Short name used for the rendered config path and artifact name (e.g. asa-go, sfms-fwi)
+    description: Short name used for the rendered config path and artifact name (e.g. asa-go, sfms)
     required: true
   render-script:
     description: Repo-relative render script; must accept [SUFFIX] [OUTPUT_PATH] args and read APS_NAMESPACE, PROJECT_NAMESPACE, and GW_HOST from the environment
@@ -21,7 +21,7 @@ inputs:
     description: Config suffix used for service naming, tag scope, and the gwa qualifier
     required: true
   qualifier-prefix:
-    description: Optional prefix prepended to the suffix to form the gwa publish-gateway qualifier (e.g. "fwi-")
+    description: Optional prefix prepended to the suffix to form the gwa publish-gateway qualifier (e.g. "sfms-")
     required: false
     default: ""
   host:
@@ -37,6 +37,7 @@ runs:
         APS_NAMESPACE: ${{ inputs.gateway-id }}
         SUFFIX: ${{ inputs.suffix }}
         CONFIG_NAME: ${{ inputs.config-name }}
+        QUALIFIER_PREFIX: ${{ inputs.qualifier-prefix }}
       run: |
         set -euo pipefail
         # Prod uses the bare vanity host and prod namespace; PRs are suffixed and live in
