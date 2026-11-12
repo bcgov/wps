@@ -44,6 +44,7 @@ class ProjectionEnum(str, Enum):
     RDPS_LATLON = "RLatLon0.09"
     NAM_POLAR_STEREO = "ps32km"
     ECMWF_LATLON = "latlon.0.25deg"
+    ECMWF_LATLON_0_1 = "latlon.0.1deg"
 
 
 def get_env_canada_model_run_hours(model_type: ModelEnum):

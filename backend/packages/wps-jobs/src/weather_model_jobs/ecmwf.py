@@ -90,7 +90,7 @@ class ECMWF:
     ):
         self.now = time_utils.get_utc_now()
         self.model_type = ModelEnum.ECMWF
-        self.projection = ProjectionEnum.ECMWF_LATLON
+        self.projection = ProjectionEnum.ECMWF_LATLON_0_1
         self.working_directory = working_directory
         self.model_run_repository = model_run_repository
         self.stations = stations
@@ -196,7 +196,8 @@ class ECMWF:
                     model_datetime.strftime("%Y-%m-%d %H"),
                     model="ifs",
                     product="oper",
-                    priority="aws",
+                    resolution="0p1",
+                    levtype="sfc",
                     fxx=prediction_hour,
                     save_dir=temp_dir,
                     verbose=False,
