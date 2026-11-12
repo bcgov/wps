@@ -18,13 +18,16 @@ jobs:
   deploy-requested:
     name: Dev deployment requested
     # require deploy-dev to avoid exhausting shared dev resources
-    if: contains(github.event.pull_request.labels.*.name, 'deploy-dev')
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
     runs-on: ubuntu-26.04
     steps:
       - run: echo "Dev deployment requested"
 
   build-image:
     name: Build Image
+    if: github.event.action != 'labeled' || github.event.label.name == 'deploy-dev'
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -35,34 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Log in to GitHub Container Registry
-        if: github.event.action == 'labeled'
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      # avoid rebuilding on label events when this commit already has an image
-      - name: Check for reusable Weather image
-        id: reuse
-        if: github.event.action == 'labeled'
-        shell: bash
-        env:
-          REUSE_COMMIT: ${{ github.event.pull_request.head.sha }}
-        run: |
-          IMAGE="ghcr.io/bcgov/wps/wps-weather:${SUFFIX}"
-
-          if IMAGE_CONFIG=$(docker buildx imagetools inspect "${IMAGE}" --format '{{json .Image}}'); then
-            IMAGE_COMMIT=$(jq -r '(.["linux/amd64"] // .).config.Labels["org.opencontainers.image.revision"] // ""' <<<"${IMAGE_CONFIG}")
-            if [ "${IMAGE_COMMIT}" = "${REUSE_COMMIT}" ]; then
-              echo "Reusing image ${IMAGE} for commit ${REUSE_COMMIT}"
-              echo "matches=true" >> "${GITHUB_OUTPUT}"
-            fi
-          fi
-
       - name: Build and push WPS Weather image
-        if: steps.reuse.outputs.matches != 'true'
         uses: bcgov/actions/builder@091f1da89c669d36bf4899830381e5b12d2c889a # v0.11.0
         with:
           package: wps-weather
