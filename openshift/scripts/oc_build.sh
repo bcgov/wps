@@ -22,6 +22,16 @@ source "$(dirname ${0})/common/common"
 # %
 OBJ_NAME="${APP_NAME}-${MODULE_NAME}-${SUFFIX}"
 
+# avoid rebuilding on label events when this commit already has an image
+if [ "${APPLY}" ] && [ -n "${REUSE_COMMIT:-}" ]; then
+	IMAGE_COMMIT=$(oc -n "${PROJ_TOOLS}" get "istag/${OBJ_NAME}:${SUFFIX}" --ignore-not-found \
+		-o 'jsonpath={.image.dockerImageMetadata.Config.Labels.io\.openshift\.build\.commit\.id}')
+	if [ "${IMAGE_COMMIT}" = "${REUSE_COMMIT}" ]; then
+		echo "Reusing image ${OBJ_NAME}:${SUFFIX} for commit ${REUSE_COMMIT}"
+		exit 0
+	fi
+fi
+
 # Process a template (mostly variable substition)
 #​​
 OC_PROCESS="oc -n ${PROJ_TOOLS} process --local -f ${PATH_BC} \
