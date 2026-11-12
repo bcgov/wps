@@ -1,7 +1,11 @@
 name: Deploy WPS Weather
 
+# jobs explicitly request the token permissions they need
+permissions: {}
+
 on:
   pull_request:
+    types: [opened, reopened, synchronize, labeled]
     branches:
       - main
     paths:
@@ -11,8 +15,15 @@ env:
   SUFFIX: pr-${{ github.event.number }}
 
 jobs:
+  deploy-requested:
+    name: Dev deployment requested
+    uses: ./.github/workflows/deploy_requested.yml
+
   build-image:
     name: Build Image
+    if: >-
+      github.event.pull_request.state == 'open' &&
+      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -33,7 +44,7 @@ jobs:
 
   deployments:
     name: Deployments
-    needs: [build-image]
+    needs: [build-image, deploy-requested]
     runs-on:
       group: Larger Runners - OpenShift Static-IP
     permissions:
