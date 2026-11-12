@@ -1,6 +1,6 @@
 # Station weather data on object storage: layout diagram
 
-The design is described in [station-predictions-storage.md](station-predictions-storage.md).
+The design is described in [station-weather-storage.md](station-weather-storage.md).
 
 ```mermaid
 flowchart LR

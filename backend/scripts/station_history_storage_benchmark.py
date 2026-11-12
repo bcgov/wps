@@ -7,7 +7,7 @@
 #     "zarr==3.4.2",
 # ]
 # ///
-"""Benchmark for the station history layouts in docs/architecture/station-predictions-storage.md.
+"""Benchmark for the station history layouts in docs/architecture/station-weather-storage-evaluation.md.
 
 Writes synthetic station history (observations, forecasts and the newest model value per time, at
 hourly and daily resolution) in three layouts, then times the MoreCast and climatology reads:
