@@ -17,14 +17,7 @@ env:
 jobs:
   deploy-requested:
     name: Dev deployment requested
-    # require deploy-dev on an open PR to avoid exhausting shared dev resources
-    if: >-
-      github.event.pull_request.state == 'open' &&
-      contains(github.event.pull_request.labels.*.name, 'deploy-dev') &&
-      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
-    runs-on: ubuntu-26.04
-    steps:
-      - run: echo "Dev deployment requested"
+    uses: ./.github/workflows/deploy_requested.yml
 
   build-image:
     name: Build Image
