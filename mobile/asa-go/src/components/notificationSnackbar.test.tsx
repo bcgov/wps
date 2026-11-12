@@ -1,3 +1,4 @@
+import { createTheme, ThemeProvider } from '@mui/material'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import NotificationSnackbar from './NotificationSnackbar'
@@ -48,7 +49,15 @@ describe('NotificationSnackbar', () => {
   })
 
   it('renders edge-to-edge without overflowing narrow screens', () => {
-    render(<NotificationSnackbar open={true} onClose={vi.fn()} message="Something went wrong" />)
+    // jsdom's viewport is fixed at 1024x768 landscape, which is below the default `lg` breakpoint and
+    // would apply the `env(safe-area-inset-top)` override that jsdom can't resolve. Lower `lg` so the
+    // base styles are what gets asserted.
+    const theme = createTheme({ breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1000, xl: 1536 } } })
+    render(
+      <ThemeProvider theme={theme}>
+        <NotificationSnackbar open={true} onClose={vi.fn()} message="Something went wrong" />
+      </ThemeProvider>
+    )
 
     const alert = screen.getByRole('alert')
 
