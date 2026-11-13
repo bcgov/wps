@@ -9,7 +9,11 @@ import { fromLonLat } from 'ol/proj'
 import GeoTIFF from 'ol/source/GeoTIFF'
 import { PMTilesVectorSource } from 'ol-pmtiles'
 import { FetchSource } from 'pmtiles'
-import type { RasterType, SFMSNGRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
+import {
+  RASTER_CONFIG,
+  type RasterType,
+  type SFMSNGRasterType
+} from '@/features/sfmsInsights/components/map/rasterConfig'
 import {
   fuelCOGColourExpression,
   getSFMSNGRasterColourExpression,
@@ -20,11 +24,7 @@ export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
 
-export const getSFMSNGRasterPath = (
-  date: DateTime,
-  rasterType: SFMSNGRasterType,
-  runType: RunType = RunType.ACTUAL
-) => {
+export const getSFMSNGRasterPath = (date: DateTime, rasterType: RasterType, runType: RunType = RunType.ACTUAL) => {
   const dateString = date.toISODate() ?? ''
   const datePath = dateString.replaceAll('-', '/')
   const dateStringBasic = dateString.replaceAll('-', '')
@@ -79,8 +79,18 @@ export const getSFMSNGRasterLayer = (
     headers.Authorization = `Bearer ${token}`
   }
 
+  // fbp outputs pair with the run's fuel COG (band 2) to label Non-fuel/Water.
+  // Override nodata with NaN to retain numeric NoData sentinels; valid fuel can make combined alpha nonzero.
+  const sources =
+    RASTER_CONFIG[rasterType].group === 'fbp'
+      ? [
+          { url, nodata: Number.NaN },
+          { url: `${API_BASE_URL}/object-store-proxy/${getSFMSNGRasterPath(date, 'fuel', runType)}` }
+        ]
+      : [{ url }]
+
   const source = new GeoTIFF({
-    sources: [{ url }],
+    sources,
     sourceOptions: {
       headers
     },

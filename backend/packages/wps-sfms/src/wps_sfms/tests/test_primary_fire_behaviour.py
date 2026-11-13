@@ -9,6 +9,7 @@ import cffdrs.surface_fuel_consumption
 import numpy as np
 import pytest
 from pytest_mock import MockerFixture
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import FBPParameter
@@ -26,6 +27,15 @@ from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
 
 TEST_DATETIME = datetime(2024, 7, 4, 20, tzinfo=timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def fuel_cog(mocker: MockerFixture):
+    """Keep processor tests from writing the fuel classification COG to S3."""
+    return mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.generate_and_store_cog",
+        side_effect=lambda _ds, output_path, **_: output_path,
+    )
 
 
 def patch_fbp_with_spread(mocker: MockerFixture):
@@ -529,9 +539,72 @@ async def test_processor_publishes_six_outputs_with_values_and_metadata(
 
 
 @pytest.mark.anyio
-async def test_processor_publish_failure_propagates_and_clears_cache(
+@pytest.mark.parametrize(
+    "fuel_grid_value, expected_excluded",
+    [
+        pytest.param(101, True, id="non-fuel"),
+        pytest.param(102, True, id="water"),
+        pytest.param(1, False, id="combustible-fuel"),
+    ],
+)
+async def test_processor_passes_national_non_fuel_and_water_mask_to_every_cog(
     mocker: MockerFixture,
     output_mask: WPSDataset,
+    fuel_grid_value: int,
+    expected_excluded: bool,
+):
+    """Pass the same fuel-based exclusion mask to all six fire-behaviour COGs."""
+    datasets = make_datasets(np.array([[fuel_grid_value]], dtype=np.float32))
+    # Keep the pixel inside the BC boundary so only its fuel classification determines exclusion.
+    output_mask.as_gdal_ds().GetRasterBand(1).Fill(1)
+    publish = mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.publish_dataset",
+        new=AsyncMock(),
+    )
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+
+    await PrimaryFireBehaviourProcessor(TEST_DATETIME).process(
+        s3_client,
+        make_dataset_context(datasets),
+        make_inputs(),
+    )
+
+    # SFC, ROS, HFI, TFC, CFB and 30-minute fire size must all receive the mask.
+    assert publish.await_count == 6
+    expected_mask = np.array([[expected_excluded]], dtype=bool)
+    for call in publish.await_args_list:
+        np.testing.assert_array_equal(call.kwargs["cog_non_fuel_mask"], expected_mask)
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("output_mask")
+async def test_processor_stores_fuel_classification_cog_with_nearest_neighbour(
+    mocker: MockerFixture, fuel_cog
+):
+    """Insights reads the run's fuel classes from a COG on the same grid as the outputs."""
+    datasets = make_datasets(np.array([[101]], dtype=np.float32))
+    mocker.patch(
+        "wps_sfms.processors.primary_fire_behaviour.publish_dataset",
+        new=AsyncMock(),
+    )
+    s3_client = SimpleNamespace(all_objects_exist=AsyncMock(return_value=True))
+
+    await PrimaryFireBehaviourProcessor(TEST_DATETIME).process(
+        s3_client,
+        make_dataset_context(datasets),
+        make_inputs(),
+    )
+
+    fuel_cog.assert_called_once()
+    assert fuel_cog.call_args.args[0] is datasets.fuel.as_gdal_ds()
+    assert fuel_cog.call_args.args[1].endswith("sfms_ng/actual/2024/07/04/fuel_20240704_cog.tif")
+    assert fuel_cog.call_args.kwargs["resample_alg"] == GDALResamplingMethod.NEAREST_NEIGHBOUR
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("output_mask")
+async def test_processor_publish_failure_propagates_and_clears_cache(
+    mocker: MockerFixture,
 ):
     datasets = make_datasets(np.array([[1]]))
     inputs = make_inputs()
