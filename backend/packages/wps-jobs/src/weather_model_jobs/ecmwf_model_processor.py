@@ -9,6 +9,12 @@ from weather_model_jobs.utils.process_grib import (
     convert_mps_to_kph,
 )
 from wps_shared.db.models.weather_models import ModelRunPrediction
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
+)
 
 # ECMWF regex search strings
 TEMP = ":2t:"  # Temperature at 2 meters
@@ -25,34 +31,28 @@ DEW_FIELD = "d2m"
 RH_FIELD = "rh"  # this is calculated by us
 
 
-BC_BUFFER_DEGREES = 1
-BC_MIN_LATITUDE = 48 - BC_BUFFER_DEGREES
-BC_MAX_LATITUDE = 60 + BC_BUFFER_DEGREES
-BC_MIN_LONGITUDE = -139 - BC_BUFFER_DEGREES
-BC_MAX_LONGITUDE = -114 + BC_BUFFER_DEGREES
-
-
 def crop_to_bc(dataset: xr.Dataset) -> xr.Dataset:
-    # normalize only the comparison so the source coordinates remain unchanged
-    longitude = (dataset.longitude + 180) % 360 - 180
+    # round comparisons to keep boundary cells after longitude wraparound
+    latitude = dataset.latitude.round(8)
+    longitude = ((dataset.longitude + 180) % 360 - 180).round(8)
     cropped = dataset.isel(
-        latitude=(dataset.latitude >= BC_MIN_LATITUDE) & (dataset.latitude <= BC_MAX_LATITUDE),
+        latitude=(latitude >= BC_MIN_LATITUDE) & (latitude <= BC_MAX_LATITUDE),
         longitude=(longitude >= BC_MIN_LONGITUDE) & (longitude <= BC_MAX_LONGITUDE),
     )
     if not cropped.sizes["latitude"] or not cropped.sizes["longitude"]:
-        raise ValueError("ECMWF dataset has no grid points within buffered BC bounds")
+        raise ValueError("ECMWF dataset has no grid points within BC crop bounds")
     # release the global arrays instead of retaining them through a regional view
     return cropped.copy(deep=True)
 
 
 def validate_station_bounds(stations_df: pd.DataFrame):
-    longitude = (stations_df.longitude + 180) % 360 - 180
-    inside = stations_df.latitude.between(BC_MIN_LATITUDE, BC_MAX_LATITUDE) & longitude.between(
-        BC_MIN_LONGITUDE, BC_MAX_LONGITUDE
-    )
+    longitude = ((stations_df.longitude + 180) % 360 - 180).round(8)
+    inside = stations_df.latitude.round(8).between(
+        BC_MIN_LATITUDE, BC_MAX_LATITUDE
+    ) & longitude.between(BC_MIN_LONGITUDE, BC_MAX_LONGITUDE)
     if not inside.all():
         invalid_codes = stations_df.loc[~inside, "code"].tolist()
-        raise ValueError(f"ECMWF stations outside buffered BC bounds: {invalid_codes}")
+        raise ValueError(f"ECMWF stations outside BC crop bounds: {invalid_codes}")
 
 
 class ECMWFModelProcessor:

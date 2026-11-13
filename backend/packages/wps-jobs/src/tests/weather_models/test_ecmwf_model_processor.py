@@ -6,7 +6,11 @@ import pandas as pd
 import pytest
 import xarray as xr
 from weather_model_jobs import ModelEnum, ModelRunInfo, ModelRunProcessResult, ProjectionEnum
-from weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor, crop_to_bc
+from weather_model_jobs.ecmwf_model_processor import (
+    ECMWFModelProcessor,
+    crop_to_bc,
+    validate_station_bounds,
+)
 from wps_shared.db.models.weather_models import ModelRunPrediction
 
 TEST_DATETIME = datetime(2024, 10, 10, 6, tzinfo=timezone.utc)
@@ -166,9 +170,9 @@ def test_process_grib_data(mock_herbie, mock_stations_df, mock_model_run_info):
 
 @pytest.mark.parametrize("reverse_latitude", [False, True])
 @pytest.mark.parametrize("positive_longitude", [False, True])
-def test_crop_to_bc_retains_buffer_and_source_coordinates(reverse_latitude, positive_longitude):
-    latitude = np.array([46.9, 47, 48, 60, 61, 61.1])
-    longitude = np.array([-140.1, -140, -139, -114, -113, -112.9])
+def test_crop_to_bc_retains_bounds_and_source_coordinates(reverse_latitude, positive_longitude):
+    latitude = np.array([47.9, 48, 48.22483461, 60.00478258, 60.1, 60.2])
+    longitude = np.array([-139.2, -139.1, -139.06130588, -114.05414853, -114, -113.9])
     if reverse_latitude:
         latitude = latitude[::-1]
     if positive_longitude:
@@ -192,29 +196,44 @@ def test_crop_to_bc_rejects_empty_crop(missing_dimension):
     dataset = xr.Dataset(coords={"latitude": [50.0], "longitude": [-120.0]})
     dataset = dataset.assign_coords({missing_dimension: [0.0]})
 
-    with pytest.raises(ValueError, match="no grid points within buffered BC bounds"):
+    with pytest.raises(ValueError, match="no grid points within BC crop bounds"):
         crop_to_bc(dataset)
 
 
 @pytest.mark.parametrize(
-    "latitude, longitude", [(46.9, -120), (61.1, -120), (50, -140.1), (50, -112.9)]
+    "latitude, longitude", [(47.9, -120), (60.2, -120), (50, -139.2), (50, -113.9)]
 )
 def test_process_grib_data_rejects_stations_outside_crop(
     mock_herbie, mock_model_run_info, latitude, longitude
 ):
     stations = pd.DataFrame({"code": [987], "latitude": [latitude], "longitude": [longitude]})
 
-    with pytest.raises(ValueError, match=r"outside buffered BC bounds: \[987\]"):
+    with pytest.raises(ValueError, match=r"outside BC crop bounds: \[987\]"):
         ECMWFModelProcessor("/tmp").process_grib_data(mock_herbie, mock_model_run_info, stations)
 
     mock_herbie.xarray.assert_not_called()
 
 
+@pytest.mark.parametrize("positive_longitude", [False, True])
+def test_station_validation_includes_crop_edges(positive_longitude):
+    stations = pd.DataFrame(
+        {
+            "code": [1, 2, 3, 4],
+            "latitude": [48, 48, 60.1, 60.1],
+            "longitude": [-139.1, -114, -139.1, -114],
+        }
+    )
+    if positive_longitude:
+        stations["longitude"] %= 360
+
+    validate_station_bounds(stations)
+
+
 @pytest.mark.parametrize("reverse_latitude", [False, True])
 @pytest.mark.parametrize("positive_longitude", [False, True])
 def test_cropped_sampling_matches_full_grid(reverse_latitude, positive_longitude):
-    latitude = np.array([46, 47, 48, 49, 50, 59, 60, 61, 62])
-    longitude = np.array([-141, -140, -139, -138, -120, -115, -114, -113, -112])
+    latitude = np.array([47.9, 48, 48.2, 48.3, 50, 59.9, 60, 60.1, 60.2])
+    longitude = np.array([-139.2, -139.1, -139, -138.9, -120, -114.2, -114.1, -114, -113.9])
     if reverse_latitude:
         latitude = latitude[::-1]
     if positive_longitude:
@@ -231,8 +250,8 @@ def test_cropped_sampling_matches_full_grid(reverse_latitude, positive_longitude
     stations = pd.DataFrame(
         {
             "code": [1, 2, 3, 4],
-            "latitude": [48.03, 59.97, 47.1, 60.9],
-            "longitude": [-138.97, -114.03, -139.9, -113.1],
+            "latitude": [48.22483461, 60.00478258, 59.999, 49],
+            "longitude": [-123.5, -120, -139.06130588, -114.05414853],
         }
     )
 

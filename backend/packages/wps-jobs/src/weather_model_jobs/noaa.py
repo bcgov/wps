@@ -19,16 +19,22 @@ from weather_model_jobs.common_model_fetchers import (
     check_if_model_run_complete,
     flag_file_as_processed,
 )
+from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
 )
-from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from wps_shared.db.crud.weather_models import (
     get_prediction_model,
     get_prediction_run,
     get_processed_file_record,
     update_prediction_run,
+)
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
 )
 from wps_shared.weather_models import (
     ModelEnum,
@@ -61,10 +67,6 @@ NAM_BASE_URL = "https://nomads.ncep.noaa.gov/cgi-bin/filter_nam.pl?"
 # VGRD: V-component of wind
 WX_VARS = ["APCP", "RH", "TMP", "UGRD", "VGRD"]
 LEVELS = ["surface", "2_m_above_ground", "10_m_above_ground"]
-SUBREGION_TOP_LAT = 60
-SUBREGION_BOTTOM_LAT = 48
-SUBREGION_LEFT_LON = -139
-SUBREGION_RIGHT_LON = -114
 # -------------------------------------- #
 
 
@@ -101,8 +103,8 @@ def get_noaa_levels_filter_str() -> str:
 
 def get_noaa_subregion_filter_str() -> str:
     return (
-        f"subregion=&toplat={SUBREGION_TOP_LAT}&leftlon={SUBREGION_LEFT_LON}&rightlon={SUBREGION_RIGHT_LON}"
-        f"&bottomlat={SUBREGION_BOTTOM_LAT}"
+        f"subregion=&toplat={BC_MAX_LATITUDE:g}&leftlon={BC_MIN_LONGITUDE:g}"
+        f"&rightlon={BC_MAX_LONGITUDE:g}&bottomlat={BC_MIN_LATITUDE:g}"
     )
 
 
@@ -204,7 +206,7 @@ def parse_url_for_timestamps(url: str, model_type: ModelEnum):
 
 def parse_gfs_url_for_timestamps(url: str):
     """Interpret the model_run_timestamp and prediction_timestamp from a GFS model's URL"""
-    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230412%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
+    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230412%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60.1&leftlon=-139.1&rightlon=-114&bottomlat=48'
     query = urlsplit(url).query
     params = parse_qs(query)
     model_run_date = params["dir"][0].split(".")[1][:8]
@@ -220,7 +222,7 @@ def parse_gfs_url_for_timestamps(url: str):
 
 def parse_nam_url_for_timestamps(url: str):
     """Interpret the model_run_timestamp and prediction_timestamp from a NAM model's URL"""
-    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?dir=%2Fnam.20230414&file=nam.t00z.awphys20.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48'
+    # sample URL: 'https://nomads.ncep.noaa.gov/cgi-bin/filter_nam_na.pl?dir=%2Fnam.20230414&file=nam.t00z.awphys20.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60.1&leftlon=-139.1&rightlon=-114&bottomlat=48'
     query = urlsplit(url).query
     params = parse_qs(query)
     model_run_date = params["dir"][0].split(".")[1]
