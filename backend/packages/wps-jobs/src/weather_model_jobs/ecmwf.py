@@ -152,13 +152,14 @@ class ECMWF:
                 )
                 time.sleep(delay)
 
-    def process_model_run(self, model_run_hour):
+    def process_model_run(self, model_run_hour, days_ago: int = 0):
         """Process a particular model run"""
         self.files_downloaded = 0
         self.files_processed = 0
-        logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
-
-        model_datetime = self.now.replace(hour=model_run_hour, minute=0, second=0, microsecond=0)
+        model_datetime = (self.now - timedelta(days=days_ago)).replace(
+            hour=model_run_hour, minute=0, second=0, microsecond=0
+        )
+        logger.info("Processing %s model run %s", self.model_type, model_datetime)
 
         if model_datetime > self.now:
             logger.info(f"Model run {model_datetime} is in the future. Exiting model run.")
@@ -235,24 +236,27 @@ class ECMWF:
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
             if len(prediction_hours) == self.files_processed:
                 logger.info(
-                    f"{self.model_type} model run {model_run_hour:02d}:00 completed with SUCCESS"
+                    "%s model run %s completed with SUCCESS", self.model_type, model_datetime
                 )
                 self.model_run_repository.mark_prediction_model_run_processed(
                     self.model_type, self.projection, model_datetime
                 )
 
     def process(self):
-        for hour in get_model_run_hours(self.model_type):
-            try:
-                self.process_model_run(hour)
-            except Exception:
-                # We intentionally catch a broad exception, as we want to try to process as much as we can.
-                self.exception_count += 1
-                logger.exception(
-                    "unexpected exception processing %s model run %d",
-                    self.model_type,
-                    hour,
-                )
+        # include yesterday so incomplete runs can finish after UTC midnight
+        for days_ago in (1, 0):
+            for hour in get_model_run_hours(self.model_type):
+                try:
+                    self.process_model_run(hour, days_ago=days_ago)
+                except Exception:
+                    # keep failures isolated so the remaining runs can still be processed
+                    self.exception_count += 1
+                    logger.exception(
+                        "unexpected exception processing %s model run %s %02d:00 UTC",
+                        self.model_type,
+                        (self.now - timedelta(days=days_ago)).date(),
+                        hour,
+                    )
 
     def store_processed_result(
         self,

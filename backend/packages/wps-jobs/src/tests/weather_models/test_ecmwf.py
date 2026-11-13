@@ -1,6 +1,6 @@
 import math
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 import numpy as np
@@ -8,7 +8,7 @@ import pytest
 import weather_model_jobs.ecmwf
 from aiohttp import ClientSession
 from pytest_mock import MockerFixture
-from weather_model_jobs import ModelEnum
+from weather_model_jobs import ModelEnum, ProjectionEnum
 from weather_model_jobs.ecmwf import (
     ECMWF,
     get_ecmwf_forecast_hours,
@@ -112,6 +112,28 @@ def test_ecmwf_process_model_run_no_url(mock_herbie_instance):
     assert ecmwf.files_processed == 0
 
 
+def test_process_model_run_requests_0p1_surface_model(mock_herbie_instance):
+    mock_herbie_instance.grib = None
+    repository = MagicMock(spec=ModelRunRepository)
+    repository.get_or_create_prediction_run.return_value.complete = False
+    ecmwf = ECMWF("/tmp", [], repository)
+    ecmwf.now = datetime(2026, 11, 12, 10, tzinfo=timezone.utc)
+
+    ecmwf.process_model_run(0)
+
+    repository.get_prediction_model.assert_called_once_with(
+        ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON_0_1
+    )
+    herbie_kwargs = weather_model_jobs.ecmwf.Herbie.call_args.kwargs
+    assert herbie_kwargs["model"] == "ifs"
+    assert herbie_kwargs["product"] == "oper"
+    assert herbie_kwargs["resolution"] == "0p1"
+    assert herbie_kwargs["levtype"] == "sfc"
+    assert "priority" not in herbie_kwargs
+    repository.mark_prediction_model_run_processed.assert_not_called()
+    repository.mark_url_as_processed.assert_not_called()
+
+
 @pytest.mark.parametrize(
     "complete, expected_processed, expected_complete",
     [(False, num_forecast_hours, 1), (True, 0, 0)],
@@ -205,10 +227,110 @@ def test_ecmwf_process(mock_herbie_instance, mocker: MockerFixture):
     ecmwf = ECMWF("/tmp", stations, mock_repo)
     ecmwf.process()
 
-    assert mock_repo.get_or_create_prediction_run_calls == 2  # For hours 0 and 12
+    assert mock_repo.get_or_create_prediction_run_calls == 4
     # counters describe the most recently processed model run rather than accumulating across runs
     assert ecmwf.files_downloaded == num_forecast_hours
     assert ecmwf.files_processed == num_forecast_hours
+    assert ecmwf.exception_count == 0
+
+
+@pytest.mark.parametrize(
+    "now, yesterday",
+    [
+        (
+            datetime(2026, 11, 13, 0, 30, tzinfo=timezone.utc),
+            datetime(2026, 11, 12, tzinfo=timezone.utc),
+        ),
+        (
+            datetime(2026, 3, 1, 0, 30, tzinfo=timezone.utc),
+            datetime(2026, 2, 28, tzinfo=timezone.utc),
+        ),
+        (
+            datetime(2026, 1, 1, 0, 30, tzinfo=timezone.utc),
+            datetime(2025, 12, 31, tzinfo=timezone.utc),
+        ),
+    ],
+)
+def test_ecmwf_process_resumes_previous_day_after_midnight(mocker, now, yesterday):
+    repository = MagicMock(spec=ModelRunRepository)
+    previous_run_time = yesterday.replace(hour=12)
+    previous_run = MagicMock(complete=False)
+    runs = {
+        yesterday: MagicMock(complete=True),
+        previous_run_time: previous_run,
+        now.replace(hour=0, minute=0): MagicMock(complete=True),
+    }
+    repository.get_or_create_prediction_run.side_effect = lambda model, timestamp: runs[timestamp]
+    repository.get_processed_url.side_effect = lambda url: url == "processed"
+    herbie = mocker.patch(
+        "weather_model_jobs.ecmwf.Herbie",
+        side_effect=[MagicMock(grib="processed"), MagicMock(grib="pending")],
+    )
+    mocker.patch(
+        "weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", side_effect=lambda: iter([0, 3])
+    )
+    ecmwf = ECMWF("/tmp", [], repository)
+    ecmwf.now = now
+    process_forecast = mocker.patch.object(ecmwf, "_process_forecast_with_retry")
+
+    ecmwf.process()
+
+    assert [
+        call.args[1] for call in repository.get_or_create_prediction_run.call_args_list
+    ] == list(runs)
+    assert [call.args[0] for call in herbie.call_args_list] == [
+        previous_run_time.strftime("%Y-%m-%d %H")
+    ] * 2
+    assert [call.kwargs["fxx"] for call in herbie.call_args_list] == [0, 3]
+    process_forecast.assert_called_once()
+    model_info = process_forecast.call_args.args[1]
+    assert model_info.model_run_timestamp == previous_run_time
+    assert model_info.prediction_timestamp == previous_run_time + timedelta(hours=3)
+    assert process_forecast.call_args.kwargs["prediction_run"] is previous_run
+    repository.mark_url_as_processed.assert_called_once_with("pending")
+    repository.mark_prediction_model_run_processed.assert_called_once_with(
+        ModelEnum.ECMWF, ProjectionEnum.ECMWF_LATLON_0_1, previous_run_time
+    )
+    assert ecmwf.exception_count == 0
+
+
+def test_ecmwf_process_skips_completed_runs_without_downloads(mocker):
+    repository = MagicMock(spec=ModelRunRepository)
+    repository.get_or_create_prediction_run.return_value.complete = True
+    herbie = mocker.patch("weather_model_jobs.ecmwf.Herbie")
+    ecmwf = ECMWF("/tmp", [], repository)
+    ecmwf.now = datetime(2026, 11, 13, 18, tzinfo=timezone.utc)
+
+    ecmwf.process()
+
+    assert repository.get_or_create_prediction_run.call_count == 4
+    herbie.assert_not_called()
+    repository.mark_url_as_processed.assert_not_called()
+
+
+def test_ecmwf_process_continues_after_unavailable_run(mocker):
+    repository = MagicMock(spec=ModelRunRepository)
+    repository.get_or_create_prediction_run.return_value.complete = False
+    repository.get_processed_url.return_value = None
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", side_effect=lambda: iter([0]))
+    herbie = mocker.patch(
+        "weather_model_jobs.ecmwf.Herbie",
+        side_effect=[MagicMock(grib=None)] + [MagicMock(grib=f"url{index}") for index in range(3)],
+    )
+    ecmwf = ECMWF("/tmp", [], repository)
+    ecmwf.now = datetime(2026, 11, 13, 18, tzinfo=timezone.utc)
+    mocker.patch.object(ecmwf, "_process_forecast_with_retry")
+
+    ecmwf.process()
+
+    assert [call.args[0] for call in herbie.call_args_list] == [
+        "2026-11-12 00",
+        "2026-11-12 12",
+        "2026-11-13 00",
+        "2026-11-13 12",
+    ]
+    assert repository.mark_prediction_model_run_processed.call_count == 3
+    assert repository.mark_url_as_processed.call_count == 3
     assert ecmwf.exception_count == 0
 
 
@@ -294,7 +416,7 @@ def test_ecmwf_process_model_run_exception(mock_herbie_instance, mocker: MockerF
     ecmwf.process()
 
     assert mark_complete_spy.call_count == 0
-    assert ecmwf.exception_count == (num_forecast_hours * 2)
+    assert ecmwf.exception_count == (num_forecast_hours * 4)
 
 
 @pytest.mark.parametrize(
@@ -329,19 +451,24 @@ def test_store_processed_result(prediction_exists):
     assert mock_repo.store_model_run_prediction.call_count == len(stations)
 
 
-def test_ecmwf_process_handles_exceptions(monkeypatch):
+def test_ecmwf_process_handles_exceptions(mocker, caplog):
     mock_repo = MagicMock(spec=ModelRunRepository)
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
-    monkeypatch.setattr(
-        weather_model_jobs.ecmwf.ECMWF,
-        "process_model_run",
-        lambda: Exception("Mocked exception"),
-    )
-
     ecmwf = ECMWF("/tmp", stations, mock_repo)
+    ecmwf.now = datetime(2026, 11, 13, 18, tzinfo=timezone.utc)
+    process_run = mocker.patch.object(
+        ecmwf, "process_model_run", side_effect=[RuntimeError("Mocked exception"), None, None, None]
+    )
     ecmwf.process()
 
-    assert ecmwf.exception_count > 0
+    assert process_run.call_args_list == [
+        mocker.call(0, days_ago=1),
+        mocker.call(12, days_ago=1),
+        mocker.call(0, days_ago=0),
+        mocker.call(12, days_ago=0),
+    ]
+    assert ecmwf.exception_count == 1
+    assert "model run 2026-11-12 00:00 UTC" in caplog.text
 
 
 def test_main_success(mocker: MockerFixture, monkeypatch):
