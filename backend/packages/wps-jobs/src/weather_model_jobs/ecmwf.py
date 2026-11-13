@@ -26,6 +26,12 @@ from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
+)
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.wps_logging import configure_logging
@@ -90,7 +96,7 @@ class ECMWF:
     ):
         self.now = time_utils.get_utc_now()
         self.model_type = ModelEnum.ECMWF
-        self.projection = ProjectionEnum.ECMWF_LATLON
+        self.projection = ProjectionEnum.ECMWF_LATLON_0_1
         self.working_directory = working_directory
         self.model_run_repository = model_run_repository
         self.stations = stations
@@ -152,13 +158,14 @@ class ECMWF:
                 )
                 time.sleep(delay)
 
-    def process_model_run(self, model_run_hour):
+    def process_model_run(self, model_run_hour, days_ago: int = 0):
         """Process a particular model run"""
         self.files_downloaded = 0
         self.files_processed = 0
-        logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
-
-        model_datetime = self.now.replace(hour=model_run_hour, minute=0, second=0, microsecond=0)
+        model_datetime = (self.now - timedelta(days=days_ago)).replace(
+            hour=model_run_hour, minute=0, second=0, microsecond=0
+        )
+        logger.info("Processing %s model run %s", self.model_type, model_datetime)
 
         if model_datetime > self.now:
             logger.info(f"Model run {model_datetime} is in the future. Exiting model run.")
@@ -196,7 +203,8 @@ class ECMWF:
                     model_datetime.strftime("%Y-%m-%d %H"),
                     model="ifs",
                     product="oper",
-                    priority="aws",
+                    resolution="0p1",
+                    levtype="sfc",
                     fxx=prediction_hour,
                     save_dir=temp_dir,
                     verbose=False,
@@ -234,24 +242,27 @@ class ECMWF:
             # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
             if len(prediction_hours) == self.files_processed:
                 logger.info(
-                    f"{self.model_type} model run {model_run_hour:02d}:00 completed with SUCCESS"
+                    "%s model run %s completed with SUCCESS", self.model_type, model_datetime
                 )
                 self.model_run_repository.mark_prediction_model_run_processed(
                     self.model_type, self.projection, model_datetime
                 )
 
     def process(self):
-        for hour in get_model_run_hours(self.model_type):
-            try:
-                self.process_model_run(hour)
-            except Exception:
-                # We intentionally catch a broad exception, as we want to try to process as much as we can.
-                self.exception_count += 1
-                logger.exception(
-                    "unexpected exception processing %s model run %d",
-                    self.model_type,
-                    hour,
-                )
+        # include yesterday so incomplete runs can finish after UTC midnight
+        for days_ago in (1, 0):
+            for hour in get_model_run_hours(self.model_type):
+                try:
+                    self.process_model_run(hour, days_ago=days_ago)
+                except Exception:
+                    # keep failures isolated so the remaining runs can still be processed
+                    self.exception_count += 1
+                    logger.exception(
+                        "unexpected exception processing %s model run %s %02d:00 UTC",
+                        self.model_type,
+                        (self.now - timedelta(days=days_ago)).date(),
+                        hour,
+                    )
 
     def store_processed_result(
         self,
@@ -285,6 +296,15 @@ async def process_models():
     # grab the start time.
     start_time = datetime.now()
     stations = await get_stations_asynchronously()
+    stations = [
+        station
+        for station in stations
+        if BC_MIN_LATITUDE <= station.lat <= BC_MAX_LATITUDE
+        and BC_MIN_LONGITUDE <= station.long <= BC_MAX_LONGITUDE
+    ]
+    if not stations:
+        logger.info("No stations within ECMWF crop bounds. Skipping processing.")
+        return
 
     with get_write_session_scope() as session:
         with tempfile.TemporaryDirectory() as temp_dir:

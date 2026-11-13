@@ -1343,7 +1343,7 @@ wheels = [
 
 [[package]]
 name = "herbie-data"
-version = "2026.3.0"
+version = "2026.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cfgrib" },
@@ -1355,9 +1355,9 @@ dependencies = [
     { name = "requests" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/5f/96bcd98f1aeb26400f81595a2a0100c0940f3d2f6a301e92cf6e04b366ba/herbie_data-2026.3.0.tar.gz", hash = "sha256:092d6e521c529c3d40ab039950bae104c70e7eb2eda0c16afde8799247df3184", size = 10808938, upload-time = "2026-03-07T16:05:09.781Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/61/856e0baa4c6828ca117f550c809e4d7e30f34c4969c94ce1ff3d7ca39932/herbie_data-2026.10.0.tar.gz", hash = "sha256:06b5d7f8c65e2ab98165a36d0c85d47901f46da4d7a4250f72fbd4f407593d3a", size = 10814175, upload-time = "2026-10-27T04:25:47.443Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9c/a2/e52eebd269fe97733bebf23d0bc242fe385ebc01e0cc7930b1af1947d9bf/herbie_data-2026.3.0-py3-none-any.whl", hash = "sha256:6c7b107b32947330aa0e443afd2b3873e5f79886a37f4422952c59e7ec105ee6", size = 118188, upload-time = "2026-03-07T16:05:07.923Z" },
+    { url = "https://files.pythonhosted.org/packages/14/6f/5f886bc6239e1338914d6d68873093c42577c795fb01bb6a208c1d017e4c/herbie_data-2026.10.0-py3-none-any.whl", hash = "sha256:e27b1806cf6a4b2946db6ac92e372cb3d8f011c8526095b4398206bb80a03e56", size = 124376, upload-time = "2026-10-27T04:25:45.518Z" },
 ]
 
 [[package]]
@@ -4100,7 +4100,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0,<1" },
     { name = "gdal", specifier = "==3.13.3" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
-    { name = "herbie-data", specifier = ">=2026.3,<2027" },
+    { name = "herbie-data", specifier = ">=2026.10.0,<2027" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
     { name = "numpy", specifier = "==2.3.*" },
     { name = "psycopg2-binary", specifier = ">=2.9.10,<3" },

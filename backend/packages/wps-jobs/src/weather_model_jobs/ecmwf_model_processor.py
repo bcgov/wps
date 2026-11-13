@@ -1,10 +1,20 @@
-import xarray
 import pandas as pd
+import xarray
 import xarray as xr
 from herbie import Herbie
-from wps_shared.db.models.weather_models import ModelRunPrediction
 from weather_model_jobs import ModelRunInfo, ModelRunProcessResult
-from weather_model_jobs.utils.process_grib import convert_mps_to_kph, convert_kelvin_to_celsius, calculate_relative_humidity
+from weather_model_jobs.utils.process_grib import (
+    calculate_relative_humidity,
+    convert_kelvin_to_celsius,
+    convert_mps_to_kph,
+)
+from wps_shared.db.models.weather_models import ModelRunPrediction
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
+)
 
 # ECMWF regex search strings
 TEMP = ":2t:"  # Temperature at 2 meters
@@ -19,6 +29,20 @@ WS_FIELD = "si10"
 PRECIP_FIELD = "tp"
 DEW_FIELD = "d2m"
 RH_FIELD = "rh"  # this is calculated by us
+
+
+def crop_to_bc(dataset: xr.Dataset) -> xr.Dataset:
+    # round comparisons to keep boundary cells after longitude wraparound
+    latitude = dataset.latitude.round(8)
+    longitude = ((dataset.longitude + 180) % 360 - 180).round(8)
+    cropped = dataset.isel(
+        latitude=(latitude >= BC_MIN_LATITUDE) & (latitude <= BC_MAX_LATITUDE),
+        longitude=(longitude >= BC_MIN_LONGITUDE) & (longitude <= BC_MAX_LONGITUDE),
+    )
+    if not cropped.sizes["latitude"] or not cropped.sizes["longitude"]:
+        raise ValueError("ECMWF dataset has no grid points within BC crop bounds")
+    # release the global arrays instead of retaining them through a regional view
+    return cropped.copy(deep=True)
 
 
 class ECMWFModelProcessor:
@@ -40,21 +64,26 @@ class ECMWFModelProcessor:
         # merge all necessary data into a single xarray dataset
         datasets = []
         for param in weather_params:
-            if param == WIND:
-                ds = herbie_instance.xarray(param, save_dir=self.working_dir).herbie.with_wind()
-            else:
-                ds = herbie_instance.xarray(param, save_dir=self.working_dir, remove_grib=True)
+            ds = crop_to_bc(
+                herbie_instance.xarray(param, save_dir=self.working_dir, remove_grib=True)
+            )
             datasets.append(ds)
         weather_ds = xr.merge(datasets, compat="override")
 
         # extract data for each station
-        station_data: xarray.Dataset = weather_ds.herbie.pick_points(stations_df, method="nearest")
-        station_data = station_data.swap_dims({"point": "point_code"})
+        station_data: xarray.Dataset = weather_ds.herbie.pick_points(
+            stations_df, method="nearest", use_cached_tree=False
+        )
+        station_data = station_data.swap_dims({"point": "point_code"}).herbie.with_wind()
 
         # calculate rh, convert wind, temp, and precip units
-        station_data[RH_FIELD] = xr.apply_ufunc(calculate_relative_humidity, station_data[TEMP_FIELD], station_data[DEW_FIELD])
+        station_data[RH_FIELD] = xr.apply_ufunc(
+            calculate_relative_humidity, station_data[TEMP_FIELD], station_data[DEW_FIELD]
+        )
         station_data[WS_FIELD] = xr.apply_ufunc(convert_mps_to_kph, station_data[WS_FIELD])
-        station_data[TEMP_FIELD] = xr.apply_ufunc(convert_kelvin_to_celsius, station_data[TEMP_FIELD])
+        station_data[TEMP_FIELD] = xr.apply_ufunc(
+            convert_kelvin_to_celsius, station_data[TEMP_FIELD]
+        )
         station_data[PRECIP_FIELD] = station_data[PRECIP_FIELD] * 1000  # m to mm
 
         rename_dict = {
@@ -66,4 +95,6 @@ class ECMWFModelProcessor:
         }
         station_data = station_data.rename(rename_dict)
 
-        return ModelRunProcessResult(model_run_info=grib_info, url=herbie_instance.grib, data=station_data)
+        return ModelRunProcessResult(
+            model_run_info=grib_info, url=herbie_instance.grib, data=station_data
+        )

@@ -1,23 +1,25 @@
 """CRUD operations for management of weather model data."""
 
-import logging
 import datetime
+import logging
 from typing import List, Union
+
 from sqlalchemy import and_, extract, func, select
-from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
-from wps_shared.schemas.weather_models import ModelPredictionDetails
-from wps_shared.weather_models import ModelEnum, ProjectionEnum
+from sqlalchemy.orm import Session
+
 from wps_shared.db.models.weather_models import (
-    ProcessedModelRunUrl,
+    ModelRunForSFMS,
+    ModelRunPrediction,
     PredictionModel,
     PredictionModelRunTimestamp,
-    ModelRunPrediction,
-    WeatherStationModelPrediction,
+    ProcessedModelRunUrl,
     SavedModelRunForSFMSUrl,
-    ModelRunForSFMS,
+    WeatherStationModelPrediction,
 )
+from wps_shared.schemas.weather_models import ModelPredictionDetails
 from wps_shared.utils.time import get_utc_now
+from wps_shared.weather_models import ModelEnum, ProjectionEnum
 
 logger = logging.getLogger(__name__)
 
@@ -546,6 +548,8 @@ async def get_latest_prediction_timestamp_id_for_model(
         .where(PredictionModelRunTimestamp.interpolated == True)
         .where(PredictionModel.abbreviation == model.value)
         .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
+        # prefer the finer ECMWF grid when both resolutions have the same run time
+        .order_by((PredictionModel.projection == ProjectionEnum.ECMWF_LATLON_0_1.value).desc())
         .limit(1)
     )
     result = await session.scalar(stmt)

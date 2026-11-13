@@ -11,6 +11,12 @@ import requests
 from requests import HTTPError
 from tests.weather_models.test_models_common import MockResponse
 from weather_model_jobs import common_model_fetchers, noaa
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
+)
 from wps_shared.weather_models import (
     CompletedWithSomeExceptions,
     ModelEnum,
@@ -18,6 +24,11 @@ from wps_shared.weather_models import (
 )
 
 logger = logging.getLogger(__name__)
+
+EXPECTED_SUBREGION = (
+    f"subregion=&toplat={BC_MAX_LATITUDE:g}&leftlon={BC_MIN_LONGITUDE:g}"
+    f"&rightlon={BC_MAX_LONGITUDE:g}&bottomlat={BC_MIN_LATITUDE:g}"
+)
 
 
 @pytest.fixture()
@@ -35,6 +46,13 @@ def mock_download(monkeypatch):
     monkeypatch.setattr(requests, "get", mock_requests_get_gfs)
 
 
+def test_get_noaa_subregion_filter_str():
+    assert (
+        noaa.get_noaa_subregion_filter_str()
+        == "subregion=&toplat=61.1&leftlon=-140.1&rightlon=-113&bottomlat=47"
+    )
+
+
 def test_get_gfs_model_run_download_urls_for_00_utc():
     expected_num_of_urls = 2 * 11
     actual_urls = list(
@@ -44,12 +62,12 @@ def test_get_gfs_model_run_download_urls_for_00_utc():
     assert (
         actual_urls[0]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230302%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230302%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f018&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[-1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230302%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f261&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230302%2F00%2Fatmos&file=gfs.t00z.pgrb2.0p25.f261&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
 
 
@@ -64,17 +82,17 @@ def test_get_gfs_model_run_download_urls_for_06_utc():
     assert (
         actual_urls[0]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230215%2F06%2Fatmos&file=gfs.t06z.pgrb2.0p25.f012&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230215%2F06%2Fatmos&file=gfs.t06z.pgrb2.0p25.f012&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230215%2F06%2Fatmos&file=gfs.t06z.pgrb2.0p25.f015&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230215%2F06%2Fatmos&file=gfs.t06z.pgrb2.0p25.f015&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[-1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230215%2F06%2Fatmos&file=gfs.t06z.pgrb2.0p25.f255&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230215%2F06%2Fatmos&file=gfs.t06z.pgrb2.0p25.f255&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
 
 
@@ -89,17 +107,17 @@ def test_get_gfs_model_run_download_urls_for_12_utc():
     assert (
         actual_urls[0]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230309%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f006&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230309%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f006&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230309%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f009&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230309%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f009&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[-1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230309%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f249&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230309%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f249&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
 
 
@@ -114,24 +132,24 @@ def test_get_gfs_model_run_download_urls_for_18_utc():
     assert (
         actual_urls[0]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230127%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f000&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230127%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f000&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230127%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f003&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230127%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f003&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[-1]
         == noaa.GFS_BASE_URL
-        + "dir=%2Fgfs.20230127%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f243&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fgfs.20230127%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f243&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
 
 
 def test_parse_url_for_timestamps_simple():
     """simple test case for noaa.parse_url_for_timestamps(): model_run_timestamp and prediction_timestamp
     are on the same day"""
-    url = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230413%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f006&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+    url = f"https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230413%2F12%2Fatmos&file=gfs.t12z.pgrb2.0p25.f006&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     expected_model_run_timestamp = datetime(2023, 4, 13, 12, 0, tzinfo=timezone.utc)
     expected_prediction_timestamp = datetime(2023, 4, 13, 18, 0, tzinfo=timezone.utc)
     actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_gfs_url_for_timestamps(url)
@@ -142,7 +160,7 @@ def test_parse_url_for_timestamps_simple():
 def test_parse_url_for_timestamps_complex():
     """more complex test case for noaa.parse_url_for_timestamps(): model_run_timestamp and
     prediction_timestamp are on different days"""
-    url = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230413%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f243&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+    url = f"https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230413%2F18%2Fatmos&file=gfs.t18z.pgrb2.0p25.f243&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     expected_model_run_timestamp = datetime(2023, 4, 13, 18, 0, tzinfo=timezone.utc)
     expected_prediction_timestamp = datetime(2023, 4, 23, 21, 0, tzinfo=timezone.utc)
     actual_model_run_timestamp, actual_prediction_timestamp = noaa.parse_gfs_url_for_timestamps(url)

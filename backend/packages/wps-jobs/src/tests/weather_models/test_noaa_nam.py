@@ -4,8 +4,19 @@ import logging
 from datetime import datetime, timezone
 
 from weather_model_jobs import noaa
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
+)
 
 logger = logging.getLogger(__name__)
+
+EXPECTED_SUBREGION = (
+    f"subregion=&toplat={BC_MAX_LATITUDE:g}&leftlon={BC_MIN_LONGITUDE:g}"
+    f"&rightlon={BC_MAX_LONGITUDE:g}&bottomlat={BC_MIN_LATITUDE:g}"
+)
 
 
 def test_get_nam_model_run_download_urls_for_00_utc():
@@ -17,12 +28,12 @@ def test_get_nam_model_run_download_urls_for_00_utc():
     assert (
         actual_urls[0]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230302&file=nam.t00z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230302&file=nam.t00z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[-1]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230302&file=nam.t00z.awphys69.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230302&file=nam.t00z.awphys69.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
 
 
@@ -38,17 +49,17 @@ def test_get_nam_model_run_download_urls_for_06_utc():
     assert (
         actual_urls[0]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230215&file=nam.t06z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230215&file=nam.t06z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[1]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230215&file=nam.t06z.awphys03.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230215&file=nam.t06z.awphys03.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[-1]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230215&file=nam.t06z.awphys66.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230215&file=nam.t06z.awphys66.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
 
 
@@ -64,17 +75,17 @@ def test_get_nam_model_run_download_urls_for_12_utc():
     assert (
         actual_urls[0]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230309&file=nam.t12z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230309&file=nam.t12z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[1]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230309&file=nam.t12z.awphys06.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230309&file=nam.t12z.awphys06.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[-1]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230309&file=nam.t12z.awphys81.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230309&file=nam.t12z.awphys81.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
 
 
@@ -90,17 +101,17 @@ def test_get_nam_model_run_download_urls_for_18_utc():
     assert (
         actual_urls[0]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230127&file=nam.t18z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230127&file=nam.t18z.awphys00.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[1]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230127&file=nam.t18z.awphys02.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230127&file=nam.t18z.awphys02.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     assert (
         actual_urls[-1]
         == noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230127&file=nam.t18z.awphys75.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230127&file=nam.t18z.awphys75.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
 
 
@@ -109,7 +120,7 @@ def test_parse_url_for_timestamps_simple():
     are on the same day"""
     url = (
         noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230413&file=nam.t12z.awphys06.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230413&file=nam.t12z.awphys06.tm00.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     expected_model_run_timestamp = datetime(2023, 4, 13, 12, 0, tzinfo=timezone.utc)
     expected_prediction_timestamp = datetime(2023, 4, 13, 18, 0, tzinfo=timezone.utc)
@@ -123,7 +134,7 @@ def test_parse_url_for_timestamps_complex():
     prediction_timestamp are on different days"""
     url = (
         noaa.NAM_BASE_URL
-        + "dir=%2Fnam.20230413&file=nam.t18z.awphys27.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&subregion=&toplat=60&leftlon=-139&rightlon=-114&bottomlat=48"
+        + f"dir=%2Fnam.20230413&file=nam.t18z.awphys27.grib2&var_APCP=on&var_RH=on&var_TMP=on&var_UGRD=on&var_VGRD=on&lev_surface=on&lev_2_m_above_ground=on&lev_10_m_above_ground=on&{EXPECTED_SUBREGION}"
     )
     expected_model_run_timestamp = datetime(2023, 4, 13, 18, 0, tzinfo=timezone.utc)
     expected_prediction_timestamp = datetime(2023, 4, 14, 21, 0, tzinfo=timezone.utc)
