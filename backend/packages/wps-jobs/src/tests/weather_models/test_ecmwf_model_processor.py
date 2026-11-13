@@ -11,6 +11,12 @@ from weather_model_jobs.ecmwf_model_processor import (
     crop_to_bc,
 )
 from wps_shared.db.models.weather_models import ModelRunPrediction
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
+)
 
 TEST_DATETIME = datetime(2024, 10, 10, 6, tzinfo=timezone.utc)
 MOCK_GRIB_URL = "mock_grib_url"
@@ -170,8 +176,26 @@ def test_process_grib_data(mock_herbie, mock_stations_df, mock_model_run_info):
 @pytest.mark.parametrize("reverse_latitude", [False, True])
 @pytest.mark.parametrize("positive_longitude", [False, True])
 def test_crop_to_bc_retains_bounds_and_source_coordinates(reverse_latitude, positive_longitude):
-    latitude = np.array([47.9, 48, 48.22483461, 60.00478258, 60.1, 60.2])
-    longitude = np.array([-139.2, -139.1, -139.06130588, -114.05414853, -114, -113.9])
+    latitude = np.array(
+        [
+            BC_MIN_LATITUDE - 0.1,
+            BC_MIN_LATITUDE,
+            48.22483461,
+            60.00478258,
+            BC_MAX_LATITUDE,
+            BC_MAX_LATITUDE + 0.1,
+        ]
+    )
+    longitude = np.array(
+        [
+            BC_MIN_LONGITUDE - 0.1,
+            BC_MIN_LONGITUDE,
+            -139.06130588,
+            -114.05414853,
+            BC_MAX_LONGITUDE,
+            BC_MAX_LONGITUDE + 0.1,
+        ]
+    )
     if reverse_latitude:
         latitude = latitude[::-1]
     if positive_longitude:
@@ -202,8 +226,32 @@ def test_crop_to_bc_rejects_empty_crop(missing_dimension):
 @pytest.mark.parametrize("reverse_latitude", [False, True])
 @pytest.mark.parametrize("positive_longitude", [False, True])
 def test_cropped_sampling_matches_full_grid(reverse_latitude, positive_longitude):
-    latitude = np.array([47.9, 48, 48.2, 48.3, 50, 59.9, 60, 60.1, 60.2])
-    longitude = np.array([-139.2, -139.1, -139, -138.9, -120, -114.2, -114.1, -114, -113.9])
+    latitude = np.array(
+        [
+            BC_MIN_LATITUDE - 0.1,
+            BC_MIN_LATITUDE,
+            48.2,
+            48.3,
+            50,
+            59.9,
+            60,
+            BC_MAX_LATITUDE,
+            BC_MAX_LATITUDE + 0.1,
+        ]
+    )
+    longitude = np.array(
+        [
+            BC_MIN_LONGITUDE - 0.1,
+            BC_MIN_LONGITUDE,
+            -139,
+            -138.9,
+            -120,
+            -114.2,
+            -114.1,
+            BC_MAX_LONGITUDE,
+            BC_MAX_LONGITUDE + 0.1,
+        ]
+    )
     if reverse_latitude:
         latitude = latitude[::-1]
     if positive_longitude:

@@ -49,7 +49,7 @@ def mock_download(monkeypatch):
 def test_get_noaa_subregion_filter_str():
     assert (
         noaa.get_noaa_subregion_filter_str()
-        == "subregion=&toplat=60.1&leftlon=-139.1&rightlon=-114&bottomlat=48"
+        == "subregion=&toplat=61.1&leftlon=-140.1&rightlon=-113&bottomlat=47"
     )
 
 

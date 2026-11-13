@@ -559,7 +559,7 @@ async def test_process_models_filters_stations_to_crop_bounds(mocker: MockerFixt
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("coordinates", [[], [(47.0, -120.0)]])
+@pytest.mark.parametrize("coordinates", [[], [(BC_MIN_LATITUDE - 0.1, -120.0)]])
 async def test_process_models_skips_when_no_stations_within_bounds(mocker, coordinates):
     stations = [
         WeatherStation(code=code, name=f"Station{code}", lat=latitude, long=longitude)
