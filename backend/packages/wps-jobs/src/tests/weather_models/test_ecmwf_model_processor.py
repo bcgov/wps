@@ -9,7 +9,6 @@ from weather_model_jobs import ModelEnum, ModelRunInfo, ModelRunProcessResult, P
 from weather_model_jobs.ecmwf_model_processor import (
     ECMWFModelProcessor,
     crop_to_bc,
-    validate_station_bounds,
 )
 from wps_shared.db.models.weather_models import ModelRunPrediction
 
@@ -198,35 +197,6 @@ def test_crop_to_bc_rejects_empty_crop(missing_dimension):
 
     with pytest.raises(ValueError, match="no grid points within BC crop bounds"):
         crop_to_bc(dataset)
-
-
-@pytest.mark.parametrize(
-    "latitude, longitude", [(47.9, -120), (60.2, -120), (50, -139.2), (50, -113.9)]
-)
-def test_process_grib_data_rejects_stations_outside_crop(
-    mock_herbie, mock_model_run_info, latitude, longitude
-):
-    stations = pd.DataFrame({"code": [987], "latitude": [latitude], "longitude": [longitude]})
-
-    with pytest.raises(ValueError, match=r"outside BC crop bounds: \[987\]"):
-        ECMWFModelProcessor("/tmp").process_grib_data(mock_herbie, mock_model_run_info, stations)
-
-    mock_herbie.xarray.assert_not_called()
-
-
-@pytest.mark.parametrize("positive_longitude", [False, True])
-def test_station_validation_includes_crop_edges(positive_longitude):
-    stations = pd.DataFrame(
-        {
-            "code": [1, 2, 3, 4],
-            "latitude": [48, 48, 60.1, 60.1],
-            "longitude": [-139.1, -114, -139.1, -114],
-        }
-    )
-    if positive_longitude:
-        stations["longitude"] %= 360
-
-    validate_station_bounds(stations)
 
 
 @pytest.mark.parametrize("reverse_latitude", [False, True])

@@ -26,6 +26,12 @@ from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
 from wps_shared.db.database import get_write_session_scope
 from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
+)
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.wps_logging import configure_logging
@@ -290,6 +296,15 @@ async def process_models():
     # grab the start time.
     start_time = datetime.now()
     stations = await get_stations_asynchronously()
+    stations = [
+        station
+        for station in stations
+        if BC_MIN_LATITUDE <= station.lat <= BC_MAX_LATITUDE
+        and BC_MIN_LONGITUDE <= station.long <= BC_MAX_LONGITUDE
+    ]
+    if not stations:
+        logger.info("No stations within ECMWF crop bounds. Skipping processing.")
+        return
 
     with get_write_session_scope() as session:
         with tempfile.TemporaryDirectory() as temp_dir:

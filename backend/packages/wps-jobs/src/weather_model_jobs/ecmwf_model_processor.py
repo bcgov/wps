@@ -45,16 +45,6 @@ def crop_to_bc(dataset: xr.Dataset) -> xr.Dataset:
     return cropped.copy(deep=True)
 
 
-def validate_station_bounds(stations_df: pd.DataFrame):
-    longitude = ((stations_df.longitude + 180) % 360 - 180).round(8)
-    inside = stations_df.latitude.round(8).between(
-        BC_MIN_LATITUDE, BC_MAX_LATITUDE
-    ) & longitude.between(BC_MIN_LONGITUDE, BC_MAX_LONGITUDE)
-    if not inside.all():
-        invalid_codes = stations_df.loc[~inside, "code"].tolist()
-        raise ValueError(f"ECMWF stations outside BC crop bounds: {invalid_codes}")
-
-
 class ECMWFModelProcessor:
     model_run_info: ModelRunInfo
     data: xarray.Dataset
@@ -69,7 +59,6 @@ class ECMWFModelProcessor:
         grib_info: ModelRunInfo,
         stations_df: pd.DataFrame,
     ) -> ModelRunProcessResult:
-        validate_station_bounds(stations_df)
         weather_params = [TEMP, PRECIP, DEW_TEMP, WIND]
 
         # merge all necessary data into a single xarray dataset
