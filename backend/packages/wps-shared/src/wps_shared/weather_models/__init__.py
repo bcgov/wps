@@ -28,6 +28,7 @@ class ModelEnum(str, Enum):
     GFS = "GFS"
     NAM = "NAM"
     ECMWF = "ECMWF"
+    RRFS = "RRFS"
 
 
 class ProjectionEnum(str, Enum):
@@ -44,6 +45,8 @@ class ProjectionEnum(str, Enum):
     RDPS_LATLON = "RLatLon0.09"
     NAM_POLAR_STEREO = "ps32km"
     ECMWF_LATLON = "latlon.0.25deg"
+    RRFS_NA_13KM = "na.13km"
+    RRFS_AK_3KM = "ak.3km"
 
 
 def get_env_canada_model_run_hours(model_type: ModelEnum):

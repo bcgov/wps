@@ -78,6 +78,7 @@ PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${
 PROJ_TARGET=${PROJ_TARGET} MEMORY_REQUEST=1Gi MEMORY_LIMIT=2Gi bash $(dirname ${0})/oc_provision_ec_rdps_cronjob.sh prod >>"${BATCH_FILE}"
 echo NOAA Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh prod >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_rrfs_cronjob.sh prod >>"${BATCH_FILE}"
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod >>"${BATCH_FILE}"
 echo ECMWF Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ecmwf_cronjob.sh prod >>"${BATCH_FILE}"
