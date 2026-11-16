@@ -15,9 +15,9 @@ from datetime import UTC, datetime
 import pyarrow as pa
 import pyarrow.compute as pc
 from deltalake import DeltaTable, WriterProperties, write_deltalake
-
-from wps_shared import config
 from wps_shared.weather_models import ModelEnum
+
+from wps_weather_data.store import resolve_table
 
 logger = logging.getLogger(__name__)
 
@@ -57,25 +57,6 @@ RUNS_SCHEMA = pa.schema(
 PARTITION_COLUMNS = ["model", "run_date"]
 
 
-def runs_table_uri() -> str:
-    return f"s3://{config.get('OBJECT_STORE_BUCKET')}/{RUNS_KEY}"
-
-
-def object_store_options() -> dict[str, str]:
-    """Delta Lake storage options for our object store.
-
-    `conditional_put` is what makes several writers per table safe: the store rejects a commit
-    whose log entry already exists. Checked with backend/scripts/object_store_delta_check.py.
-    """
-    return {
-        "AWS_ENDPOINT_URL": f"https://{config.get('OBJECT_STORE_SERVER')}",
-        "AWS_ACCESS_KEY_ID": config.get("OBJECT_STORE_USER_ID"),
-        "AWS_SECRET_ACCESS_KEY": config.get("OBJECT_STORE_SECRET"),
-        "AWS_REGION": "us-east-1",
-        "conditional_put": "etag",
-    }
-
-
 def build_run_table(
     model: ModelEnum, run_ts: datetime, rows: Iterable[Mapping], ingested_at: datetime
 ) -> pa.Table:
@@ -113,9 +94,7 @@ def append_run(
 
     `table_uri` and `storage_options` default to our object store.
     """
-    if table_uri is None:
-        table_uri = runs_table_uri()
-        storage_options = object_store_options()
+    table_uri, storage_options = resolve_table(RUNS_KEY, table_uri, storage_options)
     table = build_run_table(model, run_ts, rows, ingested_at or datetime.now(UTC))
     if table.num_rows == 0:
         logger.warning("No rows for %s run %s, nothing appended to runs", model.value, run_ts)
@@ -145,9 +124,7 @@ def read_runs(
 
     Returns an empty table if the `runs` table does not exist yet.
     """
-    if table_uri is None:
-        table_uri = runs_table_uri()
-        storage_options = object_store_options()
+    table_uri, storage_options = resolve_table(RUNS_KEY, table_uri, storage_options)
     if not DeltaTable.is_deltatable(table_uri, storage_options=storage_options):
         return RUNS_SCHEMA.empty_table()
 

@@ -8,7 +8,8 @@ Run from ./backend:
 
     uv run python scripts/station_runs_parity_check.py --model GDPS --days 3
 
-With --backfill, a run that is in Postgres but missing from `runs` is appended.
+With --backfill, a run that is in Postgres but missing from `runs` is appended, and merged into
+`by_time`.
 Exits 0 when every run matches, 1 otherwise.
 
 Design: docs/architecture/station-weather-storage.md
@@ -24,9 +25,10 @@ from wps_shared.db.crud.weather_models import (
     get_prediction_model_run_timestamp_records,
     get_station_run_rows,
 )
-from wps_weather_data.runs import VALUE_COLUMNS, append_run, read_runs
 from wps_shared.utils.time import get_utc_now
 from wps_shared.weather_models import ModelEnum
+from wps_weather_data.by_time import merge_run
+from wps_weather_data.runs import VALUE_COLUMNS, append_run, read_runs
 
 # Postgres holds doubles and `runs` holds float32, which keeps about seven significant digits.
 RELATIVE_TOLERANCE = 1e-6
@@ -95,6 +97,7 @@ def main() -> int:
             if not object_store_rows and postgres_rows:
                 if args.backfill:
                     written = append_run(model, run_ts, postgres_rows)
+                    merge_run(model, run_ts, postgres_rows)
                     print(f"[backfilled] {model.value} {run_ts}: {written} rows appended")
                 else:
                     failed += 1
