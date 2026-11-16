@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import math
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 import weather_model_jobs.ecmwf_prediction_processor
@@ -25,6 +25,9 @@ def setup_processor():
     model_run_repository = MagicMock(spec=ModelRunRepository)
     model_run_repository.session = MagicMock()
     processor = ECMWFPredictionProcessor(stations, model_run_repository)
+    # Stand-ins for the object store tables, so tests can assert on what would be written.
+    processor.runs_table = MagicMock()
+    processor.by_time_table = MagicMock()
     return processor, model_run_repository
 
 
@@ -499,6 +502,30 @@ def test_process(setup_processor):
         complete=True, interpolated=False, model_type=ModelEnum.ECMWF
     )
     processor._process_model_run.assert_called_once_with(model_run)
+    model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
+
+
+def test_process_writes_run_to_object_store(setup_processor):
+    processor, model_run_repository = setup_processor
+    model_run = MagicMock()
+    model_run_repository.get_prediction_model_run_timestamp_records.return_value = [
+        (model_run, MagicMock())
+    ]
+    processor._process_model_run = MagicMock()
+    rows = [{"station_code": 1215}]
+
+    with patch(
+        "weather_model_jobs.common_model_fetchers.get_station_run_rows", return_value=rows
+    ) as mock_get_rows:
+        processor.process()
+
+    mock_get_rows.assert_called_once_with(model_run_repository.session, model_run.id)
+    processor.runs_table.append_run.assert_called_once_with(
+        ModelEnum.ECMWF, model_run.prediction_run_timestamp, rows
+    )
+    processor.by_time_table.merge_run.assert_called_once_with(
+        ModelEnum.ECMWF, model_run.prediction_run_timestamp, rows
+    )
     model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
 
 
