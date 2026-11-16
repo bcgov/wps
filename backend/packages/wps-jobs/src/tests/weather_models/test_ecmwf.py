@@ -533,7 +533,7 @@ async def test_process_models_filters_stations_to_crop_bounds(mocker: MockerFixt
     ]
     stations = [
         WeatherStation(code=code, name=f"Station{code}", lat=latitude, long=longitude)
-        for code, (latitude, longitude) in enumerate(coordinates, start=1)
+        for code, (latitude, longitude) in enumerate(station_coordinates, start=1)
     ]
     expected_stations = stations[:5]
     mock_temp_dir = MagicMock()
