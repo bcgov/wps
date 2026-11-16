@@ -81,6 +81,8 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod >>"${BATCH_FILE}"
 echo ECMWF Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ecmwf_cronjob.sh prod >>"${BATCH_FILE}"
+echo Station Weather Maintenance
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_station_weather_maintenance_cronjob.sh prod >>"${BATCH_FILE}"
 echo VIIRS Snow
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh prod >>"${BATCH_FILE}"
 echo Grass Curing

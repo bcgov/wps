@@ -34,6 +34,7 @@ from wps_shared.db.models.weather_models import (
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
+from wps_weather_data.by_time import merge_run
 from wps_weather_data.runs import append_run
 from wps_wf1.wfwx_api import get_stations_synchronously
 
@@ -43,9 +44,9 @@ if __name__ == "__main__":
 
 logger = logging.getLogger(__name__)
 
-# Models whose finished runs are also appended to the `runs` table in object storage, alongside
-# the Postgres writes. See docs/architecture/station-weather-storage.md.
-MODELS_WRITING_RUNS_TO_OBJECT_STORE = frozenset({ModelEnum.GDPS})
+# Models whose finished runs are also written to the `runs` and `by_time` tables in object
+# storage, alongside the Postgres writes. See docs/architecture/station-weather-storage.md.
+MODELS_WRITING_TO_OBJECT_STORE = frozenset({ModelEnum.GDPS})
 
 # Keys for weather variables that require interpolation between 1800 and 2100
 SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")
@@ -456,19 +457,20 @@ class ModelValueProcessor:
         self.session.add(model_run)
         self.session.commit()
 
-    def _append_run_to_object_store(
+    def _write_run_to_object_store(
         self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum
     ):
-        """Append the finished run to the `runs` table in object storage.
+        """Append the finished run to `runs` in object storage, then merge it into `by_time`.
 
-        Nothing reads `runs` yet, so a failure here is logged and must not fail the job.
+        Nothing reads either table yet, so a failure here is logged and must not fail the job.
         backend/scripts/station_runs_parity_check.py finds and backfills any run that was missed.
         """
         try:
             rows = get_station_run_rows(self.session, model_run.id)
             append_run(model_type, model_run.prediction_run_timestamp, rows)
+            merge_run(model_type, model_run.prediction_run_timestamp, rows)
         except Exception:
-            logger.exception("Failed to append model run %s to object storage", model_run.id)
+            logger.exception("Failed to write model run %s to object storage", model_run.id)
 
     def process(self, model_type: ModelEnum):
         """Entry point to start processing model runs that have not yet had their predictions interpolated"""
@@ -482,10 +484,10 @@ class ModelValueProcessor:
             # Process the model run.
             start_time = datetime.now()
             self._process_model_run(model_run, model_type)
-            # Append before marking the run as interpolated: if the job dies in between, the run
-            # is processed and appended again, and readers take the newest version.
-            if model_type in MODELS_WRITING_RUNS_TO_OBJECT_STORE:
-                self._append_run_to_object_store(model_run, model_type)
+            # Write before marking the run as interpolated: if the job dies in between, the run
+            # is processed and written again, and readers take the newest version.
+            if model_type in MODELS_WRITING_TO_OBJECT_STORE:
+                self._write_run_to_object_store(model_run, model_type)
             # Mark the model run as interpolated.
             self._mark_model_run_interpolated(model_run)
             execution_time = datetime.now() - start_time
