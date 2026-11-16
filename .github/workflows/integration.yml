@@ -164,7 +164,7 @@ jobs:
       - name: Unit Test with coverage (wps_weather_data)
         working-directory: ./backend
         run: |
-          uv run pytest --cov=packages/wps-weather-data/src/wps_weather_data --cov-branch --cov-report=xml:packages/wps-weather-data/coverage-reports/wps-weather-data-coverage-report.xml packages/wps-weather-data/src/wps_weather_data/tests -x -o log_cli=true --disable-warnings -vvv
+          uv run --locked --no-sync --no-build pytest --cov=packages/wps-weather-data/src/wps_weather_data --cov-branch --cov-report=xml:packages/wps-weather-data/coverage-reports/wps-weather-data-coverage-report.xml packages/wps-weather-data/src/wps_weather_data/tests -x -o log_cli=true --disable-warnings -vvv
       - name: Archive coverage report (wps_weather_data)
         uses: actions/upload-artifact@v7
         with:
