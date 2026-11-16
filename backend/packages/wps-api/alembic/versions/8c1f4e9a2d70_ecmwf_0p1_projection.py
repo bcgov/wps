@@ -29,7 +29,22 @@ def upgrade():
 
 
 def downgrade():
-    op.execute(
-        "DELETE FROM prediction_models "
+    model_ids = (
+        "SELECT id FROM prediction_models "
         "WHERE abbreviation = 'ECMWF' AND projection = 'latlon.0.1deg'"
     )
+    run_ids = (
+        f"SELECT id FROM prediction_model_run_timestamps WHERE prediction_model_id IN ({model_ids})"
+    )
+    # remove dependent data before deleting this resolution's runs and model
+    for table in (
+        "fire_watch_weather",
+        "weather_station_model_predictions",
+        "model_run_predictions",
+    ):
+        op.execute(f"DELETE FROM {table} WHERE prediction_model_run_timestamp_id IN ({run_ids})")
+    op.execute(f"DELETE FROM model_run_for_sfms WHERE prediction_model_id IN ({model_ids})")
+    op.execute(
+        f"DELETE FROM prediction_model_run_timestamps WHERE prediction_model_id IN ({model_ids})"
+    )
+    op.execute(f"DELETE FROM prediction_models WHERE id IN ({model_ids})")
