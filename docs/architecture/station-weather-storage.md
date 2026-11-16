@@ -18,7 +18,7 @@ We compared Parquet, GeoParquet, Delta Lake, Zarr and Icechunk with four local b
 
 GeoParquet and Icechunk are a poor fit. Zarr is a poor fit for model runs and a reasonable but second-best fit for station history.
 
-Nothing here is built, and nothing has been timed against our object store. The largest unknown is whether our object store supports what Delta Lake needs for more than one writer per table. See [Main risks](#main-risks).
+Nothing here is built, and nothing has been timed against our object store. Our object store passed a check that it enforces the conditional PUTs Delta Lake needs for more than one writer per table; Delta Lake itself has not yet been run against it with several writers. See [Main risks](#main-risks).
 
 ## Goals
 
@@ -382,7 +382,7 @@ Nothing for model runs. The only related table that stays is:
 
 Nothing here is built. The full list of what was and was not checked is in [station-weather-storage-evaluation.md](station-weather-storage-evaluation.md#what-is-and-isnt-verified). The ones that could change the design:
 
-1. **Conditional PUTs on ECS.** Several writers per Delta table depend on ECS enforcing them. This is untested, and it is step 1 of the plan. The fallback is one table per writer.
+1. **Several Delta writers on ECS.** `backend/scripts/object_store_conditional_put_check.py` passed against our object store on 2026-11-12, so the store enforces conditional PUTs. What is not yet shown is that `deltalake`, with its own S3 client and configuration, commits safely from two writers at once. That is step 1 of the plan. The fallback is one table per writer.
 2. **Latency against ECS.** Every timing is from local disk. Nothing has been read from or written to our object store.
 3. **Delta Lake at full size.** `MERGE` was benchmarked on a small daily table only, not on `by_time` with hourly data.
 4. **Station count.** 300 is an assumption. Sizes and row counts scale with it.
@@ -390,7 +390,7 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 
 ## Plan
 
-1. Check conditional PUTs on ECS. `backend/scripts/object_store_conditional_put_check.py` tests, one request at a time, whether the store honours them. If it does, run it again with `--race-rounds` to test many writers at once, then follow up with two concurrent writers to one Delta table. The result decides between shared tables and one table per writer.
+1. Run Delta Lake against ECS in a throwaway table with `backend/scripts/object_store_delta_check.py`: find the storage options that work, have two processes append at once and confirm no commit is lost, and run `MERGE`, `optimize`, `vacuum` and a checkpoint. Time a cold open and a read. The store itself already passed `backend/scripts/object_store_conditional_put_check.py`. The result confirms shared tables, or falls back to one table per writer.
 2. Have one model (GDPS) write to `runs` and `by_time` alongside its Postgres writes, with the maintenance job running.
 3. Compare every read query's results between the two, and time each read against ECS.
 4. Move the model readers over one at a time: `/weather_models` routes, fire watch, training, then MoreCast's model values.
@@ -405,7 +405,7 @@ Postgres remains the fallback for each table until its readers have moved.
 
 ## Open questions
 
-1. **Does ECS enforce conditional PUTs?** Everything about shared Delta tables depends on it. This is step 1 of the plan.
+1. **Does Delta Lake commit safely from several writers on ECS?** The store enforces conditional PUTs; Delta Lake's own client has not been tried with two writers. This is step 1 of the plan.
 2. **Which lead rules are worth keeping?** Undecided. Lead stays a free choice while we experiment with `leads`. Rules that prove useful should become their own sources in `by_time` and `by_station`.
 3. **What does the climatology screen show?** Undecided. The design assumes percentiles by day of year for daily data, and statistics by month and hour of day for hourly data. A screen that needs pooled hourly percentiles for a group over decades is the one case this does not serve.
 4. **Where will hourly forecasts come from, and will their history be recorded?**
