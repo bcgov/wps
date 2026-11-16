@@ -1,11 +1,22 @@
-import pytest
-import pandas as pd
-import xarray as xr
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
-from wps_shared.db.models.weather_models import ModelRunPrediction
-from weather_model_jobs.ecmwf_model_processor import ECMWFModelProcessor
+
+import numpy as np
+import pandas as pd
+import pytest
+import xarray as xr
 from weather_model_jobs import ModelEnum, ModelRunInfo, ModelRunProcessResult, ProjectionEnum
+from weather_model_jobs.ecmwf_model_processor import (
+    ECMWFModelProcessor,
+    crop_to_bc,
+)
+from wps_shared.db.models.weather_models import ModelRunPrediction
+from wps_shared.geospatial.bounds import (
+    BC_MAX_LATITUDE,
+    BC_MAX_LONGITUDE,
+    BC_MIN_LATITUDE,
+    BC_MIN_LONGITUDE,
+)
 
 TEST_DATETIME = datetime(2024, 10, 10, 6, tzinfo=timezone.utc)
 MOCK_GRIB_URL = "mock_grib_url"
@@ -19,7 +30,7 @@ def mock_herbie():
         {
             "coords": {
                 "latitude": {"dims": ["latitude"], "data": [50.0, 49.75]},
-                "longitude": {"dims": ["longitude"], "data": [10.0, 10.25]},
+                "longitude": {"dims": ["longitude"], "data": [-120.0, -119.75]},
             },
             "data_vars": {
                 "t2m": {
@@ -37,7 +48,7 @@ def mock_herbie():
         {
             "coords": {
                 "latitude": {"dims": ["latitude"], "data": [50.0, 49.75]},
-                "longitude": {"dims": ["longitude"], "data": [10.0, 10.25]},
+                "longitude": {"dims": ["longitude"], "data": [-120.0, -119.75]},
             },
             "data_vars": {
                 "d2m": {
@@ -53,7 +64,7 @@ def mock_herbie():
         {
             "coords": {
                 "latitude": {"dims": ["latitude"], "data": [50.0, 49.75]},
-                "longitude": {"dims": ["longitude"], "data": [10.0, 10.25]},
+                "longitude": {"dims": ["longitude"], "data": [-120.0, -119.75]},
             },
             "data_vars": {
                 "u10": {
@@ -86,7 +97,7 @@ def mock_herbie():
         {
             "coords": {
                 "latitude": {"dims": ["latitude"], "data": [50.0, 49.75]},
-                "longitude": {"dims": ["longitude"], "data": [10.0, 10.25]},
+                "longitude": {"dims": ["longitude"], "data": [-120.0, -119.75]},
             },
             "data_vars": {
                 "tp": {
@@ -117,7 +128,7 @@ def mock_herbie():
 
 @pytest.fixture
 def mock_stations_df():
-    return pd.DataFrame({"point_code": [1], "latitude": [50.0], "longitude": [10.0]})
+    return pd.DataFrame({"code": [1], "latitude": [50.0], "longitude": [-120.0]})
 
 
 @pytest.fixture
@@ -126,7 +137,7 @@ def mock_model_run_info():
         model_enum=ModelEnum.ECMWF,
         model_run_timestamp=TEST_DATETIME,
         prediction_timestamp=TEST_DATETIME + timedelta(hours=0),
-        projection=ProjectionEnum.ECMWF_LATLON,
+        projection=ProjectionEnum.ECMWF_LATLON_0_1,
     )
 
 
@@ -160,3 +171,117 @@ def test_process_grib_data(mock_herbie, mock_stations_df, mock_model_run_info):
     assert result.data[ModelRunPrediction.wdir_tgl_10.name].values[0] == pytest.approx(
         239.0, rel=1e-2
     )  # u, v to wind direction
+
+
+@pytest.mark.parametrize("reverse_latitude", [False, True])
+@pytest.mark.parametrize("positive_longitude", [False, True])
+def test_crop_to_bc_retains_bounds_and_source_coordinates(reverse_latitude, positive_longitude):
+    latitude = np.array(
+        [
+            BC_MIN_LATITUDE - 0.1,
+            BC_MIN_LATITUDE,
+            48.22483461,
+            60.00478258,
+            BC_MAX_LATITUDE,
+            BC_MAX_LATITUDE + 0.1,
+        ]
+    )
+    longitude = np.array(
+        [
+            BC_MIN_LONGITUDE - 0.1,
+            BC_MIN_LONGITUDE,
+            -139.06130588,
+            -114.05414853,
+            BC_MAX_LONGITUDE,
+            BC_MAX_LONGITUDE + 0.1,
+        ]
+    )
+    if reverse_latitude:
+        latitude = latitude[::-1]
+    if positive_longitude:
+        longitude = longitude % 360
+    values = np.arange(36).reshape(6, 6)
+    dataset = xr.Dataset(
+        {"t2m": (("latitude", "longitude"), values)},
+        coords={"latitude": latitude, "longitude": longitude},
+    )
+
+    cropped = crop_to_bc(dataset)
+
+    np.testing.assert_array_equal(cropped.latitude, latitude[1:-1])
+    np.testing.assert_array_equal(cropped.longitude, longitude[1:-1])
+    np.testing.assert_array_equal(cropped.t2m, values[1:-1, 1:-1])
+    assert not np.shares_memory(cropped.t2m.values, dataset.t2m.values)
+
+
+@pytest.mark.parametrize("missing_dimension", ["latitude", "longitude"])
+def test_crop_to_bc_rejects_empty_crop(missing_dimension):
+    dataset = xr.Dataset(coords={"latitude": [50.0], "longitude": [-120.0]})
+    dataset = dataset.assign_coords({missing_dimension: [0.0]})
+
+    with pytest.raises(ValueError, match="no grid points within BC crop bounds"):
+        crop_to_bc(dataset)
+
+
+@pytest.mark.parametrize("reverse_latitude", [False, True])
+@pytest.mark.parametrize("positive_longitude", [False, True])
+def test_cropped_sampling_matches_full_grid(reverse_latitude, positive_longitude):
+    latitude = np.array(
+        [
+            BC_MIN_LATITUDE - 0.1,
+            BC_MIN_LATITUDE,
+            48.2,
+            48.3,
+            50,
+            59.9,
+            60,
+            BC_MAX_LATITUDE,
+            BC_MAX_LATITUDE + 0.1,
+        ]
+    )
+    longitude = np.array(
+        [
+            BC_MIN_LONGITUDE - 0.1,
+            BC_MIN_LONGITUDE,
+            -139,
+            -138.9,
+            -120,
+            -114.2,
+            -114.1,
+            BC_MAX_LONGITUDE,
+            BC_MAX_LONGITUDE + 0.1,
+        ]
+    )
+    if reverse_latitude:
+        latitude = latitude[::-1]
+    if positive_longitude:
+        longitude = longitude % 360
+    values = np.arange(81).reshape(9, 9).astype(float)
+    dataset = xr.Dataset(
+        {
+            "t2m": (("latitude", "longitude"), values + 273.15),
+            "u10": (("latitude", "longitude"), values / 10),
+            "v10": (("latitude", "longitude"), -values / 20),
+        },
+        coords={"latitude": latitude, "longitude": longitude},
+    )
+    stations = pd.DataFrame(
+        {
+            "code": [1, 2, 3, 4],
+            "latitude": [48.22483461, 60.00478258, 59.999, 49],
+            "longitude": [-123.5, -120, -139.06130588, -114.05414853],
+        }
+    )
+
+    expected = (
+        dataset.copy(deep=True)
+        .herbie.with_wind()
+        .herbie.pick_points(stations, method="nearest", use_cached_tree=False)
+    )
+    actual = (
+        crop_to_bc(dataset)
+        .herbie.pick_points(stations, method="nearest", use_cached_tree=False)
+        .herbie.with_wind()
+    )
+
+    xr.testing.assert_allclose(actual, expected)
