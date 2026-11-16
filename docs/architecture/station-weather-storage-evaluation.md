@@ -100,6 +100,60 @@ Costs that come with Zarr:
 - **Appends rewrite chunks.** Adding a date rewrites every chunk that covers it, so longer time chunks mean cheaper reads but costlier writes.
 - **No transactions.** A reader can see a half-written append. Icechunk exists to fix that and adds versioning, which is where it earns its place: asking what a pixel's series looked like as of a past date. Whether Icechunk works against ECS is untested.
 
+### Why station predictions miss those conditions
+
+**The grid has holes.** A Zarr array needs one slot for every forecast hour that any run of the model can have. GFS keeps only the hours around noon, and noon falls at a different forecast hour for each run time, so each run fills a different quarter of the slots. This is the first day of the GFS forecast-hour axis as the benchmark stored it (■ is a value, · is NaN padding):
+
+```text
+forecast hour    0   2   3   6   8   9  12  14  15  18  20  21
+00:00 UTC run    ·   ·   ·   ·   ·   ·   ·   ·   ·   ■   ■   ■
+06:00 UTC run    ·   ·   ·   ·   ·   ·   ■   ■   ■   ·   ·   ·
+12:00 UTC run    ·   ·   ·   ■   ■   ■   ·   ·   ·   ·   ·   ·
+18:00 UTC run    ■   ■   ■   ·   ·   ·   ·   ·   ·   ·   ·   ·
+```
+
+The pattern repeats for each later day. Parquet writes only the ■ cells, as rows.
+
+How full each model's array was in the benchmark:
+
+| Model | Cells holding a value | Why cells are empty |
+|---|---|---|
+| HRDPS, RDPS | 100% | Every run has every hour. |
+| GDPS | 90% | The interpolated 20:00 UTC rows fall at different forecast hours for the 00:00 and 12:00 runs. |
+| ECMWF | 88% | The same. |
+| GFS, NAM | 25% | Only the hours around noon are kept, as shown above. |
+
+**One run becomes many objects.** Zarr writes one chunk object per variable, and the benchmark stores 12 variables. The read counts are for the MoreCast query in the [formats benchmark](#benchmark-formats).
+
+```mermaid
+flowchart LR
+    run["One model run<br/>300 stations, 12 variables<br/>about 1.3 MB"]
+    run --> pq["Parquet<br/>1 object"]
+    run --> zr["Zarr<br/>12 objects, one per variable"]
+    pq --> pqr["MoreCast read<br/>300 objects"]
+    zr --> zrr["MoreCast read<br/>2,800 objects"]
+```
+
+**Which data suits Zarr.** The conditions above, as a decision path, with this project's data at the ends:
+
+```mermaid
+flowchart TD
+    q1{"Does every cell of<br/>the grid have a value?"}
+    q2{"Is the array far larger<br/>than any one read?"}
+    q3{"Do reads slice along<br/>more than one axis?"}
+    pq["Parquet"]
+    tif["GeoTIFF per date"]
+    zarr["Zarr"]
+    q1 -- "No: GFS and NAM<br/>predictions are 25% full" --> pq
+    q1 -- "Yes" --> q2
+    q2 -- "No: a model run<br/>is 1.3 MB" --> pq
+    q2 -- "Yes" --> q3
+    q3 -- "No: whole-raster<br/>downloads" --> tif
+    q3 -- "Yes: SFMS rasters through time,<br/>gridded model output" --> zarr
+```
+
+Station history is the exception: it is dense and regular, and Zarr was 36% smaller there. It still lost, for the reasons in the [station history benchmark](#station-history-benchmark).
+
 ### Could we change how we store the data so Zarr fits?
 
 There are two ways. Only the second gives Zarr a real advantage.
@@ -113,6 +167,33 @@ There are two ways. Only the second gives Zarr a real advantage.
 | Verdict | Not worth doing. | The version worth doing, but a separate and much larger project that needs sizing first. |
 
 Bias-adjusted values and the MoreCast daily rows are derived per-station tables, so a small tabular output would remain in either case.
+
+## Comparison with Open-Meteo
+
+Open-Meteo serves point forecasts from gridded model output and publishes its storage design. Its design is for a different problem from ours, and where the two overlap it reaches the same answers. The description here comes from a written summary of that design. It was not checked against the Open-Meteo repositories ([open-meteo](https://github.com/open-meteo/open-meteo), [om-file-format](https://github.com/open-meteo/om-file-format), [open-data](https://github.com/open-meteo/open-data)).
+
+What Open-Meteo does:
+
+- **It stores grids, not stations.** Each variable is a (latitude, longitude, time) array in its own OM format, which is close to Zarr: compressed chunks that can be read one at a time with ranged requests.
+- **It chunks for the point read.** A chunk holds a few neighbouring grid cells and many time steps, so one location's forecast is a few small reads.
+- **It keeps several copies.** One layout is for point time series, one for whole maps and one for single model runs.
+- **It caches.** Hot chunks are kept on local disk, so repeat requests skip the object store.
+
+Where it agrees with this design:
+
+| Open-Meteo | This design |
+|---|---|
+| For a fixed set of stations, the summary recommends extracting station values once per run and storing them keyed by station, model, run and forecast time. Chunked grids pay off when users ask for arbitrary coordinates. | That is `runs`. No reader of ours asks for arbitrary coordinates. |
+| A separate copy of the data for each read pattern. | `runs`, `by_time` and `by_station`. |
+| Immutable per-run stores, and a rolling store shaped for queries. | `runs` is append-only. `by_time` is the copy that is updated. |
+
+Where it applies to us is gridded data, which this document already rates a strong fit for Zarr: SFMS rasters as a time series, and model grids if we ever keep them. For those, its layout is the starting point: small spatial chunks with long time chunks for point reads, and a separate whole-raster layout for maps.
+
+What it adds that this evaluation did not cover:
+
+- **Zarr sharding.** Zarr 3 can pack many chunks into one object with an index, so a reader fetches byte ranges instead of whole objects. The formats benchmark did not use it. It weakens the object-count objection to Zarr, but only partly: sharding packs chunks within one array, so 12 variables are still at least 12 objects, and a shard that holds several runs is rewritten by each new run. The NaN padding and the key-filter reads are unaffected, so the verdict for station data stands. Any benchmark of SFMS rasters or model grids should include sharding.
+- **A local cache.** The summary credits much of Open-Meteo's speed to caching, not to the file format. This design has no cache. Whether the climatology screen needs one depends on read times against ECS, which are not yet measured.
+- **Quantized values.** Open-Meteo stores scaled integers, for example temperature to 0.1 degrees, and compresses the differences between neighbouring values. This design uses float32. Scaled integers in Parquet would be smaller. This was not tried, and is only worth it if size becomes a problem.
 
 ## Versioning
 
@@ -263,10 +344,11 @@ Reads at a chosen lead follow the same pattern once the rule is stored as its ow
 
 - The tables, queries and readers described in the design, read on `main` as of 2026-11-12.
 - The figures from the four benchmarks, each from one local run with `deltalake` 1.6.6, `icechunk` 2.3.1, `zarr` 3.4.2 and `pyarrow` 26.0.1.
+- Conditional PUTs on ECS: the check script passed against our object store on 2026-11-12.
 
 **Not checked:**
 
-- **Conditional PUTs on ECS.** Several writers per Delta table depend on ECS enforcing `If-None-Match` on PUT. No Dell documentation was found that settles it. The check is to have two processes commit to one table on ECS at the same moment and confirm that one retries and neither commit is lost. The `deltalake` 1.6.6 library was confirmed to contain the conditional PUT, copy-if-not-exists, DynamoDB lock and unsafe-rename options; its documentation pages for them could not be loaded.
+- **Several Delta Lake writers on ECS.** Delta Lake needs the store to enforce `If-None-Match` on PUT. `backend/scripts/object_store_conditional_put_check.py` passed against our object store on 2026-11-12, so the store does. Not yet checked is `deltalake` itself, with its own S3 client, committing from two processes at once. The `deltalake` 1.6.6 library was confirmed to contain the conditional PUT, copy-if-not-exists, DynamoDB lock and unsafe-rename options; its documentation pages for them could not be loaded.
 - **Which mode the earlier Delta Lake trial used.** If it ran with the unsafe-rename option, it showed only that a single writer works.
 - **Delta Lake for `by_time` at full size.** The format benchmark ran `MERGE` on a small daily table only. `by_time` with hourly data and the maintenance job have not been benchmarked.
 - **One Delta table for both history layouts.** Delta's Z-ordering might let a single table serve MoreCast and climatology. It was not tried; the design keeps the measured two-layout approach.
@@ -280,4 +362,5 @@ Reads at a chosen lead follow the same pattern once the rule is stored as its ow
 - **The bookkeeping replacement.** The current lifecycle was read from the call sites in the model jobs, not traced end to end. Listing a `staging` prefix, reading its footers and checking `runs` for a run have not been timed against ECS. The staging file counts per run are calculated from the forecast-hour ranges, assuming one GRIB per variable per hour.
 - **Hourly forecasts.** They do not exist in the code today. Where they will come from, and whether MoreCast will record their history as it does for daily forecasts, is not known.
 - **Dependencies.** Neither `pyarrow` nor `deltalake` is a declared dependency of any backend package, and whether the production images install them cleanly has not been checked.
+- **Open-Meteo's design.** The [comparison](#comparison-with-open-meteo) rests on a written summary, not on the Open-Meteo repositories. Zarr sharding, a read cache and quantized values were not benchmarked.
 - **Other layouts.** Each format was tested with one layout. Different Zarr chunking or Delta partitioning would move the numbers, though not the object-count gap or the log-replay cost.
