@@ -27,8 +27,8 @@ from wps_shared.db.crud.weather_models import (
 )
 from wps_shared.utils.time import get_utc_now
 from wps_shared.weather_models import ModelEnum
-from wps_weather_data.by_time import merge_run
-from wps_weather_data.runs import VALUE_COLUMNS, append_run, read_runs
+from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.runs import VALUE_COLUMNS, RunsTable
 
 # Postgres holds doubles and `runs` holds float32, which keeps about seven significant digits.
 RELATIVE_TOLERANCE = 1e-6
@@ -82,6 +82,8 @@ def main() -> int:
     model = ModelEnum(args.model)
     since = get_utc_now() - timedelta(days=args.days)
 
+    runs = RunsTable()
+    by_time = ByTimeTable()
     checked = failed = 0
     with wps_shared.db.database.get_read_session_scope() as session:
         records = get_prediction_model_run_timestamp_records(
@@ -93,11 +95,11 @@ def main() -> int:
                 continue
             checked += 1
             postgres_rows = get_station_run_rows(session, model_run.id)
-            object_store_rows = read_runs(model, run_ts, run_ts).to_pylist()
+            object_store_rows = runs.read(model, run_ts, run_ts).to_pylist()
             if not object_store_rows and postgres_rows:
                 if args.backfill:
-                    written = append_run(model, run_ts, postgres_rows)
-                    merge_run(model, run_ts, postgres_rows)
+                    written = runs.append_run(model, run_ts, postgres_rows)
+                    by_time.merge_run(model, run_ts, postgres_rows)
                     print(f"[backfilled] {model.value} {run_ts}: {written} rows appended")
                 else:
                     failed += 1

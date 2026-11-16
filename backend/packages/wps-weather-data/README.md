@@ -3,32 +3,41 @@
 This package reads and writes station weather data in object storage. The design is in
 [docs/architecture/station-weather-storage.md](../../../docs/architecture/station-weather-storage.md).
 
+## table.py
+
+`DeltaWeatherTable` is what the Delta Lake tables share: where the table lives, the storage
+options for reaching it, and `maintain()`, the upkeep every table needs (`optimize` merges
+small files, a checkpoint keeps the transaction log quick to open, and `vacuum` deletes files
+that no table version from the last 30 days refers to). Create a table object once and reuse
+it; creating one does not contact the object store.
+
 ## runs.py
 
-The `runs` dataset: station values from every weather model run, as a Delta Lake table.
-`append_run` writes one version of a run in a single commit. `read_runs` returns the newest
-version of each run, and every reader should go through it so that rule lives in one place.
+`RunsTable` is the `runs` dataset: station values from every weather model run.
+`append_run` writes one version of a run in a single commit. `read` returns the newest version
+of each run, and every reader should go through it so that rule lives in one place.
 
 ## by_time.py
 
-The `by_time` dataset: the newest value per station, time and source, as a Delta Lake table.
+`ByTimeTable` is the `by_time` dataset: the newest value per station, time and source.
 `merge_run` merges a model run in after it is appended to `runs`. A row is only replaced by a
-run at least as new as the one it came from. `read_by_time` reads a time range for one
-resolution (`hourly` or `daily`) and a list of sources. Only model sources are written so far.
+run at least as new as the one it came from. `read` returns a time range for one resolution
+(`hourly` or `daily`) and a list of sources. Only model sources are written so far.
 
 ## maintenance.py
 
-The daily upkeep both tables need: `optimize` merges small files, a checkpoint keeps the
-transaction log quick to open, and `vacuum` deletes files that no table version from the last
-30 days refers to. Run by the `station-weather-maintenance` cron job:
+Runs `maintain()` on every table. Run by the `station-weather-maintenance` cron job:
 
 ```bash
 python -m wps_weather_data.maintenance
 ```
 
-## store.py
+## addresser.py
 
-Where the tables live in object storage and the Delta Lake storage options for reaching them.
+`StationWeatherAddresser` builds the object store keys, in the style of `BaseRasterAddresser`.
+Production tables live under `weather/stations/`. Dev deployments share one bucket, so each
+writes under `dev/{suffix}/weather/stations/`, using the `SUFFIX` setting (for example
+`pr-123`). With no `SUFFIX`, as when running locally, the production root is used.
 
 ## Status
 

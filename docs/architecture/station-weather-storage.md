@@ -133,6 +133,8 @@ weather/stations/
 
 `resolution` is `hourly` or `daily`. `source` is `OBSERVED`, `FORECAST` or a model.
 
+That is the production layout. Dev deployments share one bucket, so each writes the same layout under `dev/{suffix}/`, such as `dev/pr-123/weather/stations/runs/`.
+
 | Dataset | Format | Serves | Written by |
 |---|---|---|---|
 | `runs` | Delta Lake | `/weather_models` routes, training | The six model jobs |
