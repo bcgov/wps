@@ -50,6 +50,7 @@ coverage:
           - backend/packages/wps-jobs/src
           - backend/packages/wps-shared/src/wps_shared
           - backend/packages/wps-wf1/src/wps_wf1
+          - backend/packages/wps-weather-data/src/wps_weather_data
       # https://docs.codecov.com/docs/commit-status#splitting-up-projects-example
       api:
         paths:
@@ -75,6 +76,10 @@ coverage:
       wps_wf1:
         paths:
           - backend/packages/wps-wf1/src/wps_wf1
+        threshold: 3%
+      wps_weather_data:
+        paths:
+          - backend/packages/wps-weather-data/src/wps_weather_data
         threshold: 3%
       asa_go:
         flags:

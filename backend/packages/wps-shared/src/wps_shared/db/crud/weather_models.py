@@ -385,3 +385,51 @@ async def get_latest_prediction_timestamp_id_for_model(
     result = await session.scalar(stmt)
 
     return result
+
+
+# The columns of weather_station_model_predictions that are stored in the `runs` table in object storage.
+_STATION_RUN_COLUMNS = (
+    "station_code",
+    "prediction_timestamp",
+    "tmp_tgl_2",
+    "rh_tgl_2",
+    "apcp_sfc_0",
+    "wdir_tgl_10",
+    "wind_tgl_10",
+    "bias_adjusted_temperature",
+    "bias_adjusted_rh",
+    "bias_adjusted_wdir",
+    "bias_adjusted_wind_speed",
+    "delta_precip",
+    "precip_24h",
+    "bias_adjusted_precip_24h",
+)
+
+
+def get_station_run_rows(session: Session, model_run_id: int) -> list[dict]:
+    """Get a model run's station predictions as rows for the `runs` table in object storage.
+
+    A row is interpolated if the model itself has no prediction at that time. That can only be
+    told while the run's model_run_predictions still exist, so `is_interpolated` is None once
+    the retention policy has deleted them.
+    """
+    model_times = set(
+        session.execute(
+            select(ModelRunPrediction.prediction_timestamp)
+            .where(ModelRunPrediction.prediction_model_run_timestamp_id == model_run_id)
+            .distinct()
+        ).scalars()
+    )
+    result = session.execute(
+        select(
+            *[getattr(WeatherStationModelPrediction, column) for column in _STATION_RUN_COLUMNS]
+        ).where(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run_id)
+    )
+    rows = []
+    for mapping in result.mappings():
+        row = dict(mapping)
+        row["is_interpolated"] = (
+            row["prediction_timestamp"] not in model_times if model_times else None
+        )
+        rows.append(row)
+    return rows
