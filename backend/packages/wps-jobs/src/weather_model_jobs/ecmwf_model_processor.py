@@ -48,8 +48,7 @@ def crop_to_bc(dataset: xr.Dataset) -> xr.Dataset:
     )
     if not cropped.sizes["latitude"] or not cropped.sizes["longitude"]:
         raise ValueError("ECMWF dataset has no grid points within BC crop bounds")
-    # release the global arrays instead of retaining them through a regional view
-    return cropped.copy(deep=True)
+    return cropped
 
 
 class ECMWFModelProcessor:
