@@ -48,3 +48,5 @@ def downgrade():
         f"DELETE FROM prediction_model_run_timestamps WHERE prediction_model_id IN ({model_ids})"
     )
     op.execute(f"DELETE FROM prediction_models WHERE id IN ({model_ids})")
+    # clear markers so a later upgrade can process these forecasts again
+    op.execute("DELETE FROM processed_model_run_urls WHERE url LIKE '%/ifs/0p1/%'")
