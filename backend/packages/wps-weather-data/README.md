@@ -42,5 +42,7 @@ writes under `dev/{suffix}/weather/stations/`, using the `SUFFIX` setting (for e
 ## Status
 
 Every model job (GDPS, RDPS, HRDPS, GFS, NAM and ECMWF) writes to these tables, alongside its
-Postgres writes. Nothing reads them yet. `backend/scripts/station_runs_parity_check.py` compares
-`runs` with Postgres.
+Postgres writes. Nothing in the API reads them yet. Two scripts in `backend/scripts` check them
+against Postgres: `station_runs_parity_check.py` compares `runs`, and
+`morecast_by_time_parity_check.py` compares MoreCast's model values read from `by_time`
+(`morecast.py`) with the same read from Postgres.
