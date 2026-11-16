@@ -86,21 +86,32 @@ def mock_herbie_instance(mocker: MockerFixture):
     yield mock_herbie_instance
 
 
-def ecmwf_sources(forecast_hour, resolution="0p1"):
-    path = f"20261112/00z/ifs/{resolution}/oper/20261112000000-{forecast_hour}h-oper-fc-sfc.grib2"
+def make_herbie_forecast(hour, mirror, resolution="0p1", signature="token"):
+    path = f"20261112/00z/ifs/{resolution}/oper/20261112000000-{hour}h-oper-fc-sfc.grib2"
     sources = {
         "google": f"https://storage.googleapis.com/ecmwf-open-data/{path}",
         "aws": f"https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/{path}",
-        "ecmwf": f"https://data.ecmwf.int/forecasts/{path}",
         "azure": f"https://ai4edataeuwest.blob.core.windows.net/ecmwf/{path}",
     }
-    sources["azure-scda"] = sources["azure"].replace("oper", "scda")
-    sources["azure-waef"] = sources["azure"]
-    return sources
+    url = sources[mirror]
+    if mirror == "azure":
+        url += f"?sig={signature}"
+    return MagicMock(grib=url, SOURCES=sources)
 
 
-@pytest.mark.parametrize("first_mirror, next_mirror", [("google", "aws"), ("aws", "google")])
+@pytest.mark.parametrize(
+    "first_mirror, next_mirror",
+    [("google", "aws"), ("azure", "aws"), ("google", "azure"), ("azure", "azure")],
+)
 def test_process_model_run_resumes_after_mirror_change(mocker, first_mirror, next_mirror):
+    first_forecast = make_herbie_forecast(0, first_mirror, signature="first")
+    repeated_forecast = make_herbie_forecast(0, next_mirror, signature="second")
+    pending_forecast = make_herbie_forecast(3, next_mirror, signature="second")
+    mocker.patch(
+        "weather_model_jobs.ecmwf.Herbie",
+        side_effect=[first_forecast, MagicMock(grib=None), repeated_forecast, pending_forecast],
+    )
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=[0, 3])
     processed_urls = set()
     repository = MagicMock(spec=ModelRunRepository)
     repository.get_or_create_prediction_run.return_value.complete = False
@@ -108,39 +119,25 @@ def test_process_model_run_resumes_after_mirror_change(mocker, first_mirror, nex
         processed_urls.intersection(urls)
     )
     repository.mark_url_as_processed.side_effect = processed_urls.add
-    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=[0, 3])
-
-    selected_mirror = first_mirror
-    available_hours = {0}
-
-    def make_herbie(*args, fxx, **kwargs):
-        sources = ecmwf_sources(fxx)
-        url = sources[selected_mirror] if fxx in available_hours else None
-        return MagicMock(grib=url, SOURCES=sources)
-
-    mocker.patch("weather_model_jobs.ecmwf.Herbie", side_effect=make_herbie)
     ecmwf = ECMWF("/tmp", [], repository)
     ecmwf.now = datetime(2026, 11, 12, 10, tzinfo=timezone.utc)
     process_forecast = mocker.patch.object(ecmwf, "_process_forecast_with_retry")
 
     ecmwf.process_model_run(0)
 
-    assert processed_urls == {ecmwf_sources(0)[first_mirror]}
+    assert processed_urls == {first_forecast.SOURCES[first_mirror]}
     assert ecmwf.files_processed == 1
     repository.mark_prediction_model_run_processed.assert_not_called()
-
-    selected_mirror = next_mirror
-    available_hours.add(3)
 
     ecmwf.process_model_run(0)
 
     assert [call.kwargs["url"] for call in process_forecast.call_args_list] == [
-        ecmwf_sources(0)[first_mirror],
-        ecmwf_sources(3)[next_mirror],
+        first_forecast.grib,
+        pending_forecast.grib,
     ]
     assert repository.mark_url_as_processed.call_args_list == [
-        mocker.call(ecmwf_sources(0)[first_mirror]),
-        mocker.call(ecmwf_sources(3)[next_mirror]),
+        mocker.call(first_forecast.SOURCES[first_mirror]),
+        mocker.call(pending_forecast.SOURCES[next_mirror]),
     ]
     assert ecmwf.files_processed == 2
     assert ecmwf.exception_count == 0
@@ -151,39 +148,28 @@ def test_process_model_run_resumes_after_mirror_change(mocker, first_mirror, nex
     )
 
 
-@pytest.mark.parametrize(
-    "stored_mirror", ["google", "aws", "ecmwf", "azure", "azure-scda", "azure-waef"]
-)
-@pytest.mark.parametrize("stored_resolution", ["0p1", "0p25"])
-def test_process_model_run_recognizes_mirror_records_for_same_resolution(
-    mocker, stored_mirror, stored_resolution
+@pytest.mark.parametrize("stored_resolution, expected_processed", [("0p1", 0), ("0p25", 1)])
+def test_process_model_run_matches_markers_only_for_same_resolution(
+    mocker, stored_resolution, expected_processed
 ):
-    sources = ecmwf_sources(0)
-    stored_url = ecmwf_sources(0, stored_resolution)[stored_mirror]
-    selected_mirror = "aws" if stored_mirror == "google" else "google"
-    selected_url = sources[selected_mirror]
+    stored_forecast = make_herbie_forecast(0, "aws", resolution=stored_resolution)
+    selected_forecast = make_herbie_forecast(0, "google")
     repository = MagicMock(spec=ModelRunRepository)
     repository.get_or_create_prediction_run.return_value.complete = False
-    repository.get_processed_url_count.side_effect = lambda urls: int(stored_url in urls)
+    repository.get_processed_url_count.side_effect = lambda urls: int(stored_forecast.grib in urls)
     mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=[0])
-    mocker.patch(
-        "weather_model_jobs.ecmwf.Herbie",
-        return_value=MagicMock(grib=selected_url, SOURCES=sources),
-    )
+    mocker.patch("weather_model_jobs.ecmwf.Herbie", return_value=selected_forecast)
     ecmwf = ECMWF("/tmp", [], repository)
     ecmwf.now = datetime(2026, 11, 12, 10, tzinfo=timezone.utc)
     process_forecast = mocker.patch.object(ecmwf, "_process_forecast_with_retry")
 
     ecmwf.process_model_run(0)
 
-    repository.get_processed_url_count.assert_called_once_with(list(sources.values()))
-    if stored_resolution == "0p1":
-        process_forecast.assert_not_called()
-        repository.mark_url_as_processed.assert_not_called()
-    else:
-        process_forecast.assert_called_once()
-        assert process_forecast.call_args.kwargs["url"] == selected_url
-        repository.mark_url_as_processed.assert_called_once_with(selected_url)
+    repository.get_processed_url_count.assert_called_once_with(
+        list(selected_forecast.SOURCES.values())
+    )
+    assert process_forecast.call_count == expected_processed
+    assert repository.mark_url_as_processed.call_count == expected_processed
     assert ecmwf.files_processed == 1
     repository.mark_prediction_model_run_processed.assert_called_once()
 

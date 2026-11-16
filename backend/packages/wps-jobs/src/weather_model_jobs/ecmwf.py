@@ -234,7 +234,8 @@ class ECMWF:
                     )
 
                     self.files_processed += 1
-                    self.model_run_repository.mark_url_as_processed(url)
+                    # omit temporary SAS tokens so Azure markers match Herbie's unsigned source URLs
+                    self.model_run_repository.mark_url_as_processed(url.split("?", 1)[0])
                 except Exception:
                     self.exception_count += 1
                     logger.exception("unexpected exception processing %s", url)
