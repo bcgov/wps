@@ -66,8 +66,8 @@ class MockModelRunRepository(ModelRunRepository):
             self.prediction_runs[key] = run
         return self.prediction_runs[key]
 
-    def get_processed_url(self, url):
-        return None
+    def get_processed_url_count(self, urls):
+        return 0
 
     def mark_url_as_processed(self, url):
         return None
@@ -82,7 +82,110 @@ def mock_herbie_instance(mocker: MockerFixture):
     mock_herbie.return_value = mock_herbie_instance
     mock_herbie_instance.download.return_value = "/path/to/mock/file.grib"
     mock_herbie_instance.grib = "/path/to/mock/file.grib"
+    mock_herbie_instance.SOURCES = {"mock": mock_herbie_instance.grib}
     yield mock_herbie_instance
+
+
+def ecmwf_sources(forecast_hour, resolution="0p1"):
+    path = f"20261112/00z/ifs/{resolution}/oper/20261112000000-{forecast_hour}h-oper-fc-sfc.grib2"
+    sources = {
+        "google": f"https://storage.googleapis.com/ecmwf-open-data/{path}",
+        "aws": f"https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/{path}",
+        "ecmwf": f"https://data.ecmwf.int/forecasts/{path}",
+        "azure": f"https://ai4edataeuwest.blob.core.windows.net/ecmwf/{path}",
+    }
+    sources["azure-scda"] = sources["azure"].replace("oper", "scda")
+    sources["azure-waef"] = sources["azure"]
+    return sources
+
+
+@pytest.mark.parametrize("first_mirror, next_mirror", [("google", "aws"), ("aws", "google")])
+def test_process_model_run_resumes_after_mirror_change(mocker, first_mirror, next_mirror):
+    processed_urls = set()
+    repository = MagicMock(spec=ModelRunRepository)
+    repository.get_or_create_prediction_run.return_value.complete = False
+    repository.get_processed_url_count.side_effect = lambda urls: len(
+        processed_urls.intersection(urls)
+    )
+    repository.mark_url_as_processed.side_effect = processed_urls.add
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=[0, 3])
+
+    selected_mirror = first_mirror
+    available_hours = {0}
+
+    def make_herbie(*args, fxx, **kwargs):
+        sources = ecmwf_sources(fxx)
+        url = sources[selected_mirror] if fxx in available_hours else None
+        return MagicMock(grib=url, SOURCES=sources)
+
+    mocker.patch("weather_model_jobs.ecmwf.Herbie", side_effect=make_herbie)
+    ecmwf = ECMWF("/tmp", [], repository)
+    ecmwf.now = datetime(2026, 11, 12, 10, tzinfo=timezone.utc)
+    process_forecast = mocker.patch.object(ecmwf, "_process_forecast_with_retry")
+
+    ecmwf.process_model_run(0)
+
+    assert processed_urls == {ecmwf_sources(0)[first_mirror]}
+    assert ecmwf.files_processed == 1
+    repository.mark_prediction_model_run_processed.assert_not_called()
+
+    selected_mirror = next_mirror
+    available_hours.add(3)
+
+    ecmwf.process_model_run(0)
+
+    assert [call.kwargs["url"] for call in process_forecast.call_args_list] == [
+        ecmwf_sources(0)[first_mirror],
+        ecmwf_sources(3)[next_mirror],
+    ]
+    assert repository.mark_url_as_processed.call_args_list == [
+        mocker.call(ecmwf_sources(0)[first_mirror]),
+        mocker.call(ecmwf_sources(3)[next_mirror]),
+    ]
+    assert ecmwf.files_processed == 2
+    assert ecmwf.exception_count == 0
+    repository.mark_prediction_model_run_processed.assert_called_once_with(
+        ModelEnum.ECMWF,
+        ProjectionEnum.ECMWF_LATLON_0_1,
+        datetime(2026, 11, 12, tzinfo=timezone.utc),
+    )
+
+
+@pytest.mark.parametrize(
+    "stored_mirror", ["google", "aws", "ecmwf", "azure", "azure-scda", "azure-waef"]
+)
+@pytest.mark.parametrize("stored_resolution", ["0p1", "0p25"])
+def test_process_model_run_recognizes_mirror_records_for_same_resolution(
+    mocker, stored_mirror, stored_resolution
+):
+    sources = ecmwf_sources(0)
+    stored_url = ecmwf_sources(0, stored_resolution)[stored_mirror]
+    selected_mirror = "aws" if stored_mirror == "google" else "google"
+    selected_url = sources[selected_mirror]
+    repository = MagicMock(spec=ModelRunRepository)
+    repository.get_or_create_prediction_run.return_value.complete = False
+    repository.get_processed_url_count.side_effect = lambda urls: int(stored_url in urls)
+    mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", return_value=[0])
+    mocker.patch(
+        "weather_model_jobs.ecmwf.Herbie",
+        return_value=MagicMock(grib=selected_url, SOURCES=sources),
+    )
+    ecmwf = ECMWF("/tmp", [], repository)
+    ecmwf.now = datetime(2026, 11, 12, 10, tzinfo=timezone.utc)
+    process_forecast = mocker.patch.object(ecmwf, "_process_forecast_with_retry")
+
+    ecmwf.process_model_run(0)
+
+    repository.get_processed_url_count.assert_called_once_with(list(sources.values()))
+    if stored_resolution == "0p1":
+        process_forecast.assert_not_called()
+        repository.mark_url_as_processed.assert_not_called()
+    else:
+        process_forecast.assert_called_once()
+        assert process_forecast.call_args.kwargs["url"] == selected_url
+        repository.mark_url_as_processed.assert_called_once_with(selected_url)
+    assert ecmwf.files_processed == 1
+    repository.mark_prediction_model_run_processed.assert_called_once()
 
 
 def test_get_model_run_hours():
@@ -157,7 +260,7 @@ def test_ecmwf_process_model_complete(
     mock_repository = MagicMock(spec=ModelRunRepository)
     mock_repository.get_or_create_prediction_run.return_value.complete = complete
     mock_repository.check_if_model_run_complete.return_value = complete
-    mock_repository.get_processed_url.return_value = None
+    mock_repository.get_processed_url_count.return_value = 0
 
     ecmwf = ECMWF("/tmp", stations, mock_repository)
     ecmwf.process_model_run(0)
@@ -182,18 +285,19 @@ def test_ecmwf_process_model_previously_partial_processed(
     mock_repository.get_or_create_prediction_run.return_value.complete = False
     mock_repository.check_if_model_run_complete.return_value = False
 
-    processed_urls = ["url0", "url1", "url2"]
-    unprocessed_urls = [None] * (num_forecast_hours - len(processed_urls))
-    mock_get_processed_urls_return = processed_urls + unprocessed_urls
-
-    mock_repository.get_processed_url.side_effect = mock_get_processed_urls_return
+    previously_processed = 3
+    processed_counts = [1] * previously_processed + [0] * (
+        num_forecast_hours - previously_processed
+    )
+    mock_repository.get_processed_url_count.side_effect = processed_counts
 
     ecmwf = ECMWF("/tmp", stations, mock_repository)
     ecmwf.process_model_run(0)
 
-    assert ecmwf.files_processed == len(mock_get_processed_urls_return)
-    assert mock_repository.mark_url_as_processed.call_count == num_forecast_hours - len(
-        processed_urls
+    assert ecmwf.files_processed == num_forecast_hours
+    assert (
+        mock_repository.mark_url_as_processed.call_count
+        == num_forecast_hours - previously_processed
     )
 
 
@@ -207,7 +311,7 @@ def test_ecmwf_process_model_partial_process(mock_herbie_instance, mocker: Mocke
     mock_repository = MagicMock(spec=ModelRunRepository)
     mock_repository.get_or_create_prediction_run.return_value.complete = False
     mock_repository.check_if_model_run_complete.return_value = False
-    mock_repository.get_processed_url.return_value = None
+    mock_repository.get_processed_url_count.return_value = 0
 
     urls = ["url0", "url1", "url2"]
     unprocessed_urls = [None] * (num_forecast_hours - len(urls))
@@ -268,10 +372,13 @@ def test_ecmwf_process_resumes_previous_day_after_midnight(mocker, now, yesterda
         now.replace(hour=0, minute=0): MagicMock(complete=True),
     }
     repository.get_or_create_prediction_run.side_effect = lambda model, timestamp: runs[timestamp]
-    repository.get_processed_url.side_effect = lambda url: url == "processed"
+    repository.get_processed_url_count.side_effect = lambda urls: int("processed" in urls)
     herbie = mocker.patch(
         "weather_model_jobs.ecmwf.Herbie",
-        side_effect=[MagicMock(grib="processed"), MagicMock(grib="pending")],
+        side_effect=[
+            MagicMock(grib="processed", SOURCES={"mock": "processed"}),
+            MagicMock(grib="pending", SOURCES={"mock": "pending"}),
+        ],
     )
     mocker.patch(
         "weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", side_effect=lambda: iter([0, 3])
@@ -318,11 +425,12 @@ def test_ecmwf_process_skips_completed_runs_without_downloads(mocker):
 def test_ecmwf_process_continues_after_unavailable_run(mocker):
     repository = MagicMock(spec=ModelRunRepository)
     repository.get_or_create_prediction_run.return_value.complete = False
-    repository.get_processed_url.return_value = None
+    repository.get_processed_url_count.return_value = 0
     mocker.patch("weather_model_jobs.ecmwf.get_ecmwf_forecast_hours", side_effect=lambda: iter([0]))
     herbie = mocker.patch(
         "weather_model_jobs.ecmwf.Herbie",
-        side_effect=[MagicMock(grib=None)] + [MagicMock(grib=f"url{index}") for index in range(3)],
+        side_effect=[MagicMock(grib=None)]
+        + [MagicMock(grib=f"url{index}", SOURCES={"mock": f"url{index}"}) for index in range(3)],
     )
     ecmwf = ECMWF("/tmp", [], repository)
     ecmwf.now = datetime(2026, 11, 13, 18, tzinfo=timezone.utc)
@@ -362,7 +470,7 @@ def test_ecmwf_retries_503_with_backoff(mock_herbie_instance, mocker: MockerFixt
     mock_repository = MagicMock(spec=ModelRunRepository)
     mock_repository.session = MagicMock()
     mock_repository.get_or_create_prediction_run.return_value.complete = False
-    mock_repository.get_processed_url.return_value = None
+    mock_repository.get_processed_url_count.return_value = 0
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
 
     ecmwf = ECMWF("/tmp", stations, mock_repository)
@@ -394,7 +502,7 @@ def test_ecmwf_stops_retrying_503_after_max_retries(
     mock_repository = MagicMock(spec=ModelRunRepository)
     mock_repository.session = MagicMock()
     mock_repository.get_or_create_prediction_run.return_value.complete = False
-    mock_repository.get_processed_url.return_value = None
+    mock_repository.get_processed_url_count.return_value = 0
     stations = [WeatherStation(code="001", name="Station1", lat=10.0, long=20.0)]
 
     ecmwf = ECMWF("/tmp", stations, mock_repository)

@@ -219,7 +219,8 @@ class ECMWF:
 
                 self.files_downloaded += 1
 
-                if self.model_run_repository.get_processed_url(url):
+                # a different mirror may have supplied this forecast on a previous attempt
+                if self.model_run_repository.get_processed_url_count(list(H.SOURCES.values())):
                     logger.info(f"file already processed -- {url}")
                     self.files_processed += 1
                     continue
