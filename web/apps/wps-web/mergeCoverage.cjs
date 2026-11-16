@@ -1,48 +1,36 @@
 /**
- * This script merges the coverage reports from Playwright and Jest into a single one,
- * inside the "finalCoverage" folder
- *
- * Script adapted from: https://rafaelalmeidatk.com/blog/merging-coverage-reports-from-jest-and-cypress
+ * Merges the coverage reports from Playwright, Vitest (wps-web) and the shared packages
+ * into a single lcov report in the "finalCoverage" folder.
  */
-const { execSync } = require('node:child_process')
+const path = require('node:path')
 const fs = require('fs-extra')
-const PLAYWRIGHT_COVERAGE_FOLDER = 'coverage-playwright'
-const JEST_COVERAGE_FOLDER = 'coverage'
-const INTERMEDIATE_FOLDER = 'intermediateCoverage'
-const FINAL_OUTPUT_FOLDER = 'finalCoverage'
-const run = commands => {
-  commands.forEach(command => {
-    execSync(command, { stdio: 'inherit' })
-  })
-}
-const PACKAGES = ['api', 'ui', 'utils']
+const libCoverage = require('istanbul-lib-coverage')
+const libReport = require('istanbul-lib-report')
+const reports = require('istanbul-reports')
 
-// Create the intermediate folder and move the reports from playwright and jest inside it
-fs.emptyDirSync(INTERMEDIATE_FOLDER)
-fs.copyFileSync(`${JEST_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-jest.json`)
-if (fs.existsSync(`${PLAYWRIGHT_COVERAGE_FOLDER}/coverage-final.json`)) {
-  fs.copyFileSync(`${PLAYWRIGHT_COVERAGE_FOLDER}/coverage-final.json`, `${INTERMEDIATE_FOLDER}/from-playwright.json`)
-}
-PACKAGES.forEach(pkg => {
-  const src = `../../packages/${pkg}/coverage/coverage-final.json`
-  if (fs.existsSync(src)) {
-    fs.copyFileSync(src, `${INTERMEDIATE_FOLDER}/from-${pkg}.json`)
+const FINAL_OUTPUT_FOLDER = 'finalCoverage'
+const PACKAGES = ['api', 'ui', 'utils']
+const PACKAGE_COVERAGE_FOLDERS = PACKAGES.map(pkg => `../../packages/${pkg}/coverage`)
+const COVERAGE_FOLDERS = ['coverage', 'coverage-playwright', ...PACKAGE_COVERAGE_FOLDERS]
+// Files left out of the final report
+const EXCLUDE = ['src/serviceWorker.ts', 'src/app/store.ts'].map(file => path.resolve(file))
+
+const map = libCoverage.createCoverageMap({})
+for (const folder of COVERAGE_FOLDERS) {
+  const file = path.join(folder, 'coverage-final.json')
+  if (fs.existsSync(file)) {
+    map.merge(fs.readJsonSync(file))
+  } else if (folder === 'coverage') {
+    throw new Error(`Missing Vitest coverage report: ${file}`)
   }
-})
-fs.emptyDirSync('.nyc_output')
+}
+map.filter(file => !EXCLUDE.includes(file))
+
 fs.emptyDirSync(FINAL_OUTPUT_FOLDER)
-// Run "nyc merge" inside the intermediate folder, merging the two coverage files into one,
-// then generate the final report on the coverage folder
-run([
-  // "nyc merge" will create a "coverage.json" file on the root, we move it to .nyc_output
-  `nyc merge ${INTERMEDIATE_FOLDER} && mv coverage.json .nyc_output/out.json`,
-  `nyc report --reporter lcov --report-dir ${FINAL_OUTPUT_FOLDER}`
-])
+const context = libReport.createContext({ dir: FINAL_OUTPUT_FOLDER, coverageMap: map })
+reports.create('lcov').execute(context)
 
 // Clean up — fs.removeSync (fs-extra) is a no-op if the path doesn't exist
-fs.removeSync(JEST_COVERAGE_FOLDER)
-fs.removeSync(PLAYWRIGHT_COVERAGE_FOLDER)
-fs.removeSync(INTERMEDIATE_FOLDER)
-PACKAGES.forEach(pkg => {
-  fs.removeSync(`../../packages/${pkg}/coverage`)
-})
+for (const folder of COVERAGE_FOLDERS) {
+  fs.removeSync(folder)
+}
