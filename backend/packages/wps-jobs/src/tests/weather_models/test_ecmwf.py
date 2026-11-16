@@ -520,7 +520,7 @@ def test_main_fail(mocker: MockerFixture, monkeypatch):
 
 @pytest.mark.anyio
 async def test_process_models_filters_stations_to_crop_bounds(mocker: MockerFixture):
-    coordinates = [
+    station_coordinates = [
         (50.0, -120.0),
         (BC_MIN_LATITUDE, BC_MIN_LONGITUDE),
         (BC_MIN_LATITUDE, BC_MAX_LONGITUDE),
