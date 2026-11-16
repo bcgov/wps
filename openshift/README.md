@@ -1,6 +1,10 @@
 # Openshift
 
-Infrastructure is deployed to openshift using Openshift YAML templates. Many are automatically deployed in the dev namespace when a PR is created, see: [deployment.yml](https://github.com/bcgov/wps/blob/main/.github/workflows/deployment.yml)
+Infrastructure is deployed to OpenShift using YAML templates. The
+[deployment workflow](https://github.com/bcgov/wps/blob/main/.github/workflows/deployment.yml)
+provisions a PR's dev environment when it has the `deploy-dev` label.
+
+See [PR dev deployments](PR_DEPLOYMENTS.md) for requesting and pausing a dev deployment.
 
 ## NATS
 
