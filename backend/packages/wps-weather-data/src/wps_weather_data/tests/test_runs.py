@@ -2,9 +2,9 @@ from datetime import UTC, datetime, timedelta
 
 import pyarrow as pa
 import pytest
+from wps_shared.weather_models import ModelEnum
 
 from wps_weather_data.runs import RUNS_SCHEMA, append_run, build_run_table, read_runs
-from wps_shared.weather_models import ModelEnum
 
 RUN_TS = datetime(2026, 11, 12, 12, tzinfo=UTC)
 INGESTED_AT = datetime(2026, 11, 12, 16, tzinfo=UTC)

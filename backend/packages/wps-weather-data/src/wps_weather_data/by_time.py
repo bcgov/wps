@@ -1,0 +1,202 @@
+"""The `by_time` dataset: the newest value per station, time and source, as a Delta Lake table in
+object storage.
+
+For a model, each run is merged in after it is appended to `runs`, replacing every row the run
+predicts. Once a time has passed its row stops changing and holds the last prediction made for
+it. The table is derived: a model's rows can be rebuilt from `runs`.
+
+Only model sources are written so far. Observations and forecasts from WF1 come later.
+
+Design: docs/architecture/station-weather-storage.md
+"""
+
+import logging
+from collections.abc import Iterable, Mapping, Sequence
+from datetime import UTC, datetime
+
+import pyarrow as pa
+import pyarrow.compute as pc
+from deltalake import DeltaTable, WriterProperties
+from wps_shared.weather_models import ModelEnum
+
+from wps_weather_data.runs import build_run_table
+from wps_weather_data.store import resolve_table
+
+logger = logging.getLogger(__name__)
+
+BY_TIME_KEY = "weather/stations/by_time"
+
+HOURLY = "hourly"
+DAILY = "daily"
+# The daily record is the 20:00 UTC (noon PST) row.
+DAILY_HOUR_UTC = 20
+
+VALUE_COLUMNS = (
+    "temperature",
+    "relative_humidity",
+    "wind_speed",
+    "wind_direction",
+    "precipitation",
+    "bias_adjusted_temperature",
+    "bias_adjusted_relative_humidity",
+    "bias_adjusted_wind_speed",
+    "bias_adjusted_wind_direction",
+    "bias_adjusted_precipitation",
+)
+
+_TIMESTAMP = pa.timestamp("us", tz="UTC")
+
+BY_TIME_SCHEMA = pa.schema(
+    [
+        ("resolution", pa.string()),
+        ("source", pa.string()),
+        ("month", pa.string()),
+        ("station_code", pa.int32()),
+        ("timestamp", _TIMESTAMP),
+        *[(column, pa.float32()) for column in VALUE_COLUMNS],
+        ("run_ts", _TIMESTAMP),
+        ("ingested_at", _TIMESTAMP),
+    ]
+)
+
+PARTITION_COLUMNS = ["resolution", "source", "month"]
+
+# by_time column -> runs column, for the columns that mean the same at both resolutions.
+_FROM_RUN = {
+    "temperature": "tmp_tgl_2",
+    "relative_humidity": "rh_tgl_2",
+    "wind_speed": "wind_tgl_10",
+    "wind_direction": "wdir_tgl_10",
+    "bias_adjusted_temperature": "bias_adjusted_temperature",
+    "bias_adjusted_relative_humidity": "bias_adjusted_rh",
+    "bias_adjusted_wind_speed": "bias_adjusted_wind_speed",
+    "bias_adjusted_wind_direction": "bias_adjusted_wdir",
+}
+
+
+def _rows_at_resolution(run: pa.Table, resolution: str) -> pa.Table:
+    count = run.num_rows
+    if resolution == HOURLY:
+        # The precipitation since the model's previous prediction. There is no bias-adjusted
+        # value for it.
+        precipitation = run["delta_precip"]
+        bias_adjusted_precipitation = pa.nulls(count, pa.float32())
+    else:
+        precipitation = run["precip_24h"]
+        bias_adjusted_precipitation = run["bias_adjusted_precip_24h"]
+    columns = {
+        "resolution": pa.array([resolution] * count, pa.string()),
+        "source": run["model"],
+        "month": pc.strftime(run["prediction_timestamp"], format="%Y-%m"),
+        "station_code": run["station_code"],
+        "timestamp": run["prediction_timestamp"],
+        **{column: run[run_column] for column, run_column in _FROM_RUN.items()},
+        "precipitation": precipitation,
+        "bias_adjusted_precipitation": bias_adjusted_precipitation,
+        "run_ts": run["run_ts"],
+        "ingested_at": run["ingested_at"],
+    }
+    return pa.table({name: columns[name] for name in BY_TIME_SCHEMA.names}, schema=BY_TIME_SCHEMA)
+
+
+def by_time_rows_from_run(run: pa.Table) -> pa.Table:
+    """Turn one run's rows, in the `runs` schema, into its hourly and daily `by_time` rows.
+
+    Every prediction becomes an hourly row. The 20:00 UTC predictions also become daily rows,
+    carrying the 24-hour precipitation.
+    """
+    at_daily_hour = pc.equal(pc.hour(run["prediction_timestamp"]), DAILY_HOUR_UTC)
+    return pa.concat_tables(
+        [_rows_at_resolution(run, HOURLY), _rows_at_resolution(run.filter(at_daily_hour), DAILY)]
+    )
+
+
+def merge_run(
+    model: ModelEnum,
+    run_ts: datetime,
+    rows: Iterable[Mapping],
+    *,
+    ingested_at: datetime | None = None,
+    table_uri: str | None = None,
+    storage_options: dict[str, str] | None = None,
+) -> int:
+    """Merge a model run into `by_time`. Returns the number of rows the run offered.
+
+    A row is replaced only by a run at least as new as the one it came from, so merging an older
+    run, as a backfill does, fills gaps without undoing newer predictions.
+    """
+    table_uri, storage_options = resolve_table(BY_TIME_KEY, table_uri, storage_options)
+    run = build_run_table(model, run_ts, rows, ingested_at or datetime.now(UTC))
+    source = by_time_rows_from_run(run)
+    if source.num_rows == 0:
+        logger.warning("No rows for %s run %s, nothing merged into by_time", model.value, run_ts)
+        return 0
+
+    table = DeltaTable.create(
+        table_uri,
+        schema=BY_TIME_SCHEMA,
+        partition_by=PARTITION_COLUMNS,
+        mode="ignore",
+        storage_options=storage_options,
+    )
+    # Naming the source and months as literals lets the merge skip every other partition.
+    months = ", ".join(f"'{month}'" for month in sorted(set(source["month"].to_pylist())))
+    predicate = (
+        f"t.source = '{model.value}' AND t.month IN ({months}) "
+        "AND t.resolution = s.resolution AND t.source = s.source AND t.month = s.month "
+        'AND t.station_code = s.station_code AND t."timestamp" = s."timestamp"'
+    )
+    (
+        table.merge(
+            source,
+            predicate,
+            source_alias="s",
+            target_alias="t",
+            writer_properties=WriterProperties(compression="ZSTD"),
+        )
+        .when_matched_update_all(predicate="s.run_ts >= t.run_ts")
+        .when_not_matched_insert_all()
+        .execute()
+    )
+    logger.info("Merged %s rows for %s run %s into by_time", source.num_rows, model.value, run_ts)
+    return source.num_rows
+
+
+def read_by_time(
+    resolution: str,
+    sources: Sequence[str],
+    start: datetime,
+    end: datetime,
+    *,
+    station_codes: Sequence[int] | None = None,
+    table_uri: str | None = None,
+    storage_options: dict[str, str] | None = None,
+) -> pa.Table:
+    """Read the rows for the given sources with a timestamp in [start, end].
+
+    Returns an empty table if the `by_time` table does not exist yet.
+    """
+    table_uri, storage_options = resolve_table(BY_TIME_KEY, table_uri, storage_options)
+    if not DeltaTable.is_deltatable(table_uri, storage_options=storage_options):
+        return BY_TIME_SCHEMA.empty_table()
+
+    start = start.astimezone(UTC)
+    end = end.astimezone(UTC)
+    wanted = (
+        (pc.field("resolution") == resolution)
+        & pc.field("source").isin(list(sources))
+        & (pc.field("month") >= start.strftime("%Y-%m"))
+        & (pc.field("month") <= end.strftime("%Y-%m"))
+        & (pc.field("timestamp") >= start)
+        & (pc.field("timestamp") <= end)
+    )
+    if station_codes is not None:
+        wanted = wanted & pc.field("station_code").isin(list(station_codes))
+    dataset = DeltaTable(table_uri, storage_options=storage_options).to_pyarrow_dataset()
+    return (
+        dataset.to_table(filter=wanted)
+        .select(BY_TIME_SCHEMA.names)
+        .sort_by(
+            [("source", "ascending"), ("station_code", "ascending"), ("timestamp", "ascending")]
+        )
+    )
