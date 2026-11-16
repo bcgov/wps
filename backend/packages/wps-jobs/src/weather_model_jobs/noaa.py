@@ -67,6 +67,10 @@ NAM_BASE_URL = "https://nomads.ncep.noaa.gov/cgi-bin/filter_nam.pl?"
 # VGRD: V-component of wind
 WX_VARS = ["APCP", "RH", "TMP", "UGRD", "VGRD"]
 LEVELS = ["surface", "2_m_above_ground", "10_m_above_ground"]
+NOAA_SUBREGION_FILTER = (
+    f"subregion=&toplat={BC_MAX_LATITUDE:g}&leftlon={BC_MIN_LONGITUDE:g}"
+    f"&rightlon={BC_MAX_LONGITUDE:g}&bottomlat={BC_MIN_LATITUDE:g}"
+)
 # -------------------------------------- #
 
 
@@ -99,13 +103,6 @@ def get_noaa_levels_filter_str() -> str:
         levels_filter_str += f"lev_{level}=on&"
 
     return levels_filter_str
-
-
-def get_noaa_subregion_filter_str() -> str:
-    return (
-        f"subregion=&toplat={BC_MAX_LATITUDE:g}&leftlon={BC_MIN_LONGITUDE:g}"
-        f"&rightlon={BC_MAX_LONGITUDE:g}&bottomlat={BC_MIN_LATITUDE:g}"
-    )
 
 
 def get_nam_model_run_download_urls(
@@ -150,8 +147,7 @@ def get_nam_model_run_download_urls(
         filter_str = f"dir=%2Fnam.{year_mo_date}&file=nam.t{model_cycle}z.awphys{hh}.tm00.grib2&"
         wx_vars_filter_str = get_noaa_wx_variables_filter_str()
         levels_filter_str = get_noaa_levels_filter_str()
-        subregion_filter_str = get_noaa_subregion_filter_str()
-        filter_str += wx_vars_filter_str + levels_filter_str + subregion_filter_str
+        filter_str += wx_vars_filter_str + levels_filter_str + NOAA_SUBREGION_FILTER
 
         yield NAM_BASE_URL + filter_str
 
@@ -192,8 +188,7 @@ def get_gfs_model_run_download_urls(
         )
         wx_vars_filter_str = get_noaa_wx_variables_filter_str()
         levels_filter_str = get_noaa_levels_filter_str()
-        subregion_filter_str = get_noaa_subregion_filter_str()
-        filter_str += wx_vars_filter_str + levels_filter_str + subregion_filter_str
+        filter_str += wx_vars_filter_str + levels_filter_str + NOAA_SUBREGION_FILTER
         yield GFS_BASE_URL + filter_str
 
 
