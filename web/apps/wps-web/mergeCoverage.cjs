@@ -13,7 +13,7 @@ const PACKAGES = ['api', 'ui', 'utils']
 const PACKAGE_COVERAGE_FOLDERS = PACKAGES.map(pkg => `../../packages/${pkg}/coverage`)
 const COVERAGE_FOLDERS = ['coverage', 'coverage-playwright', ...PACKAGE_COVERAGE_FOLDERS]
 // Files left out of the final report
-const EXCLUDE = ['src/serviceWorker.ts', 'src/app/store.ts'].map(file => path.resolve(file))
+const EXCLUDE = new Set(['src/serviceWorker.ts', 'src/app/store.ts'].map(file => path.resolve(file)))
 
 const map = libCoverage.createCoverageMap({})
 for (const folder of COVERAGE_FOLDERS) {
@@ -24,7 +24,7 @@ for (const folder of COVERAGE_FOLDERS) {
     throw new Error(`Missing Vitest coverage report: ${file}`)
   }
 }
-map.filter(file => !EXCLUDE.includes(file))
+map.filter(file => !EXCLUDE.has(file))
 
 fs.emptyDirSync(FINAL_OUTPUT_FOLDER)
 const context = libReport.createContext({ dir: FINAL_OUTPUT_FOLDER, coverageMap: map })
