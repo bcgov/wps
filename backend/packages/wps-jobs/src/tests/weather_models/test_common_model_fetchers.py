@@ -190,10 +190,15 @@ def mock_session():
 
 @pytest.fixture
 def processor(mock_session):
-    # Patch get_stations_synchronously to avoid network calls during tests
-    with patch(
-        "weather_model_jobs.common_model_fetchers.get_stations_synchronously",
-        return_value=[],
+    # Patch get_stations_synchronously to avoid network calls, and the object store tables so
+    # tests can assert on what would be written.
+    with (
+        patch(
+            "weather_model_jobs.common_model_fetchers.get_stations_synchronously",
+            return_value=[],
+        ),
+        patch("weather_model_jobs.common_model_fetchers.RunsTable"),
+        patch("weather_model_jobs.common_model_fetchers.ByTimeTable"),
     ):
         return ModelValueProcessor(mock_session)
 
@@ -380,53 +385,44 @@ def run_process(processor, mock_model_run, model_type):
         processor.process(model_type)
 
 
-@patch("weather_model_jobs.common_model_fetchers.merge_run")
-@patch("weather_model_jobs.common_model_fetchers.append_run")
 @patch("weather_model_jobs.common_model_fetchers.get_station_run_rows")
-def test_process_writes_gdps_run_to_object_store(
-    mock_get_rows, mock_append_run, mock_merge_run, processor, mock_model_run
-):
+def test_process_writes_gdps_run_to_object_store(mock_get_rows, processor, mock_model_run):
     rows = [{"station_code": 1215}]
     mock_get_rows.return_value = rows
 
     run_process(processor, mock_model_run, ModelEnum.GDPS)
 
     mock_get_rows.assert_called_once_with(processor.session, 42)
-    mock_append_run.assert_called_once_with(
+    processor.runs_table.append_run.assert_called_once_with(
         ModelEnum.GDPS, mock_model_run.prediction_run_timestamp, rows
     )
-    mock_merge_run.assert_called_once_with(
+    processor.by_time_table.merge_run.assert_called_once_with(
         ModelEnum.GDPS, mock_model_run.prediction_run_timestamp, rows
     )
     assert mock_model_run.interpolated is True
 
 
-@patch("weather_model_jobs.common_model_fetchers.merge_run")
-@patch("weather_model_jobs.common_model_fetchers.append_run")
 @patch("weather_model_jobs.common_model_fetchers.get_station_run_rows")
 def test_process_does_not_write_other_models_to_object_store(
-    mock_get_rows, mock_append_run, mock_merge_run, processor, mock_model_run
+    mock_get_rows, processor, mock_model_run
 ):
     run_process(processor, mock_model_run, ModelEnum.RDPS)
 
     mock_get_rows.assert_not_called()
-    mock_append_run.assert_not_called()
-    mock_merge_run.assert_not_called()
+    processor.runs_table.append_run.assert_not_called()
+    processor.by_time_table.merge_run.assert_not_called()
     assert mock_model_run.interpolated is True
 
 
-@patch("weather_model_jobs.common_model_fetchers.merge_run")
-@patch(
-    "weather_model_jobs.common_model_fetchers.append_run",
-    side_effect=OSError("object store is down"),
-)
 @patch("weather_model_jobs.common_model_fetchers.get_station_run_rows", return_value=[])
 def test_process_still_marks_run_interpolated_when_object_store_write_fails(
-    mock_get_rows, mock_append_run, mock_merge_run, processor, mock_model_run
+    mock_get_rows, processor, mock_model_run
 ):
+    processor.runs_table.append_run.side_effect = OSError("object store is down")
+
     run_process(processor, mock_model_run, ModelEnum.GDPS)
 
-    mock_append_run.assert_called_once()
+    processor.runs_table.append_run.assert_called_once()
     # by_time is derived from runs, so a run that failed to append is not merged.
-    mock_merge_run.assert_not_called()
+    processor.by_time_table.merge_run.assert_not_called()
     assert mock_model_run.interpolated is True

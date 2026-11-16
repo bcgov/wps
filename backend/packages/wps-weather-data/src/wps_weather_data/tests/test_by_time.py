@@ -7,9 +7,8 @@ from wps_weather_data.by_time import (
     BY_TIME_SCHEMA,
     DAILY,
     HOURLY,
+    ByTimeTable,
     by_time_rows_from_run,
-    merge_run,
-    read_by_time,
 )
 from wps_weather_data.runs import build_run_table
 
@@ -45,8 +44,8 @@ def make_rows(times, temperature=10.0, station_codes=(322,)):
 
 
 @pytest.fixture
-def table_uri(tmp_path):
-    return str(tmp_path / "by_time")
+def table(tmp_path):
+    return ByTimeTable(str(tmp_path / "by_time"))
 
 
 def test_every_prediction_is_hourly_and_only_2000_utc_is_daily():
@@ -90,17 +89,16 @@ def test_columns_are_mapped_from_the_run():
     assert hourly["bias_adjusted_precipitation"] is None
 
 
-def test_merge_then_read_round_trips(table_uri):
-    offered = merge_run(
+def test_merge_then_read_round_trips(table):
+    offered = table.merge_run(
         ModelEnum.GDPS,
         RUN_TS,
         make_rows([AT_1800, AT_2000]),
         ingested_at=INGESTED_AT,
-        table_uri=table_uri,
     )
 
-    hourly = read_by_time(HOURLY, ["GDPS"], *WINDOW, table_uri=table_uri)
-    daily = read_by_time(DAILY, ["GDPS"], *WINDOW, table_uri=table_uri)
+    hourly = table.read(HOURLY, ["GDPS"], *WINDOW)
+    daily = table.read(DAILY, ["GDPS"], *WINDOW)
 
     assert offered == 3
     assert hourly.schema == BY_TIME_SCHEMA
@@ -108,24 +106,22 @@ def test_merge_then_read_round_trips(table_uri):
     assert daily["timestamp"].to_pylist() == [AT_2000]
 
 
-def test_newer_run_replaces_the_times_it_predicts_and_keeps_the_rest(table_uri):
-    merge_run(
+def test_newer_run_replaces_the_times_it_predicts_and_keeps_the_rest(table):
+    table.merge_run(
         ModelEnum.GDPS,
         RUN_TS,
         make_rows([AT_1800, AT_2000], temperature=10.0),
         ingested_at=INGESTED_AT,
-        table_uri=table_uri,
     )
     # The next run starts after 18:00, so it no longer predicts it.
-    merge_run(
+    table.merge_run(
         ModelEnum.GDPS,
         NEXT_RUN_TS,
         make_rows([AT_2000, NEXT_DAY_2000], temperature=20.0),
         ingested_at=INGESTED_AT,
-        table_uri=table_uri,
     )
 
-    hourly = read_by_time(HOURLY, ["GDPS"], *WINDOW, table_uri=table_uri).to_pylist()
+    hourly = table.read(HOURLY, ["GDPS"], *WINDOW).to_pylist()
 
     assert [(row["timestamp"], row["temperature"], row["run_ts"]) for row in hourly] == [
         (AT_1800, 10.0, RUN_TS),
@@ -134,23 +130,21 @@ def test_newer_run_replaces_the_times_it_predicts_and_keeps_the_rest(table_uri):
     ]
 
 
-def test_older_run_merged_later_fills_gaps_without_replacing_newer_rows(table_uri):
-    merge_run(
+def test_older_run_merged_later_fills_gaps_without_replacing_newer_rows(table):
+    table.merge_run(
         ModelEnum.GDPS,
         NEXT_RUN_TS,
         make_rows([AT_2000], temperature=20.0),
         ingested_at=INGESTED_AT,
-        table_uri=table_uri,
     )
-    merge_run(
+    table.merge_run(
         ModelEnum.GDPS,
         RUN_TS,
         make_rows([AT_1800, AT_2000], temperature=10.0),
         ingested_at=INGESTED_AT,
-        table_uri=table_uri,
     )
 
-    hourly = read_by_time(HOURLY, ["GDPS"], *WINDOW, table_uri=table_uri).to_pylist()
+    hourly = table.read(HOURLY, ["GDPS"], *WINDOW).to_pylist()
 
     assert [(row["timestamp"], row["temperature"]) for row in hourly] == [
         (AT_1800, 10.0),
@@ -158,61 +152,57 @@ def test_older_run_merged_later_fills_gaps_without_replacing_newer_rows(table_ur
     ]
 
 
-def test_merging_the_same_run_twice_does_not_duplicate_rows(table_uri):
+def test_merging_the_same_run_twice_does_not_duplicate_rows(table):
     for _ in range(2):
-        merge_run(
+        table.merge_run(
             ModelEnum.GDPS,
             RUN_TS,
             make_rows([AT_1800, AT_2000]),
             ingested_at=INGESTED_AT,
-            table_uri=table_uri,
         )
 
-    assert read_by_time(HOURLY, ["GDPS"], *WINDOW, table_uri=table_uri).num_rows == 2
-    assert read_by_time(DAILY, ["GDPS"], *WINDOW, table_uri=table_uri).num_rows == 1
+    assert table.read(HOURLY, ["GDPS"], *WINDOW).num_rows == 2
+    assert table.read(DAILY, ["GDPS"], *WINDOW).num_rows == 1
 
 
-def test_sources_and_stations_are_kept_apart(table_uri):
-    merge_run(
+def test_sources_and_stations_are_kept_apart(table):
+    table.merge_run(
         ModelEnum.GDPS,
         RUN_TS,
         make_rows([AT_2000], temperature=10.0, station_codes=(101, 322)),
         ingested_at=INGESTED_AT,
-        table_uri=table_uri,
     )
-    merge_run(
+    table.merge_run(
         ModelEnum.RDPS,
         RUN_TS,
         make_rows([AT_2000], temperature=30.0),
         ingested_at=INGESTED_AT,
-        table_uri=table_uri,
     )
 
-    gdps = read_by_time(DAILY, ["GDPS"], *WINDOW, table_uri=table_uri)
-    both = read_by_time(DAILY, ["GDPS", "RDPS"], *WINDOW, table_uri=table_uri)
-    one_station = read_by_time(DAILY, ["GDPS"], *WINDOW, station_codes=[101], table_uri=table_uri)
+    gdps = table.read(DAILY, ["GDPS"], *WINDOW)
+    both = table.read(DAILY, ["GDPS", "RDPS"], *WINDOW)
+    one_station = table.read(DAILY, ["GDPS"], *WINDOW, station_codes=[101])
 
     assert gdps["temperature"].to_pylist() == [10.0, 10.0]
     assert both.num_rows == 3
     assert one_station["station_code"].to_pylist() == [101]
 
 
-def test_read_is_limited_to_the_time_range(table_uri):
-    merge_run(
+def test_read_is_limited_to_the_time_range(table):
+    table.merge_run(
         ModelEnum.GDPS,
         RUN_TS,
         make_rows([AT_2000, NEXT_DAY_2000]),
         ingested_at=INGESTED_AT,
-        table_uri=table_uri,
     )
 
-    rows = read_by_time(DAILY, ["GDPS"], AT_1800, AT_2000, table_uri=table_uri)
+    rows = table.read(DAILY, ["GDPS"], AT_1800, AT_2000)
 
     assert rows["timestamp"].to_pylist() == [AT_2000]
 
 
-def test_merge_with_no_rows_writes_nothing(table_uri):
-    offered = merge_run(ModelEnum.GDPS, RUN_TS, [], ingested_at=INGESTED_AT, table_uri=table_uri)
+def test_merge_with_no_rows_writes_nothing(table):
+    offered = table.merge_run(ModelEnum.GDPS, RUN_TS, [], ingested_at=INGESTED_AT)
 
     assert offered == 0
-    assert read_by_time(DAILY, ["GDPS"], *WINDOW, table_uri=table_uri).num_rows == 0
+    assert table.read(DAILY, ["GDPS"], *WINDOW).num_rows == 0

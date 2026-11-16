@@ -34,8 +34,8 @@ from wps_shared.db.models.weather_models import (
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
-from wps_weather_data.by_time import merge_run
-from wps_weather_data.runs import append_run
+from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.runs import RunsTable
 from wps_wf1.wfwx_api import get_stations_synchronously
 
 # If running as its own process, configure logging appropriately.
@@ -134,6 +134,8 @@ class ModelValueProcessor:
         self.session = session
         self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
+        self.runs_table = RunsTable()
+        self.by_time_table = ByTimeTable()
 
     def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):
         """Interpolate predictions in the provided model run for all stations."""
@@ -467,8 +469,8 @@ class ModelValueProcessor:
         """
         try:
             rows = get_station_run_rows(self.session, model_run.id)
-            append_run(model_type, model_run.prediction_run_timestamp, rows)
-            merge_run(model_type, model_run.prediction_run_timestamp, rows)
+            self.runs_table.append_run(model_type, model_run.prediction_run_timestamp, rows)
+            self.by_time_table.merge_run(model_type, model_run.prediction_run_timestamp, rows)
         except Exception:
             logger.exception("Failed to write model run %s to object storage", model_run.id)
 

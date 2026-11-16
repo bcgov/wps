@@ -72,6 +72,8 @@ objects:
                   env:
                     - name: UV_NO_CACHE
                       value: "1"
+                    - name: SUFFIX
+                      value: ${SUFFIX}
                     - name: OBJECT_STORE_SERVER
                       valueFrom:
                         secretKeyRef:

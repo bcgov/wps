@@ -209,6 +209,8 @@ objects:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
                           key: env.data_retention_threshold
+                    - name: SUFFIX
+                      value: ${SUFFIX}
                     - name: OBJECT_STORE_SERVER
                       valueFrom:
                         secretKeyRef:

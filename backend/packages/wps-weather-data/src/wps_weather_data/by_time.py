@@ -17,14 +17,14 @@ from datetime import UTC, datetime
 import pyarrow as pa
 import pyarrow.compute as pc
 from deltalake import DeltaTable, WriterProperties
+from wps_shared.sfms.raster_addresser import S3Key
 from wps_shared.weather_models import ModelEnum
 
+from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.runs import build_run_table
-from wps_weather_data.store import resolve_table
+from wps_weather_data.table import DeltaWeatherTable
 
 logger = logging.getLogger(__name__)
-
-BY_TIME_KEY = "weather/stations/by_time"
 
 HOURLY = "hourly"
 DAILY = "daily"
@@ -111,92 +111,97 @@ def by_time_rows_from_run(run: pa.Table) -> pa.Table:
     )
 
 
-def merge_run(
-    model: ModelEnum,
-    run_ts: datetime,
-    rows: Iterable[Mapping],
-    *,
-    ingested_at: datetime | None = None,
-    table_uri: str | None = None,
-    storage_options: dict[str, str] | None = None,
-) -> int:
-    """Merge a model run into `by_time`. Returns the number of rows the run offered.
+class ByTimeTable(DeltaWeatherTable):
+    """The `by_time` Delta table."""
 
-    A row is replaced only by a run at least as new as the one it came from, so merging an older
-    run, as a backfill does, fills gaps without undoing newer predictions.
-    """
-    table_uri, storage_options = resolve_table(BY_TIME_KEY, table_uri, storage_options)
-    run = build_run_table(model, run_ts, rows, ingested_at or datetime.now(UTC))
-    source = by_time_rows_from_run(run)
-    if source.num_rows == 0:
-        logger.warning("No rows for %s run %s, nothing merged into by_time", model.value, run_ts)
-        return 0
+    def get_key(self, addresser: StationWeatherAddresser) -> S3Key:
+        return addresser.get_by_time_key()
 
-    table = DeltaTable.create(
-        table_uri,
-        schema=BY_TIME_SCHEMA,
-        partition_by=PARTITION_COLUMNS,
-        mode="ignore",
-        storage_options=storage_options,
-    )
-    # Naming the source and months as literals lets the merge skip every other partition.
-    months = ", ".join(f"'{month}'" for month in sorted(set(source["month"].to_pylist())))
-    predicate = (
-        f"t.source = '{model.value}' AND t.month IN ({months}) "
-        "AND t.resolution = s.resolution AND t.source = s.source AND t.month = s.month "
-        'AND t.station_code = s.station_code AND t."timestamp" = s."timestamp"'
-    )
-    (
-        table.merge(
-            source,
-            predicate,
-            source_alias="s",
-            target_alias="t",
-            writer_properties=WriterProperties(compression="ZSTD"),
+    def merge_run(
+        self,
+        model: ModelEnum,
+        run_ts: datetime,
+        rows: Iterable[Mapping],
+        *,
+        ingested_at: datetime | None = None,
+    ) -> int:
+        """Merge a model run in. Returns the number of rows the run offered.
+
+        A row is replaced only by a run at least as new as the one it came from, so merging an
+        older run, as a backfill does, fills gaps without undoing newer predictions.
+        """
+        run = build_run_table(model, run_ts, rows, ingested_at or datetime.now(UTC))
+        source = by_time_rows_from_run(run)
+        if source.num_rows == 0:
+            logger.warning(
+                "No rows for %s run %s, nothing merged into by_time", model.value, run_ts
+            )
+            return 0
+
+        table = DeltaTable.create(
+            self.table_uri,
+            schema=BY_TIME_SCHEMA,
+            partition_by=PARTITION_COLUMNS,
+            mode="ignore",
+            storage_options=self.storage_options,
         )
-        .when_matched_update_all(predicate="s.run_ts >= t.run_ts")
-        .when_not_matched_insert_all()
-        .execute()
-    )
-    logger.info("Merged %s rows for %s run %s into by_time", source.num_rows, model.value, run_ts)
-    return source.num_rows
-
-
-def read_by_time(
-    resolution: str,
-    sources: Sequence[str],
-    start: datetime,
-    end: datetime,
-    *,
-    station_codes: Sequence[int] | None = None,
-    table_uri: str | None = None,
-    storage_options: dict[str, str] | None = None,
-) -> pa.Table:
-    """Read the rows for the given sources with a timestamp in [start, end].
-
-    Returns an empty table if the `by_time` table does not exist yet.
-    """
-    table_uri, storage_options = resolve_table(BY_TIME_KEY, table_uri, storage_options)
-    if not DeltaTable.is_deltatable(table_uri, storage_options=storage_options):
-        return BY_TIME_SCHEMA.empty_table()
-
-    start = start.astimezone(UTC)
-    end = end.astimezone(UTC)
-    wanted = (
-        (pc.field("resolution") == resolution)
-        & pc.field("source").isin(list(sources))
-        & (pc.field("month") >= start.strftime("%Y-%m"))
-        & (pc.field("month") <= end.strftime("%Y-%m"))
-        & (pc.field("timestamp") >= start)
-        & (pc.field("timestamp") <= end)
-    )
-    if station_codes is not None:
-        wanted = wanted & pc.field("station_code").isin(list(station_codes))
-    dataset = DeltaTable(table_uri, storage_options=storage_options).to_pyarrow_dataset()
-    return (
-        dataset.to_table(filter=wanted)
-        .select(BY_TIME_SCHEMA.names)
-        .sort_by(
-            [("source", "ascending"), ("station_code", "ascending"), ("timestamp", "ascending")]
+        # Naming the source and months as literals lets the merge skip every other partition.
+        months = ", ".join(f"'{month}'" for month in sorted(set(source["month"].to_pylist())))
+        predicate = (
+            f"t.source = '{model.value}' AND t.month IN ({months}) "
+            "AND t.resolution = s.resolution AND t.source = s.source AND t.month = s.month "
+            'AND t.station_code = s.station_code AND t."timestamp" = s."timestamp"'
         )
-    )
+        (
+            table.merge(
+                source,
+                predicate,
+                source_alias="s",
+                target_alias="t",
+                writer_properties=WriterProperties(compression="ZSTD"),
+            )
+            .when_matched_update_all(predicate="s.run_ts >= t.run_ts")
+            .when_not_matched_insert_all()
+            .execute()
+        )
+        logger.info(
+            "Merged %s rows for %s run %s into by_time", source.num_rows, model.value, run_ts
+        )
+        return source.num_rows
+
+    def read(
+        self,
+        resolution: str,
+        sources: Sequence[str],
+        start: datetime,
+        end: datetime,
+        *,
+        station_codes: Sequence[int] | None = None,
+    ) -> pa.Table:
+        """Read the rows for the given sources with a timestamp in [start, end].
+
+        Returns an empty table if the `by_time` table does not exist yet.
+        """
+        if not self.exists():
+            return BY_TIME_SCHEMA.empty_table()
+
+        start = start.astimezone(UTC)
+        end = end.astimezone(UTC)
+        wanted = (
+            (pc.field("resolution") == resolution)
+            & pc.field("source").isin(list(sources))
+            & (pc.field("month") >= start.strftime("%Y-%m"))
+            & (pc.field("month") <= end.strftime("%Y-%m"))
+            & (pc.field("timestamp") >= start)
+            & (pc.field("timestamp") <= end)
+        )
+        if station_codes is not None:
+            wanted = wanted & pc.field("station_code").isin(list(station_codes))
+        dataset = self.open().to_pyarrow_dataset()
+        return (
+            dataset.to_table(filter=wanted)
+            .select(BY_TIME_SCHEMA.names)
+            .sort_by(
+                [("source", "ascending"), ("station_code", "ascending"), ("timestamp", "ascending")]
+            )
+        )
