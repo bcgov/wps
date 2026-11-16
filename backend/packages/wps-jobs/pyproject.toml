@@ -17,6 +17,7 @@ dependencies = [
     "herbie-data>=2026.3,<2027",
     "gdal==3.13.3",
     "wps-wf1",
+    "wps-weather-data",
     "aiofiles>=25.0.0,<26",
     "geoalchemy2>=0,<1",
     "shapely>=2.0.5,<3",
@@ -28,6 +29,7 @@ dev = ["ipykernel>=6.29.5,<7"]
 [tool.uv.sources]
 wps-shared = { workspace = true }
 wps-wf1 = { workspace = true }
+wps-weather-data = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

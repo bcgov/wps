@@ -1,7 +1,5 @@
 # Station weather data on object storage
 
-**Status:** draft for discussion · 2026-11-12
-
 ## Summary
 
 This proposes moving station weather data out of Postgres and onto object storage. That covers model predictions, observations and forecasts at each weather station.
@@ -391,7 +389,7 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 ## Plan
 
 1. Done on 2026-11-16: `backend/scripts/object_store_delta_check.py` ran Delta Lake against ECS in a throwaway table. Four writers appending at once lost no commits, `MERGE`, `optimize`, `vacuum` and a checkpoint worked, and the storage option to use is `conditional_put: etag`. Shared tables are confirmed.
-2. Have one model (GDPS) write to `runs` and `by_time` alongside its Postgres writes, with the maintenance job running.
+2. Have one model (GDPS) write to `runs` and `by_time` alongside its Postgres writes, with the maintenance job running. The `runs` half is written but not deployed: the GDPS job appends each finished run through `runs.py` in the new `wps-weather-data` package, and `backend/scripts/station_runs_parity_check.py` compares `runs` with Postgres and backfills missed runs. `by_time` and the maintenance job are not started.
 3. Compare every read query's results between the two, and time each read against ECS.
 4. Move the model readers over one at a time: `/weather_models` routes, fire watch, training, then MoreCast's model values.
 5. Replace `model_run_predictions` with `staging` for that model, and switch its bookkeeping from the Postgres tables to `staging` and `runs`.

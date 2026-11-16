@@ -33,6 +33,8 @@ COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
 COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
+COPY ./backend/packages/wps-weather-data/pyproject.toml /app/packages/wps-weather-data/
+COPY ./backend/packages/wps-weather-data/src /app/packages/wps-weather-data/src
 
 # Switch to root to set file permissions
 USER 0
@@ -41,9 +43,11 @@ USER 0
 RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/wps-jobs/pyproject.toml \
     /app/packages/wps-shared/pyproject.toml \
-    /app/packages/wps-wf1/pyproject.toml
+    /app/packages/wps-wf1/pyproject.toml \
+    /app/packages/wps-weather-data/pyproject.toml
 RUN chmod -R a-w /app/packages/wps-shared/src \
-    /app/packages/wps-wf1/src
+    /app/packages/wps-wf1/src \
+    /app/packages/wps-weather-data/src
 
 # Switch back to non-root user
 USER $USERNAME
@@ -84,6 +88,7 @@ COPY --from=builder /app/pyproject.toml /app/
 COPY --from=builder /app/packages/wps-jobs/pyproject.toml /app/packages/wps-jobs/
 COPY --from=builder /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY --from=builder /app/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
+COPY --from=builder /app/packages/wps-weather-data/pyproject.toml /app/packages/wps-weather-data/
 
 # Switch back to our non-root user
 USER $USERNAME
@@ -92,6 +97,7 @@ USER $USERNAME
 COPY ./backend/packages/wps-jobs/src /app
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
+COPY ./backend/packages/wps-weather-data/src /app/packages/wps-weather-data/src
 
 # Copy installed Python packages
 COPY --from=builder /app/.venv /app/.venv
@@ -107,7 +113,7 @@ USER 0
 RUN mkdir -p /data && chmod 777 /data
 # Remove write permissions from copied configuration and source files for security
 RUN chmod -R a-w /app/pyproject.toml /app/packages/wps-jobs/pyproject.toml /app/weather_model_jobs /app/fuel_grid \
-    /app/packages/wps-shared/src /app/packages/wps-wf1/src
+    /app/packages/wps-shared/src /app/packages/wps-wf1/src /app/packages/wps-weather-data/src
 # We don't know what user uv is going to run as, so we give everyone write access directories
 # in the app folder. We need write access for .pyc files to be created. .pyc files are good,
 # they speed up python.

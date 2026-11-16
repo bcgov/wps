@@ -8,6 +8,7 @@ from weather_model_jobs.common_model_fetchers import (
 )
 from wps_shared.db.models.weather_models import ModelRunPrediction
 from wps_shared.schemas.stations import WeatherStation
+from wps_shared.weather_models import ModelEnum
 
 ZERO_HOUR_TIMESTAMP = datetime(2023, 9, 7, 0, 0, 0)
 TWELVE_HOUR_TIMESTAMP = datetime(2023, 9, 7, 12, 0, 0)
@@ -369,3 +370,54 @@ def test_interpolated_bias_adjusted_wind_direction(
         assert mock_station_prediction.bias_adjusted_wdir is None
     else:
         assert mock_station_prediction.bias_adjusted_wdir == pytest.approx(expected_direction)
+
+
+def run_process(processor, mock_model_run, model_type):
+    with patch(
+        "weather_model_jobs.common_model_fetchers.get_prediction_model_run_timestamp_records",
+        return_value=[(mock_model_run, MagicMock())],
+    ):
+        processor.process(model_type)
+
+
+@patch("weather_model_jobs.common_model_fetchers.append_run")
+@patch("weather_model_jobs.common_model_fetchers.get_station_run_rows")
+def test_process_appends_gdps_run_to_object_store(
+    mock_get_rows, mock_append_run, processor, mock_model_run
+):
+    rows = [{"station_code": 1215}]
+    mock_get_rows.return_value = rows
+
+    run_process(processor, mock_model_run, ModelEnum.GDPS)
+
+    mock_get_rows.assert_called_once_with(processor.session, 42)
+    mock_append_run.assert_called_once_with(
+        ModelEnum.GDPS, mock_model_run.prediction_run_timestamp, rows
+    )
+    assert mock_model_run.interpolated is True
+
+
+@patch("weather_model_jobs.common_model_fetchers.append_run")
+@patch("weather_model_jobs.common_model_fetchers.get_station_run_rows")
+def test_process_does_not_append_other_models_to_object_store(
+    mock_get_rows, mock_append_run, processor, mock_model_run
+):
+    run_process(processor, mock_model_run, ModelEnum.RDPS)
+
+    mock_get_rows.assert_not_called()
+    mock_append_run.assert_not_called()
+    assert mock_model_run.interpolated is True
+
+
+@patch(
+    "weather_model_jobs.common_model_fetchers.append_run",
+    side_effect=OSError("object store is down"),
+)
+@patch("weather_model_jobs.common_model_fetchers.get_station_run_rows", return_value=[])
+def test_process_still_marks_run_interpolated_when_object_store_append_fails(
+    mock_get_rows, mock_append_run, processor, mock_model_run
+):
+    run_process(processor, mock_model_run, ModelEnum.GDPS)
+
+    mock_append_run.assert_called_once()
+    assert mock_model_run.interpolated is True
