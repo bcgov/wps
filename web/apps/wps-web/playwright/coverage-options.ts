@@ -1,8 +1,10 @@
 import path from 'node:path'
 import type { CoverageReportOptions } from 'monocart-coverage-reports'
+import playwrightConfig from '../playwright.config'
 
 const appDir = path.join(import.meta.dirname, '..')
-const devServer = 'localhost:3030'
+// Coverage is recorded per script URL, so match scripts served by the dev server Playwright tests against
+const devServer = new URL(playwrightConfig.use!.baseURL!).host
 
 // Shared by the fixture (each worker adds V8 coverage to the cache) and the
 // teardown (merges the cache into one Istanbul report for mergeCoverage.cjs).
