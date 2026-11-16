@@ -32,7 +32,14 @@ RH_FIELD = "rh"  # this is calculated by us
 
 
 def crop_to_bc(dataset: xr.Dataset) -> xr.Dataset:
-    # round comparisons to keep boundary cells after longitude wraparound
+    """Return an independent copy of the grid within the buffered BC bounds.
+
+    Normalize longitudes and round coordinates only for boundary comparisons,
+    so floating point errors do not exclude points on the bounds. Preserve
+    the original coordinates and weather values in the returned dataset.
+
+    Raise ValueError if the crop contains no latitude or longitude points.
+    """
     latitude = dataset.latitude.round(8)
     longitude = ((dataset.longitude + 180) % 360 - 180).round(8)
     cropped = dataset.isel(
