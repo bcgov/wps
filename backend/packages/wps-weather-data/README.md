@@ -41,5 +41,6 @@ writes under `dev/{suffix}/weather/stations/`, using the `SUFFIX` setting (for e
 
 ## Status
 
-Only the GDPS job writes to these tables so far, alongside its Postgres writes. Nothing reads
-them yet. `backend/scripts/station_runs_parity_check.py` compares `runs` with Postgres.
+Every model job (GDPS, RDPS, HRDPS, GFS, NAM and ECMWF) writes to these tables, alongside its
+Postgres writes. Nothing reads them yet. `backend/scripts/station_runs_parity_check.py` compares
+`runs` with Postgres.

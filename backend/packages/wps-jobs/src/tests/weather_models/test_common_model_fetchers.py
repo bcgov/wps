@@ -385,32 +385,24 @@ def run_process(processor, mock_model_run, model_type):
         processor.process(model_type)
 
 
+@pytest.mark.parametrize(
+    "model_type",
+    [ModelEnum.GDPS, ModelEnum.RDPS, ModelEnum.HRDPS, ModelEnum.GFS, ModelEnum.NAM],
+)
 @patch("weather_model_jobs.common_model_fetchers.get_station_run_rows")
-def test_process_writes_gdps_run_to_object_store(mock_get_rows, processor, mock_model_run):
+def test_process_writes_run_to_object_store(mock_get_rows, processor, mock_model_run, model_type):
     rows = [{"station_code": 1215}]
     mock_get_rows.return_value = rows
 
-    run_process(processor, mock_model_run, ModelEnum.GDPS)
+    run_process(processor, mock_model_run, model_type)
 
     mock_get_rows.assert_called_once_with(processor.session, 42)
     processor.runs_table.append_run.assert_called_once_with(
-        ModelEnum.GDPS, mock_model_run.prediction_run_timestamp, rows
+        model_type, mock_model_run.prediction_run_timestamp, rows
     )
     processor.by_time_table.merge_run.assert_called_once_with(
-        ModelEnum.GDPS, mock_model_run.prediction_run_timestamp, rows
+        model_type, mock_model_run.prediction_run_timestamp, rows
     )
-    assert mock_model_run.interpolated is True
-
-
-@patch("weather_model_jobs.common_model_fetchers.get_station_run_rows")
-def test_process_does_not_write_other_models_to_object_store(
-    mock_get_rows, processor, mock_model_run
-):
-    run_process(processor, mock_model_run, ModelEnum.RDPS)
-
-    mock_get_rows.assert_not_called()
-    processor.runs_table.append_run.assert_not_called()
-    processor.by_time_table.merge_run.assert_not_called()
     assert mock_model_run.interpolated is True
 
 

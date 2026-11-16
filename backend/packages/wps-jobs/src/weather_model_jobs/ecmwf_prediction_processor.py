@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 from weather_model_jobs import ModelEnum
+from weather_model_jobs.common_model_fetchers import write_run_to_object_store
 from weather_model_jobs.ecmwf_hours import get_ecmwf_forecast_hours
 from weather_model_jobs.machine_learning import StationMachineLearning
 from weather_model_jobs.utils.interpolate import (
@@ -18,6 +19,8 @@ from wps_shared.db.models.weather_models import (
     WeatherStationModelPrediction,
 )
 from wps_shared.schemas.stations import WeatherStation
+from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.runs import RunsTable
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,8 @@ class ECMWFPredictionProcessor:
         self.stations = stations
         self.model_run_repository = model_run_repository
         self.station_predictions: Dict[int, List[ModelRunPrediction]] = defaultdict(list)
+        self.runs_table = RunsTable()
+        self.by_time_table = ByTimeTable()
 
     def process(self):
         for (
@@ -40,6 +45,15 @@ class ECMWFPredictionProcessor:
             # Process the model run.
             start_time = datetime.now()
             self._process_model_run(model_run)
+            # Write before marking the run as interpolated: if the job dies in between, the run
+            # is processed and written again, and readers take the newest version.
+            write_run_to_object_store(
+                self.model_run_repository.session,
+                model_run,
+                ModelEnum.ECMWF,
+                self.runs_table,
+                self.by_time_table,
+            )
             # Mark the model run as interpolated.
             self.model_run_repository.mark_model_run_interpolated(model_run)
             execution_time = datetime.now() - start_time

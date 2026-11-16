@@ -44,10 +44,6 @@ if __name__ == "__main__":
 
 logger = logging.getLogger(__name__)
 
-# Models whose finished runs are also written to the `runs` and `by_time` tables in object
-# storage, alongside the Postgres writes. See docs/architecture/station-weather-storage.md.
-MODELS_WRITING_TO_OBJECT_STORE = frozenset({ModelEnum.GDPS})
-
 # Keys for weather variables that require interpolation between 1800 and 2100
 SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")
 
@@ -124,6 +120,28 @@ def accumulate_nam_precipitation(
     )
 
     return (cumulative_precip, current_precip)
+
+
+def write_run_to_object_store(
+    session: Session,
+    model_run: PredictionModelRunTimestamp,
+    model_type: ModelEnum,
+    runs_table: RunsTable,
+    by_time_table: ByTimeTable,
+):
+    """Append a finished run to `runs` in object storage, then merge it into `by_time`.
+
+    Every model's job does this alongside its Postgres writes. See
+    docs/architecture/station-weather-storage.md. Nothing reads either table yet, so a failure
+    here is logged and must not fail the job. backend/scripts/station_runs_parity_check.py
+    finds and backfills any run that was missed.
+    """
+    try:
+        rows = get_station_run_rows(session, model_run.id)
+        runs_table.append_run(model_type, model_run.prediction_run_timestamp, rows)
+        by_time_table.merge_run(model_type, model_run.prediction_run_timestamp, rows)
+    except Exception:
+        logger.exception("Failed to write model run %s to object storage", model_run.id)
 
 
 class ModelValueProcessor:
@@ -459,21 +477,6 @@ class ModelValueProcessor:
         self.session.add(model_run)
         self.session.commit()
 
-    def _write_run_to_object_store(
-        self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum
-    ):
-        """Append the finished run to `runs` in object storage, then merge it into `by_time`.
-
-        Nothing reads either table yet, so a failure here is logged and must not fail the job.
-        backend/scripts/station_runs_parity_check.py finds and backfills any run that was missed.
-        """
-        try:
-            rows = get_station_run_rows(self.session, model_run.id)
-            self.runs_table.append_run(model_type, model_run.prediction_run_timestamp, rows)
-            self.by_time_table.merge_run(model_type, model_run.prediction_run_timestamp, rows)
-        except Exception:
-            logger.exception("Failed to write model run %s to object storage", model_run.id)
-
     def process(self, model_type: ModelEnum):
         """Entry point to start processing model runs that have not yet had their predictions interpolated"""
         # Get model runs that are complete (fully downloaded), but not yet interpolated.
@@ -488,8 +491,9 @@ class ModelValueProcessor:
             self._process_model_run(model_run, model_type)
             # Write before marking the run as interpolated: if the job dies in between, the run
             # is processed and written again, and readers take the newest version.
-            if model_type in MODELS_WRITING_TO_OBJECT_STORE:
-                self._write_run_to_object_store(model_run, model_type)
+            write_run_to_object_store(
+                self.session, model_run, model_type, self.runs_table, self.by_time_table
+            )
             # Mark the model run as interpolated.
             self._mark_model_run_interpolated(model_run)
             execution_time = datetime.now() - start_time
