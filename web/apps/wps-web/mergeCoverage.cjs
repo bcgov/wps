@@ -4,9 +4,7 @@
  */
 const path = require('node:path')
 const fs = require('fs-extra')
-const libCoverage = require('istanbul-lib-coverage')
-const libReport = require('istanbul-lib-report')
-const reports = require('istanbul-reports')
+const { default: MCR } = require('monocart-coverage-reports')
 
 const FINAL_OUTPUT_FOLDER = 'finalCoverage'
 const PACKAGES = ['api', 'ui', 'utils']
@@ -15,22 +13,27 @@ const COVERAGE_FOLDERS = ['coverage', 'coverage-playwright', ...PACKAGE_COVERAGE
 // Files left out of the final report
 const EXCLUDE = new Set(['src/serviceWorker.ts', 'src/app/store.ts'].map(file => path.resolve(file)))
 
-const map = libCoverage.createCoverageMap({})
-for (const folder of COVERAGE_FOLDERS) {
-  const file = path.join(folder, 'coverage-final.json')
-  if (fs.existsSync(file)) {
-    map.merge(fs.readJsonSync(file))
-  } else if (folder === 'coverage') {
-    throw new Error(`Missing Vitest coverage report: ${file}`)
+async function main() {
+  const mcr = MCR({ outputDir: FINAL_OUTPUT_FOLDER, reports: ['lcov'], cleanCache: true })
+  for (const folder of COVERAGE_FOLDERS) {
+    const file = path.join(folder, 'coverage-final.json')
+    if (!fs.existsSync(file)) {
+      if (folder === 'coverage') throw new Error(`Missing Vitest coverage report: ${file}`)
+      continue
+    }
+    const coverage = fs.readJsonSync(file)
+    for (const excluded of EXCLUDE) delete coverage[excluded]
+    await mcr.add(coverage)
+  }
+  await mcr.generate()
+
+  // Clean up — fs.removeSync (fs-extra) is a no-op if the path doesn't exist
+  for (const folder of COVERAGE_FOLDERS) {
+    fs.removeSync(folder)
   }
 }
-map.filter(file => !EXCLUDE.has(file))
 
-fs.emptyDirSync(FINAL_OUTPUT_FOLDER)
-const context = libReport.createContext({ dir: FINAL_OUTPUT_FOLDER, coverageMap: map })
-reports.create('lcov').execute(context)
-
-// Clean up — fs.removeSync (fs-extra) is a no-op if the path doesn't exist
-for (const folder of COVERAGE_FOLDERS) {
-  fs.removeSync(folder)
-}
+main().catch(error => {
+  console.error(error)
+  process.exit(1)
+})

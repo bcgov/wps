@@ -1948,7 +1948,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/istanbul-lib-report@npm:*, @types/istanbul-lib-report@npm:^3.0.3":
+"@types/istanbul-lib-report@npm:*":
   version: 3.0.3
   resolution: "@types/istanbul-lib-report@npm:3.0.3"
   dependencies:
@@ -2467,9 +2467,6 @@ __metadata:
     "@testing-library/react": "npm:^16.0.0"
     "@testing-library/user-event": "npm:^14.5.2"
     "@types/fs-extra": "npm:^11.0.4"
-    "@types/istanbul-lib-coverage": "npm:^2.0.6"
-    "@types/istanbul-lib-report": "npm:^3.0.3"
-    "@types/istanbul-reports": "npm:^3.0.4"
     "@types/jest": "npm:^30.0.0"
     "@types/lodash": "npm:^4.14.173"
     "@types/luxon": "npm:^3.0.2"
@@ -2488,9 +2485,6 @@ __metadata:
     date-fns: "npm:^4.0.0"
     filefy: "npm:^0.1.11"
     fs-extra: "npm:^11.3.4"
-    istanbul-lib-coverage: "npm:^3.2.2"
-    istanbul-lib-report: "npm:^3.0.1"
-    istanbul-reports: "npm:^3.2.0"
     jsdom: "npm:^31.0.0"
     jwt-decode: "npm:^4.0.0"
     keycloak-js: "npm:^26.0.0"
