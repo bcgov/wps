@@ -50,6 +50,7 @@ export interface StationGroupMember {
   fire_zone: FireZone
   station_code: number
   station_status: string
+  elevation?: number | null
 }
 
 export interface StationGroupMembersResponse {

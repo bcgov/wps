@@ -1,3 +1,4 @@
+import type { GridRenderCellParams } from '@mui/x-data-grid-pro'
 import {
   type ColDefGenerator,
   ColumnDefBuilder,
@@ -10,6 +11,7 @@ import {
   WIND_SPEED_HEADER
 } from 'features/moreCast2/components/ColumnDefBuilder'
 import { GridComponentRenderer } from 'features/moreCast2/components/GridComponentRenderer'
+import StationNameCell from 'features/moreCast2/components/StationNameCell'
 import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import type { MoreCast2Row } from 'features/moreCast2/interfaces'
 import { DateTime } from 'luxon'
@@ -30,7 +32,21 @@ export class StationForecastField implements ColDefGenerator {
   }
 
   public generateColDef = () => {
-    return { field: this.field, flex: 1, headerName: this.headerName, maxWidth: 200, minWidth: 200, width: 200 }
+    return {
+      field: this.field,
+      flex: 1,
+      headerName: this.headerName,
+      maxWidth: 200,
+      minWidth: 200,
+      width: 200,
+      renderCell: (params: GridRenderCellParams<MoreCast2Row, string>) => (
+        <StationNameCell
+          stationCode={params.row.stationCode}
+          stationName={params.value ?? ''}
+          hasFocus={params.hasFocus}
+        />
+      )
+    }
   }
 
   public generateColDefs = () => {
