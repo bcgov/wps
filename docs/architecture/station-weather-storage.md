@@ -18,7 +18,7 @@ We compared Parquet, GeoParquet, Delta Lake, Zarr and Icechunk with four local b
 
 GeoParquet and Icechunk are a poor fit. Zarr is a poor fit for model runs and a reasonable but second-best fit for station history.
 
-Nothing here is built, and nothing has been timed against our object store. Our object store passed a check that it enforces the conditional PUTs Delta Lake needs for more than one writer per table; Delta Lake itself has not yet been run against it with several writers. See [Main risks](#main-risks).
+Nothing here is built. Delta Lake has been run against our object store in a throwaway table: four writers appending at once lost no commits, and `MERGE`, `optimize`, `vacuum` and checkpoints worked. No real read path has been timed there. See [Main risks](#main-risks).
 
 ## Goals
 
@@ -278,7 +278,7 @@ This dataset exists for experimenting. Once a rule is settled, the cheaper form 
 
 `runs` and `by_time` each have several writers: the six model jobs, and for `by_time` the WF1 jobs as well. Delta Lake makes that safe by committing through its transaction log, where one of two colliding writers retries.
 
-On an S3-compatible store that safety depends on the store. The `deltalake` library has three ways to commit safely: a conditional PUT that the store must enforce (`If-None-Match`), a copy that fails if the target exists, or a DynamoDB lock. We have no DynamoDB next to our object store, so this design depends on Dell ECS enforcing conditional PUTs. That has not been tested. The library's fourth mode, `AWS_S3_ALLOW_UNSAFE_RENAME`, is only safe with a single writer per table.
+On an S3-compatible store that safety depends on the store. The `deltalake` library has three ways to commit safely: a conditional PUT that the store must enforce (`If-None-Match`), a copy that fails if the target exists, or a DynamoDB lock. We have no DynamoDB next to our object store, so this design depends on Dell ECS enforcing conditional PUTs. It does: a check with four concurrent writers lost no commits, using the storage option `conditional_put: etag`. The library's fourth mode, `AWS_S3_ALLOW_UNSAFE_RENAME`, is only safe with a single writer per table.
 
 If ECS does not enforce conditional PUTs, the fallback is one table per writer: a `runs` and `by_time` table per model, and one `by_time` table for the WF1 jobs. Each then has a single writer, and readers combine them. Compaction still works.
 
@@ -350,7 +350,7 @@ What this keeps:
 | Bias-adjustment training | `runs` for the 19-day window and `by_time` for the observations, loaded once per job | About 23 files for RDPS after compaction |
 | Ingest | The run's `staging` files, and observed precipitation from `by_time` | A handful per run |
 
-Reading a Delta table starts with its transaction log, which took about 200 ms cold in the benchmark. API pods should keep table state in memory and refresh it, not reopen the table on every request.
+Reading a Delta table starts with its transaction log. A cold open took about 200 ms in the local benchmark and 839 ms against our object store, on a tiny table with a fresh checkpoint. API pods should keep table state in memory and refresh it, not reopen the table on every request.
 
 The Parquet files are fetched through the existing S3 client and filtered with `pyarrow`. Ranged GETs are used for single-source reads of `by_station` and for group reads of `leads`. The API computes climatology statistics on demand and can cache them.
 
@@ -382,15 +382,15 @@ Nothing for model runs. The only related table that stays is:
 
 Nothing here is built. The full list of what was and was not checked is in [station-weather-storage-evaluation.md](station-weather-storage-evaluation.md#what-is-and-isnt-verified). The ones that could change the design:
 
-1. **Several Delta writers on ECS.** `backend/scripts/object_store_conditional_put_check.py` passed against our object store on 2026-11-12, so the store enforces conditional PUTs. What is not yet shown is that `deltalake`, with its own S3 client and configuration, commits safely from two writers at once. That is step 1 of the plan. The fallback is one table per writer.
-2. **Latency against ECS.** Every timing is from local disk. Nothing has been read from or written to our object store.
+1. **Several Delta writers on ECS.** Checked on 2026-11-16 with `backend/scripts/object_store_delta_check.py`: four processes appending to one table at once lost no commits. That is one run, from one machine, on a tiny table, so the first real slice should keep checking for lost runs. The fallback is one table per writer.
+2. **Latency against ECS.** A cold open of a tiny Delta table took 839 ms against our object store. Every other timing is from local disk, and no real read path has been timed.
 3. **Delta Lake at full size.** `MERGE` was benchmarked on a small daily table only, not on `by_time` with hourly data.
 4. **Station count.** 300 is an assumption. Sizes and row counts scale with it.
 5. **The climatology screen.** What it shows is undecided, and one read, pooled hourly percentiles for a group over decades, is not served.
 
 ## Plan
 
-1. Run Delta Lake against ECS in a throwaway table with `backend/scripts/object_store_delta_check.py`: find the storage options that work, have two processes append at once and confirm no commit is lost, and run `MERGE`, `optimize`, `vacuum` and a checkpoint. Time a cold open and a read. The store itself already passed `backend/scripts/object_store_conditional_put_check.py`. The result confirms shared tables, or falls back to one table per writer.
+1. Done on 2026-11-16: `backend/scripts/object_store_delta_check.py` ran Delta Lake against ECS in a throwaway table. Four writers appending at once lost no commits, `MERGE`, `optimize`, `vacuum` and a checkpoint worked, and the storage option to use is `conditional_put: etag`. Shared tables are confirmed.
 2. Have one model (GDPS) write to `runs` and `by_time` alongside its Postgres writes, with the maintenance job running.
 3. Compare every read query's results between the two, and time each read against ECS.
 4. Move the model readers over one at a time: `/weather_models` routes, fire watch, training, then MoreCast's model values.
@@ -405,7 +405,7 @@ Postgres remains the fallback for each table until its readers have moved.
 
 ## Open questions
 
-1. **Does Delta Lake commit safely from several writers on ECS?** The store enforces conditional PUTs; Delta Lake's own client has not been tried with two writers. This is step 1 of the plan.
+1. **How do API pods avoid the cold open?** Opening a Delta table took 839 ms against our object store. The design says to keep table state in memory and refresh it; how, and how stale it may be, is not worked out.
 2. **Which lead rules are worth keeping?** Undecided. Lead stays a free choice while we experiment with `leads`. Rules that prove useful should become their own sources in `by_time` and `by_station`.
 3. **What does the climatology screen show?** Undecided. The design assumes percentiles by day of year for daily data, and statistics by month and hour of day for hourly data. A screen that needs pooled hourly percentiles for a group over decades is the one case this does not serve.
 4. **Where will hourly forecasts come from, and will their history be recorded?**
