@@ -38,6 +38,8 @@ COPY ./backend/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
 COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
 COPY ./backend/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
 COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
+COPY ./backend/packages/wps-weather-data/pyproject.toml /app/packages/wps-weather-data/
+COPY ./backend/packages/wps-weather-data/src /app/packages/wps-weather-data/src
 
 # Switch to root to set file permissions
 USER 0
@@ -48,12 +50,14 @@ RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/cffdrs-vec/pyproject.toml \
     /app/packages/wps-shared/pyproject.toml \
     /app/packages/wps-wf1/pyproject.toml \
+    /app/packages/wps-weather-data/pyproject.toml \
     /app/packages/wps-sfms/pyproject.toml && \
     chmod -R a-w \
     /app/packages/cffdrs-vec/src \
     /app/packages/wps-shared/src \
     /app/packages/wps-sfms/src \
-    /app/packages/wps-wf1/src
+    /app/packages/wps-wf1/src \
+    /app/packages/wps-weather-data/src
 
 # Switch back to non-root user
 USER $USERNAME
@@ -91,6 +95,7 @@ COPY --from=builder /app/packages/cffdrs-vec/pyproject.toml /app/packages/cffdrs
 COPY --from=builder /app/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
 COPY --from=builder /app/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
 COPY --from=builder /app/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
+COPY --from=builder /app/packages/wps-weather-data/pyproject.toml /app/packages/wps-weather-data/
 
 # Switch back to our non-root user
 USER $USERNAME
@@ -114,6 +119,7 @@ COPY ./backend/packages/cffdrs-vec/src /app/packages/cffdrs-vec/src
 COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
 COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
+COPY ./backend/packages/wps-weather-data/src /app/packages/wps-weather-data/src
 
 # Copy installed Python packages
 COPY --from=builder /app/.venv /app/.venv
@@ -139,6 +145,7 @@ RUN chmod -R a-w \
     /app/packages/wps-shared/src \
     /app/packages/wps-sfms/src \
     /app/packages/wps-wf1/src \
+    /app/packages/wps-weather-data/src \
     /app/advisory \
     /app/libs \
     /app/alembic \

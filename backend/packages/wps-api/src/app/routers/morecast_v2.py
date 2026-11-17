@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from datetime import date, datetime, time, timedelta, timezone
+from functools import cache
 from typing import List
 
 from aiohttp.client import ClientSession
@@ -33,9 +34,8 @@ from wps_shared.schemas.morecast_v2 import (
 from wps_shared.schemas.shared import StationsRequest
 from wps_shared.utils.redis import clear_cache_matching
 from wps_shared.utils.time import get_hour_20_from_date, get_utc_now, vancouver_tz
-from wps_shared.weather_models.fetch.predictions import (
-    fetch_latest_model_run_predictions_by_station_code_and_date_range,
-)
+from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.morecast import fetch_model_predictions
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.morecast_v2.forecasts import (
@@ -255,6 +255,12 @@ async def get_observed_dailies(
         return StationDailiesResponse(dailies=observed_dailies)
 
 
+@cache
+def get_by_time_table() -> ByTimeTable:
+    """The one `by_time` table for this process, so it is opened once and then only refreshed."""
+    return ByTimeTable()
+
+
 @router.post(
     "/determinates/{start_date}/{end_date}",
     response_model=IndeterminateDailiesResponse,
@@ -315,10 +321,9 @@ async def get_determinates_for_date_range(
         forecasts_from_db: List[MoreCastForecastOutput] = get_forecasts(
             db_session, min_wf1_actuals_date, max_wf1_actuals_date, request.stations
         )
-        predictions: List[WeatherIndeterminate] = (
-            fetch_latest_model_run_predictions_by_station_code_and_date_range(
-                db_session, all_stations, start_time, end_time
-            )
+        # The read blocks on the network, so it runs in a thread to keep the event loop free.
+        predictions = await asyncio.to_thread(
+            fetch_model_predictions, get_by_time_table(), all_stations, start_time, end_time
         )
         station_codes = [station.code for station in wfwx_stations]
         grass_curing_rows = get_percent_grass_curing_by_station_for_date_range(

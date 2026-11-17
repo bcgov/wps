@@ -128,7 +128,7 @@ class RunsTable(DeltaWeatherTable):
 
         run_from = run_from.astimezone(UTC)
         run_to = run_to.astimezone(UTC)
-        dataset = self.open().to_pyarrow_dataset()
+        dataset = self.dataset()
         in_range = (
             (pc.field("model") == model.value)
             & (pc.field("run_date") >= run_from.date())
