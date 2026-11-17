@@ -41,9 +41,20 @@ records into rows with the `by_time` columns, with a missing or out-of-range val
 or a changed forecast is a new version. The WF1 jobs then merge the rows into `by_time` with
 `ByTimeTable.merge_wf1_rows`.
 
-`merge_daily_actuals` then writes the daily observation to `by_time`: the 20:00 UTC observation
-with the precip of the 24 hours ending then, built from the hourly rows already in `by_time`.
-It is derived, so it is not in `wf1`.
+The hourly actuals job also writes WF1's daily actuals, with `daily_actuals_table`: WF1's own
+daily record for 20:00 UTC, whose precipitation is the total WF1 accumulated over the 24 hours
+before. Nothing here adds up hourly values.
+
+## data_mart.py
+
+Historical observations from the BCWS data mart
+(https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART/), which has every station's
+hourly observations back to 1987. `read_observations` turns its CSV files into hourly `ACTUALS`
+rows, converting the Pacific Standard Time hours to UTC. A noon row that carries WF1's daily
+precip total also becomes a daily `ACTUALS` row. `write_observations` writes them to `wf1` and
+`by_time`. A value the hourly actuals job fetched from WF1 is never replaced by one from the
+data mart.
+`backend/scripts/station_actuals_data_mart_backfill.py` downloads the files and runs it.
 
 ## actuals.py
 

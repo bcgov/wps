@@ -7,20 +7,20 @@ corrected observation, or a forecast changed between fetches, is a second row wi
 `ingested_at`, and the original stays. That also records forecast history from now on, which WF1
 itself does not keep.
 
-The rows have the `by_time` columns. `ACTUALS` rows are hourly observations, `FORECAST` rows are
-noon (20:00 UTC) forecasts. A value WF1 does not have, or that is out of range, is null.
+The rows have the `by_time` columns. `ACTUALS` rows are hourly observations and WF1's daily
+actuals, `FORECAST` rows are noon (20:00 UTC) forecasts. A value WF1 does not have, or that is
+out of range, is null.
 
-The daily observation is not in `wf1`, because WF1 did not supply it: `merge_daily_actuals`
-derives it from the hourly observations in `by_time` and writes it there.
+A daily actual is WF1's own daily record for 20:00 UTC. Its precipitation is the total WF1
+accumulated over the 24 hours before, so nothing here adds up hourly values.
 
 Design: docs/architecture/station-weather-storage.md
 """
 
 import logging
 import math
-from collections import defaultdict
 from collections.abc import Iterable
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -32,12 +32,10 @@ from wps_weather_data.by_time import (
     ACTUALS,
     BY_TIME_SCHEMA,
     DAILY,
-    DAILY_HOUR_UTC,
     FORECAST,
     HOURLY,
     KEY_COLUMNS,
     VALUE_COLUMNS,
-    ByTimeTable,
 )
 from wps_weather_data.table import DeltaWeatherTable
 
@@ -46,7 +44,7 @@ logger = logging.getLogger(__name__)
 PARTITION_COLUMNS = ["source", "resolution", "month"]
 
 # The range a value must be in to be kept, as WF1 validation has it.
-_VALID_RANGES = {
+VALID_RANGES = {
     "temperature": (-math.inf, math.inf),
     "relative_humidity": (0, 100),
     "wind_speed": (0, math.inf),
@@ -60,7 +58,7 @@ def _valid(value, column: str) -> float | None:
     if value is None:
         return None
     value = float(value)
-    low, high = _VALID_RANGES[column]
+    low, high = VALID_RANGES[column]
     if math.isnan(value) or not low <= value <= high:
         return None
     return value
@@ -74,20 +72,27 @@ def _timestamp(value) -> datetime:
 
 
 def _wf1_table(
-    records: Iterable, source: str, resolution: str, ingested_at: datetime | None
+    records: Iterable,
+    source: str,
+    resolution: str,
+    ingested_at: datetime | None,
+    *,
+    station_code: str = "station_code",
+    time: str = "weather_date",
 ) -> pa.Table:
+    """Rows from WF1 records. `station_code` and `time` name the records' attributes."""
     columns: dict[str, list] = {name: [] for name in BY_TIME_SCHEMA.names}
     for record in records:
-        timestamp = _timestamp(record.weather_date)
+        timestamp = _timestamp(getattr(record, time))
         columns["resolution"].append(resolution)
         columns["source"].append(source)
         columns["month"].append(timestamp.strftime("%Y-%m"))
-        columns["station_code"].append(record.station_code)
+        columns["station_code"].append(getattr(record, station_code))
         columns["timestamp"].append(timestamp)
-        for column in _VALID_RANGES:
+        for column in VALID_RANGES:
             columns[column].append(_valid(getattr(record, column), column))
         for column in VALUE_COLUMNS:
-            if column not in _VALID_RANGES:
+            if column not in VALID_RANGES:
                 columns[column].append(None)
         columns["run_ts"].append(None)
         columns["ingested_at"].append(ingested_at or _timestamp(record.created_at))
@@ -100,70 +105,19 @@ def actuals_table(hourly_actuals: Iterable, ingested_at: datetime | None = None)
     return _wf1_table(hourly_actuals, ACTUALS, HOURLY, ingested_at)
 
 
+def daily_actuals_table(dailies: Iterable, ingested_at: datetime) -> pa.Table:
+    """WF1's daily actuals (`SFMSDaily`s from wps_wf1) as daily `ACTUALS` rows, fetched at
+    `ingested_at`. The precipitation is WF1's 24 hour total."""
+    return _wf1_table(
+        dailies, ACTUALS, DAILY, ingested_at, station_code="code", time="for_datetime"
+    )
+
+
 def forecasts_table(noon_forecasts: Iterable, ingested_at: datetime | None = None) -> pa.Table:
     """Forecasters' noon forecasts (`NoonForecast`s from wps_wf1) as daily `FORECAST` rows,
     fetched at `ingested_at`, or each at its own `created_at` when copying history. The
     precipitation is the forecast 24 hour total."""
     return _wf1_table(noon_forecasts, FORECAST, DAILY, ingested_at)
-
-
-_DAY = timedelta(hours=24)
-_NOON_VALUE_COLUMNS = ("temperature", "relative_humidity", "wind_speed", "wind_direction")
-
-
-def daily_actuals_table(hourly: pa.Table, since: datetime) -> pa.Table:
-    """Daily `ACTUALS` rows from hourly ones: one per station for each 20:00 UTC observation at
-    or after `since`.
-
-    The weather values are the 20:00 UTC observation's. The precipitation is the total of the 24
-    hours ending then, as in the daily model and forecast rows. It is null unless all 24 hours
-    have a value, rather than a total that is too low, so `hourly` must reach 23 hours before
-    `since`. The row's `ingested_at` is the newest of the hours it was built from.
-    """
-    by_station: dict[int, dict[datetime, dict]] = defaultdict(dict)
-    for row in hourly.to_pylist():
-        by_station[row["station_code"]][row["timestamp"]] = row
-
-    columns: dict[str, list] = {name: [] for name in BY_TIME_SCHEMA.names}
-    for station_code, hours in by_station.items():
-        for timestamp, noon in hours.items():
-            if timestamp < since or (timestamp.hour, timestamp.minute) != (DAILY_HOUR_UTC, 0):
-                continue
-            day = [hours.get(timestamp - timedelta(hours=back)) for back in range(24)]
-            precip = [hour["precipitation"] if hour else None for hour in day]
-            columns["resolution"].append(DAILY)
-            columns["source"].append(ACTUALS)
-            columns["month"].append(timestamp.strftime("%Y-%m"))
-            columns["station_code"].append(station_code)
-            columns["timestamp"].append(timestamp)
-            for column in VALUE_COLUMNS:
-                columns[column].append(noon[column] if column in _NOON_VALUE_COLUMNS else None)
-            columns["precipitation"][-1] = None if None in precip else sum(precip)
-            columns["run_ts"].append(None)
-            columns["ingested_at"].append(max(hour["ingested_at"] for hour in day if hour))
-    return pa.table(columns, schema=BY_TIME_SCHEMA)
-
-
-def merge_daily_actuals(by_time: ByTimeTable, hourly_rows: pa.Table) -> int:
-    """Write the daily observations that the hourly `ACTUALS` rows just merged into `by_time`
-    complete or change. Returns the number of daily rows merged.
-
-    A daily row needs the 24 hours before it, which one fetch does not hold, so the hours are
-    read back from `by_time`. Every 20:00 UTC observation from the first of `hourly_rows` to a
-    day after the last is rebuilt, so a late or corrected hour updates the day's total.
-    """
-    if hourly_rows.num_rows == 0:
-        return 0
-    first = pc.min(hourly_rows["timestamp"]).as_py()
-    last = pc.max(hourly_rows["timestamp"]).as_py()
-    stored = by_time.read(
-        HOURLY,
-        [ACTUALS],
-        first - _DAY,
-        last + _DAY,
-        station_codes=pc.unique(hourly_rows["station_code"]).to_pylist(),
-    )
-    return by_time.merge_wf1_rows(daily_actuals_table(stored, first))
 
 
 class Wf1Table(DeltaWeatherTable):

@@ -20,8 +20,8 @@ WF1 source:
 The script can be run again. A run already in `runs` is skipped, and `by_time` only takes a
 run's row where the run is at least as new as the row's. WF1 rows keep the time they were first
 fetched, every version of a noon forecast is copied, and `wf1` only takes a version that differs
-from the one before it. The daily observations are derived from the hourly ones once they
-are in `by_time`; the first day copied has no precip total unless the 23 hours before it are there.
+from the one before it. Postgres never held WF1's daily actuals, so `ACTUALS` copies
+hourly rows only; station_actuals_data_mart_backfill.py copies the daily ones.
 Exits 0 when everything was copied or already there, 1 otherwise.
 
 Design: docs/architecture/station-weather-storage.md
@@ -38,12 +38,7 @@ from wps_shared.utils.time import get_utc_now
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 from wps_weather_data.by_time import ACTUALS, FORECAST, ByTimeTable
 from wps_weather_data.runs import RunsTable
-from wps_weather_data.wf1 import (
-    Wf1Table,
-    actuals_table,
-    forecasts_table,
-    merge_daily_actuals,
-)
+from wps_weather_data.wf1 import Wf1Table, actuals_table, forecasts_table
 
 # A model's interpolated runs since a time. ECMWF has two grids with runs at the same times;
 # the 0.1 degree one is taken, as the readers did.
@@ -167,15 +162,11 @@ def backfill_wf1(session, source: str, since, dry_run: bool) -> int:
     try:
         # Each record keeps the time it was first fetched.
         rows = to_table(records)
-        by_time = ByTimeTable()
         appended = Wf1Table().append_changed(rows)
-        merged = by_time.merge_wf1_rows(rows)
+        merged = ByTimeTable().merge_wf1_rows(rows)
         print(
             f"[copied    ] {source}: {appended.num_rows} versions to wf1, {merged} rows to by_time"
         )
-        if source == ACTUALS:
-            daily = merge_daily_actuals(by_time, rows)
-            print(f"[derived   ] {source}: {daily} daily rows to by_time")
         return 0
     except Exception as exception:
         print(f"[failed    ] {source}: {exception}")

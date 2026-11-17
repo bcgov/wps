@@ -5,7 +5,9 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from pytest_mock import MockerFixture
+from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.observations import HourlyActual
+from wps_shared.schemas.sfms import SFMSDaily
 from wps_weather_data.by_time import ACTUALS, DAILY, HOURLY, ByTimeTable
 from wps_weather_data.wf1 import Wf1Table
 
@@ -55,24 +57,51 @@ def test_hourly_actuals_job_writes_wf1_and_by_time(mocker: MockerFixture, mock_w
     assert rows[0]["precipitation"] == pytest.approx(0.2)
 
 
-def test_hourly_actuals_job_writes_the_daily_observation(
-    mocker: MockerFixture, mock_wfwx_api, tables
-):
+def test_hourly_actuals_job_writes_wf1s_daily_actuals(mocker: MockerFixture, mock_wfwx_api, tables):
     wf1, by_time = tables
-    mock_wfwx_api.get_hourly_actuals_all_stations.return_value = [
-        hourly_actual(1, 10.0, AT_2000 - timedelta(hours=back)) for back in range(24)
-    ]
+    mocker.patch.object(
+        hourly_actuals.wps_shared.utils.time,
+        "get_pst_now",
+        return_value=AT_2000 + timedelta(minutes=30),
+    )
+    mock_wfwx_api.get_hourly_actuals_all_stations.return_value = [hourly_actual(1, 10.0, AT_2000)]
+
+    def dailies(time):
+        if time != AT_2000:
+            return []
+        values = {"lat": 50.0, "lon": -120.0, "temperature": 10.0, "relative_humidity": 60.0}
+        return [
+            SFMSDaily(
+                code=1, for_datetime=time, run_type=RunTypeEnum.actual, precipitation=7.4, **values
+            ),
+            # A forecast for the same time is not an actual.
+            SFMSDaily(
+                code=2,
+                for_datetime=time,
+                run_type=RunTypeEnum.forecast,
+                precipitation=1.0,
+                **values,
+            ),
+        ]
+
+    mock_wfwx_api.get_sfms_daily_weather_all_stations.side_effect = dailies
     mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
 
     with pytest.raises(SystemExit) as excinfo:
         hourly_actuals.main()
 
     assert excinfo.value.code == 0
+    # The latest 20:00 UTC and the one before are both asked for.
+    asked = [
+        call.args[0] for call in mock_wfwx_api.get_sfms_daily_weather_all_stations.call_args_list
+    ]
+    assert asked == [AT_2000 - timedelta(days=1), AT_2000]
     (row,) = by_time.read(DAILY, [ACTUALS], AT_2000, AT_2000).to_pylist()
     assert (row["station_code"], row["temperature"]) == (1, 10.0)
-    assert row["precipitation"] == pytest.approx(24 * 0.2)
-    # The daily row is derived, so wf1 holds only what WF1 supplied.
-    assert wf1.dataset().count_rows() == 24
+    # WF1's total, not the sum of the hours fetched.
+    assert row["precipitation"] == pytest.approx(7.4)
+    # One hourly row and one daily row, both as WF1 supplied them.
+    assert wf1.dataset().count_rows() == 2
 
 
 def test_hourly_actuals_job_records_only_changes_in_wf1(
