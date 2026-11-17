@@ -12,7 +12,8 @@ The layouts follow from the reads we need to support:
 We compared Parquet, GeoParquet, Delta Lake, Zarr and Icechunk with four local benchmarks, written up in [station-weather-storage-evaluation.md](station-weather-storage-evaluation.md). The design uses two of them:
 
 - **Delta Lake** for the two tables that jobs write to, `runs` and `by_time`. Several jobs write to each, and both need compaction. That is what Delta Lake is for.
-- **Plain Parquet** for the files derived from them, which have a single writer and are read by screens.
+- **Delta Lake** for `by_station` as well, the copy of `by_time` laid out by station. It has a single writer and would work as plain Parquet files, which is how it was first designed. It is a Delta table so that a nightly rebuild is one commit, a bad one can be undone, and it goes through the same client and upkeep as the other tables.
+- **Plain Parquet** for the other files derived from them (`hourly_profile`, `leads`), which have a single writer and are read by screens.
 
 GeoParquet and Icechunk are a poor fit. Zarr is a poor fit for model runs and a reasonable but second-best fit for station history.
 
@@ -126,7 +127,7 @@ weather/stations/
   wf1/                                         Delta table: every observation and forecast from WF1, append-only
   by_time/                                     Delta table: newest value per station and time
   staging/hrdps/                               Delta table per model: station values while a run downloads
-  by_station/resolution=hourly/station=322/history.parquet the by_time rows, keyed by station
+  by_station/                                  Delta table: the by_time rows, partitioned by resolution, station and year
   hourly_profile/station=322.parquet                       hourly statistics by month and hour of day
   leads/station=322/2026.parquet                           every prediction at every lead, per station
 ```
@@ -141,11 +142,11 @@ That is the production layout. Dev deployments share one bucket, so each writes 
 | `staging` | Delta Lake, one per model | The model job itself, between invocations | That model's job |
 | `wf1` | Delta Lake | Rebuilding `by_time`; history of corrections | The WF1 jobs |
 | `by_time` | Delta Lake | MoreCast; training and ingest (`ACTUALS`) | The model jobs and the WF1 jobs |
-| `by_station` | Parquet | Climatology for one station or a group | One nightly job |
+| `by_station` | Delta Lake | Climatology for one station or a group | One nightly job |
 | `hourly_profile` | Parquet | Hourly climatology for a group, on a screen | The same nightly job |
 | `leads` | Parquet | Climatology at a chosen lead, while experimenting | The same nightly job |
 
-The Parquet files have deterministic keys: a reader computes the key from the station and never lists the bucket. The Delta tables are read through their transaction log.
+The Parquet files have deterministic keys: a reader computes the key from the station and never lists the bucket. The Delta tables are read through their transaction log, `by_station` included.
 
 All values are stored as float32. Postgres stores doubles today, but that precision is not information: the source model fields and the station sensors carry far fewer than float32's seven significant digits. float32 halves the size of `runs` to about 4.5 GB a year. The training golden tests compare exact values and will need a tolerance.
 
@@ -247,14 +248,11 @@ FWI indices are out of scope for now. Adding them later means adding columns, wh
 
 ### `by_station`
 
-The same rows as `by_time`, with `source` as a column, keyed by station. Each station has two files per resolution:
+The same rows as `by_time`, laid out by station: a Delta table partitioned by `resolution`, `station_code` and `year` (the UTC year), in place of `by_time`'s `resolution`, `source` and month. `source` is a column, and each file is sorted by source then time. A station's record is its own files, one per year, and a read opens only those.
 
-- `history.parquet` holds every closed year.
-- `<year>.parquet` holds the current year.
+A nightly job is the only writer (`wps_weather_data.by_station`, the `station-weather-by-station` cron job). It replaces the current year's rows with what `by_time` now holds, in one commit per resolution, so a reader sees a year either as it was or as it now is. A year that has ended is rebuilt only when asked for (`--from-year`), which is how a backfill of earlier years, or a correction to one, reaches this table. The maintenance job vacuums the files each rebuild replaces.
 
-Both are sorted by source then time, with one row group per source per year. One source's whole history is a single contiguous byte range, so a reader wanting one source makes two requests per file, and a reader wanting everything fetches the file whole.
-
-These are plain Parquet files. A nightly job is the only writer. It rebuilds each station's current-year file from `by_time`. At the end of a year it merges that year into the station's history file. After 30 years a history file is about 5 MB for daily data and about 56 MB for hourly.
+An earlier version of this design kept plain Parquet files per station: a `history.parquet` for the years that had ended and a file for the current year. It read faster, with no transaction log to open, but the nightly job then updated stations one at a time, a job that stopped part way left a year in two files for readers to reconcile, and the files went through a second S3 client. As a Delta table, at 300 stations and 40 years of daily observations (12,000 files), reading one station's whole record took 30 to 50 ms from local disk once the table was open. That has not been timed against ECS.
 
 This copy lags `by_time` by up to a day. It is derived and can be rebuilt at any time.
 
@@ -481,8 +479,8 @@ What this keeps:
 | Reader | Reads | Objects |
 |---|---|---|
 | MoreCast grid | `by_time`, daily, every source | About 1 file per source and month after compaction |
-| Climatology, one station | `by_station` | 2 files, whole or one byte range each |
-| Climatology, a group, daily | `by_station` | 2 files per station |
+| Climatology, one station | `by_station` | 1 file per year the station has |
+| Climatology, a group, daily | `by_station` | 1 file per station and year |
 | Climatology, a group, hourly | `hourly_profile` | 1 per station |
 | Climatology at a chosen lead | `leads`, with ranged GETs | Per station and year: 1 footer, plus 1 row group per model per month wanted |
 | Fire watch | `runs`, one run of one model | The run's files in its `run_date` partition |
@@ -492,7 +490,7 @@ What this keeps:
 
 Reading a Delta table starts with its transaction log. A cold open took about 200 ms in the local benchmark and 839 ms against our object store, on a tiny table with a fresh checkpoint. API pods should keep table state in memory and refresh it, not reopen the table on every request.
 
-The Parquet files are fetched through the existing S3 client and filtered with `pyarrow`. Ranged GETs are used for single-source reads of `by_station` and for group reads of `leads`. The API computes climatology statistics on demand and can cache them.
+`by_station` is read through Delta Lake, limited to the station's partitions. The Parquet files are fetched through the existing S3 client and filtered with `pyarrow`. Ranged GETs are used for group reads of `leads`. The API computes climatology statistics on demand and can cache them.
 
 ### Retention
 
@@ -540,7 +538,7 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 4. Done: MoreCast reads its model values from `by_time`, fire watch reads its ECMWF run from `runs`, and training reads `runs` (see "Training reads `runs`" below). The `/weather_models` routes were removed separately (#6060). Nothing falls back to Postgres, so a deployment's tables must be filled with `backend/scripts/station_weather_backfill.py` before it serves users: `by_time` for the days MoreCast shows, and `runs` and `ACTUALS` for the 19 days training learns from.
 5. and 6. Done: every model job stages runs in `staging` instead of `model_run_predictions`, keeps its bookkeeping in `staging` and `runs`, and no longer writes `weather_station_model_predictions`. Dropping the four legacy tables and retiring the `pgslice` job waits for the production backfill, as described under "What stays in Postgres".
 7. Done: the WF1 jobs write `ACTUALS` and `FORECAST` to `wf1` and `by_time` only, training and ingest read `ACTUALS` from `by_time`, and the two noon forecast routes (`POST /forecasts/noon/` and `/forecasts/noon/summaries/`), which no web or mobile code called, are removed. `hourly_actuals` and `noon_forecasts` wait for the production backfill, with the other legacy tables.
-8. Add the nightly job that writes `by_station`, `hourly_profile` and `leads`, and build the climatology reads on them. The observations it needs from before these tables existed come from the BCWS data mart, which has hourly observations back to 1987: `backend/scripts/station_actuals_data_mart_backfill.py` copies them into `wf1` and `by_time` as `ACTUALS`, hourly and daily; the daily rows are the noon rows that carry WF1's daily precip total. Postgres never held the daily actuals, so `station_weather_backfill.py` copies hourly ones only. Tried on the 1987 file and three days of 2026 against local tables, not yet against ECS or for every year.
+8. Add the nightly job that writes `by_station`, `hourly_profile` and `leads`, and build the climatology reads on them. `by_station` is written, as a Delta table: built from three real years of data mart observations in local tables, a station's daily record matched `by_time`. It has not run against ECS. `hourly_profile`, `leads` and the climatology reads are not built. The observations it needs from before these tables existed come from the BCWS data mart, which has hourly observations back to 1987: `backend/scripts/station_actuals_data_mart_backfill.py` copies them into `wf1` and `by_time` as `ACTUALS`, hourly and daily; the daily rows are the noon rows that carry WF1's daily precip total. Postgres never held the daily actuals, so `station_weather_backfill.py` copies hourly ones only. Tried on the 1987 file and three days of 2026 against local tables, not yet against ECS or for every year.
 
 Steps 7 and 8 do not depend on steps 4 to 6. History only accumulates once `by_time` is being written, so steps 2 and 7 are worth starting early even if readers move later.
 

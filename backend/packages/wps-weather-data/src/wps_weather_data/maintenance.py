@@ -12,6 +12,7 @@ from collections.abc import Iterable
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
 
+from wps_weather_data.by_station import ByStationTable
 from wps_weather_data.by_time import ByTimeTable
 from wps_weather_data.runs import RunsTable
 from wps_weather_data.staging import StagingTable
@@ -44,6 +45,7 @@ def main():
         RunsTable(),
         ByTimeTable(),
         Wf1Table(),
+        ByStationTable(),
         *(StagingTable(model) for model in ModelEnum),
     ]
     sys.exit(0 if maintain_all(tables) else 1)
