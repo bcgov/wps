@@ -7,8 +7,8 @@ file for the whole year (`1987_BCWS_WX_OBS.csv`), and from 2022 a file per day a
 
 This reads those files into rows with the `by_time` columns and writes them the way the hourly
 actuals job writes what it fetches from WF1: appended to `wf1` and merged into `by_time`. Each
-station's noon row also carries WF1's daily values, and becomes a daily row as well. backend/scripts/station_actuals_data_mart_backfill.py
-downloads the files and runs it.
+station's noon row also carries WF1's daily values, and becomes a daily row as well.
+`data_mart_backfill` downloads the files and runs it.
 
 Design: docs/architecture/station-weather-storage.md
 """

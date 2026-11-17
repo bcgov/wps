@@ -8,8 +8,11 @@ are the noon rows that carry WF1's daily precip total.
 
 Run from ./backend against the deployment's bucket:
 
-    uv run python scripts/station_actuals_data_mart_backfill.py --from-year 1987
-    uv run python scripts/station_actuals_data_mart_backfill.py --from-year 2026 --to-year 2026
+    uv run python -m wps_weather_data.data_mart_backfill --from-year 1987
+    uv run python -m wps_weather_data.data_mart_backfill --from-year 2026 --to-year 2026
+
+In OpenShift it runs as a one-off job, next to the object store:
+openshift/scripts/oc_provision_station_actuals_data_mart_backfill_job.sh.
 
 A year is read from its whole-year file where there is one, and from its daily files otherwise,
 as for the current year.
@@ -34,6 +37,7 @@ from pathlib import Path
 
 import pyarrow as pa
 from wps_shared.utils.time import get_utc_now
+
 from wps_weather_data.by_time import BY_TIME_SCHEMA, ByTimeTable
 from wps_weather_data.data_mart import read_observations_file, write_observations
 from wps_weather_data.wf1 import Wf1Table
@@ -97,8 +101,9 @@ def download(url: str, path: Path, pool: ThreadPoolExecutor, label: str):
     reported = 0
     with open(path, "wb") as file:
         file.truncate(size)
-        for part in as_completed(parts):
-            file.seek(parts[part][0])
+        for part in as_completed(list(parts)):
+            # Dropping the part once written keeps the whole file from being held in memory.
+            file.seek(parts.pop(part)[0])
             file.write(part.result()[1])
             done += 1
             percent = 100 * done // len(ranges)
@@ -148,6 +153,23 @@ def read_year(year: int, names: list[str], directory: Path) -> pa.Table:
     return rows
 
 
+def backfill_year(year: int, directory: Path, wf1: Wf1Table, by_time: ByTimeTable, dry_run: bool):
+    """Copy one year. Its rows are released when this returns, before the next year is read."""
+    names = observation_files(year)
+    rows = read_year(year, names, directory)
+    if dry_run:
+        report(f"[would copy ] {year}: {rows.num_rows} rows in {len(names)} files")
+        return
+    started = time.perf_counter()
+    written = write_observations(wf1, by_time, rows)
+    report(
+        f"[copied     ] {year}: {written['read']} rows in {len(names)} files, "
+        f"{written['daily']} of them daily, "
+        f"{written['wf1']} to wf1, {written['by_time']} to by_time "
+        f"in {time.perf_counter() - started:.0f} s"
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--from-year", type=int, default=FIRST_YEAR)
@@ -168,19 +190,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as directory:
         for year in range(args.from_year, args.to_year + 1):
             try:
-                names = observation_files(year)
-                rows = read_year(year, names, Path(directory))
-                if args.dry_run:
-                    report(f"[would copy ] {year}: {rows.num_rows} rows in {len(names)} files")
-                    continue
-                started = time.perf_counter()
-                written = write_observations(wf1, by_time, rows)
-                report(
-                    f"[copied     ] {year}: {written['read']} rows in {len(names)} files, "
-                    f"{written['daily']} of them daily, "
-                    f"{written['wf1']} to wf1, {written['by_time']} to by_time "
-                    f"in {time.perf_counter() - started:.0f} s"
-                )
+                backfill_year(year, Path(directory), wf1, by_time, args.dry_run)
             except Exception as exception:
                 failed += 1
                 report(f"[failed     ] {year}: {exception}")
