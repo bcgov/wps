@@ -2,11 +2,18 @@ import axios from './axios'
 
 export type ClimatologyVariable = 'temperature' | 'relative_humidity' | 'wind_speed' | 'precipitation'
 
+// How several stations are combined: the mean of the stations each day, every station's value
+// pooled into one distribution, or a climatology for each station.
+export type ClimatologyMethod = 'average' | 'pooled' | 'each'
+
 // How a variable has been distributed on one day of the year, over the reference years.
 export interface ClimatologyDay {
   month: number
   day: number
+  // How many values the distribution is drawn from: years, or station years when pooled.
   count: number
+  // How many stations contributed to it.
+  station_count: number
   minimum: number
   p25: number
   median: number
@@ -18,27 +25,58 @@ export interface ClimatologyDay {
 export interface ClimatologyObservation {
   // ISO date, e.g. 2026-07-01
   date: string
+  // One station's value, or the mean of the stations that reported.
   value: number
+  station_count: number
 }
 
-// A station's daily climatology for a variable, and its values in one year to compare.
-export interface DailyClimatology {
-  station_code: number
-  variable: ClimatologyVariable
-  year: number
-  // The years the distribution is drawn from, which leave out `year`. Null with no history.
+// A daily climatology for some stations, and their values in the selected year.
+export interface ClimatologySeries {
+  station_codes: number[]
+  // The years the distribution is drawn from, which leave out the selected year. Null with no
+  // history.
   first_reference_year: number | null
   last_reference_year: number | null
   days: ClimatologyDay[]
   observations: ClimatologyObservation[]
 }
 
-export async function getDailyClimatology(
-  stationCode: number,
-  variable: ClimatologyVariable,
+// One series when the stations are combined, or one per station.
+export interface DailyClimatology {
+  variable: ClimatologyVariable
   year: number
+  method: ClimatologyMethod
+  series: ClimatologySeries[]
+}
+
+export interface ClimatologyStation {
+  code: number
+  name: string
+  // The fire zone, such as K2, when WF1 has one.
+  zone: string | null
+}
+
+export interface ClimatologyFireCentre {
+  id: number
+  name: string
+  stations: ClimatologyStation[]
+}
+
+export async function getDailyClimatology(
+  stationCodes: number[],
+  variable: ClimatologyVariable,
+  year: number,
+  method: ClimatologyMethod
 ): Promise<DailyClimatology> {
-  const url = `/climatology/stations/${stationCode}/daily`
-  const { data } = await axios.get<DailyClimatology>(url, { params: { variable, year } })
+  const { data } = await axios.get<DailyClimatology>('/climatology/daily', {
+    params: { station_codes: stationCodes, variable, year, method },
+    // The API reads a list as a repeated parameter: station_codes=1&station_codes=2
+    paramsSerializer: { indexes: null }
+  })
   return data
+}
+
+export async function getClimatologyFireCentres(): Promise<ClimatologyFireCentre[]> {
+  const { data } = await axios.get<{ fire_centres: ClimatologyFireCentre[] }>('/climatology/fire-centres')
+  return data.fire_centres
 }

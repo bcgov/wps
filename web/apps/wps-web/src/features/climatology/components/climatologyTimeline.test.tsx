@@ -15,7 +15,9 @@ const rows: ClimatologyRow[] = Array.from({ length: 60 }, (_, index) => ({
   p75: 24,
   p90: 28,
   maximum: 35,
-  value: index < 30 ? 20 : null
+  value: index < 30 ? 20 : null,
+  stationCount: 1,
+  valueStationCount: index < 30 ? 1 : null
 }))
 
 const window = { start: FIRST + 10 * DAY, end: FIRST + 20 * DAY }

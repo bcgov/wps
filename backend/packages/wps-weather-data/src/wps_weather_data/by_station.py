@@ -47,13 +47,15 @@ BY_STATION_SCHEMA = pa.schema(
     ]
 )
 
-# What a read returns: the resolution and station were asked for, and the year is in the time.
+# What a read of several stations returns: the resolution was asked for, and the year is in the
+# time.
+STATIONS_ROWS_SCHEMA = pa.schema(
+    [field for field in BY_STATION_SCHEMA if field.name not in ("resolution", "year")]
+)
+
+# What a read of one station returns, without the station it was asked for.
 STATION_ROWS_SCHEMA = pa.schema(
-    [
-        field
-        for field in BY_STATION_SCHEMA
-        if field.name not in ("resolution", "station_code", "year")
-    ]
+    [field for field in STATIONS_ROWS_SCHEMA if field.name != "station_code"]
 )
 
 
@@ -111,17 +113,31 @@ class ByStationTable(DeltaWeatherTable):
         sources only. Returns an empty table for a station with no rows, or if the table does
         not exist yet.
         """
-        if not self.exists():
-            return STATION_ROWS_SCHEMA.empty_table()
-        # Only the station's own files are opened: the table has a file per station per year.
+        rows = self.read_stations(resolution, [station_code], sources)
+        return rows.select(STATION_ROWS_SCHEMA.names).cast(STATION_ROWS_SCHEMA)
+
+    def read_stations(
+        self, resolution: str, station_codes: Sequence[int], sources: Sequence[str] | None = None
+    ) -> pa.Table:
+        """Read the whole record of several stations, sorted by station, source then time,
+        optionally for some sources only. A station with no rows has none in the result.
+        """
+        if not self.exists() or not station_codes:
+            return STATIONS_ROWS_SCHEMA.empty_table()
+        # Only the stations' own files are opened: the table has a file per station per year.
         dataset = self.dataset(
-            partitions=[("resolution", "=", resolution), ("station_code", "=", str(station_code))]
+            partitions=[
+                ("resolution", "=", resolution),
+                ("station_code", "in", [str(code) for code in station_codes]),
+            ]
         )
         wanted = pc.field("source").isin(list(sources)) if sources is not None else None
         return (
-            dataset.to_table(filter=wanted, columns=STATION_ROWS_SCHEMA.names)
-            .cast(STATION_ROWS_SCHEMA)
-            .sort_by([("source", "ascending"), ("timestamp", "ascending")])
+            dataset.to_table(filter=wanted, columns=STATIONS_ROWS_SCHEMA.names)
+            .cast(STATIONS_ROWS_SCHEMA)
+            .sort_by(
+                [("station_code", "ascending"), ("source", "ascending"), ("timestamp", "ascending")]
+            )
         )
 
 

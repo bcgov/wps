@@ -215,3 +215,29 @@ def test_dev_deployments_keep_their_own_table(monkeypatch):
     assert (
         StationWeatherAddresser().get_by_station_key() == "dev/pr-123/weather/stations/by_station"
     )
+
+
+def test_several_stations_are_read_together(by_time, by_station):
+    by_time.merge_wf1_rows(
+        daily_actuals_table(
+            [
+                daily(noon(2025), station_code=322, temperature=1.0),
+                daily(noon(2026), station_code=322, temperature=2.0),
+                daily(noon(2026), station_code=209, temperature=3.0),
+                daily(noon(2026), station_code=1, temperature=4.0),
+            ],
+            FETCHED,
+        )
+    )
+    build(by_station, by_time, 2025, 2026, resolutions=[DAILY])
+
+    rows = by_station.read_stations(DAILY, [322, 209, 999])
+
+    assert [
+        (row["station_code"], row["timestamp"].year, row["temperature"]) for row in rows.to_pylist()
+    ] == [
+        (209, 2026, 3.0),
+        (322, 2025, 1.0),
+        (322, 2026, 2.0),
+    ]
+    assert by_station.read_stations(DAILY, []).num_rows == 0
