@@ -54,7 +54,9 @@ rows, converting the Pacific Standard Time hours to UTC. A noon row that carries
 precip total also becomes a daily `ACTUALS` row. `write_observations` writes them to `wf1` and
 `by_time`. A value the hourly actuals job fetched from WF1 is never replaced by one from the
 data mart.
-`backend/scripts/station_actuals_data_mart_backfill.py` downloads the files and runs it.
+`data_mart_backfill.py` downloads the files and runs it: `python -m
+wps_weather_data.data_mart_backfill`, or as a one-off OpenShift job (see
+`docs/DATA_REPROCESSING.md`).
 
 ## actuals.py
 
