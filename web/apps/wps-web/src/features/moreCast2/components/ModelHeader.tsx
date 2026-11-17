@@ -1,4 +1,4 @@
-import { Info as InfoIcon } from '@mui/icons-material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import type { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
 import { weatherModelsWithTooltips } from '@wps/api/moreCast2API'
@@ -47,7 +47,7 @@ const ModelHeader = ({ params, allRows }: ModelHeaderProps) => {
             size="small"
             style={{ padding: '2px', height: '20px', width: '20px' }}
           >
-            <InfoIcon style={{ fontSize: '12px' }} />
+            <InfoOutlinedIcon style={{ fontSize: 16 }} />
           </IconButton>
         </Tooltip>
       </Box>
