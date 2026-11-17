@@ -197,7 +197,7 @@ class ByTimeTable(DeltaWeatherTable):
         )
         if station_codes is not None:
             wanted = wanted & pc.field("station_code").isin(list(station_codes))
-        dataset = self.open().to_pyarrow_dataset()
+        dataset = self.dataset()
         return (
             dataset.to_table(filter=wanted)
             .select(BY_TIME_SCHEMA.names)

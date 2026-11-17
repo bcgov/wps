@@ -109,3 +109,25 @@ def test_read_before_table_exists_returns_empty(table):
 
     assert result.num_rows == 0
     assert result.schema == RUNS_SCHEMA
+
+
+def test_a_reused_table_sees_runs_appended_after_its_first_read(table):
+    next_run = RUN_TS + timedelta(hours=12)
+    table.append_run(ModelEnum.GDPS, RUN_TS, make_rows([101]), ingested_at=INGESTED_AT)
+    assert table.read(ModelEnum.GDPS, RUN_TS, next_run).num_rows == 2
+
+    # Appended through another object, as another process would.
+    RunsTable(table.table_uri).append_run(
+        ModelEnum.GDPS, next_run, make_rows([101]), ingested_at=INGESTED_AT
+    )
+
+    assert table.read(ModelEnum.GDPS, RUN_TS, next_run).num_rows == 4
+
+
+def test_a_reused_table_is_opened_once(table):
+    table.append_run(ModelEnum.GDPS, RUN_TS, make_rows([101]), ingested_at=INGESTED_AT)
+
+    first = table.open()
+    second = table.open()
+
+    assert first is second

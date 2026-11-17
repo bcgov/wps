@@ -406,8 +406,16 @@ async def test_get_determinates_authorized(
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    # Model predictions come from the by_time table in object storage, which tests must not reach.
+    mock_fetch_model_predictions = Mock(return_value=[])
+    monkeypatch.setattr(
+        app.routers.morecast_v2, "fetch_model_predictions", mock_fetch_model_predictions
+    )
+    monkeypatch.setattr(app.routers.morecast_v2, "get_by_time_table", lambda: "the by_time table")
 
     response = await async_client.post(
         morecast_v2_post_determinates_url, json={"stations": [209, 211, 302]}
     )
     assert response.status_code == 200
+    mock_fetch_model_predictions.assert_called_once()
+    assert mock_fetch_model_predictions.call_args.args[0] == "the by_time table"
