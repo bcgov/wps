@@ -18,11 +18,12 @@ export default defineConfig({
     {
       name: 'build-html',
       apply: 'build',
+      // The path is absolute so that it resolves on nested routes such as /insights/climatology.
       transformIndexHtml(html) {
         return html.replace(
           /<meta name="viewport" content="width=device-width, initial-scale=1.0">/,
           `<meta name="viewport" content="width=device-width, initial-scale=1.0">
-         <script src="config.js"></script>
+         <script src="/config.js"></script>
         `
         )
       }
