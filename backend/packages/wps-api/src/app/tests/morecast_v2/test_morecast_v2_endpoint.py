@@ -28,6 +28,7 @@ from wps_shared.schemas.morecast_v2 import (
 from wps_shared.schemas.shared import StationsRequest
 from wps_shared.tests.common import default_mock_client_get
 from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.runs import RunsTable
 
 morecast_v2_post_url = "/api/morecast-v2/forecast"
 morecast_v2_get_url = "/api/morecast-v2/forecasts/2023-03-15"
@@ -450,11 +451,13 @@ def test_get_determinates_uses_the_table_created_at_startup(
 
 
 @pytest.mark.anyio
-async def test_lifespan_creates_the_by_time_table(anyio_backend, monkeypatch):
+async def test_lifespan_creates_the_tables(anyio_backend, monkeypatch):
     monkeypatch.delattr(api.state, "by_time_table", raising=False)
+    monkeypatch.delattr(api.state, "runs_table", raising=False)
 
     async with lifespan(None):
         assert isinstance(api.state.by_time_table, ByTimeTable)
+        assert isinstance(api.state.runs_table, RunsTable)
 
 
 def test_get_by_time_table_returns_the_table_from_the_app_state():

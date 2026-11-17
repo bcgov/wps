@@ -1,7 +1,7 @@
 from unittest import mock
 import pytest
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, patch, create_autospec
+from unittest.mock import AsyncMock, MagicMock, patch, create_autospec
 
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
 from wps_shared.fuel_types import FuelTypeEnum
@@ -27,6 +27,9 @@ from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndetermin
 from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from app.fire_watch.calculate_weather import MissingWeatherDataError
+from wps_shared.weather_models import ModelEnum
+
+RUN_TS = datetime(2026, 11, 17, 0, tzinfo=timezone.utc)
 
 
 @pytest.fixture
@@ -226,8 +229,13 @@ async def test_gather_fire_watch_inputs(
     mocker, mock_fire_watch, mock_predictions, mock_actual_weather_data
 ):
     mock_session = AsyncMock()
+    runs_table = MagicMock()
     mocker.patch(
-        "app.fire_watch.calculate_weather.get_latest_daily_model_prediction_for_stations",
+        "app.fire_watch.calculate_weather.get_model_and_run_timestamp",
+        AsyncMock(return_value=(ModelEnum.ECMWF, RUN_TS)),
+    )
+    mock_fetch = mocker.patch(
+        "app.fire_watch.calculate_weather.fetch_daily_run_predictions",
         return_value=mock_predictions,
     )
     mocker.patch(
@@ -236,11 +244,43 @@ async def test_gather_fire_watch_inputs(
     )
 
     predictions, actual_weather_data = await gather_fire_watch_inputs(
-        mock_session, mock_fire_watch, 1
+        mock_session, mock_fire_watch, 1, runs_table
     )
 
+    mock_fetch.assert_called_once_with(
+        runs_table, ModelEnum.ECMWF, RUN_TS, 1, [mock_fire_watch.station_code]
+    )
     assert predictions == mock_predictions
     assert actual_weather_data == mock_actual_weather_data
+
+
+@pytest.mark.anyio
+async def test_gather_fire_watch_inputs_raises_for_an_unknown_run(mocker, mock_fire_watch):
+    mocker.patch(
+        "app.fire_watch.calculate_weather.get_model_and_run_timestamp",
+        AsyncMock(return_value=None),
+    )
+    session = AsyncMock()
+    runs_table = MagicMock()
+
+    with pytest.raises(MissingWeatherDataError, match="No prediction model run with id 1"):
+        await gather_fire_watch_inputs(session, mock_fire_watch, 1, runs_table)
+
+
+@pytest.mark.anyio
+async def test_gather_fire_watch_inputs_raises_when_runs_has_no_predictions(
+    mocker, mock_fire_watch
+):
+    mocker.patch(
+        "app.fire_watch.calculate_weather.get_model_and_run_timestamp",
+        AsyncMock(return_value=(ModelEnum.ECMWF, RUN_TS)),
+    )
+    mocker.patch("app.fire_watch.calculate_weather.fetch_daily_run_predictions", return_value=[])
+    session = AsyncMock()
+    runs_table = MagicMock()
+
+    with pytest.raises(MissingWeatherDataError, match="No ECMWF predictions"):
+        await gather_fire_watch_inputs(session, mock_fire_watch, 1, runs_table)
 
 
 def test_validate_fire_watch_inputs(
@@ -420,7 +460,7 @@ async def test_process_all_fire_watch_weather_skips_if_weather_exists(mocker, mo
         "app.fire_watch.calculate_weather.process_single_fire_watch"
     )
 
-    await process_all_fire_watch_weather()
+    await process_all_fire_watch_weather(MagicMock())
 
     mock_get_station_metadata.assert_not_called()
     mock_get_all_prescription_status.assert_not_called()
@@ -451,7 +491,8 @@ async def test_process_all_fire_watch_weather_processes_fire_watches(
         "app.fire_watch.calculate_weather.process_single_fire_watch", AsyncMock()
     )
 
-    await process_all_fire_watch_weather()
+    runs_table = MagicMock()
+    await process_all_fire_watch_weather(runs_table)
 
     mock_process_single_fire_watch.assert_called_once_with(
         mock.ANY,
@@ -459,6 +500,7 @@ async def test_process_all_fire_watch_weather_processes_fire_watches(
         {101: mock_station_metadata},
         mock_status_id_dict,
         1,
+        runs_table,
     )
 
 
@@ -548,6 +590,7 @@ async def test_process_single_fire_watch_success(
         wfwx_station_map,
         mock_status_id_dict,
         prediction_run_timestamp_id,
+        MagicMock(),
     )
 
     mock_save.assert_awaited_once_with(mock_session, mock_fire_watch_predictions)
@@ -570,6 +613,7 @@ async def test_process_single_fire_watch_missing_station_metadata(
         wfwx_station_map,
         mock_status_id_dict,
         prediction_run_timestamp_id,
+        MagicMock(),
     )
 
     assert result is None
@@ -601,6 +645,7 @@ async def test_process_single_fire_watch_invalid_inputs(
             wfwx_station_map,
             mock_status_id_dict,
             prediction_run_timestamp_id,
+            MagicMock(),
         )
     assert f"Invalid inputs for FireWatch {mock_fire_watch.id}" in str(exc.value)
 
@@ -637,6 +682,7 @@ async def test_process_single_fire_watch_no_predictions_to_save(
         wfwx_station_map,
         mock_status_id_dict,
         prediction_run_timestamp_id,
+        MagicMock(),
     )
 
     mock_save.assert_not_called()

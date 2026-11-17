@@ -365,6 +365,23 @@ def get_weather_station_model_prediction(
     )
 
 
+async def get_model_and_run_timestamp(
+    session: AsyncSession, prediction_run_timestamp_id: int
+) -> tuple[ModelEnum, datetime.datetime] | None:
+    """Get the model and run time of a prediction model run, or None if there is no such run."""
+    stmt = (
+        select(PredictionModel.abbreviation, PredictionModelRunTimestamp.prediction_run_timestamp)
+        .join(
+            PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
+        )
+        .where(PredictionModelRunTimestamp.id == prediction_run_timestamp_id)
+    )
+    row = (await session.execute(stmt)).one_or_none()
+    if row is None:
+        return None
+    return ModelEnum(row.abbreviation), row.prediction_run_timestamp
+
+
 async def get_latest_prediction_timestamp_id_for_model(
     session: AsyncSession, model: ModelEnum
 ) -> int:
