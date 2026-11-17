@@ -2,8 +2,6 @@ import path, { resolve } from 'node:path'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
-import istanbul from 'vite-plugin-istanbul'
-import svgr from 'vite-plugin-svgr'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -32,7 +30,6 @@ export default defineConfig({
     react({
       plugins: [['@swc/plugin-emotion', {}]]
     }),
-    svgr(),
     sentryVitePlugin({
       org: 'bcps-wps',
       project: 'frontend',
@@ -40,11 +37,6 @@ export default defineConfig({
       sourcemaps: {
         filesToDeleteAfterUpload: 'build/assets/**.map'
       }
-    }),
-    istanbul({
-      include: ['src/**/*'],
-      exclude: ['node_modules', 'test/'],
-      extension: ['.js', '.ts', '.tsx']
     })
   ],
   server: {
