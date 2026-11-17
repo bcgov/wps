@@ -3,11 +3,10 @@
 import asyncio
 import logging
 from datetime import date, datetime, time, timedelta, timezone
-from functools import cache
 from typing import List
 
 from aiohttp.client import ClientSession
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.responses import ORJSONResponse
 from wps_shared.auth import audit, auth_with_forecaster_role_required, authentication_required
 from wps_shared.chatops_notification import send_chatops_notification
@@ -255,10 +254,9 @@ async def get_observed_dailies(
         return StationDailiesResponse(dailies=observed_dailies)
 
 
-@cache
-def get_by_time_table() -> ByTimeTable:
-    """The one `by_time` table for this process, so it is opened once and then only refreshed."""
-    return ByTimeTable()
+def get_by_time_table(request: Request) -> ByTimeTable:
+    """The `by_time` table the app created at startup (see `lifespan` in app.main)."""
+    return request.app.state.by_time_table
 
 
 @router.post(
@@ -267,7 +265,10 @@ def get_by_time_table() -> ByTimeTable:
     response_class=ORJSONResponse,
 )
 async def get_determinates_for_date_range(
-    start_date: date, end_date: date, request: StationsRequest
+    start_date: date,
+    end_date: date,
+    request: StationsRequest,
+    by_time_table: ByTimeTable = Depends(get_by_time_table),
 ):
     """Returns the weather values for any actuals, predictions and forecasts for the
     requested stations within the requested date range.
@@ -323,7 +324,7 @@ async def get_determinates_for_date_range(
         )
         # The read blocks on the network, so it runs in a thread to keep the event loop free.
         predictions = await asyncio.to_thread(
-            fetch_model_predictions, get_by_time_table(), all_stations, start_time, end_time
+            fetch_model_predictions, by_time_table, all_stations, start_time, end_time
         )
         station_codes = [station.code for station in wfwx_stations]
         grass_curing_rows = get_percent_grass_curing_by_station_for_date_range(

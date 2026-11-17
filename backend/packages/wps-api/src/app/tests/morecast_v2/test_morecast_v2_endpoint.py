@@ -6,6 +6,7 @@ import app.routers.morecast_v2
 import pytest
 import sentry_sdk
 from aiohttp import ClientSession
+from app.main import api, lifespan
 from app.morecast_v2 import forecasts as forecast_service
 from app.morecast_v2.forecasts import WF1ForecastSubmission
 from app.tests.utils.mock_jwt_decode_role import MockJWTDecodeWithRole
@@ -26,6 +27,7 @@ from wps_shared.schemas.morecast_v2 import (
 )
 from wps_shared.schemas.shared import StationsRequest
 from wps_shared.tests.common import default_mock_client_get
+from wps_weather_data.by_time import ByTimeTable
 
 morecast_v2_post_url = "/api/morecast-v2/forecast"
 morecast_v2_get_url = "/api/morecast-v2/forecasts/2023-03-15"
@@ -411,7 +413,12 @@ async def test_get_determinates_authorized(
     monkeypatch.setattr(
         app.routers.morecast_v2, "fetch_model_predictions", mock_fetch_model_predictions
     )
-    monkeypatch.setattr(app.routers.morecast_v2, "get_by_time_table", lambda: "the by_time table")
+    # This client does not run the app's lifespan, so the table it would create is supplied here.
+    monkeypatch.setitem(
+        api.dependency_overrides,
+        app.routers.morecast_v2.get_by_time_table,
+        lambda: "the by_time table",
+    )
 
     response = await async_client.post(
         morecast_v2_post_determinates_url, json={"stations": [209, 211, 302]}
@@ -419,3 +426,38 @@ async def test_get_determinates_authorized(
     assert response.status_code == 200
     mock_fetch_model_predictions.assert_called_once()
     assert mock_fetch_model_predictions.call_args.args[0] == "the by_time table"
+
+
+def test_get_determinates_uses_the_table_created_at_startup(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+):
+    """The lifespan runs on the base app, and its table must reach a route of the mounted api."""
+
+    def mock_admin_role_function(*_, **__):
+        return MockJWTDecodeWithRole("morecast2_write_forecast")
+
+    monkeypatch.setattr(decode_fn, mock_admin_role_function)
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    mock_fetch_model_predictions = Mock(return_value=[])
+    monkeypatch.setattr(
+        app.routers.morecast_v2, "fetch_model_predictions", mock_fetch_model_predictions
+    )
+
+    response = client.post(morecast_v2_post_determinates_url, json={"stations": [209, 211, 302]})
+
+    assert response.status_code == 200
+    assert isinstance(mock_fetch_model_predictions.call_args.args[0], ByTimeTable)
+
+
+@pytest.mark.anyio
+async def test_lifespan_creates_the_by_time_table(anyio_backend, monkeypatch):
+    monkeypatch.delattr(api.state, "by_time_table", raising=False)
+
+    async with lifespan(None):
+        assert isinstance(api.state.by_time_table, ByTimeTable)
+
+
+def test_get_by_time_table_returns_the_table_from_the_app_state():
+    request = Mock()
+
+    assert app.routers.morecast_v2.get_by_time_table(request) is request.app.state.by_time_table
