@@ -9,14 +9,19 @@ ENV LANGUAGE en_US.UTF-8
 ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
 
 
-RUN apt-get update && apt-get -y install unzip
+RUN apt-get update && apt-get -y install curl unzip
 
-# Download the Amazon CLI installer.
-ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
-
-# Switch to root user for package installs.
+# Download and install the Amazon CLI for the target architecture.
+# TARGETARCH is set by BuildKit and buildah; fall back to dpkg's architecture for builders that don't set it.
+ARG TARGETARCH
 USER root
-RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
+RUN case "${TARGETARCH:-$(dpkg --print-architecture)}" in \
+      amd64) AWSCLI_ARCH=x86_64 ;; \
+      arm64) AWSCLI_ARCH=aarch64 ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH:-$(dpkg --print-architecture)}" >&2; exit 1 ;; \
+    esac && \
+    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" -o /tmp/awscliv2.zip && \
+    unzip /tmp/awscliv2.zip -d /tmp/ && \
     /tmp/aws/install
 
 RUN apt-get -y install python3

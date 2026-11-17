@@ -1,23 +1,22 @@
-ARG DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
-# For the final stage, we use ubuntu:22.04
-# Rationale for using ubuntu:22.04:
-# - It's the latest ubuntu LTS release.
-# - It generally has a more recent version of gdal than debian.
-# - It generally has a fairly recent version of python.
-# - It has a more recent version of wkhtmltopdf and supporting libraries than debian.
-#
-# When building local, you can pull direct from docker, instead of artifacts.developer.gov.bc.ca:
-# docker build --build-arg DOCKER_IMAGE=ubuntu:24.04 . --tag=wps-api-base:ubuntu:24.04-latest
+# Defaults to Docker Hub so the image builds off-cluster without an Artifactory login.
+# The OpenShift BuildConfig (openshift/build.yaml) passes the Artifactory mirror instead:
+# DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
+ARG DOCKER_IMAGE=ubuntu:24.04
 FROM ${DOCKER_IMAGE}
 
-RUN apt-get update && apt-get -y install ca-certificates unzip
+RUN apt-get update && apt-get -y install ca-certificates curl unzip
 
-# Download the Amazon CLI installer.
-ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
-
-# Switch to root user for package installs.
+# Download and install the Amazon CLI for the target architecture.
+# TARGETARCH is set by BuildKit and buildah; fall back to dpkg's architecture for builders that don't set it.
+ARG TARGETARCH
 USER root
-RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
+RUN case "${TARGETARCH:-$(dpkg --print-architecture)}" in \
+      amd64) AWSCLI_ARCH=x86_64 ;; \
+      arm64) AWSCLI_ARCH=aarch64 ;; \
+      *) echo "Unsupported architecture: ${TARGETARCH:-$(dpkg --print-architecture)}" >&2; exit 1 ;; \
+    esac && \
+    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" -o /tmp/awscliv2.zip && \
+    unzip /tmp/awscliv2.zip -d /tmp/ && \
     /tmp/aws/install
 
 # Copy script.

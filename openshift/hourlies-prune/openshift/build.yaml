@@ -63,3 +63,7 @@ objects:
         contextDir: openshift/hourlies-prune/docker
       strategy:
         type: Docker
+        dockerStrategy:
+          buildArgs:
+            - name: DOCKER_IMAGE
+              value: artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04

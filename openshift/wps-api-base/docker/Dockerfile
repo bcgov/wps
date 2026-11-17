@@ -20,16 +20,13 @@ RUN apt-get update --fix-missing && apt-get -y install \
     libproj-dev libgeos-dev libsqlite3-dev libpq-dev libtirpc-dev libssl-dev \
     libcurl4-openssl-dev libxml2-dev cmake libabsl-dev
 
-RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-# Enable for mac M1
-# RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_arm64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-
-
-# - wkhtmltopdf (for making pdf's)
-
-# Enable for mac M1
-# RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_arm64.deb
-RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+# - wkhtmltopdf (for making pdf's), picking the .deb for the target architecture.
+# TARGETARCH is set by BuildKit and buildah; fall back to dpkg's architecture for builders that don't set it.
+ARG TARGETARCH
+RUN WKHTMLTOX_ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" && \
+    case "${WKHTMLTOX_ARCH}" in amd64|arm64) ;; *) echo "Unsupported architecture: ${WKHTMLTOX_ARCH}" >&2; exit 1 ;; esac && \
+    curl -fsSL "https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_${WKHTMLTOX_ARCH}.deb" > /tmp/wkhtmltox.deb && \
+    dpkg -i /tmp/wkhtmltox.deb
 
 # Install tippecanoe for pmtiles
 RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippecanoe && make -j && make install && cd ..
