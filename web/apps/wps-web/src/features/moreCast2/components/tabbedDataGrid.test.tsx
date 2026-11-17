@@ -31,6 +31,26 @@ const TABS = [
 // ]
 
 describe('TabbedDataGrid', () => {
+  afterEach(() => localStorage.removeItem('showHideColumnsModel'))
+
+  test('adds ECMWF to saved column preferences while preserving hidden models', async () => {
+    localStorage.setItem(
+      'showHideColumnsModel',
+      JSON.stringify({ temp: [{ columnName: 'tempGDPS', displayName: 'GDPS', visible: false }] })
+    )
+    const { getByRole } = render(
+      <Provider store={store}>
+        <TabbedDataGrid fromTo={FROM_TO} setFromTo={SET_FROM_TO} fetchWeatherIndeterminates={vi.fn()} />
+      </Provider>
+    )
+
+    await userEvent.click(getByRole('button', { name: 'Temp (°C)' }))
+
+    expect(getByRole('checkbox', { name: 'GDPS' })).not.toBeChecked()
+    expect(getByRole('checkbox', { name: 'ECMWF' })).toBeChecked()
+    expect(getByRole('checkbox', { name: 'ECMWF bias' })).toBeChecked()
+  })
+
   const fetchWeatherIndeterminatesMock = vi.fn((): void => {})
   test('Only temp tab is selected on load', async () => {
     const { getByTestId } = render(

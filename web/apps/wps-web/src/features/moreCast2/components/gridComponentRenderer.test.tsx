@@ -600,6 +600,16 @@ describe('GridComponentRenderer', () => {
         tempActual: 0,
         windDirectionActual: 0,
         windSpeedActual: 0,
+        precipECMWF: 0,
+        rhECMWF: 0,
+        tempECMWF: 0,
+        windDirectionECMWF: 0,
+        windSpeedECMWF: 0,
+        precipECMWF_BIAS: 0,
+        rhECMWF_BIAS: 0,
+        tempECMWF_BIAS: 0,
+        windDirectionECMWF_BIAS: 0,
+        windSpeedECMWF_BIAS: 0,
         precipGDPS: 0,
         rhGDPS: 0,
         tempGDPS: 0,
@@ -660,7 +670,8 @@ describe('GridComponentRenderer', () => {
         predictionRunTimestampGDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
         predictionRunTimestampHRDPS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
         predictionRunTimestampNAM: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
-        predictionRunTimestampGFS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO()
+        predictionRunTimestampGFS: DateTime.fromISO('2016-05-25T09:08:34.123').toISO(),
+        predictionRunTimestampECMWF: DateTime.fromISO('2016-05-25T09:08:34.123').toISO()
       }
     ]
     const createMockParams = (determinate: WeatherDeterminate) => ({

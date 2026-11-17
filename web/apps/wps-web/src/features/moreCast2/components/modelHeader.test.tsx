@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { userEvent } from '@testing-library/user-event'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { DateTime } from 'luxon'
 import type { MoreCast2Row } from '@/features/moreCast2/interfaces'
@@ -27,6 +28,16 @@ describe('ModelHeader', () => {
     tempActual: 0,
     windDirectionActual: 0,
     windSpeedActual: 0,
+    precipECMWF: 0,
+    rhECMWF: 0,
+    tempECMWF: 0,
+    windDirectionECMWF: 0,
+    windSpeedECMWF: 0,
+    precipECMWF_BIAS: 0,
+    rhECMWF_BIAS: 0,
+    tempECMWF_BIAS: 0,
+    windDirectionECMWF_BIAS: 0,
+    windSpeedECMWF_BIAS: 0,
     precipGDPS: 0,
     rhGDPS: 0,
     tempGDPS: 0,
@@ -143,10 +154,12 @@ describe('ModelHeader', () => {
         const timestampField = `predictionRunTimestamp${modelType}`
         const allRows = [createMockRow({ [timestampField]: testTimestamp })]
 
-        const { getByTestId, getByText } = render(<ModelHeader params={params} allRows={allRows} />)
+        const { getByTestId, getByText, getByRole } = render(<ModelHeader params={params} allRows={allRows} />)
 
         expect(getByText(modelType)).toBeInTheDocument()
-        expect(getByTestId(`${modelType}-model-run-tooltip`)).toBeInTheDocument()
+        expect(getByTestId(`${modelType}-model-run-tooltip`)).toBe(
+          getByRole('button', { name: `${modelType} model run information` })
+        )
       })
 
       it(`should render without tooltip when ${modelType} has no timestamp`, () => {
@@ -159,6 +172,17 @@ describe('ModelHeader', () => {
         expect(queryByTestId(`${modelType}-model-run-tooltip`)).not.toBeInTheDocument()
       })
     })
+  })
+
+  it('shows ECMWF run information when the info button receives keyboard focus', async () => {
+    const params = createMockParams(WeatherDeterminate.ECMWF, WeatherDeterminate.ECMWF)
+    const allRows = [createMockRow({ predictionRunTimestampECMWF: '2026-11-17T12:00:00Z' })]
+    const { getByRole, findByRole } = render(<ModelHeader params={params} allRows={allRows} />)
+
+    await userEvent.tab()
+
+    expect(getByRole('button', { name: 'ECMWF model run information' })).toHaveFocus()
+    expect(await findByRole('tooltip')).toHaveTextContent('Model run: Nov 17, 2026 12:00 UTC')
   })
 
   describe('timestamp sorting and selection', () => {

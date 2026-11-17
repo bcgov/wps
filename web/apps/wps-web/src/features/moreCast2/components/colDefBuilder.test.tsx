@@ -1,4 +1,5 @@
 import { ModelChoice, WeatherDeterminate } from '@wps/api/moreCast2API'
+import { MORECAST_MODEL_COLORS, modelColorClass, modelHeaderColorClass } from '@wps/ui/theme'
 import {
   ColumnDefBuilder,
   DEFAULT_COLUMN_WIDTH,
@@ -30,6 +31,29 @@ describe('ColDefBuilder', () => {
   const testHeader = 'testHeader'
   const testPrecision = 1
   const testWidth = 1
+  it('adds purple ECMWF columns after GFS for raw and adjusted values', () => {
+    const columns = colDefBuilder.generateNonForecastColDefs(true)
+
+    expect(columns.slice(-4).map(column => column.headerName)).toEqual([
+      WeatherDeterminate.GFS,
+      WeatherDeterminate.GFS_BIAS,
+      WeatherDeterminate.ECMWF,
+      WeatherDeterminate.ECMWF_BIAS
+    ])
+    for (const column of columns.slice(-2)) {
+      const params = {
+        field: column.field,
+        colDef: { field: column.field, headerName: column.headerName, computedWidth: DEFAULT_COLUMN_WIDTH }
+      }
+      expect(modelColorClass(params)).toBe('ecmwf')
+      expect(modelHeaderColorClass(params)).toBe('ecmwf-header')
+    }
+    expect(MORECAST_MODEL_COLORS.ecmwf).toEqual({
+      bg: 'rgba(106, 27, 154, 0.1)',
+      border: '#6A1B9A'
+    })
+  })
+
   describe('generateColDef', () => {
     it('should generate the col def correctly', () => {
       const colDef = colDefBuilder.generateColDef()

@@ -4,7 +4,7 @@ import datetime
 import logging
 from typing import List
 
-from sqlalchemy import extract, func, select
+from sqlalchemy import extract, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -163,7 +163,16 @@ def get_latest_station_prediction(
                 == latest_predictions_subquery.c.station_code
             ),
         )
-        .order_by(WeatherStationModelPrediction.update_date.desc())
+        .filter(
+            or_(
+                PredictionModel.abbreviation != ModelEnum.ECMWF.value,
+                PredictionModel.projection == ProjectionEnum.ECMWF_LATLON_0_1.value,
+            )
+        )
+        .order_by(
+            PredictionModelRunTimestamp.prediction_run_timestamp.desc(),
+            WeatherStationModelPrediction.update_date.desc(),
+        )
     )
 
     return result

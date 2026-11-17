@@ -127,6 +127,7 @@ interface ModelDetails {
   }
 }
 export const MORECAST_MODEL_COLORS: ModelDetails = {
+  ecmwf: { bg: 'rgba(106, 27, 154, 0.1)', border: '#6A1B9A' },
   nam: { bg: 'rgba(255, 20, 147, 0.1)', border: 'rgba(255, 20, 147, 1)' },
   gfs: { bg: 'rgba(205, 133, 63, 0.1)', border: 'rgba(205, 133, 63, 1)' },
   gdps: { bg: 'rgba(0, 0, 255, 0.1)', border: 'rgba(0, 0, 255, 1)' },

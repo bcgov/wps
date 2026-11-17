@@ -129,7 +129,8 @@ const MorecastAboutDataContent = () => (
               ['GDPS', '0, 12'],
               ['RDPS', '0, 6, 12, 18'],
               ['GFS', '0, 6, 12, 18'],
-              ['NAM', '0, 6, 12, 18']
+              ['NAM', '0, 6, 12, 18'],
+              ['ECMWF', '0, 12']
             ].map(([model, hours]) => (
               <TableRow key={model}>
                 <TableCell>{model}</TableCell>

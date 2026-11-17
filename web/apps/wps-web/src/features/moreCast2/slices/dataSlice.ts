@@ -309,6 +309,21 @@ export const createMoreCast2Rows = (
           row.windDirectionRDPS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedRDPS_BIAS = getNumberOrNaN(value.wind_speed)
           break
+        case WeatherDeterminate.ECMWF:
+          row.precipECMWF = getNumberOrNaN(value.precipitation)
+          row.rhECMWF = getNumberOrNaN(value.relative_humidity)
+          row.tempECMWF = getNumberOrNaN(value.temperature)
+          row.windDirectionECMWF = getNumberOrNaN(value.wind_direction)
+          row.windSpeedECMWF = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampECMWF = value.prediction_run_timestamp
+          break
+        case WeatherDeterminate.ECMWF_BIAS:
+          row.precipECMWF_BIAS = getNumberOrNaN(value.precipitation)
+          row.rhECMWF_BIAS = getNumberOrNaN(value.relative_humidity)
+          row.tempECMWF_BIAS = getNumberOrNaN(value.temperature)
+          row.windDirectionECMWF_BIAS = getNumberOrNaN(value.wind_direction)
+          row.windSpeedECMWF_BIAS = getNumberOrNaN(value.wind_speed)
+          break
         default:
         // no-op
       }
@@ -711,7 +726,17 @@ export const createEmptyMoreCast2Row = (
     rhRDPS_BIAS: NaN,
     tempRDPS_BIAS: NaN,
     windDirectionRDPS_BIAS: NaN,
-    windSpeedRDPS_BIAS: NaN
+    windSpeedRDPS_BIAS: NaN,
+    precipECMWF: NaN,
+    rhECMWF: NaN,
+    tempECMWF: NaN,
+    windDirectionECMWF: NaN,
+    windSpeedECMWF: NaN,
+    precipECMWF_BIAS: NaN,
+    rhECMWF_BIAS: NaN,
+    tempECMWF_BIAS: NaN,
+    windDirectionECMWF_BIAS: NaN,
+    windSpeedECMWF_BIAS: NaN
   }
 }
 
