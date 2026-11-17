@@ -4,18 +4,24 @@
 ARG DOCKER_IMAGE=ubuntu:24.04
 FROM ${DOCKER_IMAGE}
 
-RUN apt-get update && apt-get -y install ca-certificates curl unzip
+RUN apt-get update && apt-get -y install ca-certificates unzip
 
 # Download and install the Amazon CLI for the target architecture.
-# TARGETARCH is set by BuildKit and buildah; fall back to dpkg's architecture for builders that don't set it.
+# BuildKit and buildah set TARGETARCH. Builders that don't set it fall back to
+# dpkg's architecture.
 ARG TARGETARCH
 USER root
-RUN case "${TARGETARCH:-$(dpkg --print-architecture)}" in \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/* && \
+    TARGET_ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" && \
+    case "${TARGET_ARCH}" in \
       amd64) AWSCLI_ARCH=x86_64 ;; \
       arm64) AWSCLI_ARCH=aarch64 ;; \
-      *) echo "Unsupported architecture: ${TARGETARCH:-$(dpkg --print-architecture)}" >&2; exit 1 ;; \
+      *) echo "Unsupported architecture: ${TARGET_ARCH}" >&2; exit 1 ;; \
     esac && \
-    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" -o /tmp/awscliv2.zip && \
+    curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/awscliv2.zip \
+      "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" && \
     unzip /tmp/awscliv2.zip -d /tmp/ && \
     /tmp/aws/install
 
