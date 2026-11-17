@@ -5,18 +5,22 @@ The same read as `wps_shared.weather_models.fetch.predictions`, which uses Postg
 keeps one daily row per station, time and model, from the newest run, so this is a single read
 with no choosing between runs.
 
-MoreCast does not read this yet. backend/scripts/morecast_by_time_parity_check.py compares the
-two.
+The MoreCast determinates route reads this. backend/scripts/morecast_by_time_parity_check.py
+compares it with the Postgres read.
 """
 
+import logging
 from collections.abc import Sequence
 from datetime import datetime
+from time import perf_counter
 
 from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.weather_models import ModelEnum
 
 from wps_weather_data.by_time import DAILY, ByTimeTable
+
+logger = logging.getLogger(__name__)
 
 # MoreCast does not show ECMWF.
 MORECAST_MODELS = tuple(model for model in ModelEnum if model != ModelEnum.ECMWF)
@@ -33,6 +37,7 @@ def fetch_model_predictions(
     Each row becomes two WeatherIndeterminates, one for the model's values and one for the
     bias-adjusted values.
     """
+    started = perf_counter()
     stations = {station.code: station for station in all_stations}
     rows = by_time.read(
         DAILY,
@@ -41,6 +46,7 @@ def fetch_model_predictions(
         end_time,
         station_codes=list(stations),
     )
+    read_seconds = perf_counter() - started
     results = []
     for row in rows.to_pylist():
         shared = {
@@ -71,4 +77,13 @@ def fetch_model_predictions(
                 **shared,
             )
         )
+    logger.info(
+        "Read %d by_time rows for %d stations from %s to %s in %.3f s (%.3f s in total)",
+        rows.num_rows,
+        len(stations),
+        start_time,
+        end_time,
+        read_seconds,
+        perf_counter() - started,
+    )
     return results
