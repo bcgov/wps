@@ -32,17 +32,16 @@ def setup_processor(tables):
         WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1"),
         WeatherStation(code=1, long=20.0, lat=60.0, name="Station 2"),
     ]
-    session = MagicMock()
     runs, by_time, staging = tables
     processor = ECMWFPredictionProcessor(
-        stations, session, runs_table=runs, by_time_table=by_time, staging_table=staging
+        stations, runs_table=runs, by_time_table=by_time, staging_table=staging
     )
-    return processor, session
+    return processor, processor.observations
 
 
 @pytest.fixture
 def mock_predictions():
-    processor = ECMWFPredictionProcessor([], None)
+    processor = ECMWFPredictionProcessor([])
     prev_prediction = MagicMock(spec=ModelValues)
     prediction = MagicMock(spec=ModelValues)
     return processor, prev_prediction, prediction
@@ -389,7 +388,7 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(
     Without a prediction 24 hours earlier in the run, observed precip makes up the hours
     before the run started.
     """
-    processor, session = setup_processor
+    processor, observations = setup_processor
     _, run_ts, prediction, station_prediction = mock_model_run_data
     actual_precip = mocker.patch(
         "weather_model_jobs.ecmwf_prediction_processor.get_accumulated_precipitation",
@@ -399,7 +398,7 @@ def test_calculate_past_24_hour_precip_without_previous_prediction(
     result = processor._calculate_past_24_hour_precip(prediction, station_prediction, run_ts, {})
 
     actual_precip.assert_called_once_with(
-        session,
+        observations,
         prediction.station_code,
         prediction.prediction_timestamp - timedelta(days=1),
         run_ts,

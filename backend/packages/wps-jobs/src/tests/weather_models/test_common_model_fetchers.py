@@ -170,23 +170,18 @@ def mock_machine():
 
 
 @pytest.fixture
-def mock_session():
-    return MagicMock()
-
-
-@pytest.fixture
 def stations(mock_station):
     return [mock_station]
 
 
 @pytest.fixture
-def processor(mock_session, stations):
+def processor(stations):
     # Patch get_stations_synchronously to avoid network calls. The tables are local (conftest).
     with patch(
         "weather_model_jobs.common_model_fetchers.get_stations_synchronously",
         return_value=stations,
     ):
-        return ModelValueProcessor(mock_session, ModelEnum.GDPS)
+        return ModelValueProcessor(ModelEnum.GDPS)
 
 
 @pytest.fixture
@@ -216,7 +211,6 @@ def test_process_prediction_populates_fields_and_accumulates_correct_precip(
     mock_prediction,
     mock_station,
     mock_machine,
-    mock_session,
 ):
     processor._add_bias_adjustments_to_prediction = MagicMock()
     processor._add_interpolated_bias_adjustments_to_prediction = MagicMock()
@@ -249,7 +243,7 @@ def test_process_prediction_populates_fields_and_accumulates_correct_precip(
     )
     processor._add_interpolated_bias_adjustments_to_prediction.assert_not_called()
     mock_get_accumulated_precipitation.assert_called_once_with(
-        mock_session,
+        processor.observations,
         mock_station.code,
         mock_prediction.prediction_timestamp - timedelta(hours=24),
         RUN_TS,
@@ -525,12 +519,12 @@ def test_publish_run_fails_without_deleting_staging_when_runs_write_fails(_, pro
 @patch("weather_model_jobs.common_model_fetchers.get_accumulated_precipitation", return_value=0)
 @patch("weather_model_jobs.common_model_fetchers.read_model_history")
 @patch("weather_model_jobs.common_model_fetchers.StationMachineLearning")
-def test_nam_precip_is_accumulated_in_the_run(_, __, ___, mock_session, stations):
+def test_nam_precip_is_accumulated_in_the_run(_, __, ___, stations):
     with patch(
         "weather_model_jobs.common_model_fetchers.get_stations_synchronously",
         return_value=stations,
     ):
-        processor = ModelValueProcessor(mock_session, ModelEnum.NAM)
+        processor = ModelValueProcessor(ModelEnum.NAM)
     run_ts = datetime(2025, 6, 5, 0, tzinfo=UTC)
     times = [run_ts + timedelta(hours=hour) for hour in (12, 15, 24)]
     predictions = [

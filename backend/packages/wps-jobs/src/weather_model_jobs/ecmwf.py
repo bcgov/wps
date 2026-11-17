@@ -23,7 +23,6 @@ from weather_model_jobs.ecmwf_hours import get_ecmwf_forecast_hours
 from weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
 from wps_shared.chatops_notification import send_chatops_notification
-from wps_shared.db.database import get_read_session_scope
 from wps_shared.geospatial.bounds import (
     BC_MAX_LATITUDE,
     BC_MAX_LONGITUDE,
@@ -286,10 +285,8 @@ async def process_models():
         ecmwf.process()
 
     # interpolate, machine learn and publish every run that is fully staged.
-    # The session reads station observations, for training and 24 hour precip.
-    with get_read_session_scope() as session:
-        ecmwf_prediction_processor = ECMWFPredictionProcessor(stations, session)
-        ecmwf_prediction_processor.process(ecmwf.complete_runs)
+    ecmwf_prediction_processor = ECMWFPredictionProcessor(stations)
+    ecmwf_prediction_processor.process(ecmwf.complete_runs)
 
     # calculate the execution time.
     execution_time = datetime.now() - start_time

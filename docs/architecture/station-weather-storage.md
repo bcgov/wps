@@ -78,7 +78,7 @@ Decisions behind this table:
 - **Climatology needs both shapes**, one station and groups of stations.
 - **Lead has to stay a free choice.** We want to experiment with which prediction counts as the historical one, so no single lead can be baked in. See [Lead time](#lead-time).
 
-The first three use cases read the same logical table: one value per station, time and source, where the source is `OBSERVED`, `FORECAST` or a model. This is the shape MoreCast already uses in `WeatherIndeterminate`. For a model, the value at a given time is the one from the newest run that predicted it. The last two need every run.
+The first three use cases read the same logical table: one value per station, time and source, where the source is `ACTUALS`, `FORECAST` or a model. This is the shape MoreCast already uses in `WeatherIndeterminate`. For a model, the value at a given time is the one from the newest run that predicted it. The last two need every run.
 
 MoreCast reads by time across every station. Climatology reads by station across time, for one station or several. One sort order cannot serve both, so the design keeps this table in two layouts.
 
@@ -131,7 +131,7 @@ weather/stations/
   leads/station=322/2026.parquet                           every prediction at every lead, per station
 ```
 
-`resolution` is `hourly` or `daily`. `source` is `OBSERVED`, `FORECAST` or a model.
+`resolution` is `hourly` or `daily`. `source` is `ACTUALS`, `FORECAST` or a model.
 
 That is the production layout. Dev deployments share one bucket, so each writes the same layout under `dev/{suffix}/`, such as `dev/pr-123/weather/stations/runs/`.
 
@@ -140,7 +140,7 @@ That is the production layout. Dev deployments share one bucket, so each writes 
 | `runs` | Delta Lake | Fire watch, training | The six model jobs |
 | `staging` | Delta Lake, one per model | The model job itself, between invocations | That model's job |
 | `wf1` | Delta Lake | Rebuilding `by_time`; history of corrections | The WF1 jobs |
-| `by_time` | Delta Lake | MoreCast | The model jobs and the WF1 jobs |
+| `by_time` | Delta Lake | MoreCast; training and ingest (`ACTUALS`) | The model jobs and the WF1 jobs |
 | `by_station` | Parquet | Climatology for one station or a group | One nightly job |
 | `hourly_profile` | Parquet | Hourly climatology for a group, on a screen | The same nightly job |
 | `leads` | Parquet | Climatology at a chosen lead, while experimenting | The same nightly job |
@@ -172,9 +172,16 @@ Each run arrives as one small file. `optimize` merges a closed day's runs into o
 
 ### `wf1`
 
-Every observation and forecaster's forecast as fetched from WF1. It is to observations what `runs` is to models: an append-only record that `by_time` is built from. It is a Delta table partitioned by `source` (`OBSERVED` or `FORECAST`), `resolution` and month, with the same columns as `by_time`.
+Every observation and forecaster's forecast as fetched from WF1. It is to observations what `runs` is to models: an append-only record that `by_time` is built from. It is a Delta table partitioned by `source` (`ACTUALS` or `FORECAST`), `resolution` and month, with the same columns as `by_time`.
 
-The WF1 jobs append a row only when it is new or differs from the newest version already stored, with the `ingested_at` of that fetch. A corrected observation is therefore a second row with a later `ingested_at`, and the original stays.
+| Source | Resolution | Written by | From |
+|---|---|---|---|
+| `ACTUALS` | `hourly` | `app/jobs/hourly_actuals.py`, hourly, fetching the last three hours | WF1 hourlies, replacing `hourly_actuals` |
+| `FORECAST` | `daily`, at 20:00 UTC | `app/jobs/noon_forecasts.py`, hourly, fetching every forecast from now on | WF1 noon forecasts, replacing `noon_forecasts` |
+
+The WF1 jobs append a row only when it is new or differs from the newest version already stored, with the `ingested_at` of that fetch (`Wf1Table.append_changed`). A corrected observation is therefore a second row with a later `ingested_at`, and the original stays. Each job then merges every row it fetched into `by_time`, not only the changed ones, so a merge that failed after the append is made good by the next run, which fetches the same rows again. In `by_time` a row is replaced only by one fetched at least as recently.
+
+A value WF1 does not have, or that is outside its valid range (RH 0 to 100, wind direction 0 to 360, wind speed and precip not negative), is null. That replaces the per-variable validity flags of `hourly_actuals`. `ACTUALS` has no `daily` rows yet: nothing reads a noon observation from `by_time`, and MoreCast takes its observations from WF1 directly.
 
 A side effect is that it records forecast history from now on, even though WF1 itself keeps only the latest forecast: each time a forecast changes between fetches, the new value is appended. That history is only as fine as the fetch interval, and it covers forecasts published by any tool, not only MoreCast.
 
@@ -221,7 +228,7 @@ What each source holds:
 
 | Source | Hourly | Daily | Replaces |
 |---|---|---|---|
-| `OBSERVED` | Hourly observations from WF1 | The noon observation | `hourly_actuals` |
+| `ACTUALS` | Hourly observations from WF1 | The 20:00 UTC observation, with the precip of the 24 hours ending then (null unless all 24 hours have a value). Derived from the hourly rows by the hourly actuals job, so it is in `by_time` but not in `wf1` | `hourly_actuals` |
 | `FORECAST` | The latest forecaster's forecast per station and hour, once hourly forecasts exist | The latest forecaster's noon forecast per station and day | `noon_forecasts` |
 | Each model | The newest run's value for each prediction time | The newest run's 20:00 UTC row per day | The MoreCast queries on `weather_station_model_predictions` |
 
@@ -233,7 +240,7 @@ For a model, the table covers future times as well as past ones. After appending
 
 Each write is a Delta `MERGE` on station, timestamp, resolution and source, limited to the partitions it touches. Jobs for different sources write to different partitions.
 
-`by_time` is entirely derived. The model rows can be rebuilt from `runs`, and the `OBSERVED` and `FORECAST` rows from `wf1`, in each case by taking the newest version.
+`by_time` is entirely derived. The model rows can be rebuilt from `runs`, and the `ACTUALS` and `FORECAST` rows from `wf1`, in each case by taking the newest version.
 
 FWI indices are out of scope for now. Adding them later means adding columns, which older files simply lack.
 
@@ -468,13 +475,12 @@ The Parquet files are fetched through the existing S3 client and filtered with `
 
 ### What stays in Postgres
 
-Nothing for model runs. The related tables that stay are:
+Nothing for station weather. The model jobs no longer use the database at all. The related tables that stay are:
 
 - `morecast_forecast`, which holds forecasts as forecasters submit them in MoreCast. It is transactional application data. The nightly job reads it to build the `FORECAST` rows in `leads`.
-- `hourly_actuals`, until step 7 moves the WF1 data: training pairs model values with its observations, and the 24 hour precip of a run's first day adds observed precip.
 - `prediction_models`, which SFMS's `model_run_for_sfms` refers to.
 
-No code reads or writes the four legacy model tables (`weather_station_model_predictions`, `model_run_predictions`, `prediction_model_run_timestamps`, `processed_model_run_urls`). They stay, with the `pgslice` jobs, until `backend/scripts/station_weather_backfill.py` has copied production's history into `runs` and `by_time` and the result has been checked. A follow-up migration then drops them.
+No code reads or writes the six legacy tables: `weather_station_model_predictions`, `model_run_predictions`, `prediction_model_run_timestamps`, `processed_model_run_urls`, `hourly_actuals` and `noon_forecasts`. They stay, with the `pgslice` jobs, until `backend/scripts/station_weather_backfill.py` has copied production's history into `runs`, `wf1` and `by_time` and the result has been checked. A follow-up migration then drops them.
 
 ### Behaviour to preserve
 
@@ -482,8 +488,8 @@ No code reads or writes the four legacy model tables (`weather_station_model_pre
 - **The integer run ID.** `ModelPredictionDetails` carried `prediction_model_run_timestamp_id`, and fire watch passed it between queries. It is now the run's start time; fire watch only uses ECMWF, so that identifies the run.
 - **`id` and `update_date`.** The route `POST /weather_models/{model}/predictions/most_recent/{start_date}/{end_date}` returns the database row's `id` and `update_date` for each prediction. Neither exists once the table is gone. No caller of that route was found in the web or mobile code, so the plan is to drop both fields. The API is public, so an outside caller cannot be ruled out.
 - **Training's noon value.** Training rebuilds the 20:00 UTC interpolation from the neighbouring raw rows, while `runs` already stores it. `test_machine_learning_golden.py` is the place to confirm training gives the same output from either source.
-- **Observation validity.** `hourly_actuals` carries a validity flag per variable, and training filters on them. In `by_time` an invalid value is null, so the filter becomes a null check.
-- **Observation joins.** Training joins predictions to `hourly_actuals` in SQL, and ingest sums observed precipitation per station. Both become reads of the `OBSERVED` files.
+- **Observation validity.** `hourly_actuals` carried a validity flag per variable, and training kept an hour only when its temperature and RH were valid. In `by_time` an invalid value is null, so training keeps an hour with both values present. `wps_wf1` also sets the wind speed and wind direction flags the wrong way round (`get_valid_flags` returns them in the other order); the null rule uses each value's own range instead.
+- **Observation joins.** Training joined predictions to `hourly_actuals` in SQL, and ingest summed observed precipitation per station. Both now read `ACTUALS` from `by_time` once per run being published (`StationObservations` in `wps_weather_data/actuals.py`). Summing hours with a missing precip used to give NaN in Postgres. Now the 24 hour precip of a run's first day adds the hours that have a value, and a training day with an hour missing its precip has no total and is not learned from.
 - **NAM precip.** `model_run_predictions` holds NAM's original precip value alongside the accumulated one. If anything needs it after ingest, `runs` needs a column for it.
 
 ## Main risks
@@ -501,16 +507,16 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 1. Done on 2026-11-16: `backend/scripts/object_store_delta_check.py` ran Delta Lake against ECS in a throwaway table. Four writers appending at once lost no commits, `MERGE`, `optimize`, `vacuum` and a checkpoint worked, and the storage option to use is `conditional_put: etag`. Shared tables are confirmed.
 2. Done: the six model jobs write `runs` and `by_time`, and a daily cron job runs `optimize`, a checkpoint and `vacuum` on every table. Checked in a dev deployment on 2026-11-17: the maintenance job compacted both tables.
 3. Done for MoreCast's model read in a dev deployment on 2026-11-16: `by_time` and Postgres agreed on all 6,936 values. Timings from inside the cluster are still to do; the MoreCast and fire watch reads log theirs.
-4. Done: MoreCast reads its model values from `by_time`, fire watch reads its ECMWF run from `runs`, and training reads `runs` (see "Training reads `runs`" below). The `/weather_models` routes were removed separately (#6060). Nothing falls back to Postgres, so a deployment's tables must be filled with `backend/scripts/station_weather_backfill.py` before it serves users: `by_time` for the days MoreCast shows, `runs` for the 19 days training learns from.
+4. Done: MoreCast reads its model values from `by_time`, fire watch reads its ECMWF run from `runs`, and training reads `runs` (see "Training reads `runs`" below). The `/weather_models` routes were removed separately (#6060). Nothing falls back to Postgres, so a deployment's tables must be filled with `backend/scripts/station_weather_backfill.py` before it serves users: `by_time` for the days MoreCast shows, and `runs` and `ACTUALS` for the 19 days training learns from.
 5. and 6. Done: every model job stages runs in `staging` instead of `model_run_predictions`, keeps its bookkeeping in `staging` and `runs`, and no longer writes `weather_station_model_predictions`. Dropping the four legacy tables and retiring the `pgslice` job waits for the production backfill, as described under "What stays in Postgres".
-7. Have the WF1 jobs write `OBSERVED` and `FORECAST` to `wf1` and `by_time` alongside Postgres, then move their readers and retire `hourly_actuals` and `noon_forecasts`.
+7. Done: the WF1 jobs write `ACTUALS` and `FORECAST` to `wf1` and `by_time` only, training and ingest read `ACTUALS` from `by_time`, and the two noon forecast routes (`POST /forecasts/noon/` and `/forecasts/noon/summaries/`), which no web or mobile code called, are removed. `hourly_actuals` and `noon_forecasts` wait for the production backfill, with the other legacy tables.
 8. Add the nightly job that writes `by_station`, `hourly_profile` and `leads`, and build the climatology reads on them.
 
 Steps 7 and 8 do not depend on steps 4 to 6. History only accumulates once `by_time` is being written, so steps 2 and 7 are worth starting early even if readers move later.
 
 ### Training reads `runs`
 
-Bias adjustment learns, per station, from the model's own values paired with hourly observations over the last 19 days, and from every run's 24 hour precip prediction. Both now come from `runs`, read once per run being processed:
+Bias adjustment learns, per station, from the model's own values paired with hourly observations over the last 19 days, and from every run's 24 hour precip prediction. The model values come from `runs` and the observations from `by_time`'s `ACTUALS`, each read once per run being processed:
 
 - An observation is paired with the newest run's value at that time, among the rows the job did not interpolate. A row whose `is_interpolated` is unknown, as in a run backfilled after its `model_run_predictions` were deleted, counts as the model's own except at 20:00 UTC, the only hour the job interpolates.
 - The SQL this replaces outer-joined observations to predictions but then filtered on the prediction's model, which dropped observations with no prediction. The new read keeps that behaviour, so the noon sample the training code builds for 3-hourly models still only appears where a run has a 20:00 value. Whether that sample was ever meant to be built is a question for a separate change.

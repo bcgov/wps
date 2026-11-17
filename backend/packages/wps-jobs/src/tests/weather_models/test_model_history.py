@@ -9,8 +9,8 @@ from weather_model_jobs.bias_adjusted_variable import (
 )
 from weather_model_jobs.model_history import DailyPrecip, ModelHistory
 from weather_model_jobs.model_values import ModelValues
-from wps_shared.db.models.observations import HourlyActual
 from wps_shared.weather_models import ModelEnum
+from wps_weather_data.actuals import Observation, StationObservations
 from wps_weather_data.runs import RunsTable
 
 EARLY_RUN = datetime(2026, 11, 10, 0, tzinfo=UTC)
@@ -120,16 +120,18 @@ def test_daily_precip_keeps_every_runs_2000_prediction(runs):
     assert before_next == [2.0, 4.0]
 
 
-def test_actuals_are_paired_with_the_newest_model_values(monkeypatch):
-    at_1800 = HourlyActual(weather_date=AT_1800, temperature=12.0)
-    at_1900 = HourlyActual(weather_date=AT_1800 + timedelta(hours=1), temperature=13.0)
-    monkeypatch.setattr(
-        bias_adjusted_variable, "get_hourly_actuals", lambda *args: [at_1800, at_1900]
-    )
+def observation(time, temperature=12.0):
+    return Observation(time, temperature, 50.0, 5.0, 180.0, 0.0)
+
+
+def test_actuals_are_paired_with_the_newest_model_values():
+    at_1800 = observation(AT_1800)
+    at_1900 = observation(AT_1800 + timedelta(hours=1))
+    observations = StationObservations({322: [at_1800, at_1900]})
     prediction = ModelValues(station_code=322, prediction_timestamp=AT_1800, tmp_tgl_2=10.0)
     history = ModelHistory({322: {AT_1800: prediction}}, {})
 
-    rows = get_actuals_paired_with_predictions(MagicMock(), history, 322, HOURLY_FROM, HOURLY_TO)
+    rows = get_actuals_paired_with_predictions(observations, history, 322, HOURLY_FROM, HOURLY_TO)
 
     # No run predicted 19:00, so that observation is left out, as the database join did.
     assert rows == [(at_1800, prediction)]
@@ -155,4 +157,19 @@ def test_read_model_history_covers_what_training_learns_from(monkeypatch):
     daily_from, daily_to = bias_adjusted_variable.daily_precip_window(start)
     read_history.assert_called_once_with(
         runs, ModelEnum.GDPS, start, max_learn_date, daily_from, daily_to
+    )
+
+
+def test_read_observations_covers_training_and_the_day_before_the_run(monkeypatch):
+    read = MagicMock()
+    monkeypatch.setattr(machine_learning.StationObservations, "read", read)
+    by_time = MagicMock()
+    max_learn_date = datetime(2026, 11, 20, 12, tzinfo=UTC)
+
+    machine_learning.read_observations(by_time, max_learn_date)
+
+    start = max_learn_date - timedelta(days=machine_learning.MAX_DAYS_TO_LEARN)
+    daily_from, daily_to = bias_adjusted_variable.daily_precip_window(start)
+    read.assert_called_once_with(
+        by_time, min(start, daily_from - timedelta(hours=24)), max(max_learn_date, daily_to)
     )

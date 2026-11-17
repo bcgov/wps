@@ -1,39 +1,97 @@
 """Unit testing for hourly actuals job"""
 
-import logging
 import os
-from unittest.mock import MagicMock
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from pytest_mock import MockerFixture
+from wps_shared.db.models.observations import HourlyActual
+from wps_weather_data.by_time import ACTUALS, DAILY, HOURLY, ByTimeTable
+from wps_weather_data.wf1 import Wf1Table
 
 from app.jobs import hourly_actuals
-from app.tests.jobs.job_fixtures import mock_wfwx_response, mock_wfwx_stations
 
-logger = logging.getLogger(__name__)
+AT_1900 = datetime(2026, 11, 17, 19, tzinfo=UTC)
+AT_2000 = datetime(2026, 11, 17, 20, tzinfo=UTC)
 
 
-def test_hourly_actuals_job(mocker: MockerFixture, mock_wfwx_api):
-    """Very simple test that checks that:
-    - the bot exits with a success code
-    - the expected number of records are saved.
-    """
+def hourly_actual(station_code: int, temperature: float, time: datetime = AT_1900) -> HourlyActual:
+    # wps_wf1 gives the time as an ISO string.
+    return HourlyActual(
+        station_code=station_code,
+        weather_date=time.isoformat(),
+        temperature=temperature,
+        relative_humidity=60.0,
+        wind_speed=5.0,
+        wind_direction=180.0,
+        precipitation=0.2,
+    )
 
-    wfwx_hourlies = mock_wfwx_response()
-    mock_wfwx_api.get_hourly_actuals_all_stations.return_value = wfwx_hourlies
+
+@pytest.fixture
+def tables(monkeypatch, tmp_path):
+    wf1 = Wf1Table(str(tmp_path / "wf1"))
+    by_time = ByTimeTable(str(tmp_path / "by_time"))
+    monkeypatch.setattr(hourly_actuals, "Wf1Table", lambda: wf1)
+    monkeypatch.setattr(hourly_actuals, "ByTimeTable", lambda: by_time)
+    return wf1, by_time
+
+
+def test_hourly_actuals_job_writes_wf1_and_by_time(mocker: MockerFixture, mock_wfwx_api, tables):
+    wf1, by_time = tables
+    mock_wfwx_api.get_hourly_actuals_all_stations.return_value = [
+        hourly_actual(1, 10.0),
+        hourly_actual(2, 11.0),
+    ]
     mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
 
-    save_hourly_actuals_spy = mocker.spy(hourly_actuals, "save_hourly_actual")
     with pytest.raises(SystemExit) as excinfo:
         hourly_actuals.main()
-    # Assert that we exited without errors.
+
     assert excinfo.value.code == 0
-    # Assert that we got called the expected number of times.
-    # There 1 records for 2 stations in the fixture above so we expect 2 save calls.
-    assert save_hourly_actuals_spy.call_count == 2
+    assert wf1.dataset().count_rows() == 2
+    rows = by_time.read(HOURLY, [ACTUALS], AT_1900, AT_1900).to_pylist()
+    assert [(row["station_code"], row["temperature"]) for row in rows] == [(1, 10.0), (2, 11.0)]
+    assert rows[0]["precipitation"] == pytest.approx(0.2)
 
 
-def test_hourly_actuals_job_fail(mocker: MockerFixture, mock_wfwx_api):
+def test_hourly_actuals_job_writes_the_daily_observation(
+    mocker: MockerFixture, mock_wfwx_api, tables
+):
+    wf1, by_time = tables
+    mock_wfwx_api.get_hourly_actuals_all_stations.return_value = [
+        hourly_actual(1, 10.0, AT_2000 - timedelta(hours=back)) for back in range(24)
+    ]
+    mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
+
+    with pytest.raises(SystemExit) as excinfo:
+        hourly_actuals.main()
+
+    assert excinfo.value.code == 0
+    (row,) = by_time.read(DAILY, [ACTUALS], AT_2000, AT_2000).to_pylist()
+    assert (row["station_code"], row["temperature"]) == (1, 10.0)
+    assert row["precipitation"] == pytest.approx(24 * 0.2)
+    # The daily row is derived, so wf1 holds only what WF1 supplied.
+    assert wf1.dataset().count_rows() == 24
+
+
+def test_hourly_actuals_job_records_only_changes_in_wf1(
+    mocker: MockerFixture, mock_wfwx_api, tables
+):
+    wf1, by_time = tables
+    mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
+    for fetched in ([hourly_actual(1, 10.0)], [hourly_actual(1, 10.0)], [hourly_actual(1, 12.0)]):
+        mock_wfwx_api.get_hourly_actuals_all_stations.return_value = fetched
+        with pytest.raises(SystemExit):
+            hourly_actuals.main()
+
+    # The second fetch was the same; the third was a correction.
+    assert sorted(wf1.dataset().to_table()["temperature"].to_pylist()) == [10.0, 12.0]
+    rows = by_time.read(HOURLY, [ACTUALS], AT_1900, AT_1900).to_pylist()
+    assert [row["temperature"] for row in rows] == [12.0]
+
+
+def test_hourly_actuals_job_fail(mocker: MockerFixture, mock_wfwx_api, tables):
     """
     Test that when the bot fails, a message is sent to rocket-chat, and our exit code is 1.
     """

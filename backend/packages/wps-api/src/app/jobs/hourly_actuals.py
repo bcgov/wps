@@ -1,4 +1,5 @@
-"""Bot for loading hourly actual values."""
+"""Job that loads hourly observations from WF1 into the `wf1` and `by_time` tables in object
+storage, as `ACTUALS`, and writes the daily observation to `by_time`."""
 
 import asyncio
 import logging
@@ -6,23 +7,24 @@ import os
 import sys
 from datetime import datetime, timedelta
 
-import wps_shared.db.database
 import wps_shared.utils.time
 from aiohttp.client import ClientSession
-from sqlalchemy.exc import IntegrityError
 from wps_shared.chatops_notification import send_chatops_notification
-from wps_shared.db.crud.observations import save_hourly_actual
 from wps_shared.wps_logging import configure_logging
+from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.wf1 import Wf1Table, actuals_table, merge_daily_actuals
 from wps_wf1.wfwx_api import WfwxApi
 
 logger = logging.getLogger(__name__)
 
 
 class HourlyActualsJob:
-    """Job that downloads the hourly actuals from the wildfire website and stores it in a database."""
+    """Job that downloads the hourly actuals from WF1 and stores them in object storage."""
 
-    def __init__(self):
+    def __init__(self, wf1_table: Wf1Table | None = None, by_time_table: ByTimeTable | None = None):
         self.now = wps_shared.utils.time.get_pst_now()
+        self.wf1_table = wf1_table or Wf1Table()
+        self.by_time_table = by_time_table or ByTimeTable()
 
     def _get_start_date(self) -> datetime:
         """Return time N hour ago. E.g. if it's 17h15 now, we'd get YYYYMMDD16. The intention is that
@@ -48,17 +50,13 @@ class HourlyActualsJob:
 
             logger.info("Retrieved %s hourly actuals", len(hourly_actuals))
 
-        with wps_shared.db.database.get_write_session_scope() as session:
-            for hourly_actual in hourly_actuals:
-                try:
-                    save_hourly_actual(session, hourly_actual)
-                except IntegrityError:
-                    logger.info(
-                        "Skipping duplicate record for %s @ %s",
-                        hourly_actual.station_code,
-                        hourly_actual.weather_date,
-                    )
-                    session.rollback()
+        rows = actuals_table(hourly_actuals, wps_shared.utils.time.get_utc_now())
+        # wf1 records what changed. Every row is merged into by_time, so a merge that failed after
+        # the append is made good by the next run, which fetches the same hours again.
+        self.wf1_table.append_changed(rows)
+        self.by_time_table.merge_wf1_rows(rows)
+        # The daily observation is the 20:00 UTC one, with the precip of the 24 hours before it.
+        merge_daily_actuals(self.by_time_table, rows)
 
 
 def main():

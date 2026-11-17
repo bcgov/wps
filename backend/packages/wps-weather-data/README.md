@@ -32,6 +32,25 @@ run to `runs` and `by_time`, then calls `delete_run`.
 run at least as new as the one it came from. `read` returns a time range for one resolution
 (`hourly` or `daily`) and a list of sources. Only model sources are written so far.
 
+## wf1.py
+
+`Wf1Table` is the `wf1` dataset: every observation (`ACTUALS`) and forecaster's noon forecast
+(`FORECAST`) fetched from WF1, append-only. `actuals_table` and `forecasts_table` turn WF1
+records into rows with the `by_time` columns, with a missing or out-of-range value as null.
+`append_changed` appends only the rows that differ from the version before them, so a correction
+or a changed forecast is a new version. The WF1 jobs then merge the rows into `by_time` with
+`ByTimeTable.merge_wf1_rows`.
+
+`merge_daily_actuals` then writes the daily observation to `by_time`: the 20:00 UTC observation
+with the precip of the 24 hours ending then, built from the hourly rows already in `by_time`.
+It is derived, so it is not in `wf1`.
+
+## actuals.py
+
+`StationObservations` reads `ACTUALS` from `by_time` for a time window, once per model run being
+processed. Training pairs model values with its hourly observations and learns daily precip from
+its 24 hour totals; ingest adds its observed precip to a run's first day of 24 hour precip.
+
 ## maintenance.py
 
 Runs `maintain()` on every table. Run by the `station-weather-maintenance` cron job:
@@ -49,11 +68,11 @@ writes under `dev/{suffix}/weather/stations/`, using the `SUFFIX` setting (for e
 
 ## Status
 
-The model jobs (GDPS, RDPS, HRDPS, GFS, NAM and ECMWF) keep no station data in Postgres: they
+No station weather is kept in Postgres. The model jobs (GDPS, RDPS, HRDPS, GFS, NAM and ECMWF)
 stage runs in `staging`, publish them to `runs` and `by_time`, and train the bias adjustments on
-`runs`. The API reads MoreCast's model values from `by_time` (`morecast.py`) and fire watch's
-from `runs` (`fire_watch.py`). Postgres still holds the station observations that training and
-24 hour precip use.
+`runs` and `by_time`'s `ACTUALS`; they no longer use the database. The WF1 jobs write `ACTUALS`
+and `FORECAST` to `wf1` and `by_time`. The API reads MoreCast's model values from `by_time`
+(`morecast.py`) and fire watch's from `runs` (`fire_watch.py`).
 
-`backend/scripts/station_weather_backfill.py` copies runs from the legacy Postgres tables into
-`runs` and `by_time`, to fill a deployment's tables.
+`backend/scripts/station_weather_backfill.py` copies history from the legacy Postgres tables into
+`runs`, `wf1` and `by_time`, to fill a deployment's tables.

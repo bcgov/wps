@@ -37,6 +37,10 @@ class StationWeatherAddresser:
         """S3 key of the `by_time` Delta table: the newest value per station, time and source."""
         return S3Key(f"{self.root}/by_time")
 
+    def get_wf1_key(self) -> S3Key:
+        """S3 key of the `wf1` Delta table: every observation and noon forecast fetched from WF1."""
+        return S3Key(f"{self.root}/wf1")
+
     def get_staging_key(self, model: str) -> S3Key:
         """S3 key of a model's `staging` Delta table: the runs it is still downloading."""
         return S3Key(f"{self.root}/staging/{model.lower()}")

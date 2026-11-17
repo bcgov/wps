@@ -22,7 +22,7 @@ from weather_model_jobs.utils.wind_direction_utils import compute_u_v
 
 def _context() -> LearningContext:
     return LearningContext(
-        session=None,
+        observations=None,
         history=None,
         station_code=1,
         start_date=datetime(2020, 10, 1, tzinfo=timezone.utc),
