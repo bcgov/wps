@@ -201,7 +201,7 @@ Every processed file leaves a marker row in the same commit as its values, so th
 
 An earlier version of this design kept plain Parquet files with the processed files listed in their footers. The Delta table was chosen instead because it reuses the write path already proven against our object store, and its commits make "processed" and "staged" the same event.
 
-When the run is complete, the job reads it back from `staging`, computes bias adjustments and derived precip in memory, appends the run to `runs`, merges it into `by_time`, and deletes the run from `staging`. A run that yields no station predictions is left in `staging` and logged as an error, rather than deleted and downloaded again.
+When the run is complete, the job reads it back from `staging`, computes bias adjustments and derived precip in memory, appends the run to `runs`, merges it into `by_time`, and deletes the run from `staging`. A run that yields no station predictions is left in `staging` and logged as an error, rather than deleted and downloaded again. The steps, and what happens after a failure at each one, are under [Run bookkeeping](#run-bookkeeping).
 
 ### `by_time`
 
@@ -287,15 +287,15 @@ On an S3-compatible store that safety depends on the store. The `deltalake` libr
 
 If ECS does not enforce conditional PUTs, the fallback is one table per writer: a `runs` and `by_time` table per model, and one `by_time` table for the WF1 jobs. Each then has a single writer, and readers combine them. Compaction still works.
 
-Every other dataset has exactly one writer: each model's job for its `staging` prefix, and the nightly job for `by_station`, `hourly_profile` and `leads`.
+Every other dataset has exactly one writer: each model's job for its `staging` table, and the nightly job for `by_station`, `hourly_profile` and `leads`.
 
 Delta Lake uses its own S3 client, not the pinned `aiobotocore`. Delta Lake has worked against our object store in an earlier trial.
 
 ### Run bookkeeping
 
-Three Postgres tables track ingest today. All three go, and the state they hold is read from object storage instead. After that the model jobs do not use the database for bookkeeping at all.
+Three Postgres tables tracked ingest. The model jobs no longer use them: the state they held is read from `staging` and `runs` instead.
 
-| Today, in Postgres | Question it answers | Replacement |
+| Was, in Postgres | Question it answers | Now |
 |---|---|---|
 | `processed_model_run_urls` | Has this GRIB file been processed? | Does the run's `staging` partition have a marker row for it? |
 | `prediction_model_run_timestamps.complete` | Has every GRIB file for the run been processed? | Does the run's `staging` partition have a marker row for every expected file? |
@@ -303,15 +303,114 @@ Three Postgres tables track ingest today. All three go, and the state they hold 
 | `prediction_models` | What are the model's name and projection? | A constant in code, next to `ModelEnum` and `ProjectionEnum`. The table itself stays, because SFMS's `model_run_for_sfms` refers to it. |
 | The integer run ID | Which run does this row belong to? | The model and `run_ts`. |
 
-A run moves through these states:
+#### One job invocation
 
-1. **Downloading.** Each invocation leaves one file under `staging`, listing the GRIB files it processed. The next invocation reads those lists and skips what is done.
-2. **Complete.** Every expected GRIB file is listed. The job computes bias adjustments and derived precip in memory.
-3. **Published.** The job appends the run to `runs`, merges it into `by_time`, then deletes the `staging` prefix, in that order.
+The job does this for each run its schedule covers. Env Canada and NOAA work out the runs with `model_run_timestamp`; ECMWF checks today's and yesterday's 00 and 12 UTC runs.
 
-Deleting `staging` last is what makes a crash safe. A run that is in `runs` but still has a `staging` prefix was interrupted, and the job repeats step 3 from the start. Repeating it is harmless: a second append is just a newer version of the same run, and the merge is keyed.
+| Step | What happens | Code |
+|---|---|---|
+| 1. Skip a published run | A run in `runs` with nothing left in `staging` is done. The job moves on without downloading anything. | `run_is_published` in `common_model_fetchers.py` |
+| 2. Find what is left | The job reads the run's marker rows once to learn which files are already processed. | `RunStager.__init__`, `StagingTable.processed_sources` |
+| 3. Skip processed files | A file with a marker row, or one added in this invocation and not yet committed, is skipped. | `RunStager.is_processed` |
+| 4. Process new files | The job downloads the file, extracts the value at each station, and adds the file with its values to the stager. | `EnvCanada.process_model_run_urls`, `NOAA.process_url`, `ECMWF.process_model_run` |
+| 5. Commit in batches | Every 50 files, and in a `finally` at the end of the run, the stager writes one commit with the files' values and marker rows. | `RunStager.add`, `RunStager.flush`, `StagingTable.append_files` |
+| 6. Check completeness | A run with a marker row for every expected file is complete, and the job publishes it. | `RunStager.is_complete`, `complete_runs` |
 
-At the start of each invocation the job checks the handful of recent runs it might need to fetch. A run already in `runs` with no `staging` prefix is skipped outright. That check reads the Delta log's partition values and file statistics, not the data.
+Env Canada and NOAA record a file by its URL. ECMWF records it by forecast hour, such as `fxx=003`, so a file fetched from any of its mirrors counts.
+
+#### Publishing a complete run
+
+| Step | What happens | Code |
+|---|---|---|
+| 1. Read the run back | The run's values, per station, one dict per prediction time in time order. A value staged twice takes the newest `written_at`. | `StagingTable.station_values` |
+| 2. Read the training history | The model's recent runs from `runs`, read once for every station. | `read_model_history` in `machine_learning.py` |
+| 3. Compute the station predictions | Precip, the interpolated 20:00 row and the bias adjustments, in memory. | `ModelValueProcessor._process_model_run_for_station`, `ECMWFPredictionProcessor._process_model_run_for_station` |
+| 4. Append to `runs` | One commit with the whole run. | `RunsTable.append_run` |
+| 5. Merge into `by_time` | Keyed on station, time, resolution and source. | `ByTimeTable.merge_run` |
+| 6. Delete from `staging` | Drops the run's partition. | `StagingTable.delete_run` |
+
+The steps run in this order on purpose: deleting from `staging` last is what makes a crash safe.
+
+#### One value, from file to tables
+
+An RDPS run starting 2026-11-17 12:00 UTC, at station 322, for 2026-11-18 20:00 UTC, 32 hours in. RDPS is hourly, so 20:00 is one of the model's own times and no row is interpolated. The values are made up; the shapes are real. All times are UTC.
+
+**`staging`**, while the run downloads. RDPS publishes one file per variable and forecast hour, so the five values come from five files. Each file also leaves one marker row, written in the same commit as its values. This is the marker row of the temperature file; the other four files have one each.
+
+| `run` | `run_ts` | `station_code` | `prediction_timestamp` | `variable` | `value` | `source` | `written_at` |
+|---|---|---|---|---|---|---|---|
+| `20261117T12` | 2026-11-17 12:00 | 322 | 2026-11-18 20:00 | `tmp_tgl_2` | 4.2 | `…_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT032H.grib2` | 2026-11-17 15:10 |
+| `20261117T12` | 2026-11-17 12:00 | 322 | 2026-11-18 20:00 | `rh_tgl_2` | 78.0 | `…_RDPS_RelativeHumidity_AGL-2m_RLatLon0.09_PT032H.grib2` | 2026-11-17 15:10 |
+| `20261117T12` | 2026-11-17 12:00 | 322 | 2026-11-18 20:00 | `apcp_sfc_0` | 6.4 | `…_RDPS_Precip-Accum_Sfc_RLatLon0.09_PT032H.grib2` | 2026-11-17 15:10 |
+| `20261117T12` | 2026-11-17 12:00 | 322 | 2026-11-18 20:00 | `wdir_tgl_10` | 210.0 | `…_RDPS_WindDir_AGL-10m_RLatLon0.09_PT032H.grib2` | 2026-11-17 15:40 |
+| `20261117T12` | 2026-11-17 12:00 | 322 | 2026-11-18 20:00 | `wind_tgl_10` | 12.5 | `…_RDPS_WindSpeed_AGL-10m_RLatLon0.09_PT032H.grib2` | 2026-11-17 15:40 |
+| `20261117T12` | 2026-11-17 12:00 | null | 2026-11-18 20:00 | null | null | `…_RDPS_AirTemp_AGL-2m_RLatLon0.09_PT032H.grib2` | 2026-11-17 15:10 |
+
+Each value row is one station from one file, so a file covering 320 stations leaves 320 value rows and one marker row. `apcp_sfc_0` is the precip accumulated since the run started.
+
+**`runs`**, once the run is published. The five staged values become one row with everything the job computed. `precip_24h` is 6.4 less the 3.3 accumulated by 2026-11-17 20:00 in the same run, and `delta_precip` is 6.4 less the 6.1 at 19:00.
+
+| Column | Value |
+|---|---|
+| `model` | `RDPS` |
+| `run_date` | 2026-11-17 |
+| `station_code` | 322 |
+| `run_ts` | 2026-11-17 12:00 |
+| `prediction_timestamp` | 2026-11-18 20:00 |
+| `tmp_tgl_2` | 4.2 |
+| `rh_tgl_2` | 78.0 |
+| `apcp_sfc_0` | 6.4 |
+| `wdir_tgl_10` | 210.0 |
+| `wind_tgl_10` | 12.5 |
+| `bias_adjusted_temperature` | 5.0 |
+| `bias_adjusted_rh` | 74.0 |
+| `bias_adjusted_wdir` | 205.0 |
+| `bias_adjusted_wind_speed` | 9.8 |
+| `delta_precip` | 0.3 |
+| `precip_24h` | 3.1 |
+| `bias_adjusted_precip_24h` | 2.7 |
+| `ingested_at` | 2026-11-17 16:42 |
+| `is_interpolated` | false |
+
+`model` and `run_date` are the partition. A run published again is appended with a later `ingested_at`, and readers take the newest.
+
+**`by_time`**, merged from the `runs` row. Every prediction becomes an `hourly` row, and a 20:00 UTC prediction also becomes a `daily` row. The two differ only in their precipitation: the hourly row carries the precip since the previous prediction, the daily row the 24 hour total and its bias adjustment.
+
+| Column | `hourly` row | `daily` row |
+|---|---|---|
+| `resolution` | `hourly` | `daily` |
+| `source` | `RDPS` | `RDPS` |
+| `month` | `2026-11` | `2026-11` |
+| `station_code` | 322 | 322 |
+| `timestamp` | 2026-11-18 20:00 | 2026-11-18 20:00 |
+| `temperature` | 4.2 | 4.2 |
+| `relative_humidity` | 78.0 | 78.0 |
+| `wind_speed` | 12.5 | 12.5 |
+| `wind_direction` | 210.0 | 210.0 |
+| `precipitation` | 0.3 (`delta_precip`) | 3.1 (`precip_24h`) |
+| `bias_adjusted_temperature` | 5.0 | 5.0 |
+| `bias_adjusted_relative_humidity` | 74.0 | 74.0 |
+| `bias_adjusted_wind_speed` | 9.8 | 9.8 |
+| `bias_adjusted_wind_direction` | 205.0 | 205.0 |
+| `bias_adjusted_precipitation` | null | 2.7 (`bias_adjusted_precip_24h`) |
+| `run_ts` | 2026-11-17 12:00 | 2026-11-17 12:00 |
+| `ingested_at` | 2026-11-17 16:42 | 2026-11-17 16:42 |
+
+`resolution`, `source` and `month` are the partition. There is one row per station, time, resolution and source. The next RDPS run that predicts 2026-11-18 20:00 replaces both rows, so `run_ts` says which run a row came from. MoreCast reads the `daily` rows.
+
+After publishing, these rows, and every other row in the `20261117T12` partition, are deleted from `staging`.
+
+#### What the next invocation does after a failure
+
+| Where the job stopped | What the next invocation finds | What it does |
+|---|---|---|
+| Partway through downloading | The run in `staging`, not in `runs` | Processes the files that have no marker row yet. Files since the last commit are fetched again. |
+| Downloaded, but publishing failed | The run complete in `staging`, not in `runs` | Publishes it again. |
+| After appending to `runs`, before deleting from `staging` | The run in both | Publishes it again. The second append is a newer version of the run, which readers prefer, and the keyed merge is harmless to repeat. |
+| The run produced no station predictions | The run complete in `staging`, an error logged | Leaves it there, so it is not downloaded again. |
+| Finished | The run in `runs` only | Skips it. |
+
+A run left half-downloaded once it has dropped out of the job's schedule, about a day later, stays in `staging` unfinished. The old Postgres bookkeeping had the same reach. The maintenance job compacts and vacuums every model's `staging` table, and a deleted run's files are removed once they are older than the vacuum retention.
 
 Reprocessing a published run is deliberate, not something the job does by itself: an operator asks for a model and run, the job downloads it again and appends it as a newer version.
 
