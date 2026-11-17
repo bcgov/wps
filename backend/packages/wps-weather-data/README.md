@@ -58,6 +58,18 @@ data mart.
 wps_weather_data.data_mart_backfill`, or as a one-off OpenShift job (see
 `docs/DATA_REPROCESSING.md`).
 
+## by_station.py
+
+`ByStationTable` is the `by_station` dataset: the `by_time` rows in a Delta table partitioned by
+resolution, station and year, so that climatology can read one station across every year without
+touching any other station's data. `read` returns a station's whole record, optionally for some
+sources.
+
+The `station-weather-by-station` cron job runs `python -m wps_weather_data.by_station` each
+night: it replaces the current year's rows from `by_time`, in one commit per resolution. After a
+backfill, run it once with `--from-year` to rebuild the earlier years. The maintenance job
+vacuums the files each rebuild replaces.
+
 ## actuals.py
 
 `StationObservations` reads `ACTUALS` from `by_time` for a time window, once per model run being

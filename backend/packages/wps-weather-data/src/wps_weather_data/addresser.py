@@ -44,3 +44,7 @@ class StationWeatherAddresser:
     def get_staging_key(self, model: str) -> S3Key:
         """S3 key of a model's `staging` Delta table: the runs it is still downloading."""
         return S3Key(f"{self.root}/staging/{model.lower()}")
+
+    def get_by_station_key(self) -> S3Key:
+        """S3 key of the `by_station` Delta table: the `by_time` rows, laid out by station."""
+        return S3Key(f"{self.root}/by_station")

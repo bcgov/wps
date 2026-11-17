@@ -76,14 +76,16 @@ class DeltaWeatherTable:
         with self._lock:
             return self._open_latest()
 
-    def dataset(self) -> ds.Dataset:
+    def dataset(self, partitions: list[tuple[str, str, str]] | None = None) -> ds.Dataset:
         """Return the table's current files as a dataset to read from.
 
         The dataset is a fixed list of files, so it stays valid while other threads refresh the
-        table.
+        table. `partitions` limits it to the files of some partitions, as (column, "=", value)
+        with the value as text. A table with many partitions is slow to read without it,
+        because the dataset is otherwise built from every file.
         """
         with self._lock:
-            return self._open_latest().to_pyarrow_dataset()
+            return self._open_latest().to_pyarrow_dataset(file_pruning_predicate=partitions)
 
     def maintain(
         self,
