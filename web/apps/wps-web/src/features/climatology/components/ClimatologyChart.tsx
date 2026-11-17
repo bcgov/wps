@@ -1,13 +1,13 @@
-import { areaY, defineChart, lineY, ruleX } from '@tanstack/charts'
+import { areaY, type ChartInteractionController, defineChart, lineY, ruleX } from '@tanstack/charts'
 import { crosshair } from '@tanstack/charts/crosshair'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
-import { type ZoomXChange, type ZoomXWindow, zoomX } from '@tanstack/charts/interaction/zoom'
+import { type ZoomXChange, type ZoomXWheelActivation, type ZoomXWindow, zoomX } from '@tanstack/charts/interaction/zoom'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { Chart } from '@tanstack/charts/react'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { tooltip } from '@tanstack/charts/tooltip'
 import type { ClimatologyVariable } from '@wps/api/climatologyAPI'
-import { useMemo } from 'react'
+import { type PointerEvent, useCallback, useMemo, useRef } from 'react'
 import {
   CLIMATOLOGY_VARIABLES,
   type ClimatologyRow,
@@ -46,6 +46,9 @@ export interface ClimatologyChartInput {
   // The y axis' lowest and highest value, so that charts of several stations share one. By
   // default the rows' own, which zooming does not change.
   yDomain?: [number, number]
+  // When the scroll wheel zooms: always over the plot, or only with Control or Command held,
+  // which leaves the wheel to scroll a page of several charts.
+  wheelZoom?: Extract<ZoomXWheelActivation, 'always' | 'modifier'>
 }
 
 export interface ClimatologyChartProps extends ClimatologyChartInput {
@@ -62,7 +65,8 @@ export const climatologyChartDefinition = ({
   dateWindow,
   onDateWindowChange,
   today,
-  yDomain
+  yDomain,
+  wheelZoom = 'always'
 }: ClimatologyChartInput) => {
   const { label, unit } = CLIMATOLOGY_VARIABLES[variable]
   const shown = rowsInWindow(rows, dateWindow)
@@ -107,8 +111,8 @@ export const climatologyChartDefinition = ({
     // The rows either side of the window are drawn to reach its edges, and cut off there.
     clip: true,
     controls: [
-      // Wheel zooms once the plot has focus, dragging pans, plus and minus zoom from the keyboard
-      // and Home shows every day again.
+      // The wheel zooms, dragging pans, plus and minus zoom from the keyboard and Home shows
+      // every day again.
       zoomX({
         window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
           { start: dateWindow.start, end: dateWindow.end },
@@ -117,6 +121,7 @@ export const climatologyChartDefinition = ({
         extent: [extent.start, extent.end],
         scaleExtent: [1, maxZoom(extent)],
         ariaLabel: 'Zoom and pan the dates shown',
+        wheelActivation: wheelZoom,
         format: formatDay
       })
     ],
@@ -176,21 +181,36 @@ const ClimatologyChart = ({
   onDateWindowChange,
   today,
   yDomain,
+  wheelZoom,
   title,
   height = 460
 }: ClimatologyChartProps) => {
   const definition = useMemo(
-    () => climatologyChartDefinition({ rows, variable, year, dateWindow, onDateWindowChange, today, yDomain }),
-    [rows, variable, year, dateWindow, onDateWindowChange, today, yDomain]
+    () =>
+      climatologyChartDefinition({ rows, variable, year, dateWindow, onDateWindowChange, today, yDomain, wheelZoom }),
+    [rows, variable, year, dateWindow, onDateWindowChange, today, yDomain, wheelZoom]
   )
+  // The zoom control lies over the plot to catch drags and the wheel, so the chart under it
+  // never sees the pointer. Its movement is passed on here so the tooltip still follows it.
+  const interaction = useRef<ChartInteractionController | null>(null)
+  const onPointerMove = useCallback((event: PointerEvent) => {
+    const controller = interaction.current
+    controller?.setControlledFocus(controller.resolvePointer(event.clientX, event.clientY))
+  }, [])
+  const onPointerLeave = useCallback(() => interaction.current?.setControlledFocus(null), [])
   const { label } = CLIMATOLOGY_VARIABLES[variable]
   return (
-    <Chart
-      definition={definition}
-      height={height}
-      ariaLabel={`${label} climatology for ${title}, ${year}`}
-      ariaDescription={`Daily ${label.toLowerCase()} in ${year} against the range, median and percentiles of other years for each day of the year.`}
-    />
+    <div data-testid="climatology-chart-host" onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
+      <Chart
+        definition={definition}
+        height={height}
+        ariaLabel={`${label} climatology for ${title}, ${year}`}
+        ariaDescription={`Daily ${label.toLowerCase()} in ${year} against the range, median and percentiles of other years for each day of the year.`}
+        onRender={context => {
+          interaction.current = context.interaction as ChartInteractionController
+        }}
+      />
+    </div>
   )
 }
 

@@ -292,6 +292,8 @@ const ClimatologyPage = () => {
                         onDateWindowChange={onDateWindowChange}
                         today={today}
                         yDomain={yDomain}
+                        // A plain wheel scrolls past the stack of charts; Control or Command zooms.
+                        wheelZoom="modifier"
                         title={name}
                         height={300}
                       />
@@ -325,8 +327,9 @@ const ClimatologyPage = () => {
               </Button>
             </Box>
             <Typography variant="caption" color="text.secondary">
-              Drag the timeline&apos;s handles to choose the dates shown. On the chart, click and then scroll to zoom,
-              or drag to pan; with the chart focused, + and − zoom, the arrow keys pan and Home shows every day.
+              Drag the timeline&apos;s handles to choose the dates shown. On the chart,{' '}
+              {effectiveMethod === 'each' ? 'hold Control or Command and scroll' : 'scroll'} to zoom and drag to pan;
+              with the chart focused, + and − zoom, the arrow keys pan and Home shows every day.
             </Typography>
           </Box>
         )}

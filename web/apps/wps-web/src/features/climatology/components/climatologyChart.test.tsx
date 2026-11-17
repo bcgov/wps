@@ -144,4 +144,13 @@ describe('ClimatologyChart', () => {
 
     expect(scales.y?.domain).toEqual([-10, 40])
   })
+
+  it.each([
+    ['always', /Use a vertical wheel to zoom/],
+    ['modifier', /Hold Control or Command while using a vertical wheel/]
+  ] as const)('zooms with the wheel %s', (wheelZoom, instructions) => {
+    render(<ClimatologyChart {...input} wheelZoom={wheelZoom} title="AFTON" />)
+
+    expect(screen.getByLabelText('Zoom and pan the dates shown')).toHaveAccessibleDescription(instructions)
+  })
 })
