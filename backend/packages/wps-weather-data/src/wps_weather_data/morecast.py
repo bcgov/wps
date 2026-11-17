@@ -1,12 +1,8 @@
 """MoreCast's model values, read from the `by_time` table.
 
-The same read as `wps_shared.weather_models.fetch.predictions`, which uses Postgres: the
-20:00 UTC prediction per station, day and model, raw and bias-adjusted. `by_time` already
+The 20:00 UTC prediction per station, day and model, raw and bias-adjusted. `by_time` already
 keeps one daily row per station, time and model, from the newest run, so this is a single read
-with no choosing between runs.
-
-The MoreCast determinates route reads this. backend/scripts/morecast_by_time_parity_check.py
-compares it with the Postgres read.
+with no choosing between runs. The MoreCast determinates route reads this.
 """
 
 import logging

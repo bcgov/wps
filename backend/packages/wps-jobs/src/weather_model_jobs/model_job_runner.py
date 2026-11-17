@@ -20,7 +20,6 @@ import os
 import sys
 from typing import Callable, Protocol
 
-from weather_model_jobs.common_model_fetchers import apply_data_retention_policy
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.weather_models import CompletedWithSomeExceptions, NoFilesProcessed
 
@@ -78,7 +77,6 @@ def run_model_job(process_models: Callable[[], int], source: str, model: str):
     """Run a model job to completion and exit the process with the appropriate code."""
     try:
         process_models()
-        apply_data_retention_policy()
     except NoFilesProcessed as exc:
         # An outage upstream isn't something we can act on, and the hourly retries pick up
         # whatever we missed. Notify at warning severity and exit cleanly so it doesn't

@@ -1,41 +1,38 @@
+"""What the model jobs share: staging a run's files as they are processed, deciding whether a run
+is already published, and turning a fully staged run into station predictions.
+
+A run is downloaded into `staging`, then published: its station predictions are appended to
+`runs`, merged into `by_time`, and the run is deleted from `staging`, in that order. A run in
+`runs` with nothing left in `staging` is done. A run in both was interrupted while publishing, and
+is published again.
+
+Design: docs/architecture/station-weather-storage.md
+"""
+
 import logging
-from datetime import datetime, timedelta
+from collections.abc import Iterable
+from datetime import datetime, timedelta, timezone
 from typing import List
 
 import numpy
 import numpy as np
-import wps_shared.db.database
-import wps_shared.utils.time as time_utils
 from pyproj import Geod
 from sqlalchemy.orm import Session
-from weather_model_jobs.machine_learning import StationMachineLearning
+from weather_model_jobs.machine_learning import StationMachineLearning, read_model_history
+from weather_model_jobs.model_history import ModelHistory
+from weather_model_jobs.model_values import ModelValues, StationPrediction
 from weather_model_jobs.utils.interpolate import (
     construct_interpolated_noon_prediction,
     interpolate_bearing,
     interpolate_between_two_points,
 )
-from wps_shared import config
 from wps_shared.db.crud.observations import get_accumulated_precipitation
-from wps_shared.db.crud.weather_models import (
-    delete_model_run_predictions,
-    get_model_run_predictions_for_station,
-    get_prediction_model_run_timestamp_records,
-    get_processed_file_count,
-    get_processed_file_record,
-    get_station_run_rows,
-    get_weather_station_model_prediction,
-)
-from wps_shared.db.models.weather_models import (
-    ModelRunPrediction,
-    PredictionModelRunTimestamp,
-    ProcessedModelRunUrl,
-    WeatherStationModelPrediction,
-)
 from wps_shared.schemas.stations import WeatherStation
-from wps_shared.weather_models import ModelEnum
+from wps_shared.weather_models import ModelEnum, adjust_model_day
 from wps_shared.wps_logging import configure_logging
 from wps_weather_data.by_time import ByTimeTable
 from wps_weather_data.runs import RunsTable
+from wps_weather_data.staging import StagedFile, StagingTable
 from wps_wf1.wfwx_api import get_stations_synchronously
 
 # If running as its own process, configure logging appropriately.
@@ -46,6 +43,10 @@ logger = logging.getLogger(__name__)
 
 # Keys for weather variables that require interpolation between 1800 and 2100
 SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")
+
+# How many processed files to stage per commit. A job that dies loses the files it has not staged
+# yet, and fetches them again on its next run.
+FILES_PER_STAGING_COMMIT = 50
 
 
 def get_closest_index(coordinate: List, points: List):
@@ -64,42 +65,55 @@ def get_closest_index(coordinate: List, points: List):
     return numpy.argmin(distances)
 
 
-def flag_file_as_processed(url: str, session: Session):
-    """Flag the file as processed in the database"""
-    processed_file = get_processed_file_record(session, url)
-    if processed_file:
-        logger.info("re-processed %s", url)
-    else:
-        logger.info("file processed %s", url)
-        processed_file = ProcessedModelRunUrl(url=url, create_date=time_utils.get_utc_now())
-    processed_file.update_date = time_utils.get_utc_now()
-    session.add(processed_file)
-    session.commit()
+def model_run_timestamp(now: datetime, model_run_hour: int) -> datetime:
+    """The start of the newest run at model_run_hour, as of now."""
+    timestamp = datetime(now.year, now.month, now.day, now.hour, tzinfo=timezone.utc)
+    return adjust_model_day(timestamp, model_run_hour).replace(hour=model_run_hour)
 
 
-def check_if_model_run_complete(session: Session, urls):
-    """Check if a particular model run is complete"""
-    actual_count = get_processed_file_count(session, urls)
-    expected_count = len(urls)
-    logger.info("we have processed %s/%s files", actual_count, expected_count)
-    return actual_count == expected_count and actual_count > 0
+def run_is_published(
+    runs_table: RunsTable, staging_table: StagingTable, model: ModelEnum, run_ts: datetime
+) -> bool:
+    """Whether a run is done: in `runs`, with nothing left in `staging`."""
+    return runs_table.has_run(model, run_ts) and not staging_table.has_run(run_ts)
 
 
-def apply_data_retention_policy():
-    """
-    We can't keep data forever, we just don't have the space.
-    """
-    with wps_shared.db.database.get_write_session_scope() as session:
-        # Weather station model predictions are partitioned and archived.
-        # Model run predictions are used to inform weather station model predictions
-        # and we can delete them over time by lessening data_retention_threshold.
-        days_to_keep = int(config.get("DATA_RETENTION_THRESHOLD"))
-        oldest_to_keep = time_utils.get_utc_now() - timedelta(days=days_to_keep)
-        delete_model_run_predictions(session, oldest_to_keep)
+class RunStager:
+    """Stages the files of one run as they are processed, in batches, and knows which of the run's
+    files have been processed by this or an earlier invocation."""
+
+    def __init__(self, staging_table: StagingTable, run_ts: datetime):
+        self.staging_table = staging_table
+        self.run_ts = run_ts
+        self.processed = staging_table.processed_sources(run_ts)
+        self._pending: list[StagedFile] = []
+
+    def is_processed(self, source: str) -> bool:
+        return source in self.processed or any(staged.source == source for staged in self._pending)
+
+    def add(self, source: str, prediction_timestamp: datetime, values: list[tuple]):
+        """Add a processed file and its station values. Staged with the next commit."""
+        self._pending.append(StagedFile(source, prediction_timestamp, values))
+        if len(self._pending) >= FILES_PER_STAGING_COMMIT:
+            self.flush()
+
+    def flush(self):
+        """Stage the files added since the last commit."""
+        if not self._pending:
+            return
+        self.staging_table.append_files(self.run_ts, self._pending)
+        self.processed.update(staged.source for staged in self._pending)
+        self._pending = []
+
+    def is_complete(self, sources: Iterable[str]) -> bool:
+        """Whether every one of the run's files has been staged."""
+        sources = set(sources)
+        logger.info("we have processed %s/%s files", len(sources & self.processed), len(sources))
+        return bool(sources) and sources <= self.processed
 
 
 def accumulate_nam_precipitation(
-    nam_cumulative_precip: float, prediction: ModelRunPrediction, model_run_hour: int
+    nam_cumulative_precip: float, prediction: ModelValues, model_run_hour: int
 ):
     """Calculate overall cumulative precip and cumulative precip for the current prediction."""
     # 00 and 12 hour model runs accumulate precipitation in 12 hour intervals, 06 and 18 hour accumulate in
@@ -122,62 +136,77 @@ def accumulate_nam_precipitation(
     return (cumulative_precip, current_precip)
 
 
-def write_run_to_object_store(
-    session: Session,
-    model_run: PredictionModelRunTimestamp,
-    model_type: ModelEnum,
-    runs_table: RunsTable,
-    by_time_table: ByTimeTable,
-):
-    """Append a finished run to `runs` in object storage, then merge it into `by_time`.
-
-    Every model's job does this alongside its Postgres writes. See
-    docs/architecture/station-weather-storage.md. Nothing reads either table yet, so a failure
-    here is logged and must not fail the job. backend/scripts/station_runs_parity_check.py
-    finds and backfills any run that was missed.
-    """
-    try:
-        rows = get_station_run_rows(session, model_run.id)
-        runs_table.append_run(model_type, model_run.prediction_run_timestamp, rows)
-        by_time_table.merge_run(model_type, model_run.prediction_run_timestamp, rows)
-    except Exception:
-        logger.exception("Failed to write model run %s to object storage", model_run.id)
-
-
 class ModelValueProcessor:
-    """Iterate through model runs that have completed, and calculate the interpolated weather predictions."""
+    """Turn fully staged model runs into station predictions, and publish them."""
 
-    def __init__(self, session):
-        """Prepare variables we're going to use throughout"""
+    def __init__(
+        self,
+        session: Session,
+        model_type: ModelEnum,
+        runs_table: RunsTable | None = None,
+        by_time_table: ByTimeTable | None = None,
+        staging_table: StagingTable | None = None,
+    ):
+        """`session` reads the station observations that training and 24 hour precip need."""
         self.session = session
+        self.model_type = model_type
         self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
-        self.runs_table = RunsTable()
-        self.by_time_table = ByTimeTable()
+        self.runs_table = runs_table or RunsTable()
+        self.by_time_table = by_time_table or ByTimeTable()
+        self.staging_table = staging_table or StagingTable(model_type)
 
-    def _process_model_run(self, model_run: PredictionModelRunTimestamp, model_type: ModelEnum):
-        """Interpolate predictions in the provided model run for all stations."""
-        logger.info("Interpolating values for model run: %s", model_run)
-        # Iterate through stations.
+    def process(self, run_timestamps: Iterable[datetime]):
+        """Publish each of the runs, which must be fully staged."""
+        for run_ts in run_timestamps:
+            start_time = datetime.now()
+            self.publish_run(run_ts)
+            execution_time = datetime.now() - start_time
+            logger.info(
+                "Interpolated & machine learned %s model run %s in %s",
+                self.model_type.value,
+                run_ts,
+                execution_time,
+            )
+
+    def publish_run(self, run_ts: datetime):
+        """Compute a staged run's station predictions, append them to `runs`, merge them into
+        `by_time`, then delete the run from `staging`."""
+        logger.info("Interpolating values for %s model run %s", self.model_type.value, run_ts)
+        staged = self.staging_table.station_values(run_ts)
+        history = read_model_history(self.runs_table, self.model_type, run_ts)
+        rows = []
         for index, station in enumerate(self.stations):
+            values = staged.get(station.code)
+            if not values:
+                continue
             logger.info(
                 "Interpolating model run %s (%s/%s) for %s:%s",
-                model_run.id,
+                run_ts,
                 index,
                 self.station_count,
                 station.code,
                 station.name,
             )
-            # Process this model run for station.
-            self._process_model_run_for_station(model_run, station, model_type)
-        # Commit all the weather station model predictions (it's fast if we line them all up and commit
-        # them in one go.)
-        logger.info("commit to database...")
-        self.session.commit()
-        logger.info("done commit.")
+            predictions = [ModelValues.from_staging(station.code, value) for value in values]
+            station_predictions = self._process_model_run_for_station(
+                run_ts, station, predictions, history
+            )
+            rows.extend(prediction.as_row() for prediction in station_predictions)
+        if not rows:
+            # Kept in staging: deleting it would make the next run download it all again.
+            logger.error(
+                "No station predictions for %s model run %s, leaving it in staging",
+                self.model_type.value,
+                run_ts,
+            )
+            return
+        self.runs_table.append_run(self.model_type, run_ts, rows)
+        self.by_time_table.merge_run(self.model_type, run_ts, rows)
+        self.staging_table.delete_run(run_ts)
 
     def _add_interpolated_bias_adjustments_to_prediction(
-        self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning
+        self, station_prediction: StationPrediction, machine: StationMachineLearning
     ):
         # The model only has 3-hourly output, so there is no 2000 prediction to bias adjust directly.
         # Instead, bias adjust the 1800 and 2100 predictions and interpolate between them to get 2000.
@@ -239,7 +268,7 @@ class ModelValueProcessor:
         )
 
     def _add_bias_adjustments_to_prediction(
-        self, station_prediction: WeatherStationModelPrediction, machine: StationMachineLearning
+        self, station_prediction: StationPrediction, machine: StationMachineLearning
     ):
         # Predict the temperature
         station_prediction.bias_adjusted_temperature = machine.predict_temperature(
@@ -270,29 +299,31 @@ class ModelValueProcessor:
 
     def _process_prediction(
         self,
-        prediction: ModelRunPrediction,
+        prediction: ModelValues,
         station: WeatherStation,
-        model_run: PredictionModelRunTimestamp,
+        run_ts: datetime,
         machine: StationMachineLearning,
         prediction_is_interpolated: bool,
+        station_predictions: dict[datetime, StationPrediction],
     ):
-        """Create a WeatherStationModelPrediction from the ModelRunPrediction data."""
+        """Add the station prediction for the model's values to station_predictions."""
         # If there's already a prediction, we want to update it
-        station_prediction = get_weather_station_model_prediction(
-            self.session, station.code, model_run.id, prediction.prediction_timestamp
-        )
+        station_prediction = station_predictions.get(prediction.prediction_timestamp)
         if station_prediction is None:
-            station_prediction = WeatherStationModelPrediction()
+            station_prediction = StationPrediction()
         # Populate the weather station prediction object.
         station_prediction.station_code = station.code
-        station_prediction.prediction_model_run_timestamp_id = model_run.id
         station_prediction.prediction_timestamp = prediction.prediction_timestamp
         # Calculate the interpolated values.
         # 2020 Dec 15, Sybrand: Encountered situation where tmp_tgl_2 was None, add this workaround for it.
         # NOTE: Not sure why this value would ever be None. This could happen if for whatever reason, the
         # tmp_tgl_2 layer failed to download and process, while other layers did.
         if prediction.tmp_tgl_2 is None:
-            logger.warning("tmp_tgl_2 is None for ModelRunPrediction.id == %s", prediction.id)
+            logger.warning(
+                "tmp_tgl_2 is None for station %s at %s",
+                station.code,
+                prediction.prediction_timestamp,
+            )
         else:
             temp = (
                 prediction.tmp_tgl_2.item()
@@ -306,7 +337,11 @@ class ModelValueProcessor:
         # rh_tgl_2 layer failed to download and process, while other layers did.
         if prediction.rh_tgl_2 is None:
             # This is unexpected, so we log it.
-            logger.warning("rh_tgl_2 is None for ModelRunPrediction.id == %s", prediction.id)
+            logger.warning(
+                "rh_tgl_2 is None for station %s at %s",
+                station.code,
+                prediction.prediction_timestamp,
+            )
             station_prediction.rh_tgl_2 = None
         else:
             rh = (
@@ -328,12 +363,12 @@ class ModelValueProcessor:
             station_prediction.apcp_sfc_0 = apcp
         # Calculate the delta_precipitation and 24 hour precip based on station's previous prediction_timestamp
         # for the same model run
-        self.session.flush()
+        station_predictions[prediction.prediction_timestamp] = station_prediction
         station_prediction.precip_24h = self._calculate_past_24_hour_precip(
-            station, model_run, prediction, station_prediction
+            station, run_ts, prediction, station_prediction, station_predictions
         )
         station_prediction.delta_precip = self._calculate_delta_precip(
-            station, model_run, prediction, station_prediction
+            prediction, station_prediction, station_predictions
         )
 
         # Get the closest wind speed
@@ -362,25 +397,23 @@ class ModelValueProcessor:
             # No interpolation required
             self._add_bias_adjustments_to_prediction(station_prediction, machine)
 
-        # Update the update time (this might be an update)
-        station_prediction.update_date = time_utils.get_utc_now()
-        # Add this prediction to the session (we'll commit it later.)
-        self.session.add(station_prediction)
+        station_prediction.is_interpolated = prediction_is_interpolated
 
     def _calculate_past_24_hour_precip(
         self,
         station: WeatherStation,
-        model_run: PredictionModelRunTimestamp,
-        prediction: ModelRunPrediction,
-        station_prediction: WeatherStationModelPrediction,
+        run_ts: datetime,
+        prediction: ModelValues,
+        station_prediction: StationPrediction,
+        station_predictions: dict[datetime, StationPrediction],
     ):
         """Calculate the predicted precipitation over the previous 24 hours within the specified model run.
         If the model run does not contain a prediction timestamp for 24 hours prior to the current prediction,
         return the predicted precipitation from the previous run of the same model for the same time frame."""
         start_prediction_timestamp = prediction.prediction_timestamp - timedelta(days=1)
         # Check if a prediction exists for this model run 24 hours in the past
-        previous_prediction_from_same_model_run = get_weather_station_model_prediction(
-            self.session, station.code, model_run.id, start_prediction_timestamp
+        previous_prediction_from_same_model_run = station_predictions.get(
+            start_prediction_timestamp
         )
         # If a prediction from 24 hours ago from the same model run exists, return the difference in cumulative precipitation
         # between now and then as our total for the past 24 hours. We can end up with very very small negative numbers due
@@ -398,64 +431,61 @@ class ModelValueProcessor:
             self.session,
             station.code,
             start_prediction_timestamp,
-            model_run.prediction_run_timestamp,
+            run_ts,
         )
         return actual_precip + station_prediction.apcp_sfc_0
 
-    def _calculate_delta_precip(self, station, model_run, prediction, station_prediction):
+    def _calculate_delta_precip(
+        self,
+        prediction: ModelValues,
+        station_prediction: StationPrediction,
+        station_predictions: dict[datetime, StationPrediction],
+    ):
         """Calculate the station_prediction's delta_precip based on the previous precip
         prediction for the station
         """
-        results = (
-            self.session.query(WeatherStationModelPrediction)
-            .filter(WeatherStationModelPrediction.station_code == station.code)
-            .filter(WeatherStationModelPrediction.prediction_model_run_timestamp_id == model_run.id)
-            .filter(
-                WeatherStationModelPrediction.prediction_timestamp < prediction.prediction_timestamp
-            )
-            .order_by(WeatherStationModelPrediction.prediction_timestamp.desc())
-            .limit(1)
-            .first()
+        previous_time = max(
+            (time for time in station_predictions if time < prediction.prediction_timestamp),
+            default=None,
         )
         # If there exists a previous prediction for the station from the same model run
-        if results is not None:
-            return station_prediction.apcp_sfc_0 - results.apcp_sfc_0
+        if previous_time is not None:
+            return station_prediction.apcp_sfc_0 - station_predictions[previous_time].apcp_sfc_0
         # If there is no prior prediction within the same model run, it means that station_prediction is
         # the first prediction with apcp for the current model run (hour 001 or 003, depending on the
         # model type). In this case, delta_precip will be equal to the apcp
         return station_prediction.apcp_sfc_0
 
     def _process_model_run_for_station(
-        self, model_run: PredictionModelRunTimestamp, station: WeatherStation, model_type: ModelEnum
-    ):
-        """Process the model run for the provided station."""
+        self,
+        run_ts: datetime,
+        station: WeatherStation,
+        predictions: list[ModelValues],
+        history: ModelHistory,
+    ) -> list[StationPrediction]:
+        """Compute the station's predictions for the run, from the model's values at the station in
+        time order."""
         # Extract the coordinate.
         coordinate = [station.long, station.lat]
-        # Lookup the grid our weather station is in.
-        logger.info(
-            "Getting grid for coordinate %s and model %s", coordinate, model_run.prediction_model
-        )
         machine = StationMachineLearning(
             session=self.session,
-            model=model_run.prediction_model,
+            history=history,
             target_coordinate=coordinate,
             station_code=station.code,
-            max_learn_date=model_run.prediction_run_timestamp,
+            max_learn_date=run_ts,
         )
         machine.learn()
 
-        # Get all the predictions associated to this particular model run.
-        query = get_model_run_predictions_for_station(self.session, station.code, model_run)
-
+        station_predictions: dict[datetime, StationPrediction] = {}
         nam_cumulative_precip = 0.0
         # Iterate through all the predictions.
         prev_prediction = None
 
-        for prediction in query:
+        for prediction in predictions:
             # NAM model requires manual calculation of cumulative precip
-            if model_type == ModelEnum.NAM:
+            if self.model_type == ModelEnum.NAM:
                 nam_cumulative_precip, prediction.apcp_sfc_0 = accumulate_nam_precipitation(
-                    nam_cumulative_precip, prediction, model_run.prediction_run_timestamp.hour
+                    nam_cumulative_precip, prediction, run_ts.hour
                 )
             if (
                 prev_prediction is not None
@@ -465,36 +495,13 @@ class ModelValueProcessor:
                 noon_prediction = construct_interpolated_noon_prediction(
                     prev_prediction, prediction, SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION
                 )
-                self._process_prediction(noon_prediction, station, model_run, machine, True)
-            self._process_prediction(prediction, station, model_run, machine, False)
+                self._process_prediction(
+                    noon_prediction, station, run_ts, machine, True, station_predictions
+                )
+            self._process_prediction(
+                prediction, station, run_ts, machine, False, station_predictions
+            )
 
             prev_prediction = prediction
 
-    def _mark_model_run_interpolated(self, model_run: PredictionModelRunTimestamp):
-        """Having completely processed a model run, we can mark it has having been interpolated."""
-        model_run.interpolated = True
-        logger.info("marking %s as interpolated", model_run)
-        self.session.add(model_run)
-        self.session.commit()
-
-    def process(self, model_type: ModelEnum):
-        """Entry point to start processing model runs that have not yet had their predictions interpolated"""
-        # Get model runs that are complete (fully downloaded), but not yet interpolated.
-        query = get_prediction_model_run_timestamp_records(
-            self.session, complete=True, interpolated=False, model_type=model_type
-        )
-        for model_run, model in query:
-            logger.info("model %s", model)
-            logger.info("model_run %s", model_run)
-            # Process the model run.
-            start_time = datetime.now()
-            self._process_model_run(model_run, model_type)
-            # Write before marking the run as interpolated: if the job dies in between, the run
-            # is processed and written again, and readers take the newest version.
-            write_run_to_object_store(
-                self.session, model_run, model_type, self.runs_table, self.by_time_table
-            )
-            # Mark the model run as interpolated.
-            self._mark_model_run_interpolated(model_run)
-            execution_time = datetime.now() - start_time
-            logger.info(f"Interpolated & machine learned model run {model_run} in {execution_time}")
+        return [station_predictions[time] for time in sorted(station_predictions)]

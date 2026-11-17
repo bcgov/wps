@@ -57,3 +57,22 @@ def test_maintain_all_reports_failure_but_still_maintains_the_other_tables():
 
     assert succeeded is False
     working.maintain.assert_called_once()
+
+
+def test_main_maintains_runs_by_time_and_every_models_staging(monkeypatch):
+    from wps_weather_data import maintenance
+    from wps_weather_data.staging import StagingTable
+
+    maintained = []
+    monkeypatch.setattr(maintenance, "configure_logging", lambda: None)
+    monkeypatch.setattr(
+        maintenance, "maintain_all", lambda tables: maintained.extend(tables) or True
+    )
+
+    with pytest.raises(SystemExit) as exit_info:
+        maintenance.main()
+
+    assert exit_info.value.code == 0
+    assert [type(table) for table in maintained[:2]] == [RunsTable, ByTimeTable]
+    staging_models = [table.model for table in maintained if isinstance(table, StagingTable)]
+    assert staging_models == list(ModelEnum)

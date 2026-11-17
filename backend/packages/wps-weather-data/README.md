@@ -17,6 +17,14 @@ it; creating one does not contact the object store.
 `append_run` writes one version of a run in a single commit. `read` returns the newest version
 of each run, and every reader should go through it so that rule lives in one place.
 
+## staging.py
+
+`StagingTable` is a model's `staging` dataset: the station values of runs that are still
+downloading, one table per model. A job stages the files it processes with `append_files`, and
+each file leaves a marker row in the same commit, so `processed_sources` tells what is done.
+Once every file of a run is staged, the job reads it back with `station_values`, publishes the
+run to `runs` and `by_time`, then calls `delete_run`.
+
 ## by_time.py
 
 `ByTimeTable` is the `by_time` dataset: the newest value per station, time and source.
@@ -41,9 +49,11 @@ writes under `dev/{suffix}/weather/stations/`, using the `SUFFIX` setting (for e
 
 ## Status
 
-Every model job (GDPS, RDPS, HRDPS, GFS, NAM and ECMWF) writes to these tables, alongside its
-Postgres writes. The API reads MoreCast's model values from `by_time` (`morecast.py`); every
-other reader still uses Postgres. Two scripts in `backend/scripts` check them
-against Postgres: `station_runs_parity_check.py` compares `runs`, and
-`morecast_by_time_parity_check.py` compares MoreCast's model values read from `by_time`
-(`morecast.py`) with the same read from Postgres.
+The model jobs (GDPS, RDPS, HRDPS, GFS, NAM and ECMWF) keep no station data in Postgres: they
+stage runs in `staging`, publish them to `runs` and `by_time`, and train the bias adjustments on
+`runs`. The API reads MoreCast's model values from `by_time` (`morecast.py`) and fire watch's
+from `runs` (`fire_watch.py`). Postgres still holds the station observations that training and
+24 hour precip use.
+
+`backend/scripts/station_weather_backfill.py` copies runs from the legacy Postgres tables into
+`runs` and `by_time`, to fill a deployment's tables.

@@ -12,7 +12,7 @@
 #
 # Example, from ./backend:
 #
-#   scripts/run_against_pr_database.sh pr-6073 scripts/morecast_by_time_parity_check.py --days-back 3
+#   scripts/run_against_pr_database.sh pr-6073 scripts/station_weather_backfill.py --model GDPS --dry-run
 #
 # You must be logged in with `oc`.
 #

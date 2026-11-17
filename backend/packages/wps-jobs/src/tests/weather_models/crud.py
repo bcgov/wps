@@ -1,6 +1,7 @@
-"""Some crud responses used to mock our calls to wps_shared.db.crud"""
+"""Fixed responses that stand in for the data bias adjustment learns from."""
 from datetime import datetime
-from wps_shared.db.models.weather_models import ModelRunPrediction, WeatherStationModelPrediction
+from weather_model_jobs.model_values import ModelValues
+from weather_model_jobs.model_history import DailyPrecip
 from wps_shared.db.models.observations import HourlyActual
 
 
@@ -13,8 +14,8 @@ class MockActualPrecip:
         self.actual_precip_24h=actual_precip_24h
 
 
-def get_actuals_left_outer_join_with_predictions(*args):
-    """Fixed response as replacement for wps_shared.db.crud.observations.get_actuals_left_outer_join_with_predictions"""
+def get_actuals_paired_with_predictions(*args):
+    """Fixed response as replacement for bias_adjusted_variable.get_actuals_paired_with_predictions"""
     result = [
         # day 1
         [HourlyActual(
@@ -25,7 +26,7 @@ def get_actuals_left_outer_join_with_predictions(*args):
             wind_direction=90,
             relative_humidity=50,
             rh_valid=True),
-         ModelRunPrediction(
+         ModelValues(
             tmp_tgl_2=2,
             rh_tgl_2=10,
             apcp_sfc_0=2,
@@ -48,7 +49,7 @@ def get_actuals_left_outer_join_with_predictions(*args):
             wind_direction=120,
             relative_humidity=100,
             rh_valid=True),
-            ModelRunPrediction(
+            ModelValues(
             tmp_tgl_2=1,
             rh_tgl_2=20,
             apcp_sfc_0=3,
@@ -64,7 +65,7 @@ def get_actuals_left_outer_join_with_predictions(*args):
             wind_direction=121,
             relative_humidity=50,
             rh_valid=True),
-            ModelRunPrediction(
+            ModelValues(
             tmp_tgl_2=2,
             rh_tgl_2=10,
             apcp_sfc_0=2,
@@ -87,7 +88,7 @@ def get_actuals_left_outer_join_with_predictions(*args):
             temp_valid=True,
             relative_humidity=100,
             rh_valid=True),
-            ModelRunPrediction(
+            ModelValues(
             tmp_tgl_2=1,
             rh_tgl_2=20,
             apcp_sfc_0=3,
@@ -114,13 +115,11 @@ def get_accumulated_precip_by_24h_interval(*args):
 
 def get_predicted_daily_precip(*args):
     return [
-        WeatherStationModelPrediction(
-            bias_adjusted_precip_24h=None,
+        DailyPrecip(
             precip_24h=3,
             prediction_timestamp=datetime(2023,10,10,20,0,0)
         ),
-        WeatherStationModelPrediction(
-            bias_adjusted_precip_24h=None,
+        DailyPrecip(
             precip_24h=3,
             prediction_timestamp=datetime(2023,10,11,20,0,0)
         )

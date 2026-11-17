@@ -131,3 +131,48 @@ def test_a_reused_table_is_opened_once(table):
     second = table.open()
 
     assert first is second
+
+
+def test_has_run_is_true_only_for_a_published_run(table):
+    assert not table.has_run(ModelEnum.GDPS, RUN_TS)
+
+    table.append_run(ModelEnum.GDPS, RUN_TS, make_rows([322]))
+
+    assert table.has_run(ModelEnum.GDPS, RUN_TS)
+    assert not table.has_run(ModelEnum.RDPS, RUN_TS)
+    assert not table.has_run(ModelEnum.GDPS, RUN_TS + timedelta(hours=12))
+
+
+def test_latest_run_ts_is_the_newest_run_since(table):
+    since = RUN_TS - timedelta(days=1)
+    assert table.latest_run_ts(ModelEnum.ECMWF, since) is None
+
+    table.append_run(ModelEnum.ECMWF, RUN_TS, make_rows([322]))
+    table.append_run(ModelEnum.ECMWF, RUN_TS - timedelta(hours=12), make_rows([322]))
+    table.append_run(ModelEnum.GDPS, RUN_TS + timedelta(hours=12), make_rows([322]))
+
+    assert table.latest_run_ts(ModelEnum.ECMWF, since) == RUN_TS
+    assert table.latest_run_ts(ModelEnum.ECMWF, RUN_TS + timedelta(hours=1)) is None
+
+
+def test_read_can_keep_a_prediction_range_and_some_columns(table):
+    table.append_run(ModelEnum.GDPS, RUN_TS, make_rows([322], hours=(0, 3, 6)))
+
+    result = table.read(
+        ModelEnum.GDPS,
+        RUN_TS,
+        RUN_TS,
+        predicted_from=RUN_TS + timedelta(hours=3),
+        predicted_to=RUN_TS + timedelta(hours=6),
+        columns=["prediction_timestamp", "tmp_tgl_2"],
+    )
+
+    assert result.column_names == ["prediction_timestamp", "tmp_tgl_2"]
+    assert result["tmp_tgl_2"].to_pylist() == [13.0, 16.0]
+
+
+def test_read_with_some_columns_before_table_exists_returns_empty(table):
+    result = table.read(ModelEnum.GDPS, RUN_TS, RUN_TS, columns=["station_code"])
+
+    assert result.num_rows == 0
+    assert result.column_names == ["station_code"]

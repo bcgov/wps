@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 from wps_shared.db.models.observations import HourlyActual
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel
+from weather_model_jobs.model_values import ModelValues
 
 from weather_model_jobs import bias_adjusted_variable
 from weather_model_jobs.bias_adjusted_variable import (
@@ -23,15 +23,15 @@ from weather_model_jobs.utils.wind_direction_utils import compute_u_v
 def _context() -> LearningContext:
     return LearningContext(
         session=None,
-        model=PredictionModel(id=1),
+        history=None,
         station_code=1,
         start_date=datetime(2020, 10, 1, tzinfo=timezone.utc),
         end_date=datetime(2020, 10, 20, tzinfo=timezone.utc),
     )
 
 
-def _prediction(hour: int, temperature: float) -> ModelRunPrediction:
-    return ModelRunPrediction(
+def _prediction(hour: int, temperature: float) -> ModelValues:
+    return ModelValues(
         prediction_timestamp=datetime(2020, 10, 10, hour),
         tmp_tgl_2=temperature,
         rh_tgl_2=50,
@@ -73,7 +73,7 @@ def test_u_v():
 
 def _mock_query(monkeypatch, rows):
     monkeypatch.setattr(
-        bias_adjusted_variable, "get_actuals_left_outer_join_with_predictions", lambda *a: rows
+        bias_adjusted_variable, "get_actuals_paired_with_predictions", lambda *a: rows
     )
 
 
@@ -121,9 +121,7 @@ def test_hourly_pairs_queried_once_for_all_hourly_variables(monkeypatch):
         calls.append(args)
         return _gdps_rows()
 
-    monkeypatch.setattr(
-        bias_adjusted_variable, "get_actuals_left_outer_join_with_predictions", query
-    )
+    monkeypatch.setattr(bias_adjusted_variable, "get_actuals_paired_with_predictions", query)
     context = _context()
 
     for variable in BIAS_ADJUSTED_VARIABLES:

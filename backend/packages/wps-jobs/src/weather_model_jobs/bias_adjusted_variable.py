@@ -9,15 +9,15 @@ from logging import getLogger
 from typing import Callable, Iterator, List, Optional, Protocol
 
 from sqlalchemy.orm import Session
+from weather_model_jobs.model_history import DailyPrecip, ModelHistory
+from weather_model_jobs.model_values import ModelValues
 from weather_model_jobs.utils.interpolate import construct_interpolated_noon_prediction
 from weather_model_jobs.utils.wind_direction_utils import compute_u_v
 from wps_shared.db.crud.observations import (
     get_accumulated_precip_by_24h_interval,
-    get_actuals_left_outer_join_with_predictions,
-    get_predicted_daily_precip,
+    get_hourly_actuals,
 )
 from wps_shared.db.models.observations import HourlyActual
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel
 from wps_shared.weather_models import SCALAR_MODEL_VALUE_KEYS
 
 logger = getLogger(__name__)
@@ -48,18 +48,44 @@ class Sample:
     y: List[float]
 
 
+def get_actuals_paired_with_predictions(
+    session: Session,
+    history: ModelHistory,
+    station_code: int,
+    start_date: datetime,
+    end_date: datetime,
+) -> list[tuple[HourlyActual, ModelValues]]:
+    """The station's valid hourly observations in [start_date, end_date], in time order, each with
+    the newest model run's own values for that time. An observation no run predicted is left out."""
+    rows = []
+    for actual in get_hourly_actuals(session, [station_code], start_date, end_date):
+        prediction = history.newest_value(station_code, actual.weather_date)
+        if prediction is not None:
+            rows.append((actual, prediction))
+    return rows
+
+
+def get_predicted_daily_precip(
+    history: ModelHistory, station_code: int, start_date: datetime, end_date: datetime
+) -> list[DailyPrecip]:
+    """Every model run's 24 hour precip prediction for the station, for days ending at 20:00 UTC
+    in [start_date, end_date)."""
+    return history.daily_precip(station_code, start_date, end_date)
+
+
 @dataclass
 class LearningContext:
-    """The station, model and date range to learn from, shared by every variable being learned."""
+    """The station, model history and date range to learn from, shared by every variable being
+    learned."""
 
     session: Session
-    model: PredictionModel
+    history: ModelHistory
     station_code: int
     start_date: datetime
     end_date: datetime
 
     @cached_property
-    def hourly_pairs(self) -> list[tuple[ModelRunPrediction, HourlyActual, bool]]:
+    def hourly_pairs(self) -> list[tuple[ModelValues, HourlyActual, bool]]:
         """Hourly (prediction, actual, is_interpolated_noon) pairs to learn from, queried once for
         all hourly variables.
 
@@ -67,8 +93,8 @@ class LearningContext:
         is used. Models with a gap at 20:00 UTC (solar noon in B.C., e.g. GDPS) get a noon
         prediction interpolated from 18:00 and 21:00.
         """
-        rows = get_actuals_left_outer_join_with_predictions(
-            self.session, self.model.id, self.station_code, self.start_date, self.end_date
+        rows = get_actuals_paired_with_predictions(
+            self.session, self.history, self.station_code, self.start_date, self.end_date
         )
         pairs = []
         prev_actual = None
@@ -102,7 +128,7 @@ class BiasAdjustedVariable(Protocol):
 class HourlyVariable(BiasAdjustedVariable):
     """A variable learned from hourly model predictions paired with hourly observations."""
 
-    predicted: Callable[[ModelRunPrediction], Optional[List[float]]]
+    predicted: Callable[[ModelValues], Optional[List[float]]]
     observed: Callable[[HourlyActual], Optional[List[float]]]
     learn_from_interpolated_noon: bool = True
 
@@ -118,26 +144,30 @@ class HourlyVariable(BiasAdjustedVariable):
             yield Sample(actual.weather_date.hour, x, y)
 
 
+def daily_precip_window(start_date: datetime) -> tuple[datetime, datetime]:
+    """The 24 hour periods daily precip learns from: those ending at 20:00 UTC from the day of
+    start_date up to, but not including, tomorrow."""
+    start_datetime = datetime(
+        start_date.year, start_date.month, start_date.day, 20, tzinfo=timezone.utc
+    )
+    # NOTE: this is tomorrow at 20:00 UTC (subtracting -1 days), although a previous comment
+    # said yesterday. Kept as-is to not change what precip is learned from.
+    end_date = date.today() - timedelta(days=-1)
+    end_datetime = datetime(end_date.year, end_date.month, end_date.day, 20, tzinfo=timezone.utc)
+    return start_datetime, end_datetime
+
+
 class DailyPrecipVariable(BiasAdjustedVariable):
     """24 hour precip, learned from 24 hour periods ending at 20:00 UTC. Every model run's
     prediction for a day is a sample, not only the newest."""
 
     def samples(self, context: LearningContext) -> Iterator[Sample]:
-        start_date = context.start_date
-        start_datetime = datetime(
-            start_date.year, start_date.month, start_date.day, 20, tzinfo=timezone.utc
-        )
-        # NOTE: this is tomorrow at 20:00 UTC (subtracting -1 days), although a previous comment
-        # said yesterday. Kept as-is to not change what precip is learned from.
-        end_date = date.today() - timedelta(days=-1)
-        end_datetime = datetime(
-            end_date.year, end_date.month, end_date.day, 20, tzinfo=timezone.utc
-        )
+        start_datetime, end_datetime = daily_precip_window(context.start_date)
         actual_daily_precip = get_accumulated_precip_by_24h_interval(
             context.session, context.station_code, start_datetime, end_datetime
         )
         predicted_daily_precip = get_predicted_daily_precip(
-            context.session, context.model, context.station_code, start_datetime, end_datetime
+            context.history, context.station_code, start_datetime, end_datetime
         )
 
         predicted_by_day = defaultdict(list)
