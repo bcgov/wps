@@ -177,6 +177,7 @@ Every observation and forecaster's forecast as fetched from WF1. It is to observ
 | Source | Resolution | Written by | From |
 |---|---|---|---|
 | `ACTUALS` | `hourly` | `app/jobs/hourly_actuals.py`, hourly, fetching the last three hours | WF1 hourlies, replacing `hourly_actuals` |
+| `ACTUALS` | `daily` | The same job, fetching WF1's daily actuals for the latest 20:00 UTC and the one before | WF1 dailies of record type `ACTUAL` or `MANUAL`, for active stations, through the same call the SFMS daily actuals job makes; not in Postgres before |
 | `FORECAST` | `daily`, at 20:00 UTC | `app/jobs/noon_forecasts.py`, hourly, fetching every forecast from now on | WF1 noon forecasts, replacing `noon_forecasts` |
 
 The WF1 jobs append a row only when it is new or differs from the newest version already stored, with the `ingested_at` of that fetch (`Wf1Table.append_changed`). A corrected observation is therefore a second row with a later `ingested_at`, and the original stays. Each job then merges every row it fetched into `by_time`, not only the changed ones, so a merge that failed after the append is made good by the next run, which fetches the same rows again. In `by_time` a row is replaced only by one fetched at least as recently.
@@ -228,7 +229,7 @@ What each source holds:
 
 | Source | Hourly | Daily | Replaces |
 |---|---|---|---|
-| `ACTUALS` | Hourly observations from WF1 | The 20:00 UTC observation, with the precip of the 24 hours ending then (null unless all 24 hours have a value). Derived from the hourly rows by the hourly actuals job, so it is in `by_time` but not in `wf1` | `hourly_actuals` |
+| `ACTUALS` | Hourly observations from WF1 | WF1's daily actual for 20:00 UTC, fetched by the hourly actuals job. Its precipitation is the total WF1 accumulated over the 24 hours before, so nothing is summed here | `hourly_actuals` |
 | `FORECAST` | The latest forecaster's forecast per station and hour, once hourly forecasts exist | The latest forecaster's noon forecast per station and day | `noon_forecasts` |
 | Each model | The newest run's value for each prediction time | The newest run's 20:00 UTC row per day | The MoreCast queries on `weather_station_model_predictions` |
 
@@ -311,7 +312,7 @@ These are not the guarantees Postgres gave. A single commit to a single Delta ta
 
 Where each difference shows up:
 
-- **Publishing a run is three commits.** The job appends to `runs`, merges into `by_time`, then deletes from `staging`. A crash in between leaves the tables disagreeing until the job runs again. The order of the steps and the safe redo, described under [Run bookkeeping](#run-bookkeeping), are recovery, not atomicity. The WF1 jobs have the same shape: an append to `wf1`, then a merge into `by_time`, then for observations a second merge for the daily row.
+- **Publishing a run is three commits.** The job appends to `runs`, merges into `by_time`, then deletes from `staging`. A crash in between leaves the tables disagreeing until the job runs again. The order of the steps and the safe redo, described under [Run bookkeeping](#run-bookkeeping), are recovery, not atomicity. The WF1 jobs have the same shape: an append to `wf1`, then a merge into `by_time`, done once for the hourly observations and again for the daily actuals.
 - **Uniqueness is by convention.** `by_time` has one row per station, time, resolution and source only because every writer goes through the `MERGE`. In `runs` and `wf1` a reprocessed run or a corrected value is a second row, and readers take the newest `ingested_at`. Postgres rejected a duplicate outright.
 - **The `wf1` change check is not guarded.** The job reads the newest stored version, compares, then appends. Two overlapping runs of the same job could both append the same version, because appends never conflict with each other. A reader taking the newest version is unaffected; the history would hold a duplicate.
 - **A merge that collides fails, and nothing retries it.** If another commit lands on `by_time` between a `MERGE` reading the table and committing, the library reports a commit failure. The jobs do not catch it: the job fails, and its next run makes the table good. The six model jobs, the two WF1 jobs and the daily `optimize` all write `by_time`. Whether merges into different partitions collide at all has not been checked against the version in use.
@@ -539,7 +540,7 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 4. Done: MoreCast reads its model values from `by_time`, fire watch reads its ECMWF run from `runs`, and training reads `runs` (see "Training reads `runs`" below). The `/weather_models` routes were removed separately (#6060). Nothing falls back to Postgres, so a deployment's tables must be filled with `backend/scripts/station_weather_backfill.py` before it serves users: `by_time` for the days MoreCast shows, and `runs` and `ACTUALS` for the 19 days training learns from.
 5. and 6. Done: every model job stages runs in `staging` instead of `model_run_predictions`, keeps its bookkeeping in `staging` and `runs`, and no longer writes `weather_station_model_predictions`. Dropping the four legacy tables and retiring the `pgslice` job waits for the production backfill, as described under "What stays in Postgres".
 7. Done: the WF1 jobs write `ACTUALS` and `FORECAST` to `wf1` and `by_time` only, training and ingest read `ACTUALS` from `by_time`, and the two noon forecast routes (`POST /forecasts/noon/` and `/forecasts/noon/summaries/`), which no web or mobile code called, are removed. `hourly_actuals` and `noon_forecasts` wait for the production backfill, with the other legacy tables.
-8. Add the nightly job that writes `by_station`, `hourly_profile` and `leads`, and build the climatology reads on them.
+8. Add the nightly job that writes `by_station`, `hourly_profile` and `leads`, and build the climatology reads on them. The observations it needs from before these tables existed come from the BCWS data mart, which has hourly observations back to 1987: `backend/scripts/station_actuals_data_mart_backfill.py` copies them into `wf1` and `by_time` as `ACTUALS`, hourly and daily; the daily rows are the noon rows that carry WF1's daily precip total. Postgres never held the daily actuals, so `station_weather_backfill.py` copies hourly ones only. Tried on the 1987 file and three days of 2026 against local tables, not yet against ECS or for every year.
 
 Steps 7 and 8 do not depend on steps 4 to 6. History only accumulates once `by_time` is being written, so steps 2 and 7 are worth starting early even if readers move later.
 

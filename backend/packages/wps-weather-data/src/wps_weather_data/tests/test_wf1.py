@@ -10,7 +10,6 @@ from wps_weather_data.wf1 import (
     actuals_table,
     daily_actuals_table,
     forecasts_table,
-    merge_daily_actuals,
 )
 
 AT_1900 = datetime(2026, 11, 17, 19, tzinfo=UTC)
@@ -171,105 +170,21 @@ def test_merge_wf1_rows_with_no_rows_writes_nothing(by_time):
     assert not by_time.exists()
 
 
-def day_of_records(noon=NOON, **values):
-    """The 24 hourly records ending at noon, oldest first."""
-    return [record(noon - timedelta(hours=back), **values) for back in reversed(range(24))]
+def test_daily_actuals_are_daily_rows_with_wf1s_precip_total():
+    daily = SimpleNamespace(
+        code=322,
+        for_datetime=NOON,
+        temperature=12.0,
+        relative_humidity=60.0,
+        wind_speed=5.0,
+        wind_direction=180.0,
+        precipitation=4.8,
+    )
 
-
-def test_daily_actual_is_the_noon_observation_with_the_days_precip():
-    records = day_of_records(temperature=5.0)
-    records[-1] = record(NOON, temperature=12.0)
-    hourly = actuals_table(records, FETCHED)
-
-    (row,) = daily_actuals_table(hourly, NOON - timedelta(hours=23)).to_pylist()
+    (row,) = daily_actuals_table([daily], FETCHED).to_pylist()
 
     assert (row["resolution"], row["source"], row["month"]) == (DAILY, ACTUALS, "2026-11")
     assert (row["station_code"], row["timestamp"]) == (322, NOON)
     assert row["temperature"] == 12.0
-    assert (row["relative_humidity"], row["wind_speed"], row["wind_direction"]) == (60, 5, 180)
-    assert row["precipitation"] == pytest.approx(24 * 0.2)
-    assert row["bias_adjusted_temperature"] is None
+    assert row["precipitation"] == pytest.approx(4.8)
     assert row["ingested_at"] == FETCHED
-
-
-@pytest.mark.parametrize("missing", ["hour", "precip"])
-def test_daily_actual_has_no_precip_total_when_an_hour_is_missing(missing):
-    records = day_of_records()
-    if missing == "hour":
-        del records[3]
-    else:
-        records[3] = record(records[3].weather_date, precipitation=None)
-
-    (row,) = daily_actuals_table(
-        actuals_table(records, FETCHED), records[0].weather_date
-    ).to_pylist()
-
-    assert row["precipitation"] is None
-    assert row["temperature"] == 10.0
-
-
-def test_daily_actuals_are_only_for_2000_utc_at_or_after_since():
-    earlier_noon = NOON - timedelta(hours=48)
-    hourly = actuals_table([record(earlier_noon), record(AT_1900), record(NOON)], FETCHED)
-
-    rows = daily_actuals_table(hourly, AT_1900).to_pylist()
-
-    assert [row["timestamp"] for row in rows] == [NOON]
-
-
-def test_daily_actual_takes_the_newest_fetch_time_of_its_hours():
-    records = day_of_records(created_at=FETCHED)
-    later = FETCHED + timedelta(hours=5)
-    records[0] = record(records[0].weather_date, created_at=later)
-
-    (row,) = daily_actuals_table(actuals_table(records), records[0].weather_date).to_pylist()
-
-    assert row["ingested_at"] == later
-
-
-def test_merge_daily_actuals_uses_hours_from_earlier_fetches(by_time):
-    records = day_of_records()
-    earlier = actuals_table(records[:21], FETCHED)
-    by_time.merge_wf1_rows(earlier)
-    assert merge_daily_actuals(by_time, earlier) == 0
-
-    # The fetch that brings the noon observation holds only the last three hours.
-    latest = actuals_table(records[21:], FETCHED + timedelta(hours=3))
-    by_time.merge_wf1_rows(latest)
-    assert merge_daily_actuals(by_time, latest) == 1
-
-    (row,) = by_time.read(DAILY, [ACTUALS], NOON, NOON).to_pylist()
-    assert row["precipitation"] == pytest.approx(24 * 0.2)
-    assert row["ingested_at"] == FETCHED + timedelta(hours=3)
-
-
-def test_merge_daily_actuals_updates_the_total_when_an_hour_is_corrected(by_time):
-    records = day_of_records()
-    rows = actuals_table(records, FETCHED)
-    by_time.merge_wf1_rows(rows)
-    merge_daily_actuals(by_time, rows)
-
-    corrected = actuals_table(
-        [record(NOON - timedelta(hours=1), precipitation=5.2)], FETCHED + timedelta(hours=1)
-    )
-    by_time.merge_wf1_rows(corrected)
-    merge_daily_actuals(by_time, corrected)
-
-    (row,) = by_time.read(DAILY, [ACTUALS], NOON, NOON).to_pylist()
-    assert row["precipitation"] == pytest.approx(23 * 0.2 + 5.2)
-
-
-def test_merge_daily_actuals_leaves_hourly_rows_and_other_stations_alone(by_time):
-    rows = actuals_table(day_of_records() + day_of_records(station_code=209), FETCHED)
-    by_time.merge_wf1_rows(rows)
-
-    assert merge_daily_actuals(by_time, rows) == 2
-
-    assert by_time.read(HOURLY, [ACTUALS], NOON - timedelta(days=1), NOON).num_rows == 48
-    daily = by_time.read(DAILY, [ACTUALS], NOON, NOON).to_pylist()
-    assert [row["station_code"] for row in daily] == [209, 322]
-
-
-def test_merge_daily_actuals_with_no_rows_writes_nothing(by_time):
-    assert merge_daily_actuals(by_time, actuals_table([], FETCHED)) == 0
-    assert not by_time.exists()
