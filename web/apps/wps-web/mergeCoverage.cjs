@@ -14,17 +14,21 @@ const COVERAGE_FOLDERS = ['coverage', 'coverage-playwright', ...PACKAGE_COVERAGE
 const EXCLUDE = new Set(['src/serviceWorker.ts', 'src/app/store.ts'].map(file => path.resolve(file)))
 
 async function main() {
-  const mcr = MCR({ outputDir: FINAL_OUTPUT_FOLDER, reports: ['lcov'], cleanCache: true })
-  for (const folder of COVERAGE_FOLDERS) {
-    const file = path.join(folder, 'coverage-final.json')
-    if (!fs.existsSync(file)) {
-      if (folder === 'coverage') throw new Error(`Missing Vitest coverage report: ${file}`)
-      continue
-    }
-    const coverage = fs.readJsonSync(file)
-    for (const excluded of EXCLUDE) delete coverage[excluded]
-    await mcr.add(coverage)
+  const files = COVERAGE_FOLDERS.map(folder => path.join(folder, 'coverage-final.json')).filter(file =>
+    fs.existsSync(file)
+  )
+  if (!files.includes(path.join('coverage', 'coverage-final.json'))) {
+    throw new Error('Missing Vitest coverage report: coverage/coverage-final.json')
   }
+
+  const mcr = MCR({ outputDir: FINAL_OUTPUT_FOLDER, reports: ['lcov'], cleanCache: true })
+  await Promise.all(
+    files.map(file => {
+      const coverage = fs.readJsonSync(file)
+      for (const excluded of EXCLUDE) delete coverage[excluded]
+      return mcr.add(coverage)
+    })
+  )
   await mcr.generate()
 
   // Clean up — fs.removeSync (fs-extra) is a no-op if the path doesn't exist
