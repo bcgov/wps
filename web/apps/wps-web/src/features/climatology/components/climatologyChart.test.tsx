@@ -1,5 +1,5 @@
 import { createChartScene } from '@tanstack/charts'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { ClimatologyRow } from '@/features/climatology/climatologyRows'
 import ClimatologyChart, { climatologyChartDefinition } from './ClimatologyChart'
 
@@ -55,5 +55,22 @@ describe('ClimatologyChart', () => {
     render(<ClimatologyChart {...input} stationName="AFTON" />)
 
     expect(screen.getByRole('img', { name: 'Temperature climatology for AFTON, 2026' })).toBeInTheDocument()
+  })
+
+  it('describes a day in a tooltip when stepped to from the keyboard', async () => {
+    render(<ClimatologyChart {...input} stationName="AFTON" />)
+    const chart = screen.getByRole('img', { name: /Temperature climatology/ })
+
+    chart.focus()
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+
+    const tooltip = await screen.findByRole('status')
+    expect(tooltip).toHaveTextContent('DayJul 1')
+    expect(tooltip).toHaveTextContent('202620.0°C')
+    expect(tooltip).toHaveTextContent('Median18.0°C')
+    expect(tooltip).toHaveTextContent('Normal (25th to 75th)12.0°C to 24.0°C')
+    expect(tooltip).toHaveTextContent('90th percentile28.0°C')
+    expect(tooltip).toHaveTextContent('Lowest to highest5.0°C to 35.0°C')
+    expect(tooltip).toHaveTextContent('Years of record30')
   })
 })
