@@ -288,7 +288,7 @@ This dataset exists for experimenting. Once a rule is settled, the cheaper form 
 
 ### Writes
 
-`runs` and `by_time` each have several writers: the six model jobs, and for `by_time` the WF1 jobs as well. Delta Lake makes that safe by committing through its transaction log, where one of two colliding writers retries.
+`runs` and `by_time` each have several writers: the six model jobs, and for `by_time` the WF1 jobs as well. Delta Lake makes that safe by committing through its transaction log: of two writers that collide, one commits and the other retries or fails. What that does and does not guarantee, compared with Postgres, is under [Transaction guarantees](#transaction-guarantees).
 
 On an S3-compatible store that safety depends on the store. The `deltalake` library has three ways to commit safely: a conditional PUT that the store must enforce (`If-None-Match`), a copy that fails if the target exists, or a DynamoDB lock. We have no DynamoDB next to our object store, so this design depends on Dell ECS enforcing conditional PUTs. It does: a check with four concurrent writers lost no commits, using the storage option `conditional_put: etag`. The library's fourth mode, `AWS_S3_ALLOW_UNSAFE_RENAME`, is only safe with a single writer per table.
 
@@ -297,6 +297,34 @@ If ECS does not enforce conditional PUTs, the fallback is one table per writer: 
 Every other dataset has exactly one writer: each model's job for its `staging` table, and the nightly job for `by_station`, `hourly_profile` and `leads`.
 
 Delta Lake uses its own S3 client, not the pinned `aiobotocore`. Delta Lake has worked against our object store in an earlier trial.
+
+### Transaction guarantees
+
+These are not the guarantees Postgres gave. A single commit to a single Delta table is atomic, isolated and durable. Several things Postgres provided around that are gone, and the design covers them with jobs that can be run again safely.
+
+| Property | Postgres | Delta Lake as used here |
+|---|---|---|
+| Atomicity | Any number of rows and tables in one transaction | One commit to one table is all or nothing. There are no transactions across tables. |
+| Consistency | Primary keys, unique constraints, foreign keys, `NOT NULL` | The schema and column types are enforced. There are no unique or foreign key constraints. |
+| Isolation | Readers and writers coordinate through locks and MVCC, and a conflicting writer waits | A reader sees one consistent version of a table. Writers are optimistic: a conflicting commit fails instead of waiting. |
+| Durability | The write-ahead log, plus database backups | A commit is as durable as the object store. A table's history is its own log, kept for 30 days by `vacuum`. |
+
+Where each difference shows up:
+
+- **Publishing a run is three commits.** The job appends to `runs`, merges into `by_time`, then deletes from `staging`. A crash in between leaves the tables disagreeing until the job runs again. The order of the steps and the safe redo, described under [Run bookkeeping](#run-bookkeeping), are recovery, not atomicity. The WF1 jobs have the same shape: an append to `wf1`, then a merge into `by_time`, then for observations a second merge for the daily row.
+- **Uniqueness is by convention.** `by_time` has one row per station, time, resolution and source only because every writer goes through the `MERGE`. In `runs` and `wf1` a reprocessed run or a corrected value is a second row, and readers take the newest `ingested_at`. Postgres rejected a duplicate outright.
+- **The `wf1` change check is not guarded.** The job reads the newest stored version, compares, then appends. Two overlapping runs of the same job could both append the same version, because appends never conflict with each other. A reader taking the newest version is unaffected; the history would hold a duplicate.
+- **A merge that collides fails, and nothing retries it.** If another commit lands on `by_time` between a `MERGE` reading the table and committing, the library reports a commit failure. The jobs do not catch it: the job fails, and its next run makes the table good. The six model jobs, the two WF1 jobs and the daily `optimize` all write `by_time`. Whether merges into different partitions collide at all has not been checked against the version in use.
+- **Everything rests on ECS enforcing conditional PUTs.** That is what stops two writers claiming the same commit. It was checked once, with four writers appending. Two merges at once, and a merge against `optimize`, have not been tested.
+- **Backups are different.** Reading a table as it was covers 30 days of mistakes inside that table. It does not cover losing the bucket or a table's log, and what ECS provides for versioning or replication is not known.
+- **A read is consistent within one table only.** Each read fetches the commits made since the last one, so it sees the table's latest version. Nothing ties two tables together: a job or request that reads `runs` and then `by_time` can see them at different moments, such as between the two commits of a run being published. In Postgres one transaction saw both tables at the same point.
+
+This is acceptable for this data because it is append-only or derived, every job can be run again safely, and each source has one writer. It would not be acceptable for transactional data, which is why `morecast_forecast` stays in Postgres.
+
+Two things remain to do before relying on it:
+
+1. Test concurrent merges on ECS: two sources merging into `by_time` at once, and a merge racing `optimize`, checking for lost or duplicated rows.
+2. Retry on a commit conflict around the merges into `by_time`, so that a collision costs a retry and not a failed job.
 
 ### Run bookkeeping
 
@@ -501,6 +529,7 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 3. **Delta Lake at full size.** `MERGE` was benchmarked on a small daily table only, not on `by_time` with hourly data.
 4. **Station count.** The benchmarks assume 300; the dev deployment had 320. Sizes and row counts scale with it.
 5. **The climatology screen.** What it shows is undecided, and one read, pooled hourly percentiles for a group over decades, is not served.
+6. **Weaker guarantees than Postgres.** No transactions across tables, no unique constraints, and a colliding merge fails instead of waiting. Concurrent merges on ECS are untested and the jobs do not retry. See [Transaction guarantees](#transaction-guarantees).
 
 ## Plan
 
