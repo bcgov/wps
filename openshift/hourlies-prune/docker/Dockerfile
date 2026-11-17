@@ -1,7 +1,8 @@
-# Defaults to Docker Hub so the image builds off-cluster without an Artifactory login.
+# Defaults to the official Canonical image on Amazon ECR Public (avoids Docker Hub pull limits,
+# no login), so the image builds off-cluster without an Artifactory login.
 # The OpenShift BuildConfig (openshift/build.yaml) passes the Artifactory mirror instead:
 # DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
-ARG DOCKER_IMAGE=ubuntu:24.04
+ARG DOCKER_IMAGE=public.ecr.aws/ubuntu/ubuntu:24.04
 FROM ${DOCKER_IMAGE}
 
 RUN apt-get update && apt-get -y install ca-certificates unzip
