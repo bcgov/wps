@@ -6,6 +6,7 @@ import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 import type { Mock } from 'vitest'
 import type { ClimatologyChartProps } from '@/features/climatology/components/ClimatologyChart'
+import type { ClimatologyTimelineProps } from '@/features/climatology/components/ClimatologyTimeline'
 import { createTestStore } from '@/test/testUtils'
 import ClimatologyPage from './ClimatologyPage'
 
@@ -18,17 +19,34 @@ vi.mock('@wps/api/stationAPI', async importOriginal => ({
   getStations: vi.fn()
 }))
 
-// The chart draws to a measured surface, which jsdom does not lay out. Its own tests cover it.
+// The charts draw to a measured surface, which jsdom does not lay out. Their own tests cover
+// them. The stand-ins show the dates they were given and can propose new ones.
+const JULY_1 = Date.UTC(new Date().getFullYear(), 6, 1)
+const JULY_2 = Date.UTC(new Date().getFullYear(), 6, 2)
+
 vi.mock('@/features/climatology/components/ClimatologyChart', async importOriginal => ({
   ...(await importOriginal<typeof import('@/features/climatology/components/ClimatologyChart')>()),
-  default: ({ rows, variable, year, monthTicks, stationName }: ClimatologyChartProps) => (
+  default: ({ rows, variable, year, dateWindow, onDateWindowChange, stationName }: ClimatologyChartProps) => (
     <div
       data-testid="climatology-chart"
       data-rows={rows.length}
       data-variable={variable}
       data-year={year}
-      data-months={monthTicks.length}
+      data-window={`${new Date(dateWindow.start).toISOString().slice(0, 10)}/${new Date(dateWindow.end).toISOString().slice(0, 10)}`}
       data-station={stationName}
+    >
+      <button type="button" onClick={() => onDateWindowChange({ start: JULY_1, end: JULY_2 })}>
+        Zoom to July 1 and 2
+      </button>
+    </div>
+  )
+}))
+
+vi.mock('@/features/climatology/components/ClimatologyTimeline', () => ({
+  default: ({ dateWindow }: ClimatologyTimelineProps) => (
+    <div
+      data-testid="climatology-timeline"
+      data-window={`${new Date(dateWindow.start).toISOString().slice(0, 10)}/${new Date(dateWindow.end).toISOString().slice(0, 10)}`}
     />
   )
 }))
@@ -54,7 +72,9 @@ const climatology = (overrides: Partial<DailyClimatology> = {}): DailyClimatolog
   last_reference_year: currentYear - 1,
   days: [
     { month: 1, day: 15, count: 30, minimum: -20, p25: -8, median: -3, p75: 1, p90: 4, maximum: 9 },
-    { month: 7, day: 1, count: 30, minimum: 8, p25: 17, median: 22, p75: 27, p90: 31, maximum: 38 }
+    { month: 7, day: 1, count: 30, minimum: 8, p25: 17, median: 22, p75: 27, p90: 31, maximum: 38 },
+    { month: 7, day: 2, count: 30, minimum: 8, p25: 17, median: 22, p75: 27, p90: 31, maximum: 38 },
+    { month: 10, day: 31, count: 30, minimum: 0, p25: 5, median: 9, p75: 12, p90: 15, maximum: 20 }
   ],
   observations: [{ date: `${currentYear}-07-01`, value: 29 }],
   ...overrides
@@ -104,9 +124,13 @@ describe('ClimatologyPage', () => {
     expect(getDailyClimatology).toHaveBeenCalledWith(322, 'temperature', currentYear)
     expect(chart).toHaveAttribute('data-station', 'AFTON')
     expect(chart).toHaveAttribute('data-variable', 'temperature')
-    // Only the July day is in the fire season months.
-    expect(chart).toHaveAttribute('data-rows', '1')
-    expect(chart).toHaveAttribute('data-months', '7')
+    // The January day is outside the fire season months.
+    expect(chart).toHaveAttribute('data-rows', '3')
+    expect(chart).toHaveAttribute('data-window', `${currentYear}-07-01/${currentYear}-10-31`)
+    expect(screen.getByTestId('climatology-timeline')).toHaveAttribute(
+      'data-window',
+      `${currentYear}-07-01/${currentYear}-10-31`
+    )
     expect(screen.getByText(`AFTON: daily temperature, ${currentYear}`)).toBeInTheDocument()
     expect(screen.getByText(new RegExp(`compared with 1990 to ${currentYear - 1}`))).toBeInTheDocument()
     expect(screen.getByTestId('climatology-legend')).toBeInTheDocument()
@@ -120,8 +144,8 @@ describe('ClimatologyPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Full year' }))
 
     const chart = screen.getByTestId('climatology-chart')
-    expect(chart).toHaveAttribute('data-rows', '2')
-    expect(chart).toHaveAttribute('data-months', '12')
+    expect(chart).toHaveAttribute('data-rows', '4')
+    expect(chart).toHaveAttribute('data-window', `${currentYear}-01-15/${currentYear}-10-31`)
     // The months shown change what is drawn, not what is fetched.
     expect(getDailyClimatology).toHaveBeenCalledTimes(1)
   })
@@ -156,5 +180,46 @@ describe('ClimatologyPage', () => {
 
     expect(await screen.findByText('The climatology for this station could not be loaded.')).toBeInTheDocument()
     expect(screen.queryByTestId('climatology-chart')).not.toBeInTheDocument()
+  })
+
+  it('shares the dates chosen on the chart with the timeline, and shows every day again on reset', async () => {
+    renderPage()
+    await chooseStation('AFTON (322)')
+    await screen.findByTestId('climatology-chart')
+    const reset = screen.getByRole('button', { name: 'Show every day' })
+    expect(reset).toBeDisabled()
+    expect(screen.getByText('Showing Jul 1 to Oct 31')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom to July 1 and 2' }))
+
+    const window = `${currentYear}-07-01/${currentYear}-07-02`
+    expect(screen.getByTestId('climatology-chart')).toHaveAttribute('data-window', window)
+    expect(screen.getByTestId('climatology-timeline')).toHaveAttribute('data-window', window)
+    expect(screen.getByText('Showing Jul 1 to Jul 2')).toBeInTheDocument()
+
+    fireEvent.click(reset)
+
+    expect(screen.getByTestId('climatology-chart')).toHaveAttribute(
+      'data-window',
+      `${currentYear}-07-01/${currentYear}-10-31`
+    )
+    expect(reset).toBeDisabled()
+  })
+
+  it('shows every day again for another year', async () => {
+    renderPage()
+    await chooseStation('AFTON (322)')
+    await screen.findByTestId('climatology-chart')
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom to July 1 and 2' }))
+    ;(getDailyClimatology as Mock).mockResolvedValue(climatology({ year: currentYear - 1 }))
+
+    await chooseOption('Year', `${currentYear - 1}`)
+
+    await waitFor(() =>
+      expect(screen.getByTestId('climatology-chart')).toHaveAttribute(
+        'data-window',
+        `${currentYear - 1}-07-01/${currentYear - 1}-10-31`
+      )
+    )
   })
 })

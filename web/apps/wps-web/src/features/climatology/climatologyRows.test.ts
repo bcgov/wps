@@ -1,13 +1,22 @@
 import type { ClimatologyDay, DailyClimatology } from '@wps/api/climatologyAPI'
 import {
   buildClimatologyRows,
+  type ClimatologyRow,
   FIRE_SEASON,
   FULL_YEAR,
   formatDay,
   formatMonth,
   formatValue,
+  MIN_WINDOW_DAYS,
+  maxZoom,
   monthStarts,
-  todayOnChart
+  rowsExtent,
+  rowsInWindow,
+  snapToRows,
+  todayOnChart,
+  visibleWindow,
+  widenWindow,
+  windowTicks
 } from './climatologyRows'
 
 const day = (month: number, dayOfMonth: number, median = 15): ClimatologyDay => ({
@@ -107,5 +116,111 @@ describe('todayOnChart', () => {
   it('is nothing for another year, or with no rows', () => {
     expect(todayOnChart(rows, 2025, new Date(2026, 6, 7))).toBeNull()
     expect(todayOnChart([], 2026, new Date(2026, 6, 7))).toBeNull()
+  })
+})
+
+const DAY = 24 * 60 * 60 * 1000
+const APRIL_1 = Date.UTC(2026, 3, 1)
+const dayRows = (days: number[]): ClimatologyRow[] =>
+  days.map(day => ({
+    time: APRIL_1 + day * DAY,
+    count: 30,
+    minimum: 0,
+    p25: 1,
+    median: 2,
+    p75: 3,
+    p90: 4,
+    maximum: 5,
+    value: null
+  }))
+
+describe('date windows', () => {
+  const rows = dayRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
+  const extent = { start: APRIL_1, end: APRIL_1 + 19 * DAY }
+
+  it('spans the first to last row', () => {
+    expect(rowsExtent(rows)).toEqual(extent)
+    expect(rowsExtent([])).toBeNull()
+  })
+
+  it('shows the chosen window while it fits the rows, else every day', () => {
+    const chosen = { start: APRIL_1 + 2 * DAY, end: APRIL_1 + 9 * DAY }
+
+    expect(visibleWindow(chosen, extent)).toEqual(chosen)
+    expect(visibleWindow(null, extent)).toEqual(extent)
+    expect(visibleWindow({ start: APRIL_1 - DAY, end: APRIL_1 + 5 * DAY }, extent)).toEqual(extent)
+    expect(visibleWindow({ start: APRIL_1 + 5 * DAY, end: APRIL_1 + 5 * DAY }, extent)).toEqual(extent)
+  })
+
+  it('draws the rows in a window and one either side', () => {
+    const shown = rowsInWindow(rows, { start: APRIL_1 + 4.5 * DAY, end: APRIL_1 + 8 * DAY })
+
+    expect(shown.map(row => (row.time - APRIL_1) / DAY)).toEqual([4, 5, 6, 7, 8, 9])
+    expect(rowsInWindow(rows, extent)).toHaveLength(20)
+  })
+
+  it('snaps a window outwards onto the days the rows have', () => {
+    const gappy = dayRows([0, 3, 6, 9])
+
+    expect(snapToRows({ start: APRIL_1 + 4 * DAY, end: APRIL_1 + 7.5 * DAY }, gappy)).toEqual({
+      start: APRIL_1 + 3 * DAY,
+      end: APRIL_1 + 9 * DAY
+    })
+    expect(snapToRows({ start: APRIL_1 - DAY, end: APRIL_1 + 20 * DAY }, gappy)).toEqual({
+      start: APRIL_1,
+      end: APRIL_1 + 9 * DAY
+    })
+  })
+
+  it('widens a narrow window to a week around its middle, inside the rows', () => {
+    const week = MIN_WINDOW_DAYS * DAY
+
+    expect(widenWindow({ start: APRIL_1 + 10 * DAY, end: APRIL_1 + 10 * DAY }, extent)).toEqual({
+      start: APRIL_1 + 10 * DAY - week / 2,
+      end: APRIL_1 + 10 * DAY + week / 2
+    })
+    expect(widenWindow({ start: APRIL_1, end: APRIL_1 }, extent)).toEqual({ start: APRIL_1, end: APRIL_1 + week })
+    expect(widenWindow({ start: extent.end, end: extent.end }, extent)).toEqual({
+      start: extent.end - week,
+      end: extent.end
+    })
+    const wide = { start: APRIL_1, end: APRIL_1 + 10 * DAY }
+    expect(widenWindow(wide, extent)).toEqual(wide)
+  })
+
+  it('zooms in as far as a week', () => {
+    expect(maxZoom({ start: APRIL_1, end: APRIL_1 + 70 * DAY })).toBe(10)
+    expect(maxZoom({ start: APRIL_1, end: APRIL_1 + 3 * DAY })).toBe(1)
+  })
+})
+
+describe('windowTicks', () => {
+  it('labels a long window at the start of each month in it', () => {
+    const ticks = windowTicks({ start: Date.UTC(2026, 3, 15), end: Date.UTC(2026, 9, 31) })
+
+    expect(ticks.values.map(ticks.format)).toEqual(['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'])
+  })
+
+  it('labels a short window with days, spaced to keep the labels few', () => {
+    const month = windowTicks({ start: Date.UTC(2026, 6, 1), end: Date.UTC(2026, 6, 31) })
+    const week = windowTicks({ start: Date.UTC(2026, 6, 1), end: Date.UTC(2026, 6, 8) })
+
+    expect(month.values.map(month.format)).toEqual(['Jul 1', 'Jul 8', 'Jul 15', 'Jul 22', 'Jul 29'])
+    expect(week.values.map(week.format)).toEqual([
+      'Jul 1',
+      'Jul 2',
+      'Jul 3',
+      'Jul 4',
+      'Jul 5',
+      'Jul 6',
+      'Jul 7',
+      'Jul 8'
+    ])
+  })
+
+  it('starts day labels at the first whole day in the window', () => {
+    const ticks = windowTicks({ start: Date.UTC(2026, 6, 1, 6), end: Date.UTC(2026, 6, 5, 18) })
+
+    expect(ticks.values[0]).toBe(Date.UTC(2026, 6, 2))
   })
 })
