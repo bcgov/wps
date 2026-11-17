@@ -3,17 +3,11 @@
 import datetime
 from typing import List
 
-from sqlalchemy import and_, select, text
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 from wps_shared.db.models.observations import HourlyActual
-from wps_shared.db.models.weather_models import (
-    ModelRunPrediction,
-    PredictionModel,
-    PredictionModelRunTimestamp,
-    WeatherStationModelPrediction,
-)
 
 
 def get_hourly_actuals(
@@ -34,41 +28,6 @@ def get_hourly_actuals(
         query = query.filter(HourlyActual.weather_date <= end_date)
     query = query.order_by(HourlyActual.station_code).order_by(HourlyActual.weather_date)
     return query
-
-
-def get_actuals_left_outer_join_with_predictions(
-    session: Session, model_id: int, station_code: int, start_date: datetime, end_date: datetime
-):
-    """
-    NOTE: Can improve this query by only returning the most recent prediction, maybe using nested
-    queries. It works for now - but things could be faster.
-    """
-    return (
-        session.query(HourlyActual, ModelRunPrediction)
-        .outerjoin(
-            ModelRunPrediction,
-            and_(
-                ModelRunPrediction.prediction_timestamp == HourlyActual.weather_date,
-                ModelRunPrediction.station_code == station_code,
-            ),
-        )
-        .outerjoin(
-            PredictionModelRunTimestamp,
-            and_(
-                PredictionModelRunTimestamp.id
-                == ModelRunPrediction.prediction_model_run_timestamp_id
-            ),
-        )
-        .filter(HourlyActual.station_code == station_code)
-        .filter(HourlyActual.weather_date >= start_date)
-        .filter(HourlyActual.temp_valid == True)
-        .filter(HourlyActual.rh_valid == True)
-        .filter(HourlyActual.weather_date <= end_date)
-        .filter(PredictionModelRunTimestamp.prediction_model_id == model_id)
-        .order_by(HourlyActual.station_code)
-        .order_by(HourlyActual.weather_date)
-        .order_by(PredictionModelRunTimestamp.prediction_run_timestamp.desc())
-    )
 
 
 def save_hourly_actual(session: Session, hourly_actual: HourlyActual):
@@ -142,36 +101,4 @@ def get_accumulated_precip_by_24h_interval(
             day, station_code;
     """.format(start_datetime, end_datetime, station_code)
     result = session.execute(text(stmt))
-    return result.all()
-
-
-def get_predicted_daily_precip(
-    session: Session,
-    model: PredictionModel,
-    station_code: int,
-    start_datetime: datetime,
-    end_datetime: datetime,
-):
-    """Gets rows from WeatherStationModelPrediction for the given model and station within the
-    specified time interval at 20:00:00 UTC each day.
-    :param session: The ORM/database session
-    :param model: The numeric weather prediction model
-    :param station_code: The code identifying the weather station.
-    :param start_datetime: The earliest date and time of interest.
-    :param end_datetime: The latest date and time of interest.
-    """
-    result = (
-        session.query(WeatherStationModelPrediction)
-        .join(
-            PredictionModelRunTimestamp,
-            PredictionModelRunTimestamp.id
-            == WeatherStationModelPrediction.prediction_model_run_timestamp_id,
-        )
-        .filter(PredictionModelRunTimestamp.prediction_model_id == model.id)
-        .filter(WeatherStationModelPrediction.station_code == station_code)
-        .filter(WeatherStationModelPrediction.prediction_timestamp >= start_datetime)
-        .filter(WeatherStationModelPrediction.prediction_timestamp < end_datetime)
-        .filter(func.date_part("hour", WeatherStationModelPrediction.prediction_timestamp) == 20)
-        .order_by(WeatherStationModelPrediction.prediction_timestamp)
-    )
     return result.all()

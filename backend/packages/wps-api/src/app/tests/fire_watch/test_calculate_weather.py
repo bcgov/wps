@@ -1,6 +1,6 @@
 from unittest import mock
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch, create_autospec
 
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
@@ -26,6 +26,7 @@ from app.fire_watch.calculate_weather import (
 from wps_shared.schemas.morecast_v2 import WeatherDeterminate, WeatherIndeterminate
 from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.schemas.weather_models import ModelPredictionDetails
+from app.fire_watch import calculate_weather
 from app.fire_watch.calculate_weather import MissingWeatherDataError
 from wps_shared.weather_models import ModelEnum
 
@@ -86,7 +87,6 @@ def generate_mock_predictions(prediction_timestamps):
             wind_tgl_10=10,
             update_date=datetime(2025, 5, 4, tzinfo=timezone.utc),
             prediction_run_timestamp=datetime(2025, 5, 4, tzinfo=timezone.utc),
-            prediction_model_run_timestamp_id=1,
         )
         for timestamp in prediction_timestamps
     ]
@@ -158,7 +158,6 @@ def mock_single_model_prediction():
         bias_adjusted_temperature=25.0,
         update_date=datetime(2025, 4, 25, 14, tzinfo=timezone.utc),
         prediction_run_timestamp=datetime(2025, 4, 25, 12, tzinfo=timezone.utc),
-        prediction_model_run_timestamp_id=1234,
     )
 
 
@@ -230,10 +229,6 @@ async def test_gather_fire_watch_inputs(
 ):
     mock_session = AsyncMock()
     runs_table = MagicMock()
-    mocker.patch(
-        "app.fire_watch.calculate_weather.get_model_and_run_timestamp",
-        AsyncMock(return_value=(ModelEnum.ECMWF, RUN_TS)),
-    )
     mock_fetch = mocker.patch(
         "app.fire_watch.calculate_weather.fetch_daily_run_predictions",
         return_value=mock_predictions,
@@ -244,43 +239,35 @@ async def test_gather_fire_watch_inputs(
     )
 
     predictions, actual_weather_data = await gather_fire_watch_inputs(
-        mock_session, mock_fire_watch, 1, runs_table
+        mock_session, mock_fire_watch, RUN_TS, runs_table
     )
 
     mock_fetch.assert_called_once_with(
-        runs_table, ModelEnum.ECMWF, RUN_TS, 1, [mock_fire_watch.station_code]
+        runs_table, ModelEnum.ECMWF, RUN_TS, [mock_fire_watch.station_code]
     )
     assert predictions == mock_predictions
     assert actual_weather_data == mock_actual_weather_data
 
 
 @pytest.mark.anyio
-async def test_gather_fire_watch_inputs_raises_for_an_unknown_run(mocker, mock_fire_watch):
-    mocker.patch(
-        "app.fire_watch.calculate_weather.get_model_and_run_timestamp",
-        AsyncMock(return_value=None),
-    )
+async def test_gather_fire_watch_inputs_raises_without_a_model_run(mock_fire_watch):
     session = AsyncMock()
     runs_table = MagicMock()
 
-    with pytest.raises(MissingWeatherDataError, match="No prediction model run with id 1"):
-        await gather_fire_watch_inputs(session, mock_fire_watch, 1, runs_table)
+    with pytest.raises(MissingWeatherDataError, match="No ECMWF model run to use"):
+        await gather_fire_watch_inputs(session, mock_fire_watch, None, runs_table)
 
 
 @pytest.mark.anyio
 async def test_gather_fire_watch_inputs_raises_when_runs_has_no_predictions(
     mocker, mock_fire_watch
 ):
-    mocker.patch(
-        "app.fire_watch.calculate_weather.get_model_and_run_timestamp",
-        AsyncMock(return_value=(ModelEnum.ECMWF, RUN_TS)),
-    )
     mocker.patch("app.fire_watch.calculate_weather.fetch_daily_run_predictions", return_value=[])
     session = AsyncMock()
     runs_table = MagicMock()
 
     with pytest.raises(MissingWeatherDataError, match="No ECMWF predictions"):
-        await gather_fire_watch_inputs(session, mock_fire_watch, 1, runs_table)
+        await gather_fire_watch_inputs(session, mock_fire_watch, RUN_TS, runs_table)
 
 
 def test_validate_fire_watch_inputs(
@@ -442,11 +429,7 @@ async def test_process_predictions(
 
 @pytest.mark.anyio
 async def test_process_all_fire_watch_weather_skips_if_weather_exists(mocker, mock_fire_watch):
-    mocker.patch(
-        "app.fire_watch.calculate_weather.get_latest_prediction_timestamp_id_for_model",
-        return_value=1,
-    )
-    mocker.patch(
+    mock_missing = mocker.patch(
         "app.fire_watch.calculate_weather.get_fire_watches_missing_weather_for_run",
         return_value=[],
     )
@@ -460,21 +443,39 @@ async def test_process_all_fire_watch_weather_skips_if_weather_exists(mocker, mo
         "app.fire_watch.calculate_weather.process_single_fire_watch"
     )
 
-    await process_all_fire_watch_weather(MagicMock())
+    runs_table = MagicMock()
+    runs_table.latest_run_ts.return_value = RUN_TS
+    await process_all_fire_watch_weather(runs_table)
 
+    mock_missing.assert_called_once_with(mock.ANY, RUN_TS)
     mock_get_station_metadata.assert_not_called()
     mock_get_all_prescription_status.assert_not_called()
     mock_process_single_fire_watch.assert_not_called()
 
 
 @pytest.mark.anyio
+async def test_process_all_fire_watch_weather_does_nothing_without_a_recent_run(mocker):
+    mock_missing = mocker.patch(
+        "app.fire_watch.calculate_weather.get_fire_watches_missing_weather_for_run"
+    )
+    runs_table = MagicMock()
+    runs_table.latest_run_ts.return_value = None
+
+    await process_all_fire_watch_weather(runs_table)
+
+    model, since = runs_table.latest_run_ts.call_args.args
+    assert model == ModelEnum.ECMWF
+    looked_back = calculate_weather.get_utc_now() - since
+    assert (
+        timedelta(0) <= looked_back - calculate_weather.LATEST_RUN_LOOKBACK < timedelta(minutes=1)
+    )
+    mock_missing.assert_not_called()
+
+
+@pytest.mark.anyio
 async def test_process_all_fire_watch_weather_processes_fire_watches(
     mocker, mock_fire_watch, mock_status_id_dict, mock_station_metadata
 ):
-    mocker.patch(
-        "app.fire_watch.calculate_weather.get_latest_prediction_timestamp_id_for_model",
-        return_value=1,
-    )
     mocker.patch(
         "app.fire_watch.calculate_weather.get_fire_watches_missing_weather_for_run",
         return_value=[mock_fire_watch],
@@ -492,6 +493,7 @@ async def test_process_all_fire_watch_weather_processes_fire_watches(
     )
 
     runs_table = MagicMock()
+    runs_table.latest_run_ts.return_value = RUN_TS
     await process_all_fire_watch_weather(runs_table)
 
     mock_process_single_fire_watch.assert_called_once_with(
@@ -499,7 +501,7 @@ async def test_process_all_fire_watch_weather_processes_fire_watches(
         mock_fire_watch,
         {101: mock_station_metadata},
         mock_status_id_dict,
-        1,
+        RUN_TS,
         runs_table,
     )
 
@@ -510,7 +512,7 @@ async def test_save_all_fire_watch_weather_adds_new_records(mocker):
     mock_record = create_autospec(FireWatchWeather)
     mock_record.fire_watch_id = 1
     mock_record.date = "2025-05-05"
-    mock_record.prediction_model_run_timestamp_id = 123
+    mock_record.prediction_run_timestamp = RUN_TS
 
     # Simulate no existing record found
     mocker.patch(
@@ -531,7 +533,7 @@ async def test_save_all_fire_watch_weather_updates_existing_records(mocker):
     mock_record = create_autospec(FireWatchWeather)
     mock_record.fire_watch_id = 1
     mock_record.date = "2025-05-05"
-    mock_record.prediction_model_run_timestamp_id = 123
+    mock_record.prediction_run_timestamp = RUN_TS
     mock_record.temperature = 25
     mock_record.hfi = 1000
 

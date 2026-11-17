@@ -41,7 +41,7 @@ def runs(tmp_path):
 
 
 def test_no_table_gives_no_predictions(runs):
-    assert fetch_daily_run_predictions(runs, ModelEnum.ECMWF, RUN_TS, 7, [322]) == []
+    assert fetch_daily_run_predictions(runs, ModelEnum.ECMWF, RUN_TS, [322]) == []
 
 
 def test_reads_the_run_at_2000_utc_for_the_stations(runs):
@@ -52,7 +52,7 @@ def test_reads_the_run_at_2000_utc_for_the_stations(runs):
         ingested_at=INGESTED_AT,
     )
 
-    predictions = fetch_daily_run_predictions(runs, ModelEnum.ECMWF, RUN_TS, 7, [322])
+    predictions = fetch_daily_run_predictions(runs, ModelEnum.ECMWF, RUN_TS, [322])
 
     assert [(p.station_code, p.prediction_timestamp) for p in predictions] == [
         (322, DAY_1_2000),
@@ -61,7 +61,6 @@ def test_reads_the_run_at_2000_utc_for_the_stations(runs):
     first = predictions[0]
     assert first.abbreviation == "ECMWF"
     assert first.prediction_run_timestamp == RUN_TS
-    assert first.prediction_model_run_timestamp_id == 7
     assert first.update_date == INGESTED_AT
     assert (first.tmp_tgl_2, first.bias_adjusted_temperature) == (10.0, 11.0)
     assert (first.rh_tgl_2, first.bias_adjusted_rh) == (50.0, 51.0)
@@ -75,7 +74,7 @@ def test_reads_only_the_requested_run_and_model(runs):
     runs.append_run(ModelEnum.ECMWF, LATER_RUN_TS, make_rows([DAY_1_2000], temperature=20.0))
     runs.append_run(ModelEnum.GDPS, RUN_TS, make_rows([DAY_1_2000], temperature=30.0))
 
-    predictions = fetch_daily_run_predictions(runs, ModelEnum.ECMWF, RUN_TS, 7, [322])
+    predictions = fetch_daily_run_predictions(runs, ModelEnum.ECMWF, RUN_TS, [322])
 
     assert [p.tmp_tgl_2 for p in predictions] == [10.0]
 
@@ -94,6 +93,6 @@ def test_a_reprocessed_run_gives_its_newest_values(runs):
         ingested_at=LATER_RUN_TS,
     )
 
-    predictions = fetch_daily_run_predictions(runs, ModelEnum.ECMWF, RUN_TS, 7, [322])
+    predictions = fetch_daily_run_predictions(runs, ModelEnum.ECMWF, RUN_TS, [322])
 
     assert [p.tmp_tgl_2 for p in predictions] == [12.0]

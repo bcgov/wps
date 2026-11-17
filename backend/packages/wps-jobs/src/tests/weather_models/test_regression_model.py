@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 from wps_shared.db.models.observations import HourlyActual
-from wps_shared.db.models.weather_models import ModelRunPrediction
+from weather_model_jobs.model_values import ModelValues
 from weather_model_jobs.bias_adjusted_variable import TEMPERATURE
 from weather_model_jobs.machine_learning import HourOfDayRegression
 
@@ -12,26 +12,26 @@ from weather_model_jobs.machine_learning import HourOfDayRegression
         # Happy path
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18), temperature=15),
-            ModelRunPrediction(tmp_tgl_2=10),
+            ModelValues(tmp_tgl_2=10),
             [10.0],
             [15.0],
         ),
         # No actual data
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18)),
-            ModelRunPrediction(tmp_tgl_2=10),
+            ModelValues(tmp_tgl_2=10),
             [10.0],
             None,
         ),
         # No prediction data
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18), temperature=15),
-            ModelRunPrediction(),
+            ModelValues(),
             None,
             [15.0],
         ),
         # No actual or prediction data
-        (HourlyActual(weather_date=datetime(2020, 10, 10, 18)), ModelRunPrediction(), None, None),
+        (HourlyActual(weather_date=datetime(2020, 10, 10, 18)), ModelValues(), None, None),
     ],
 )
 def test_regression_model_sample_values(actual, prediction, expected_x, expected_y):

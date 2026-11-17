@@ -6,7 +6,7 @@ from weather_model_jobs.utils.interpolate import (
     interpolate_wind_direction,
 )
 from datetime import datetime
-from wps_shared.db.models.weather_models import ModelRunPrediction
+from weather_model_jobs.model_values import ModelValues
 import math
 
 
@@ -16,8 +16,8 @@ prediction_b_timestamp = datetime(2024, 5, 1, 21, 0, 0)
 
 def generate_model_run_prediction(
     prediction_datetime: datetime, weather_values: float | None
-) -> ModelRunPrediction:
-    model_prediction = ModelRunPrediction(
+) -> ModelValues:
+    model_prediction = ModelValues(
         prediction_timestamp=prediction_datetime,
         tmp_tgl_2=weather_values,
         rh_tgl_2=weather_values,

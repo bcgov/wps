@@ -1,12 +1,8 @@
 """MoreCast's model values, read from the `by_time` table.
 
-The same read as `wps_shared.weather_models.fetch.predictions`, which uses Postgres: the
-20:00 UTC prediction per station, day and model, raw and bias-adjusted. `by_time` already
+The 20:00 UTC prediction per station, day and model, raw and bias-adjusted. `by_time` already
 keeps one daily row per station, time and model, from the newest run, so this is a single read
-with no choosing between runs.
-
-The MoreCast determinates route reads this. backend/scripts/morecast_by_time_parity_check.py
-compares it with the Postgres read.
+with no choosing between runs. The MoreCast determinates route reads this.
 """
 
 import logging
@@ -22,8 +18,9 @@ from wps_weather_data.by_time import DAILY, ByTimeTable
 
 logger = logging.getLogger(__name__)
 
-# MoreCast does not show ECMWF.
-MORECAST_MODELS = tuple(model for model in ModelEnum if model != ModelEnum.ECMWF)
+# Every model, ECMWF included. ECMWF's runs are from its 0.1° grid only: its job reads no other,
+# and the backfill from Postgres took the 0.1° run where both grids had one.
+MORECAST_MODELS = tuple(ModelEnum)
 
 
 def fetch_model_predictions(

@@ -125,7 +125,7 @@ weather/stations/
   runs/                                        Delta table: every model run, append-only
   wf1/                                         Delta table: every observation and forecast from WF1, append-only
   by_time/                                     Delta table: newest value per station and time
-  staging/model=HRDPS/2026111206/<invocation time>.parquet station values while a run downloads
+  staging/hrdps/                               Delta table per model: station values while a run downloads
   by_station/resolution=hourly/station=322/history.parquet the by_time rows, keyed by station
   hourly_profile/station=322.parquet                       hourly statistics by month and hour of day
   leads/station=322/2026.parquet                           every prediction at every lead, per station
@@ -137,9 +137,10 @@ That is the production layout. Dev deployments share one bucket, so each writes 
 
 | Dataset | Format | Serves | Written by |
 |---|---|---|---|
-| `runs` | Delta Lake | `/weather_models` routes, training | The six model jobs |
+| `runs` | Delta Lake | Fire watch, training | The six model jobs |
+| `staging` | Delta Lake, one per model | The model job itself, between invocations | That model's job |
 | `wf1` | Delta Lake | Rebuilding `by_time`; history of corrections | The WF1 jobs |
-| `by_time` | Delta Lake | MoreCast, fire watch | The model jobs and the WF1 jobs |
+| `by_time` | Delta Lake | MoreCast | The model jobs and the WF1 jobs |
 | `by_station` | Parquet | Climatology for one station or a group | One nightly job |
 | `hourly_profile` | Parquet | Hourly climatology for a group, on a screen | The same nightly job |
 | `leads` | Parquet | Climatology at a chosen lead, while experimenting | The same nightly job |
@@ -183,20 +184,24 @@ Replaces `model_run_predictions`. It holds a run that is still downloading.
 
 A run arrives as hundreds of GRIB files, one per variable per forecast hour, published over a span of time. The cron job processes whatever is available, exits, and returns later for the rest. Bias adjustment needs the whole run, so the partial run has to be kept somewhere between invocations.
 
-Each job invocation writes one Parquet file under the run's prefix, holding the station values from every GRIB file it processed:
+Each model has its own `staging` Delta table, partitioned by run, so each table has one writer: the model's job. A row is one value:
 
 | Column | Type | Notes |
 |---|---|---|
-| `station_code` | int32 | |
+| `run` | string | The partition, such as `20261117T00`. |
+| `run_ts` | timestamp, UTC | |
+| `station_code` | int32 | Null on a file's marker row. |
 | `prediction_timestamp` | timestamp, UTC | |
-| `variable` | string | Which model field the value is, such as `tmp_tgl_2`. |
-| `value` | float32 | |
+| `variable` | string | Which model field the value is, such as `tmp_tgl_2`. Null on a marker row. |
+| `value` | float64 | Kept at full precision, since the station predictions are computed from it. |
+| `source` | string | The file the value came from: its URL, or for ECMWF its forecast hour. |
+| `written_at` | timestamp, UTC | A value staged twice takes the newest. |
 
-The names of the GRIB files the invocation covered are recorded in the Parquet file's metadata, so the job can tell what has been processed by reading the footers alone.
+Every processed file leaves a marker row in the same commit as its values, so the files a run has processed are the distinct `source` values of its partition, and a file is either processed with all its values or not at all. A job commits every 50 files and at the end of each run, so a run has a handful of commits rather than one per GRIB, which would be roughly 245 for an HRDPS run and 405 for GDPS. The cost is that a crash loses the files processed since the last commit, and the next invocation fetches them again.
 
-A run then has a handful of staging files, one per invocation, instead of one per GRIB, which would be roughly 245 objects for an HRDPS run and 405 for GDPS. The cost is that a crash loses the GRIB files processed so far in that invocation, and the next invocation fetches them again. An invocation that processes many files can write more than once to bound that.
+An earlier version of this design kept plain Parquet files with the processed files listed in their footers. The Delta table was chosen instead because it reuses the write path already proven against our object store, and its commits make "processed" and "staged" the same event.
 
-When the run is complete, the job reads the staging files back, computes bias adjustments and derived precip in memory, appends the run to `runs`, merges it into `by_time`, and deletes the staging prefix. Staging files are plain Parquet with one writer.
+When the run is complete, the job reads it back from `staging`, computes bias adjustments and derived precip in memory, appends the run to `runs`, merges it into `by_time`, and deletes the run from `staging`. A run that yields no station predictions is left in `staging` and logged as an error, rather than deleted and downloaded again.
 
 ### `by_time`
 
@@ -292,10 +297,10 @@ Three Postgres tables track ingest today. All three go, and the state they hold 
 
 | Today, in Postgres | Question it answers | Replacement |
 |---|---|---|
-| `processed_model_run_urls` | Has this GRIB file been processed? | Is its name listed in the metadata of one of the run's `staging` files? |
-| `prediction_model_run_timestamps.complete` | Has every GRIB file for the run been processed? | Do the run's `staging` files between them list every expected GRIB? Listing the prefix and reading a few footers answers this and the question above. |
-| `prediction_model_run_timestamps.interpolated` | Has the run been bias-adjusted and published? | Is the run in `runs`, with its `staging` prefix gone? |
-| `prediction_models` | What are the model's name and projection? | A constant in code, next to `ModelEnum` and `ProjectionEnum`. |
+| `processed_model_run_urls` | Has this GRIB file been processed? | Does the run's `staging` partition have a marker row for it? |
+| `prediction_model_run_timestamps.complete` | Has every GRIB file for the run been processed? | Does the run's `staging` partition have a marker row for every expected file? |
+| `prediction_model_run_timestamps.interpolated` | Has the run been bias-adjusted and published? | Is the run in `runs`, with nothing left in `staging`? |
+| `prediction_models` | What are the model's name and projection? | A constant in code, next to `ModelEnum` and `ProjectionEnum`. The table itself stays, because SFMS's `model_run_for_sfms` refers to it. |
 | The integer run ID | Which run does this row belong to? | The model and `run_ts`. |
 
 A run moves through these states:
@@ -310,7 +315,7 @@ At the start of each invocation the job checks the handful of recent runs it mig
 
 Reprocessing a published run is deliberate, not something the job does by itself: an operator asks for a model and run, the job downloads it again and appends it as a newer version.
 
-The API has one bookkeeping read today: fire watch looks up the newest published run for a model. It reads `by_time` instead, where each row carries the `run_ts` it came from.
+The API had one bookkeeping read: fire watch looked up the newest interpolated ECMWF run. It now asks `runs` for the newest ECMWF run of the last seven days, and `fire_watch_weather` records the run's start time instead of its `prediction_model_run_timestamps` id.
 
 `model_run_for_sfms` and `saved_model_run_for_sfms_urls` also live in Postgres. They track RDPS grids saved for SFMS, not station data, and are outside this design.
 
@@ -345,7 +350,7 @@ What this keeps:
 | Climatology, a group, daily | `by_station` | 2 files per station |
 | Climatology, a group, hourly | `hourly_profile` | 1 per station |
 | Climatology at a chosen lead | `leads`, with ranged GETs | Per station and year: 1 footer, plus 1 row group per model per month wanted |
-| Fire watch | `by_time`, daily, one model | About 1 file per month after compaction |
+| Fire watch | `runs`, one run of one model | The run's files in its `run_date` partition |
 | `/weather_models` routes | `runs`, for run dates in the window | About 12 files per model after compaction |
 | Bias-adjustment training | `runs` for the 19-day window and `by_time` for the observations, loaded once per job | About 23 files for RDPS after compaction |
 | Ingest | The run's `staging` files, and observed precipitation from `by_time` | A handful per run |
@@ -364,14 +369,18 @@ The Parquet files are fetched through the existing S3 client and filtered with `
 
 ### What stays in Postgres
 
-Nothing for model runs. The only related table that stays is:
+Nothing for model runs. The related tables that stay are:
 
 - `morecast_forecast`, which holds forecasts as forecasters submit them in MoreCast. It is transactional application data. The nightly job reads it to build the `FORECAST` rows in `leads`.
+- `hourly_actuals`, until step 7 moves the WF1 data: training pairs model values with its observations, and the 24 hour precip of a run's first day adds observed precip.
+- `prediction_models`, which SFMS's `model_run_for_sfms` refers to.
+
+No code reads or writes the four legacy model tables (`weather_station_model_predictions`, `model_run_predictions`, `prediction_model_run_timestamps`, `processed_model_run_urls`). They stay, with the `pgslice` jobs, until `backend/scripts/station_weather_backfill.py` has copied production's history into `runs` and `by_time` and the result has been checked. A follow-up migration then drops them.
 
 ### Behaviour to preserve
 
 - **Which run wins.** Today the daily queries keep the most recently updated row per station, model and day. `by_time` keeps the newest run's row. These differ if an old run is reprocessed.
-- **The integer run ID.** `ModelPredictionDetails` carries `prediction_model_run_timestamp_id`, and fire watch passes it between queries. It becomes the model and `run_ts`.
+- **The integer run ID.** `ModelPredictionDetails` carried `prediction_model_run_timestamp_id`, and fire watch passed it between queries. It is now the run's start time; fire watch only uses ECMWF, so that identifies the run.
 - **`id` and `update_date`.** The route `POST /weather_models/{model}/predictions/most_recent/{start_date}/{end_date}` returns the database row's `id` and `update_date` for each prediction. Neither exists once the table is gone. No caller of that route was found in the web or mobile code, so the plan is to drop both fields. The API is public, so an outside caller cannot be ruled out.
 - **Training's noon value.** Training rebuilds the 20:00 UTC interpolation from the neighbouring raw rows, while `runs` already stores it. `test_machine_learning_golden.py` is the place to confirm training gives the same output from either source.
 - **Observation validity.** `hourly_actuals` carries a validity flag per variable, and training filters on them. In `by_time` an invalid value is null, so the filter becomes a null check.
@@ -391,17 +400,23 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 ## Plan
 
 1. Done on 2026-11-16: `backend/scripts/object_store_delta_check.py` ran Delta Lake against ECS in a throwaway table. Four writers appending at once lost no commits, `MERGE`, `optimize`, `vacuum` and a checkpoint worked, and the storage option to use is `conditional_put: etag`. Shared tables are confirmed.
-2. Have the model jobs write to `runs` and `by_time` alongside their Postgres writes, with the maintenance job running. Written but not deployed, in the `wps-weather-data` package: all six model jobs append each finished run to `runs` and merge it into `by_time`, a daily cron job runs `optimize`, a checkpoint and `vacuum` on both tables, and `backend/scripts/station_runs_parity_check.py` compares `runs` with Postgres and backfills missed runs. `backend/scripts/morecast_by_time_parity_check.py` runs MoreCast's model read against `by_time` and against Postgres and reports the differences. `MERGE` has not been run against ECS, and neither script has been run against real tables.
-3. Compare every read query's results between the two, and time each read against ECS. Done for MoreCast's model read in a dev deployment on 2026-11-16: `by_time` and Postgres agreed on all 6,936 values. The other reads, and timings from inside the cluster, are still to do.
-4. Move the model readers over one at a time: MoreCast's model values, then the `/weather_models` routes, fire watch and training. MoreCast is first because its read has been checked against Postgres, and it is done: the MoreCast route reads its model values from `by_time`. There is no switch and no fallback to Postgres, so `by_time` must hold every day MoreCast can show before this is deployed to production.
-5. Replace `model_run_predictions` with `staging` for that model, and switch its bookkeeping from the Postgres tables to `staging` and `runs`.
-6. Do the same for the other models, stop writing the two prediction tables and the three bookkeeping tables, and retire them along with the `pgslice` job.
+2. Done: the six model jobs write `runs` and `by_time`, and a daily cron job runs `optimize`, a checkpoint and `vacuum` on every table. Checked in a dev deployment on 2026-11-17: the maintenance job compacted both tables.
+3. Done for MoreCast's model read in a dev deployment on 2026-11-16: `by_time` and Postgres agreed on all 6,936 values. Timings from inside the cluster are still to do; the MoreCast and fire watch reads log theirs.
+4. Done: MoreCast reads its model values from `by_time`, fire watch reads its ECMWF run from `runs`, and training reads `runs` (see "Training reads `runs`" below). The `/weather_models` routes were removed separately (#6060). Nothing falls back to Postgres, so a deployment's tables must be filled with `backend/scripts/station_weather_backfill.py` before it serves users: `by_time` for the days MoreCast shows, `runs` for the 19 days training learns from.
+5. and 6. Done: every model job stages runs in `staging` instead of `model_run_predictions`, keeps its bookkeeping in `staging` and `runs`, and no longer writes `weather_station_model_predictions`. Dropping the four legacy tables and retiring the `pgslice` job waits for the production backfill, as described under "What stays in Postgres".
 7. Have the WF1 jobs write `OBSERVED` and `FORECAST` to `wf1` and `by_time` alongside Postgres, then move their readers and retire `hourly_actuals` and `noon_forecasts`.
 8. Add the nightly job that writes `by_station`, `hourly_profile` and `leads`, and build the climatology reads on them.
 
 Steps 7 and 8 do not depend on steps 4 to 6. History only accumulates once `by_time` is being written, so steps 2 and 7 are worth starting early even if readers move later.
 
-Postgres remains the fallback for each table until its readers have moved.
+### Training reads `runs`
+
+Bias adjustment learns, per station, from the model's own values paired with hourly observations over the last 19 days, and from every run's 24 hour precip prediction. Both now come from `runs`, read once per run being processed:
+
+- An observation is paired with the newest run's value at that time, among the rows the job did not interpolate. A row whose `is_interpolated` is unknown, as in a run backfilled after its `model_run_predictions` were deleted, counts as the model's own except at 20:00 UTC, the only hour the job interpolates.
+- The SQL this replaces outer-joined observations to predictions but then filtered on the prediction's model, which dropped observations with no prediction. The new read keeps that behaviour, so the noon sample the training code builds for 3-hourly models still only appears where a run has a 20:00 value. Whether that sample was ever meant to be built is a question for a separate change.
+- A run that is still downloading is not in `runs`, so it no longer contributes its first hours, as the old query could.
+- Values are float32, so the fitted regressions differ from the Postgres ones in about the seventh significant digit.
 
 ## Open questions
 

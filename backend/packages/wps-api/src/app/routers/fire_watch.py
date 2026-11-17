@@ -16,7 +16,7 @@ from wps_shared.db.crud.fire_watch import (
     get_fire_centre_by_name,
     get_fire_watch_by_id,
     get_fire_watch_weather_by_model_with_prescription_status,
-    get_latest_processed_model_run_id_in_fire_watch_weather,
+    get_latest_processed_model_run_in_fire_watch_weather,
     save_fire_watch,
     update_fire_watch,
 )
@@ -309,15 +309,13 @@ async def update_existing_fire_watch(
             raise HTTPException(status_code=404, detail=f"FireWatch {fire_watch_id} not found")
         updated_fire_watch = await update_fire_watch(session, fire_watch_id, fire_watch_input)
 
-        latest_model_run_parameters_id = (
-            await get_latest_processed_model_run_id_in_fire_watch_weather(session)
-        )
+        latest_run_ts = await get_latest_processed_model_run_in_fire_watch_weather(session)
 
         try:
             await reprocess_fire_watch_weather(
                 session,
                 updated_fire_watch,
-                latest_model_run_parameters_id,
+                latest_run_ts,
                 runs_table,
             )
         except MissingWeatherDataError as e:
@@ -334,7 +332,7 @@ async def update_existing_fire_watch(
             )
 
         fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status(
-            session, updated_fire_watch.id, latest_model_run_parameters_id
+            session, updated_fire_watch.id, latest_run_ts
         )
 
         updated_burn_forecast = create_fire_watch_burn_forecasts_response(
@@ -352,11 +350,9 @@ async def get_burn_forecasts(_=Depends(authentication_required)):
         stations = await wfwx_api.get_stations_as_geojson()
     async with get_async_read_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
-        latest_model_run_parameters_id = (
-            await get_latest_processed_model_run_id_in_fire_watch_weather(session)
-        )
+        latest_run_ts = await get_latest_processed_model_run_in_fire_watch_weather(session)
         fire_watch_weather = await get_all_fire_watch_weather_with_prescription_status(
-            session, latest_model_run_parameters_id
+            session, latest_run_ts
         )
         fire_watch_burn_forecasts_response = create_fire_watch_burn_forecasts_response(
             stations, fire_watches, fire_watch_weather

@@ -111,25 +111,10 @@ class RunsTable(DeltaWeatherTable):
         logger.info("Appended %s rows for %s run %s to runs", table.num_rows, model.value, run_ts)
         return table.num_rows
 
-    def read(
-        self,
-        model: ModelEnum,
-        run_from: datetime,
-        run_to: datetime,
-        *,
-        station_codes: Sequence[int] | None = None,
-    ) -> pa.Table:
-        """Read the newest version of each of a model's runs that started in [run_from, run_to].
-
-        Returns an empty table if the `runs` table does not exist yet.
-        """
-        if not self.exists():
-            return RUNS_SCHEMA.empty_table()
-
+    def _runs_filter(self, model: ModelEnum, run_from: datetime, run_to: datetime):
         run_from = run_from.astimezone(UTC)
         run_to = run_to.astimezone(UTC)
-        dataset = self.dataset()
-        in_range = (
+        return (
             (pc.field("model") == model.value)
             & (pc.field("run_date") >= run_from.date())
             & (pc.field("run_date") <= run_to.date())
@@ -137,7 +122,47 @@ class RunsTable(DeltaWeatherTable):
             & (pc.field("run_ts") <= run_to)
         )
 
-        # The newest version is chosen per run, before any station filter. Choosing it per row would
+    def has_run(self, model: ModelEnum, run_ts: datetime) -> bool:
+        """Whether the run has been published."""
+        if not self.exists():
+            return False
+        return self.dataset().count_rows(filter=self._runs_filter(model, run_ts, run_ts)) > 0
+
+    def latest_run_ts(self, model: ModelEnum, since: datetime) -> datetime | None:
+        """The newest published run of the model that started at or after `since`, if any."""
+        if not self.exists():
+            return None
+        run_timestamps = self.dataset().to_table(
+            columns=["run_ts"], filter=self._runs_filter(model, since, datetime.now(UTC))
+        )["run_ts"]
+        return pc.max(run_timestamps).as_py()
+
+    def read(
+        self,
+        model: ModelEnum,
+        run_from: datetime,
+        run_to: datetime,
+        *,
+        station_codes: Sequence[int] | None = None,
+        predicted_from: datetime | None = None,
+        predicted_to: datetime | None = None,
+        columns: Sequence[str] | None = None,
+    ) -> pa.Table:
+        """Read the newest version of each of a model's runs that started in [run_from, run_to].
+
+        `predicted_from` and `predicted_to` keep the predictions for times in that range, and
+        `columns` keeps only those columns, which matters when reading many runs.
+
+        Returns an empty table if the `runs` table does not exist yet.
+        """
+        columns = list(RUNS_SCHEMA.names if columns is None else columns)
+        if not self.exists():
+            return RUNS_SCHEMA.empty_table().select(columns)
+
+        dataset = self.dataset()
+        in_range = self._runs_filter(model, run_from, run_to)
+
+        # The newest version is chosen per run, before any other filter. Choosing it per row would
         # bring back a station that an older version had and the newest version dropped.
         newest = (
             dataset.to_table(columns=["run_ts", "ingested_at"], filter=in_range)
@@ -147,12 +172,17 @@ class RunsTable(DeltaWeatherTable):
         wanted = in_range
         if station_codes is not None:
             wanted = wanted & pc.field("station_code").isin(list(station_codes))
-        rows = dataset.to_table(filter=wanted).join(newest, keys="run_ts")
+        if predicted_from is not None:
+            wanted = wanted & (pc.field("prediction_timestamp") >= predicted_from.astimezone(UTC))
+        if predicted_to is not None:
+            wanted = wanted & (pc.field("prediction_timestamp") <= predicted_to.astimezone(UTC))
+        read_columns = list(dict.fromkeys([*columns, "run_ts", "ingested_at"]))
+        rows = dataset.to_table(columns=read_columns, filter=wanted).join(newest, keys="run_ts")
         rows = rows.filter(pc.equal(rows["ingested_at"], rows["ingested_at_max"]))
-        return rows.select(RUNS_SCHEMA.names).sort_by(
-            [
-                ("run_ts", "ascending"),
-                ("station_code", "ascending"),
-                ("prediction_timestamp", "ascending"),
-            ]
-        )
+        order = [
+            (name, "ascending")
+            for name in ("run_ts", "station_code", "prediction_timestamp")
+            if name in columns
+        ]
+        rows = rows.select(columns)
+        return rows.sort_by(order) if order else rows

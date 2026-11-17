@@ -15,11 +15,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from wps_shared.db.models.observations import HourlyActual
-from wps_shared.db.models.weather_models import (
-    ModelRunPrediction,
-    PredictionModel,
-    WeatherStationModelPrediction,
-)
+from weather_model_jobs.model_values import ModelValues
+from weather_model_jobs.model_history import DailyPrecip
 from weather_model_jobs import bias_adjusted_variable
 from weather_model_jobs.machine_learning import StationMachineLearning
 
@@ -64,7 +61,7 @@ def _build_rows(seed: int, step: int):
             continue
         # newest run first, like the real query; the older run must be ignored
         for _ in range(rng.choice([1, 1, 2])):
-            prediction = ModelRunPrediction(
+            prediction = ModelValues(
                 prediction_timestamp=ts,
                 tmp_tgl_2=_maybe(rng, rng.uniform(-5, 35)),
                 rh_tgl_2=_maybe(rng, rng.uniform(5, 100)),
@@ -84,7 +81,7 @@ def _build_precip(seed: int):
         actuals.append(ActualPrecip(day, _maybe(rng, rng.uniform(0, 20), p_nan=0.05)))
         for _ in range(rng.choice([1, 2])):
             predicted.append(
-                WeatherStationModelPrediction(
+                DailyPrecip(
                     prediction_timestamp=day,
                     precip_24h=_maybe(rng, rng.uniform(0, 20), p_nan=0.05),
                 )
@@ -97,7 +94,7 @@ def _predictions(monkeypatch, seed: int, step: int):
     rows = _build_rows(seed, step)
     precip_actuals, precip_predicted = _build_precip(seed)
     monkeypatch.setattr(
-        bias_adjusted_variable, "get_actuals_left_outer_join_with_predictions", lambda *a: rows
+        bias_adjusted_variable, "get_actuals_paired_with_predictions", lambda *a: rows
     )
     monkeypatch.setattr(
         bias_adjusted_variable, "get_accumulated_precip_by_24h_interval", lambda *a: precip_actuals
@@ -108,7 +105,7 @@ def _predictions(monkeypatch, seed: int, step: int):
 
     machine = StationMachineLearning(
         session=None,
-        model=PredictionModel(id=1),
+        history=None,
         target_coordinate=[0, 0],
         station_code=1,
         max_learn_date=datetime(2026, 8, 20, tzinfo=timezone.utc),

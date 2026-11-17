@@ -1,8 +1,7 @@
 """Fire watch's model values, read from the `runs` table.
 
-The same read as `wps_shared.db.crud.weather_models.get_latest_daily_model_prediction_for_stations`,
-which uses Postgres: every 20:00 UTC prediction of one run for some stations. Fire watch works
-from a single run, not the newest value per day, so it reads `runs` rather than `by_time`.
+Every 20:00 UTC prediction of one run for some stations. Fire watch works from a single run, not
+the newest value per day, so it reads `runs` rather than `by_time`.
 
 Design: docs/architecture/station-weather-storage.md
 """
@@ -27,14 +26,9 @@ def fetch_daily_run_predictions(
     runs: RunsTable,
     model: ModelEnum,
     run_ts: datetime,
-    prediction_model_run_timestamp_id: int,
     station_codes: Sequence[int],
 ) -> list[ModelPredictionDetails]:
-    """Get one run's 20:00 UTC predictions for the stations, by station then prediction time.
-
-    `prediction_model_run_timestamp_id` is the run's id in Postgres, where the run bookkeeping
-    still lives. It is copied onto each prediction for the caller to store.
-    """
+    """Get one run's 20:00 UTC predictions for the stations, by station then prediction time."""
     started = perf_counter()
     rows = runs.read(model, run_ts, run_ts, station_codes=station_codes)
     rows = rows.filter(pc.equal(pc.hour(rows["prediction_timestamp"]), DAILY_HOUR_UTC))
@@ -45,7 +39,6 @@ def fetch_daily_run_predictions(
             update_date=row["ingested_at"],
             abbreviation=row["model"],
             prediction_run_timestamp=row["run_ts"],
-            prediction_model_run_timestamp_id=prediction_model_run_timestamp_id,
             station_code=row["station_code"],
             rh_tgl_2=row["rh_tgl_2"],
             tmp_tgl_2=row["tmp_tgl_2"],

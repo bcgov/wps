@@ -1,59 +1,82 @@
-from datetime import datetime, timedelta, timezone
 import math
-from unittest.mock import MagicMock, call, patch
+from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock, call
 
+import pyarrow.compute as pc
 import pytest
 import weather_model_jobs.ecmwf_prediction_processor
 from pytest_mock import MockerFixture
 from weather_model_jobs import ModelEnum
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
-from wps_shared.db.crud.model_run_repository import ModelRunRepository
-from wps_shared.db.models.weather_models import (
-    ModelRunPrediction,
-    PredictionModelRunTimestamp,
-    WeatherStationModelPrediction,
-)
+from weather_model_jobs.model_values import ModelValues, StationPrediction
 from wps_shared.schemas.stations import WeatherStation
+from wps_weather_data.by_time import DAILY, HOURLY, ByTimeTable
+from wps_weather_data.runs import RunsTable
+from wps_weather_data.staging import MODEL_FIELDS, StagedFile, StagingTable
+
+RUN_TS = datetime(2023, 10, 1, 0, tzinfo=timezone.utc)
 
 
 @pytest.fixture
-def setup_processor():
+def tables(tmp_path):
+    return (
+        RunsTable(str(tmp_path / "runs")),
+        ByTimeTable(str(tmp_path / "by_time")),
+        StagingTable(ModelEnum.ECMWF, str(tmp_path / "staging")),
+    )
+
+
+@pytest.fixture
+def setup_processor(tables):
     stations = [
         WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1"),
         WeatherStation(code=1, long=20.0, lat=60.0, name="Station 2"),
     ]
-    model_run_repository = MagicMock(spec=ModelRunRepository)
-    model_run_repository.session = MagicMock()
-    processor = ECMWFPredictionProcessor(stations, model_run_repository)
-    # Stand-ins for the object store tables, so tests can assert on what would be written.
-    processor.runs_table = MagicMock()
-    processor.by_time_table = MagicMock()
-    return processor, model_run_repository
+    session = MagicMock()
+    runs, by_time, staging = tables
+    processor = ECMWFPredictionProcessor(
+        stations, session, runs_table=runs, by_time_table=by_time, staging_table=staging
+    )
+    return processor, session
 
 
 @pytest.fixture
 def mock_predictions():
     processor = ECMWFPredictionProcessor([], None)
-    prev_prediction = MagicMock(spec=ModelRunPrediction)
-    prediction = MagicMock(spec=ModelRunPrediction)
+    prev_prediction = MagicMock(spec=ModelValues)
+    prediction = MagicMock(spec=ModelValues)
     return processor, prev_prediction, prediction
 
 
 @pytest.fixture
 def mock_model_run_data():
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
-    model_run = MagicMock(spec=PredictionModelRunTimestamp)
-    model_run.id = 123
-    model_run.prediction_run_timestamp = datetime(2023, 10, 2, 11, 0)
-    prediction = MagicMock(spec=ModelRunPrediction)
+    run_ts = datetime(2023, 10, 2, 11, 0)
+    prediction = MagicMock(spec=ModelValues)
+    prediction.station_code = station.code
     prediction.prediction_timestamp = datetime(2023, 10, 2, 12, 0)
     station_prediction = MagicMock()
     station_prediction.prediction_timestamp = datetime(2023, 10, 2, 12, 0)
     station_prediction.apcp_sfc_0 = 0.0
-    return station, model_run, prediction, station_prediction
+    return station, run_ts, prediction, station_prediction
 
 
-def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
+@pytest.fixture
+def mock_machine(mocker: MockerFixture):
+    """A trained machine whose bias adjustments are fixed values."""
+    machine_class = mocker.patch(
+        "weather_model_jobs.ecmwf_prediction_processor.StationMachineLearning"
+    )
+    machine = machine_class.return_value
+    machine.predict_temperature.return_value = 11.0
+    machine.predict_rh.return_value = 51.0
+    machine.predict_wind_speed.return_value = 6.0
+    machine.predict_wind_direction.return_value = 181.0
+    machine.predict_precipitation.return_value = 1.5
+    return machine_class
+
+
+def test_process_model_run_for_station(setup_processor, mocker: MockerFixture, mock_machine):
     """
     Test the `_process_model_run_for_station` method of the processor.
 
@@ -61,34 +84,36 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     model run predictions for a given weather station, including applying bias
     adjustments and interpolated bias adjustments.
     """
-    processor, model_run_repository = setup_processor
+    processor, _ = setup_processor
 
     # Mock data
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
-    model_run = MagicMock(spec=PredictionModelRunTimestamp)
     model_run_predictions = [
-        ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 18, 0), apcp_sfc_0=0.0),
-        ModelRunPrediction(prediction_timestamp=datetime(2023, 10, 1, 21, 0), apcp_sfc_0=0.0),
+        ModelValues(
+            station_code=1, prediction_timestamp=datetime(2023, 10, 1, 18, 0), apcp_sfc_0=0.0
+        ),
+        ModelValues(
+            station_code=1, prediction_timestamp=datetime(2023, 10, 1, 21, 0), apcp_sfc_0=0.0
+        ),
     ]
     interpolated_noon_prediction_spy = mocker.spy(
         weather_model_jobs.ecmwf_prediction_processor,
         "construct_interpolated_noon_prediction",
     )
     initialize_station_prediction_spy = mocker.spy(processor, "initialize_station_prediction")
-    model_run_repository.get_model_run_predictions_for_station.return_value = model_run_predictions
 
     # Mock methods
-    processor._apply_bias_adjustments = MagicMock()
-    processor._apply_interpolated_bias_adjustments = MagicMock()
+    processor._apply_bias_adjustments = MagicMock(side_effect=lambda prediction, _: prediction)
+    processor._apply_interpolated_bias_adjustments = MagicMock(
+        side_effect=lambda prediction, *_: prediction
+    )
     mocker.patch.object(processor, "_has_expected_timestamp_coverage", return_value=True)
 
     # Call the method
-    processor._process_model_run_for_station(model_run, station)
-
-    # Assertions
-    model_run_repository.get_model_run_predictions_for_station.assert_called_once_with(
-        station.code, model_run
+    result = processor._process_model_run_for_station(
+        RUN_TS, station, model_run_predictions, history=None
     )
+
     # This should be called for both predictions, 18:00 UTC and 21:00 UTC
     assert processor._apply_bias_adjustments.call_count == 2
     # This is called the 2nd iteration where the previous prediction is for 18:00 UTC and the next prediction is for 21:00 UTC
@@ -99,49 +124,51 @@ def test_process_model_run_for_station(setup_processor, mocker: MockerFixture):
     assert initialize_station_prediction_spy.call_args_list[0][0][0] is None
     assert initialize_station_prediction_spy.call_args_list[0][0][1] == model_run_predictions[0]
     # 2nd call to initialize_station_prediction constructs the noon prediction, and does not use prev or next prediction
-    assert initialize_station_prediction_spy.call_args_list[1][0][1] != model_run_predictions[0]
-    assert initialize_station_prediction_spy.call_args_list[1][0][1] != model_run_predictions[1]
+    assert initialize_station_prediction_spy.call_args_list[1][0][1] is not model_run_predictions[0]
+    assert initialize_station_prediction_spy.call_args_list[1][0][1] is not model_run_predictions[1]
+    # one station prediction per time, in time order, the noon one marked as interpolated
+    assert [(p.prediction_timestamp.hour, p.is_interpolated) for p in result] == [
+        (18, False),
+        (20, True),
+        (21, False),
+    ]
+    mock_machine.assert_called_once()
+    assert mock_machine.call_args.kwargs["max_learn_date"] == RUN_TS
 
 
 def test_process_model_run_for_station_skips_incomplete_coverage(
     setup_processor, mocker: MockerFixture, caplog
 ):
-    processor, model_run_repository = setup_processor
+    processor, _ = setup_processor
     station = WeatherStation(code=6216, long=-121.0, lat=51.0, name="QD 15 CHASM")
-    model_run = MagicMock(spec=PredictionModelRunTimestamp)
-    model_run.id = 34817
-    model_run.prediction_run_timestamp = datetime(2026, 8, 8, tzinfo=timezone.utc)
+    run_ts = datetime(2026, 8, 8, tzinfo=timezone.utc)
     model_run_predictions = [
-        ModelRunPrediction(
-            prediction_timestamp=model_run.prediction_run_timestamp + timedelta(hours=hour)
-        )
+        ModelValues(station_code=6216, prediction_timestamp=run_ts + timedelta(hours=hour))
         for hour in [69, 75, 81, 84, 144, 162]
     ]
-    model_run_repository.get_model_run_predictions_for_station.return_value = model_run_predictions
     station_machine_learning = mocker.patch(
         "weather_model_jobs.ecmwf_prediction_processor.StationMachineLearning"
     )
 
-    processor._process_model_run_for_station(model_run, station)
+    result = processor._process_model_run_for_station(
+        run_ts, station, model_run_predictions, history=None
+    )
 
     station_machine_learning.assert_not_called()
-    model_run_repository.store_weather_station_model_prediction.assert_not_called()
+    assert result == []
     assert "expected=65, actual=6, missing=59, unexpected=0" in caplog.text
 
 
 def test_expected_timestamp_coverage_accepts_complete_run(setup_processor):
     processor, _ = setup_processor
     station = WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")
-    model_run = MagicMock(spec=PredictionModelRunTimestamp)
-    model_run.prediction_run_timestamp = datetime(2026, 8, 8, tzinfo=timezone.utc)
+    run_ts = datetime(2026, 8, 8, tzinfo=timezone.utc)
     predictions = [
-        ModelRunPrediction(
-            prediction_timestamp=model_run.prediction_run_timestamp + timedelta(hours=hour)
-        )
+        ModelValues(station_code=1, prediction_timestamp=run_ts + timedelta(hours=hour))
         for hour in weather_model_jobs.ecmwf_prediction_processor.get_ecmwf_forecast_hours()
     ]
 
-    assert processor._has_expected_timestamp_coverage(model_run, station, predictions)
+    assert processor._has_expected_timestamp_coverage(run_ts, station, predictions)
 
 
 @pytest.mark.parametrize(
@@ -212,9 +239,6 @@ def test_should_interpolate_assertion_error(
     Test the `_should_interpolate` method to ensure it raises an `AssertionError`
     when the `prediction_timestamp` of the next prediction is earlier than the
     `prediction_timestamp` of the previous prediction.
-
-    This test verifies that the method enforces the assumption that the next
-    timestamp must always be greater than the previous timestamp.
     """
     processor, prev_prediction, prediction = mock_predictions
 
@@ -226,81 +250,51 @@ def test_should_interpolate_assertion_error(
         processor._should_interpolate(prev_prediction, prediction)
 
 
-@pytest.mark.parametrize(
-    "existing_station_model_prediction, prediction_timestamp",
-    [
-        # existing station model prediction
-        (
-            WeatherStationModelPrediction(
-                station_code=123,
-                prediction_model_run_timestamp_id=123,
-                prediction_timestamp=datetime(2023, 10, 1, 12, 0),
-                tmp_tgl_2=1,
-                rh_tgl_2=1,
-                apcp_sfc_0=1,
-                wdir_tgl_10=1,
-                wind_tgl_10=1,
-                create_date=datetime(2023, 10, 1, 12, 0),
-                update_date=datetime(2023, 10, 1, 12, 0) + timedelta(days=1),
-            ),
-            datetime(2023, 10, 1, 12, 0),
-        ),
-        # no existing station model prediction
-        (None, datetime(2023, 10, 1, 12, 0)),
-    ],
-)
-def test_weather_station_prediction_initializer(
-    existing_station_model_prediction, prediction_timestamp, setup_processor
-):
-    """
-    Test the `_weather_station_prediction_initializer` method of the processor.
+def test_initialize_station_prediction_creates_new_prediction(setup_processor):
+    processor, _ = setup_processor
+    prediction = ModelValues(
+        station_code=123,
+        prediction_timestamp=datetime(2023, 10, 1, 12, 0),
+        tmp_tgl_2=1.0,
+        rh_tgl_2=2.0,
+        apcp_sfc_0=3.0,
+        wdir_tgl_10=4.0,
+        wind_tgl_10=5.0,
+    )
+    processor._calculate_past_24_hour_precip = MagicMock(return_value=7.0)
+    station_predictions = {}
 
-    This test verifies the behavior of the `_weather_station_prediction_initializer` method
-    when initializing a weather station prediction. It ensures that the method correctly
-    retrieves or initializes a prediction object for a given weather station, model run,
-    and prediction timestamp.
-    """
-    processor, model_run_repository = setup_processor
-
-    # Mock data
-    station = WeatherStation(code=123, long=10.0, lat=50.0, name="Station 1")
-    model_run = MagicMock(spec=PredictionModelRunTimestamp)
-    model_run.id = 123
-    model_run.prediction_run_timestamp = datetime(2023, 10, 1, 12, 0)
-    prediction = MagicMock(spec=ModelRunPrediction)
-    prediction.prediction_timestamp = prediction_timestamp
-    prediction.station_code = station.code
-    prediction.prediction_model_run_timestamp_id = model_run.id
-
-    # Mock repository behavior
-    model_run_repository.get_weather_station_model_prediction.return_value = (
-        existing_station_model_prediction
+    station_prediction = processor.initialize_station_prediction(
+        None, prediction, RUN_TS, station_predictions
     )
 
-    # Call the method
-    station_prediction = processor._weather_station_prediction_initializer(prediction)
-
-    # Assertions
-    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
-        prediction.station_code,
-        prediction.prediction_model_run_timestamp_id,
-        prediction.prediction_timestamp,
-    )
-    assert station_prediction.station_code == prediction.station_code
-    assert (
-        station_prediction.prediction_model_run_timestamp_id
-        == prediction.prediction_model_run_timestamp_id
-    )
+    assert isinstance(station_prediction, StationPrediction)
+    assert station_prediction.station_code == 123
     assert station_prediction.prediction_timestamp == prediction.prediction_timestamp
-    if existing_station_model_prediction is not None:
-        assert station_prediction.tmp_tgl_2 == existing_station_model_prediction.tmp_tgl_2
-        assert station_prediction.rh_tgl_2 == existing_station_model_prediction.rh_tgl_2
-        assert station_prediction.apcp_sfc_0 == existing_station_model_prediction.apcp_sfc_0
-        assert station_prediction.wdir_tgl_10 == existing_station_model_prediction.wdir_tgl_10
-        assert station_prediction.wind_tgl_10 == existing_station_model_prediction.wind_tgl_10
-        assert station_prediction.update_date == existing_station_model_prediction.update_date
-    else:
-        assert station_prediction.update_date is None
+    assert (station_prediction.tmp_tgl_2, station_prediction.rh_tgl_2) == (1.0, 2.0)
+    assert station_prediction.apcp_sfc_0 == 3.0
+    assert (station_prediction.wdir_tgl_10, station_prediction.wind_tgl_10) == (4.0, 5.0)
+    assert station_prediction.precip_24h == 7.0
+    # the first prediction of a run has no previous one, so all its precip is new
+    assert station_prediction.delta_precip == 3.0
+
+
+def test_initialize_station_prediction_updates_existing_prediction(setup_processor):
+    processor, _ = setup_processor
+    timestamp = datetime(2023, 10, 1, 12, 0)
+    existing = StationPrediction(
+        station_code=123, prediction_timestamp=timestamp, bias_adjusted_temperature=9.0
+    )
+    prediction = ModelValues(station_code=123, prediction_timestamp=timestamp, tmp_tgl_2=1.0)
+    processor._calculate_past_24_hour_precip = MagicMock(return_value=0.0)
+
+    station_prediction = processor.initialize_station_prediction(
+        None, prediction, RUN_TS, {timestamp: existing}
+    )
+
+    assert station_prediction is existing
+    assert station_prediction.tmp_tgl_2 == 1.0
+    assert station_prediction.bias_adjusted_temperature == 9.0
 
 
 def test_interpolate_20_00_values_valid_interpolation(mock_predictions):
@@ -354,9 +348,6 @@ def test_interpolate_20_00_values_invalid_timestamps(
 ):
     """
     Test the `interpolate_20_00_values` method for invalid timestamp scenarios.
-
-    This test ensures that the method raises an `AssertionError` with the correct
-    error message when the provided timestamps do not meet the required conditions.
     """
     processor, _, _ = mock_predictions
     prev_value = 10.0
@@ -370,65 +361,48 @@ def test_interpolate_20_00_values_invalid_timestamps(
 
 
 def test_calculate_past_24_hour_precip_with_previous_prediction(
-    setup_processor, mock_model_run_data
+    setup_processor, mock_model_run_data, mocker: MockerFixture
 ):
     """
-    Test the `_calculate_past_24_hour_precip` method of the processor.
-
-    This test verifies that the method correctly calculates the past 24-hour
-    precipitation using a previous prediction retrieved from the model run
-    repository. It ensures that the repository is queried with the correct
-    parameters and that the method returns the expected precipitation value.
+    The past 24 hour precip is the difference with the run's own prediction 24 hours earlier.
     """
-    processor, model_run_repository = setup_processor
-    _, model_run, prediction, station_prediction = mock_model_run_data
-
-    # Mock repository behavior
-    previous_prediction = MagicMock()
-    previous_prediction.apcp_sfc_0 = 5.0
-    model_run_repository.get_weather_station_model_prediction.return_value = previous_prediction
-
-    # Call the method
-    result = processor._calculate_past_24_hour_precip(prediction, station_prediction, model_run)
-
-    # Assertions
-    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
-        prediction.station_code,
-        prediction.prediction_model_run_timestamp_id,
-        prediction.prediction_timestamp - timedelta(days=1),
+    processor, _ = setup_processor
+    _, run_ts, prediction, station_prediction = mock_model_run_data
+    actual_precip = mocker.patch(
+        "weather_model_jobs.ecmwf_prediction_processor.get_accumulated_precipitation"
     )
+    previous_prediction = StationPrediction(apcp_sfc_0=5.0)
+    station_predictions = {prediction.prediction_timestamp - timedelta(days=1): previous_prediction}
+
+    result = processor._calculate_past_24_hour_precip(
+        prediction, station_prediction, run_ts, station_predictions
+    )
+
+    actual_precip.assert_not_called()
     assert math.isclose(result, 5.0)
 
 
 def test_calculate_past_24_hour_precip_without_previous_prediction(
-    setup_processor, mock_model_run_data
+    setup_processor, mock_model_run_data, mocker: MockerFixture
 ):
     """
-    Test the `_calculate_past_24_hour_precip` method when there is no previous prediction.
-
-    This test verifies that the method correctly calculates the past 24-hour precipitation
-    when no previous weather station model prediction exists in the repository.
+    Without a prediction 24 hours earlier in the run, observed precip makes up the hours
+    before the run started.
     """
-    processor, model_run_repository = setup_processor
-    _, model_run, prediction, station_prediction = mock_model_run_data
-
-    # Mock repository behavior
-    model_run_repository.get_weather_station_model_prediction.return_value = None
-    model_run_repository.get_accumulated_precipitation.return_value = 3.0
-
-    # Call the method
-    result = processor._calculate_past_24_hour_precip(prediction, station_prediction, model_run)
-
-    # Assertions
-    model_run_repository.get_weather_station_model_prediction.assert_called_once_with(
-        prediction.station_code,
-        prediction.prediction_model_run_timestamp_id,
-        prediction.prediction_timestamp - timedelta(days=1),
+    processor, session = setup_processor
+    _, run_ts, prediction, station_prediction = mock_model_run_data
+    actual_precip = mocker.patch(
+        "weather_model_jobs.ecmwf_prediction_processor.get_accumulated_precipitation",
+        return_value=3.0,
     )
-    model_run_repository.get_accumulated_precipitation.assert_called_once_with(
+
+    result = processor._calculate_past_24_hour_precip(prediction, station_prediction, run_ts, {})
+
+    actual_precip.assert_called_once_with(
+        session,
         prediction.station_code,
         prediction.prediction_timestamp - timedelta(days=1),
-        model_run.prediction_run_timestamp,
+        run_ts,
     )
     assert math.isclose(result, 3.0)
 
@@ -447,9 +421,6 @@ def test_calculate_delta_precip(
 ):
     """
     Test the `_calculate_delta_precip` method of the processor.
-    This test verifies that the `_calculate_delta_precip` method correctly calculates
-    the delta precipitation value based on the previous prediction and the current
-    station prediction.
     """
     processor, _ = setup_processor
     _, _, _, station_prediction = mock_model_run_data
@@ -473,143 +444,99 @@ def test_calculate_delta_precip(
     assert result == expected
 
 
-def test_process(setup_processor):
-    """
-    Test the `process` method of the ECMWF prediction processor.
-
-    This test verifies that the `process` method:
-    1. Retrieves prediction model run timestamp records from the repository.
-    2. Processes each model run using the `_process_model_run` method.
-    3. Marks the processed model run as interpolated in the repository.
-    """
-    processor, model_run_repository = setup_processor
-
-    # Mock data
-    model_run = MagicMock()
-    model = MagicMock()
-    model_run_repository.get_prediction_model_run_timestamp_records.return_value = [
-        (model_run, model)
-    ]
-
-    processor._process_model_run = MagicMock()
-    model_run_repository.mark_model_run_interpolated = MagicMock()
-
-    # Call the method
-    processor.process()
-
-    # Assertions
-    model_run_repository.get_prediction_model_run_timestamp_records.assert_called_once_with(
-        complete=True, interpolated=False, model_type=ModelEnum.ECMWF
-    )
-    processor._process_model_run.assert_called_once_with(model_run)
-    model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
-
-
-def test_process_writes_run_to_object_store(setup_processor):
-    processor, model_run_repository = setup_processor
-    model_run = MagicMock()
-    model_run_repository.get_prediction_model_run_timestamp_records.return_value = [
-        (model_run, MagicMock())
-    ]
-    processor._process_model_run = MagicMock()
-    rows = [{"station_code": 1215}]
-
-    with patch(
-        "weather_model_jobs.common_model_fetchers.get_station_run_rows", return_value=rows
-    ) as mock_get_rows:
-        processor.process()
-
-    mock_get_rows.assert_called_once_with(model_run_repository.session, model_run.id)
-    processor.runs_table.append_run.assert_called_once_with(
-        ModelEnum.ECMWF, model_run.prediction_run_timestamp, rows
-    )
-    processor.by_time_table.merge_run.assert_called_once_with(
-        ModelEnum.ECMWF, model_run.prediction_run_timestamp, rows
-    )
-    model_run_repository.mark_model_run_interpolated.assert_called_once_with(model_run)
-
-
-def test_process_model_run(setup_processor):
-    """
-    Test the `_process_model_run` method of the processor.
-
-    This test verifies that the `_process_model_run` method correctly processes
-    a model run for all weather stations associated with the processor. It mocks
-    the necessary data and methods to ensure the method behaves as expected.
-    """
+def test_process_publishes_each_run(setup_processor):
     processor, _ = setup_processor
+    processor.publish_run = MagicMock()
+    later_run = RUN_TS + timedelta(hours=12)
 
-    # Mock data
-    model_run = MagicMock(spec=PredictionModelRunTimestamp)
-    model_run.id = 123
+    processor.process([RUN_TS, later_run])
+
+    assert processor.publish_run.call_args_list == [call(RUN_TS), call(later_run)]
+
+
+def stage_run(staging: StagingTable, run_ts: datetime, station_code: int, hours: list[int]):
+    """Stage one file per forecast hour, each with every model field for the station."""
+    files = []
+    for hour in hours:
+        timestamp = run_ts + timedelta(hours=hour)
+        values = {
+            "tmp_tgl_2": 10.0 + hour,
+            "rh_tgl_2": 50.0,
+            "apcp_sfc_0": float(hour),
+            "wdir_tgl_10": 180.0,
+            "wind_tgl_10": 5.0,
+        }
+        files.append(
+            StagedFile(
+                f"fxx={hour:03d}",
+                timestamp,
+                [(station_code, timestamp, field, values[field]) for field in MODEL_FIELDS],
+            )
+        )
+    staging.append_files(run_ts, files)
+
+
+def test_publish_run_processes_each_station(setup_processor, tables):
+    processor, _ = setup_processor
+    _, _, staging = tables
     stations = [
         WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1"),
         WeatherStation(code=2, long=20.0, lat=60.0, name="Station 2"),
     ]
     processor.stations = stations
+    stage_run(staging, RUN_TS, 1, [18, 21])
+    processor._process_model_run_for_station = MagicMock(return_value=[])
 
-    # Mock methods
-    processor._process_model_run_for_station = MagicMock()
+    processor.publish_run(RUN_TS)
 
-    # Call the method
-    processor._process_model_run(model_run)
-
-    # Assertions
     assert processor._process_model_run_for_station.call_count == len(stations)
-    for _, station in enumerate(stations):
-        processor._process_model_run_for_station.assert_any_call(model_run, station)
+    first, second = processor._process_model_run_for_station.call_args_list
+    assert first.args[0] == RUN_TS
+    assert first.args[1] == stations[0]
+    assert [prediction.prediction_timestamp.hour for prediction in first.args[2]] == [18, 21]
+    # a station with nothing staged gets no predictions
+    assert second.args[1] == stations[1]
+    assert second.args[2] == []
 
 
-def test_initialize_station_prediction(setup_processor, mock_model_run_data):
-    """
-    Unit test for the `initialize_station_prediction` method of the processor.
-
-    This test verifies that the `initialize_station_prediction` method correctly initializes
-    a station prediction object using mocked dependencies and ensures that the expected
-    calculations and assignments are performed.
-    """
+def test_publish_run_writes_runs_and_by_time_and_deletes_staging(
+    setup_processor, tables, mocker: MockerFixture, mock_machine
+):
     processor, _ = setup_processor
-    _, model_run, prediction, station_prediction = mock_model_run_data
-
-    # Mock methods
-    processor._weather_station_prediction_initializer = MagicMock(return_value=station_prediction)
-    processor._calculate_past_24_hour_precip = MagicMock(return_value=15.0)
-    processor._calculate_delta_precip = MagicMock(return_value=5.0)
-
-    # Mock prediction methods
-    prediction.get_temp.return_value = 25.0
-    prediction.get_rh.return_value = 60.0
-    prediction.get_precip.return_value = 10.0
-    prediction.get_wind_speed.return_value = 5.5
-    prediction.get_wind_direction.return_value = 180.0
-
-    # Call the method
-    result = processor.initialize_station_prediction(None, prediction, model_run)
-
-    # Assertions
-    processor._weather_station_prediction_initializer.assert_called_once_with(prediction)
-    processor._calculate_past_24_hour_precip.assert_called_once_with(
-        prediction, station_prediction, model_run
+    runs, by_time, staging = tables
+    processor.stations = [WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")]
+    stage_run(staging, RUN_TS, 1, [18, 21])
+    mocker.patch.object(processor, "_has_expected_timestamp_coverage", return_value=True)
+    mocker.patch(
+        "weather_model_jobs.ecmwf_prediction_processor.get_accumulated_precipitation",
+        return_value=0.0,
     )
-    processor._calculate_delta_precip.assert_called_once_with(None, station_prediction)
 
-    assert math.isclose(result.tmp_tgl_2, 25.0)
-    assert math.isclose(result.rh_tgl_2, 60.0)
-    assert math.isclose(result.apcp_sfc_0, 10.0)
-    assert math.isclose(result.precip_24h, 15.0)
-    assert math.isclose(result.delta_precip, 5.0)
-    assert math.isclose(result.wind_tgl_10, 5.5)
-    assert math.isclose(result.wdir_tgl_10, 180.0)
+    processor.process([RUN_TS])
+
+    rows = runs.read(ModelEnum.ECMWF, RUN_TS, RUN_TS).to_pylist()
+    assert [(row["prediction_timestamp"].hour, row["is_interpolated"]) for row in rows] == [
+        (18, False),
+        (20, True),
+        (21, False),
+    ]
+    noon = rows[1]
+    assert noon["station_code"] == 1
+    assert noon["tmp_tgl_2"] == pytest.approx(10.0 + 18 + (21 - 18) * 2 / 3)
+    assert noon["bias_adjusted_precip_24h"] == pytest.approx(1.5)
+
+    end = RUN_TS + timedelta(days=1)
+    hourly = by_time.read(HOURLY, [ModelEnum.ECMWF.value], RUN_TS, end)
+    assert pc.hour(hourly["timestamp"]).to_pylist() == [18, 20, 21]
+    daily = by_time.read(DAILY, [ModelEnum.ECMWF.value], RUN_TS, end)
+    assert pc.hour(daily["timestamp"]).to_pylist() == [20]
+
+    assert not staging.has_run(RUN_TS)
 
 
 def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
     """
     Test the `_apply_bias_adjustments` method of the processor.
-
-    This test verifies that the `_apply_bias_adjustments` method correctly applies
-    bias adjustments to the station prediction data using a mock machine. It ensures
-    that the machine's prediction methods are called with the expected arguments and
-    that the returned bias-adjusted values are correctly assigned to the result.
     """
     processor, _ = setup_processor
     _, _, _, station_prediction = mock_model_run_data
@@ -656,15 +583,12 @@ def test_apply_bias_adjustments(setup_processor, mock_model_run_data):
 def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_data):
     """
     Test the `_apply_interpolated_bias_adjustments` method of the processor.
-
-    This test verifies that the method correctly applies interpolated bias adjustments
-    to weather model predictions using a machine learning model and interpolation logic.
     """
     processor, _ = setup_processor
     _, _, prediction, station_prediction = mock_model_run_data
 
     # Mock previous prediction
-    prev_prediction = MagicMock(spec=ModelRunPrediction)
+    prev_prediction = MagicMock(spec=ModelValues)
     prev_prediction.prediction_timestamp = datetime(2023, 10, 1, 18, 0)
 
     # Mock current prediction
@@ -760,3 +684,19 @@ def test_apply_interpolated_bias_adjustments(setup_processor, mock_model_run_dat
     assert result.bias_adjusted_wind_speed == pytest.approx(5.5, rel=0.1)
     assert result.bias_adjusted_wdir == pytest.approx(185.0, rel=0.1)
     assert result.bias_adjusted_precip_24h == pytest.approx(10.0, rel=0.1)
+
+
+def test_publish_run_with_no_station_predictions_keeps_the_run_in_staging(
+    setup_processor, tables, mocker: MockerFixture
+):
+    processor, _ = setup_processor
+    runs, by_time, staging = tables
+    mocker.patch.object(weather_model_jobs.ecmwf_prediction_processor, "read_model_history")
+    # One forecast hour only, so no station has the coverage to be processed.
+    stage_run(staging, RUN_TS, 1, [0])
+
+    processor.publish_run(RUN_TS)
+
+    assert not runs.has_run(ModelEnum.ECMWF, RUN_TS)
+    assert not by_time.exists()
+    assert staging.processed_sources(RUN_TS) == {"fxx=000"}
