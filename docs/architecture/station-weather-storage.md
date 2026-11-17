@@ -385,14 +385,14 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 1. **Several Delta writers on ECS.** Checked on 2026-11-16 with `backend/scripts/object_store_delta_check.py`: four processes appending to one table at once lost no commits. That is one run, from one machine, on a tiny table, so the first real slice should keep checking for lost runs. The fallback is one table per writer.
 2. **Latency against ECS.** A cold open of a tiny Delta table took 839 ms against our object store. Every other timing is from local disk, and no real read path has been timed.
 3. **Delta Lake at full size.** `MERGE` was benchmarked on a small daily table only, not on `by_time` with hourly data.
-4. **Station count.** 300 is an assumption. Sizes and row counts scale with it.
+4. **Station count.** The benchmarks assume 300; the dev deployment had 320. Sizes and row counts scale with it.
 5. **The climatology screen.** What it shows is undecided, and one read, pooled hourly percentiles for a group over decades, is not served.
 
 ## Plan
 
 1. Done on 2026-11-16: `backend/scripts/object_store_delta_check.py` ran Delta Lake against ECS in a throwaway table. Four writers appending at once lost no commits, `MERGE`, `optimize`, `vacuum` and a checkpoint worked, and the storage option to use is `conditional_put: etag`. Shared tables are confirmed.
 2. Have the model jobs write to `runs` and `by_time` alongside their Postgres writes, with the maintenance job running. Written but not deployed, in the `wps-weather-data` package: all six model jobs append each finished run to `runs` and merge it into `by_time`, a daily cron job runs `optimize`, a checkpoint and `vacuum` on both tables, and `backend/scripts/station_runs_parity_check.py` compares `runs` with Postgres and backfills missed runs. `backend/scripts/morecast_by_time_parity_check.py` runs MoreCast's model read against `by_time` and against Postgres and reports the differences. `MERGE` has not been run against ECS, and neither script has been run against real tables.
-3. Compare every read query's results between the two, and time each read against ECS.
+3. Compare every read query's results between the two, and time each read against ECS. Done for MoreCast's model read in a dev deployment on 2026-11-16: `by_time` and Postgres agreed on all 6,936 values. The other reads, and timings from inside the cluster, are still to do.
 4. Move the model readers over one at a time: `/weather_models` routes, fire watch, training, then MoreCast's model values.
 5. Replace `model_run_predictions` with `staging` for that model, and switch its bookkeeping from the Postgres tables to `staging` and `runs`.
 6. Do the same for the other models, stop writing the two prediction tables and the three bookkeeping tables, and retire them along with the `pgslice` job.
