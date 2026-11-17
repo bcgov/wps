@@ -29,7 +29,6 @@ from app.routers import (
     fba_calc,
     fcm,
     fire_watch,
-    forecasts,
     hfi_calc,
     morecast_v2,
     object_store_proxy,
@@ -143,7 +142,6 @@ api.add_middleware(
 )
 api.middleware("http")(catch_exception_middleware)
 
-api.include_router(forecasts.router, tags=["Forecasts"])
 api.include_router(stations.router, tags=["Stations"])
 api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])

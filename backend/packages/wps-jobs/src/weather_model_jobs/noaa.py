@@ -10,7 +10,6 @@ from urllib.parse import parse_qs, urlsplit
 from zoneinfo import ZoneInfo
 
 import requests
-import wps_shared.db.database
 import wps_shared.utils.time as time_utils
 from requests import HTTPError
 from weather_model_jobs.common_model_fetchers import (
@@ -376,10 +375,8 @@ def process_models():
     noaa.process()
 
     # interpolate, machine learn and publish every run that is fully staged.
-    # The session reads station observations, for training and 24 hour precip.
-    with wps_shared.db.database.get_read_session_scope() as session:
-        model_value_processor = ModelValueProcessor(session, model_type)
-        model_value_processor.process(noaa.complete_runs)
+    model_value_processor = ModelValueProcessor(model_type)
+    model_value_processor.process(noaa.complete_runs)
 
     # calculate the execution time.
     execution_time = datetime.datetime.now() - start_time

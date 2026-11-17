@@ -5,7 +5,8 @@ For a model, each run is merged in after it is appended to `runs`, replacing eve
 predicts. Once a time has passed its row stops changing and holds the last prediction made for
 it. The table is derived: a model's rows can be rebuilt from `runs`.
 
-Only model sources are written so far. Observations and forecasts from WF1 come later.
+Models merge each run in. The WF1 jobs merge observations (`ACTUALS`) and forecasters' noon
+forecasts (`FORECAST`), after appending them to `wf1`.
 
 Design: docs/architecture/station-weather-storage.md
 """
@@ -28,6 +29,9 @@ logger = logging.getLogger(__name__)
 
 HOURLY = "hourly"
 DAILY = "daily"
+# The sources from WF1. Every other source is a model.
+ACTUALS = "ACTUALS"
+FORECAST = "FORECAST"
 # The daily record is the 20:00 UTC (noon PST) row.
 DAILY_HOUR_UTC = 20
 
@@ -60,6 +64,9 @@ BY_TIME_SCHEMA = pa.schema(
 )
 
 PARTITION_COLUMNS = ["resolution", "source", "month"]
+
+# What identifies a row: there is one per station, time, resolution and source.
+KEY_COLUMNS = ("source", "resolution", "station_code", "timestamp")
 
 # by_time column -> runs column, for the columns that mean the same at both resolutions.
 _FROM_RUN = {
@@ -111,6 +118,17 @@ def by_time_rows_from_run(run: pa.Table) -> pa.Table:
     )
 
 
+def newest_per_key(rows: pa.Table) -> pa.Table:
+    """The newest version of each station and time in the rows."""
+    if rows.num_rows == 0:
+        return rows
+    keys = list(KEY_COLUMNS)
+    newest = rows.group_by(keys).aggregate([("ingested_at", "max")])
+    rows = rows.join(newest, keys=keys)
+    rows = rows.filter(pc.equal(rows["ingested_at"], rows["ingested_at_max"]))
+    return rows.select(BY_TIME_SCHEMA.names)
+
+
 class ByTimeTable(DeltaWeatherTable):
     """The `by_time` Delta table."""
 
@@ -138,6 +156,30 @@ class ByTimeTable(DeltaWeatherTable):
             )
             return 0
 
+        self._merge(source, newer="s.run_ts >= t.run_ts")
+        logger.info(
+            "Merged %s rows for %s run %s into by_time", source.num_rows, model.value, run_ts
+        )
+        return source.num_rows
+
+    def merge_wf1_rows(self, rows: pa.Table) -> int:
+        """Merge rows from WF1 (`ACTUALS` or `FORECAST`), in the `by_time` schema. Returns the
+        number of rows merged.
+
+        A row is replaced only by one fetched at least as recently, so a backfill of older
+        fetches does not undo newer values.
+        """
+        if rows.num_rows == 0:
+            return 0
+        # A merge takes one row per station and time, so only the newest version of each.
+        rows = newest_per_key(rows)
+        self._merge(rows, newer="s.ingested_at >= t.ingested_at")
+        logger.info("Merged %s WF1 rows into by_time", rows.num_rows)
+        return rows.num_rows
+
+    def _merge(self, source: pa.Table, *, newer: str):
+        """Merge rows in on station, time, resolution and source. A matched row is replaced
+        when `newer` holds."""
         table = DeltaTable.create(
             self.table_uri,
             schema=BY_TIME_SCHEMA,
@@ -145,10 +187,11 @@ class ByTimeTable(DeltaWeatherTable):
             mode="ignore",
             storage_options=self.storage_options,
         )
-        # Naming the source and months as literals lets the merge skip every other partition.
+        # Naming the sources and months as literals lets the merge skip every other partition.
+        sources = ", ".join(f"'{name}'" for name in sorted(set(source["source"].to_pylist())))
         months = ", ".join(f"'{month}'" for month in sorted(set(source["month"].to_pylist())))
         predicate = (
-            f"t.source = '{model.value}' AND t.month IN ({months}) "
+            f"t.source IN ({sources}) AND t.month IN ({months}) "
             "AND t.resolution = s.resolution AND t.source = s.source AND t.month = s.month "
             'AND t.station_code = s.station_code AND t."timestamp" = s."timestamp"'
         )
@@ -160,14 +203,10 @@ class ByTimeTable(DeltaWeatherTable):
                 target_alias="t",
                 writer_properties=WriterProperties(compression="ZSTD"),
             )
-            .when_matched_update_all(predicate="s.run_ts >= t.run_ts")
+            .when_matched_update_all(predicate=newer)
             .when_not_matched_insert_all()
             .execute()
         )
-        logger.info(
-            "Merged %s rows for %s run %s into by_time", source.num_rows, model.value, run_ts
-        )
-        return source.num_rows
 
     def read(
         self,

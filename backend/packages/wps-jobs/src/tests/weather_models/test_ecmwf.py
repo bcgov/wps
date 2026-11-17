@@ -604,16 +604,13 @@ async def test_process_models_filters_stations_to_crop_bounds(mocker: MockerFixt
     mock_temp_dir.return_value.__enter__.return_value = "/mock/temp/dir"
     mocker.patch("weather_model_jobs.ecmwf.tempfile.TemporaryDirectory", mock_temp_dir)
     mocker.patch("weather_model_jobs.ecmwf.get_stations_asynchronously", return_value=stations)
-    session_scope = mocker.patch("weather_model_jobs.ecmwf.get_read_session_scope")
-    session = session_scope.return_value.__enter__.return_value
-
     mock_ecmwf = mocker.patch("weather_model_jobs.ecmwf.ECMWF")
     mock_prediction_processor = mocker.patch("weather_model_jobs.ecmwf.ECMWFPredictionProcessor")
 
     await weather_model_jobs.ecmwf.process_models()
 
     mock_ecmwf.assert_called_once_with("/mock/temp/dir", expected_stations)
-    mock_prediction_processor.assert_called_once_with(expected_stations, session)
+    mock_prediction_processor.assert_called_once_with(expected_stations)
     mock_ecmwf.return_value.process.assert_called_once()
     # only the runs the download fully staged are published
     mock_prediction_processor.return_value.process.assert_called_once_with(
@@ -629,13 +626,11 @@ async def test_process_models_skips_when_no_stations_within_bounds(mocker, coord
         for code, (latitude, longitude) in enumerate(coordinates, start=1)
     ]
     mocker.patch("weather_model_jobs.ecmwf.get_stations_asynchronously", return_value=stations)
-    mock_session_scope = mocker.patch("weather_model_jobs.ecmwf.get_read_session_scope")
     mock_ecmwf = mocker.patch("weather_model_jobs.ecmwf.ECMWF")
     mock_prediction_processor = mocker.patch("weather_model_jobs.ecmwf.ECMWFPredictionProcessor")
 
     await weather_model_jobs.ecmwf.process_models()
 
-    mock_session_scope.assert_not_called()
     mock_ecmwf.assert_not_called()
     mock_prediction_processor.assert_not_called()
 

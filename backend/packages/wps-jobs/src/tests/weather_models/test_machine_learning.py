@@ -48,7 +48,7 @@ def test_bias_adjustment_with_samples(
     predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
 
     machine_learner = StationMachineLearning(
-        session=None,
+        observations=None,
         history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
@@ -124,7 +124,7 @@ def test_bias_adjustment_of_rh_above_100(
     predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
 
     machine_learner = StationMachineLearning(
-        session=None,
+        observations=None,
         history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
@@ -144,7 +144,7 @@ def test_bias_adjustment_without_samples(
     predict_date_without_samples = datetime.fromisoformat("2020-09-03T01:14:51.939836+00:00")
 
     machine_learner = StationMachineLearning(
-        session=None,
+        observations=None,
         history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
@@ -170,7 +170,7 @@ def test_bias_adjustment_with_missing_model_values(
     predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
 
     machine_learner = StationMachineLearning(
-        session=None,
+        observations=None,
         history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
@@ -199,7 +199,7 @@ def test_each_learn_queries_hourly_data_again(
 
     monkeypatch.setattr(bias_adjusted_variable, "get_actuals_paired_with_predictions", query)
     machine_learner = StationMachineLearning(
-        session=None,
+        observations=None,
         history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,

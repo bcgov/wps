@@ -15,6 +15,7 @@ from wps_shared.wps_logging import configure_logging
 from wps_weather_data.by_time import ByTimeTable
 from wps_weather_data.runs import RunsTable
 from wps_weather_data.staging import StagingTable
+from wps_weather_data.wf1 import Wf1Table
 from wps_weather_data.table import DeltaWeatherTable
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,12 @@ def maintain_all(tables: Iterable[DeltaWeatherTable]) -> bool:
 
 def main():
     configure_logging()
-    tables = [RunsTable(), ByTimeTable(), *(StagingTable(model) for model in ModelEnum)]
+    tables = [
+        RunsTable(),
+        ByTimeTable(),
+        Wf1Table(),
+        *(StagingTable(model) for model in ModelEnum),
+    ]
     sys.exit(0 if maintain_all(tables) else 1)
 
 

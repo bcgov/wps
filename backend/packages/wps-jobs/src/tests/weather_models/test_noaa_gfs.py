@@ -262,7 +262,6 @@ def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
 
 def test_process_models_delegates_the_verdict_to_judge_run(monkeypatch: pytest.MonkeyPatch):
     """process_models() must hand its counters to judge_run and return the result."""
-    monkeypatch.setattr("wps_shared.db.database.get_read_session_scope", MagicMock())
     monkeypatch.setattr(noaa, "ModelValueProcessor", MagicMock())
     monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock())
 

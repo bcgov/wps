@@ -281,7 +281,6 @@ def test_process_models_delegates_the_verdict_to_judge_run(
     raise_on_no_files: bool,
 ):
     """process_models() must hand its counters to judge_run and return the result."""
-    monkeypatch.setattr("wps_shared.db.database.get_read_session_scope", MagicMock())
     monkeypatch.setattr(env_canada, "ModelValueProcessor", MagicMock())
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock())
 

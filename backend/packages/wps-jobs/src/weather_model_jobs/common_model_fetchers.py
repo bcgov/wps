@@ -17,8 +17,11 @@ from typing import List
 import numpy
 import numpy as np
 from pyproj import Geod
-from sqlalchemy.orm import Session
-from weather_model_jobs.machine_learning import StationMachineLearning, read_model_history
+from weather_model_jobs.machine_learning import (
+    StationMachineLearning,
+    read_model_history,
+    read_observations,
+)
 from weather_model_jobs.model_history import ModelHistory
 from weather_model_jobs.model_values import ModelValues, StationPrediction
 from weather_model_jobs.utils.interpolate import (
@@ -26,10 +29,10 @@ from weather_model_jobs.utils.interpolate import (
     interpolate_bearing,
     interpolate_between_two_points,
 )
-from wps_shared.db.crud.observations import get_accumulated_precipitation
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.weather_models import ModelEnum, adjust_model_day
 from wps_shared.wps_logging import configure_logging
+from wps_weather_data.actuals import StationObservations, get_accumulated_precipitation
 from wps_weather_data.by_time import ByTimeTable
 from wps_weather_data.runs import RunsTable
 from wps_weather_data.staging import StagedFile, StagingTable
@@ -141,20 +144,20 @@ class ModelValueProcessor:
 
     def __init__(
         self,
-        session: Session,
         model_type: ModelEnum,
         runs_table: RunsTable | None = None,
         by_time_table: ByTimeTable | None = None,
         staging_table: StagingTable | None = None,
     ):
-        """`session` reads the station observations that training and 24 hour precip need."""
-        self.session = session
         self.model_type = model_type
         self.stations = get_stations_synchronously()
         self.station_count = len(self.stations)
         self.runs_table = runs_table or RunsTable()
         self.by_time_table = by_time_table or ByTimeTable()
         self.staging_table = staging_table or StagingTable(model_type)
+        # The observations for the run being published: read once per run, for training and for
+        # the observed precip that a run's first day of 24 hour precip adds.
+        self.observations = StationObservations({})
 
     def process(self, run_timestamps: Iterable[datetime]):
         """Publish each of the runs, which must be fully staged."""
@@ -175,6 +178,7 @@ class ModelValueProcessor:
         logger.info("Interpolating values for %s model run %s", self.model_type.value, run_ts)
         staged = self.staging_table.station_values(run_ts)
         history = read_model_history(self.runs_table, self.model_type, run_ts)
+        self.observations = read_observations(self.by_time_table, run_ts)
         rows = []
         for index, station in enumerate(self.stations):
             values = staged.get(station.code)
@@ -424,11 +428,11 @@ class ModelValueProcessor:
             )
 
         # We're within 24 hours of the start of a model run so we don't have cumulative precipitation for a full 24h.
-        # We use actual precipitation from our API hourly_actuals table to make up the missing hours.
+        # We use observed precipitation (ACTUALS in by_time) to make up the missing hours.
         # Each model run starts with a total precip of 0.0, so we need all the precip data
         # from 24 hours before the prediction_timestamp to the start of the current model run.
         actual_precip = get_accumulated_precipitation(
-            self.session,
+            self.observations,
             station.code,
             start_prediction_timestamp,
             run_ts,
@@ -468,7 +472,7 @@ class ModelValueProcessor:
         # Extract the coordinate.
         coordinate = [station.long, station.lat]
         machine = StationMachineLearning(
-            session=self.session,
+            observations=self.observations,
             history=history,
             target_coordinate=coordinate,
             station_code=station.code,

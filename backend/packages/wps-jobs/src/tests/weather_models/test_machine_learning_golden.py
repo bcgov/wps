@@ -104,7 +104,7 @@ def _predictions(monkeypatch, seed: int, step: int):
     )
 
     machine = StationMachineLearning(
-        session=None,
+        observations=None,
         history=None,
         target_coordinate=[0, 0],
         station_code=1,
