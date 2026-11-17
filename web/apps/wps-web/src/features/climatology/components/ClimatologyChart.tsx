@@ -17,6 +17,7 @@ import {
   maxZoom,
   rowsExtent,
   rowsInWindow,
+  valueExtent,
   windowTicks
 } from '@/features/climatology/climatologyRows'
 
@@ -42,18 +43,15 @@ export interface ClimatologyChartInput {
   onDateWindowChange: (dateWindow: DateWindow) => void
   // Today as a time on the chart, or null to leave the marker out.
   today: number | null
+  // The y axis' lowest and highest value, so that charts of several stations share one. By
+  // default the rows' own, which zooming does not change.
+  yDomain?: [number, number]
 }
 
 export interface ClimatologyChartProps extends ClimatologyChartInput {
-  stationName: string
-}
-
-/** The lowest and highest value of any row, so that zooming does not rescale the y axis. */
-const valueExtent = (rows: ClimatologyRow[]): [number, number] => {
-  const values = rows.flatMap(row =>
-    row.value === null ? [row.minimum, row.maximum] : [row.minimum, row.maximum, row.value]
-  )
-  return [Math.min(...values), Math.max(...values)]
+  // What the chart is of: a station's name, or a description of a group.
+  title: string
+  height?: number
 }
 
 /** The chart: percentile bands, the historical median and the selected year, by day. */
@@ -63,7 +61,8 @@ export const climatologyChartDefinition = ({
   year,
   dateWindow,
   onDateWindowChange,
-  today
+  today,
+  yDomain
 }: ClimatologyChartInput) => {
   const { label, unit } = CLIMATOLOGY_VARIABLES[variable]
   const shown = rowsInWindow(rows, dateWindow)
@@ -99,7 +98,7 @@ export const climatologyChartDefinition = ({
         axis: { ticks: { values: ticks.values, format: (time: number) => ticks.format(time) } }
       },
       y: {
-        scale: scaleLinear().domain(valueExtent(rows)),
+        scale: scaleLinear().domain(yDomain ?? valueExtent(rows)),
         nice: true,
         grid: true,
         axis: { label: `${label} (${unit})` }
@@ -146,7 +145,24 @@ export const climatologyChartDefinition = ({
           text: point =>
             `${formatValue(point.datum.minimum, variable)} to ${formatValue(point.datum.maximum, variable)}`
         },
-        { id: 'count', label: 'Years of record', text: point => `${point.datum.count}` }
+        {
+          id: 'value-stations',
+          label: `Stations in ${year}`,
+          text: point =>
+            point.datum.valueStationCount !== null && point.datum.stationCount > 1
+              ? `${point.datum.valueStationCount}`
+              : null
+        },
+        {
+          id: 'count',
+          label: rows.some(row => row.stationCount > 1) ? 'Values in the distribution' : 'Years of record',
+          text: point => `${point.datum.count}`
+        },
+        {
+          id: 'stations',
+          label: 'Stations in the distribution',
+          text: point => (point.datum.stationCount > 1 ? `${point.datum.stationCount}` : null)
+        }
       ]
     }
   })
@@ -159,18 +175,20 @@ const ClimatologyChart = ({
   dateWindow,
   onDateWindowChange,
   today,
-  stationName
+  yDomain,
+  title,
+  height = 460
 }: ClimatologyChartProps) => {
   const definition = useMemo(
-    () => climatologyChartDefinition({ rows, variable, year, dateWindow, onDateWindowChange, today }),
-    [rows, variable, year, dateWindow, onDateWindowChange, today]
+    () => climatologyChartDefinition({ rows, variable, year, dateWindow, onDateWindowChange, today, yDomain }),
+    [rows, variable, year, dateWindow, onDateWindowChange, today, yDomain]
   )
   const { label } = CLIMATOLOGY_VARIABLES[variable]
   return (
     <Chart
       definition={definition}
-      height={460}
-      ariaLabel={`${label} climatology for ${stationName}, ${year}`}
+      height={height}
+      ariaLabel={`${label} climatology for ${title}, ${year}`}
       ariaDescription={`Daily ${label.toLowerCase()} in ${year} against the range, median and percentiles of other years for each day of the year.`}
     />
   )

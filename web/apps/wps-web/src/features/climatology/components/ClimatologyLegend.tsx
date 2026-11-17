@@ -20,9 +20,10 @@ const Key = ({ item }: { item: LegendItem }) => (
   />
 )
 
-const ClimatologyLegend = ({ year }: { year: number }) => {
+// `yearLabel` names the line of the selected year, such as 2026, or 2026 (mean of stations).
+const ClimatologyLegend = ({ yearLabel }: { yearLabel: string }) => {
   const items: LegendItem[] = [
-    { label: `${year}`, colour: YEAR_COLOUR, kind: 'line', thickness: 3 },
+    { label: yearLabel, colour: YEAR_COLOUR, kind: 'line', thickness: 3 },
     { label: 'Historical median', colour: MEDIAN_COLOUR, kind: 'line', thickness: 2 },
     { label: 'Extreme (90th percentile and above)', colour: BAND_COLOURS.extreme, kind: 'band' },
     { label: 'Above normal (75th to 90th)', colour: BAND_COLOURS.aboveNormal, kind: 'band' },

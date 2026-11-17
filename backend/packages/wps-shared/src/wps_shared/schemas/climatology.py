@@ -16,13 +16,28 @@ class ClimatologyVariable(str, Enum):
     PRECIPITATION = "precipitation"
 
 
+class ClimatologyMethod(str, Enum):
+    """How the stations asked for are combined. With one station they are all the same."""
+
+    # Each day's value is the mean of the stations that reported it, and the distribution is of
+    # those means across years.
+    AVERAGE = "average"
+    # The distribution is of every station's value on that day across years. The selected year
+    # is the mean of the stations, as for AVERAGE.
+    POOLED = "pooled"
+    # A climatology for each station on its own.
+    EACH = "each"
+
+
 class ClimatologyDay(BaseModel):
     """How a variable has been distributed on one day of the year, over the reference years."""
 
     month: int
     day: int
-    # How many of the reference years have a value on this day.
+    # How many values the distribution is drawn from: years, or station years when pooled.
     count: int
+    # How many stations contributed to it.
+    station_count: int
     minimum: float
     p25: float
     median: float
@@ -32,20 +47,49 @@ class ClimatologyDay(BaseModel):
 
 
 class ClimatologyObservation(BaseModel):
-    """A station's daily value on a date."""
+    """The daily value on a date: one station's, or the mean of the stations that reported."""
 
     date: date
     value: float
+    station_count: int
 
 
-class DailyClimatologyResponse(BaseModel):
-    """A station's daily climatology for a variable, and its values in one year to compare."""
+class ClimatologySeries(BaseModel):
+    """A daily climatology for some stations, and their values in the selected year."""
 
-    station_code: int
-    variable: ClimatologyVariable
-    year: int
-    # The first and last of the years the distribution is drawn from, which leave out `year`.
+    station_codes: List[int]
+    # The first and last of the years the distribution is drawn from, which leave out the
+    # selected year. None with no history.
     first_reference_year: Optional[int] = None
     last_reference_year: Optional[int] = None
     days: List[ClimatologyDay]
     observations: List[ClimatologyObservation]
+
+
+class DailyClimatologyResponse(BaseModel):
+    """The daily climatology of the stations asked for: one series when they are combined, or
+    one per station."""
+
+    variable: ClimatologyVariable
+    year: int
+    method: ClimatologyMethod
+    series: List[ClimatologySeries]
+
+
+class ClimatologyStation(BaseModel):
+    code: int
+    name: str
+    # The fire zone, such as K2, if WF1 has one for the station.
+    zone: Optional[str] = None
+
+
+class ClimatologyFireCentre(BaseModel):
+    """A fire centre and its stations, as a group to choose stations from."""
+
+    id: int
+    name: str
+    stations: List[ClimatologyStation]
+
+
+class ClimatologyFireCentresResponse(BaseModel):
+    fire_centres: List[ClimatologyFireCentre]

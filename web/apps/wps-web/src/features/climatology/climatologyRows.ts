@@ -1,4 +1,4 @@
-import type { ClimatologyVariable, DailyClimatology } from '@wps/api/climatologyAPI'
+import type { ClimatologySeries, ClimatologyVariable } from '@wps/api/climatologyAPI'
 
 // One day on the chart: the historical distribution for that day of the year, and the selected
 // year's value where there is one.
@@ -7,6 +7,8 @@ export interface ClimatologyRow {
   // chart's x scale is linear.
   time: number
   count: number
+  // How many stations the distribution is drawn from.
+  stationCount: number
   minimum: number
   p25: number
   median: number
@@ -14,6 +16,8 @@ export interface ClimatologyRow {
   p90: number
   maximum: number
   value: number | null
+  // How many stations the value is the mean of, or null with no value.
+  valueStationCount: number | null
 }
 
 export interface ClimatologyVariableInfo {
@@ -41,27 +45,38 @@ export const FULL_YEAR: MonthRange = { firstMonth: 1, lastMonth: 12 }
 const utcDay = (year: number, month: number, day: number) => Date.UTC(year, month - 1, day)
 
 /**
- * Lines up the historical days with the selected year's observations, one row per day of the
+ * Lines up a series' historical days with its observations in `year`, one row per day of the
  * year that has history, within the months asked for. Rows are in calendar order.
  */
-export const buildClimatologyRows = (climatology: DailyClimatology, range: MonthRange): ClimatologyRow[] => {
-  const observed = new Map(climatology.observations.map(observation => [observation.date, observation.value]))
-  return climatology.days
+export const buildClimatologyRows = (series: ClimatologySeries, year: number, range: MonthRange): ClimatologyRow[] => {
+  const observed = new Map(series.observations.map(observation => [observation.date, observation]))
+  return series.days
     .filter(day => day.month >= range.firstMonth && day.month <= range.lastMonth)
     .map(day => {
-      const time = utcDay(climatology.year, day.month, day.day)
+      const time = utcDay(year, day.month, day.day)
+      const observation = observed.get(new Date(time).toISOString().slice(0, 10))
       return {
         time,
         count: day.count,
+        stationCount: day.station_count,
         minimum: day.minimum,
         p25: day.p25,
         median: day.median,
         p75: day.p75,
         p90: day.p90,
         maximum: day.maximum,
-        value: observed.get(new Date(time).toISOString().slice(0, 10)) ?? null
+        value: observation?.value ?? null,
+        valueStationCount: observation?.station_count ?? null
       }
     })
+}
+
+/** The lowest and highest value of any row, to give charts of several stations one y axis. */
+export const valueExtent = (rows: ClimatologyRow[]): [number, number] => {
+  const values = rows.flatMap(row =>
+    row.value === null ? [row.minimum, row.maximum] : [row.minimum, row.maximum, row.value]
+  )
+  return [Math.min(...values), Math.max(...values)]
 }
 
 /** The first day of each month in the range, as the times the x axis is labelled at. */

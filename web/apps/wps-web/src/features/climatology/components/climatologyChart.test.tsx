@@ -14,7 +14,9 @@ const row = (day: number, value: number | null): ClimatologyRow => ({
   p75: 24,
   p90: 28,
   maximum: 35,
-  value
+  value,
+  stationCount: 1,
+  valueStationCount: value === null ? null : 1
 })
 
 const rows = [row(1, 20), row(2, 21), row(3, null), row(4, null)]
@@ -75,13 +77,13 @@ describe('climatologyChartDefinition', () => {
 
 describe('ClimatologyChart', () => {
   it('renders a chart named for the station, variable and year', () => {
-    render(<ClimatologyChart {...input} stationName="AFTON" />)
+    render(<ClimatologyChart {...input} title="AFTON" />)
 
     expect(screen.getByRole('img', { name: 'Temperature climatology for AFTON, 2026' })).toBeInTheDocument()
   })
 
   it('describes a day in a tooltip when stepped to from the keyboard', async () => {
-    render(<ClimatologyChart {...input} stationName="AFTON" />)
+    render(<ClimatologyChart {...input} title="AFTON" />)
     const chart = screen.getByRole('img', { name: /Temperature climatology/ })
 
     chart.focus()
@@ -106,7 +108,7 @@ describe('ClimatologyChart', () => {
         rows={days.map(time => ({ ...row(1, 20), time }))}
         dateWindow={{ start: days[0], end: days[days.length - 1] }}
         onDateWindowChange={onDateWindowChange}
-        stationName="AFTON"
+        title="AFTON"
       />
     )
 
@@ -116,5 +118,30 @@ describe('ClimatologyChart', () => {
     const [{ start, end }] = onDateWindowChange.mock.calls[0]
     expect(start).toBeGreaterThan(days[0])
     expect(end).toBeLessThan(days[days.length - 1])
+  })
+
+  it('counts the stations in a tooltip when several are combined', async () => {
+    const group = rows.map(each => ({
+      ...each,
+      count: 60,
+      stationCount: 2,
+      valueStationCount: each.value === null ? null : 2
+    }))
+    render(<ClimatologyChart {...input} rows={group} title="Kamloops Fire Centre" />)
+    const chart = screen.getByRole('img', { name: /Temperature climatology/ })
+
+    chart.focus()
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+
+    const tooltip = await screen.findByRole('status')
+    expect(tooltip).toHaveTextContent('Stations in 20262')
+    expect(tooltip).toHaveTextContent('Values in the distribution60')
+    expect(tooltip).toHaveTextContent('Stations in the distribution2')
+  })
+
+  it('uses the y axis it is given, so several charts share one', () => {
+    const { scales } = scene({ yDomain: [-10, 40] })
+
+    expect(scales.y?.domain).toEqual([-10, 40])
   })
 })

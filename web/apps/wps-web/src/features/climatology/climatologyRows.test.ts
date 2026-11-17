@@ -1,4 +1,4 @@
-import type { ClimatologyDay, DailyClimatology } from '@wps/api/climatologyAPI'
+import type { ClimatologyDay, ClimatologySeries } from '@wps/api/climatologyAPI'
 import {
   buildClimatologyRows,
   type ClimatologyRow,
@@ -14,6 +14,7 @@ import {
   rowsInWindow,
   snapToRows,
   todayOnChart,
+  valueExtent,
   visibleWindow,
   widenWindow,
   windowTicks
@@ -23,6 +24,7 @@ const day = (month: number, dayOfMonth: number, median = 15): ClimatologyDay => 
   month,
   day: dayOfMonth,
   count: 30,
+  station_count: 1,
   minimum: 2,
   p25: 10,
   median,
@@ -31,23 +33,21 @@ const day = (month: number, dayOfMonth: number, median = 15): ClimatologyDay => 
   maximum: 33
 })
 
-const climatology = (overrides: Partial<DailyClimatology> = {}): DailyClimatology => ({
-  station_code: 322,
-  variable: 'temperature',
-  year: 2026,
+const series = (overrides: Partial<ClimatologySeries> = {}): ClimatologySeries => ({
+  station_codes: [322],
   first_reference_year: 1990,
   last_reference_year: 2025,
   days: [day(3, 31), day(4, 1), day(7, 1, 22), day(10, 31), day(11, 1)],
   observations: [
-    { date: '2026-04-01', value: 8.5 },
-    { date: '2026-11-01', value: 3 }
+    { date: '2026-04-01', value: 8.5, station_count: 1 },
+    { date: '2026-11-01', value: 3, station_count: 1 }
   ],
   ...overrides
 })
 
 describe('buildClimatologyRows', () => {
   it('keeps the days in the months asked for, in order, dated in the selected year', () => {
-    const rows = buildClimatologyRows(climatology(), FIRE_SEASON)
+    const rows = buildClimatologyRows(series(), 2026, FIRE_SEASON)
 
     expect(rows.map(row => new Date(row.time).toISOString().slice(0, 10))).toEqual([
       '2026-04-01',
@@ -57,25 +57,36 @@ describe('buildClimatologyRows', () => {
   })
 
   it('carries the distribution and the observation of the same day', () => {
-    const [first, second] = buildClimatologyRows(climatology(), FIRE_SEASON)
+    const [first, second] = buildClimatologyRows(series(), 2026, FIRE_SEASON)
 
-    expect(first).toMatchObject({ minimum: 2, p25: 10, median: 15, p75: 20, p90: 25, maximum: 33, count: 30 })
+    expect(first).toMatchObject({
+      minimum: 2,
+      p25: 10,
+      median: 15,
+      p75: 20,
+      p90: 25,
+      maximum: 33,
+      count: 30,
+      stationCount: 1
+    })
     expect(first.value).toBe(8.5)
+    expect(first.valueStationCount).toBe(1)
     expect(second.median).toBe(22)
   })
 
   it('has no value on a day the selected year has not observed', () => {
-    const rows = buildClimatologyRows(climatology(), FIRE_SEASON)
+    const rows = buildClimatologyRows(series(), 2026, FIRE_SEASON)
 
     expect(rows[1].value).toBeNull()
+    expect(rows[1].valueStationCount).toBeNull()
   })
 
   it('shows every month for the full year', () => {
-    expect(buildClimatologyRows(climatology(), FULL_YEAR)).toHaveLength(5)
+    expect(buildClimatologyRows(series(), 2026, FULL_YEAR)).toHaveLength(5)
   })
 
   it('has no rows without history', () => {
-    expect(buildClimatologyRows(climatology({ days: [] }), FULL_YEAR)).toEqual([])
+    expect(buildClimatologyRows(series({ days: [] }), 2026, FULL_YEAR)).toEqual([])
   })
 })
 
@@ -103,7 +114,7 @@ describe('formatting', () => {
 })
 
 describe('todayOnChart', () => {
-  const rows = buildClimatologyRows(climatology(), FIRE_SEASON)
+  const rows = buildClimatologyRows(series(), 2026, FIRE_SEASON)
 
   it('is today when it is within the rows of the current year', () => {
     expect(todayOnChart(rows, 2026, new Date(2026, 6, 7, 15))).toBe(Date.UTC(2026, 6, 7))
@@ -131,7 +142,9 @@ const dayRows = (days: number[]): ClimatologyRow[] =>
     p75: 3,
     p90: 4,
     maximum: 5,
-    value: null
+    value: null,
+    stationCount: 1,
+    valueStationCount: null
   }))
 
 describe('date windows', () => {
@@ -222,5 +235,17 @@ describe('windowTicks', () => {
     const ticks = windowTicks({ start: Date.UTC(2026, 6, 1, 6), end: Date.UTC(2026, 6, 5, 18) })
 
     expect(ticks.values[0]).toBe(Date.UTC(2026, 6, 2))
+  })
+})
+
+describe('valueExtent', () => {
+  it('spans the lowest to the highest value, the selected year included', () => {
+    const rows = buildClimatologyRows(
+      series({ observations: [{ date: '2026-04-01', value: 40, station_count: 1 }] }),
+      2026,
+      FULL_YEAR
+    )
+
+    expect(valueExtent(rows)).toEqual([2, 40])
   })
 })
