@@ -20,6 +20,7 @@ from wps_shared.schemas.percentiles import CalculatedResponse, PercentileRequest
 from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.wps_logging import configure_logging
 from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.runs import RunsTable
 
 from app import health, hourlies
 from app.percentile import get_precalculated_percentiles
@@ -101,8 +102,9 @@ async def lifespan(_: Starlette):
     The lifespan belongs to the base app because a mounted app's lifespan is never run. The
     state goes on the api, which is the app its routes see as `request.app`.
     """
-    # One by_time table for the process, so its Delta table is opened once and then refreshed.
+    # One of each table for the process, so each Delta table is opened once and then refreshed.
     api.state.by_time_table = ByTimeTable()
+    api.state.runs_table = RunsTable()
     yield
 
 

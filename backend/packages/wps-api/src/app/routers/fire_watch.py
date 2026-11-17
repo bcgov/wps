@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Sequence, Tuple
 
 from aiohttp import ClientSession
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
@@ -40,6 +40,7 @@ from wps_shared.schemas.fire_watch import (
 from wps_shared.schemas.psu import FireCentre
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 from wps_shared.utils.time import get_utc_now
+from wps_weather_data.runs import RunsTable
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.fire_watch.calculate_weather import (
@@ -53,6 +54,11 @@ router = APIRouter(
     prefix="/fire-watch",
     dependencies=[Depends(authentication_required), Depends(audit)],
 )
+
+
+def get_runs_table(request: Request) -> RunsTable:
+    """The `runs` table the app created at startup (see `lifespan` in app.main)."""
+    return request.app.state.runs_table
 
 
 def reproject_burn_location(coordinate: List[float], source_srs, target_srs):
@@ -288,6 +294,7 @@ async def update_existing_fire_watch(
     fire_watch_id: int,
     fire_watch_input_request: FireWatchInputRequest,
     token=Depends(authentication_required),
+    runs_table: RunsTable = Depends(get_runs_table),
 ):
     idir = token.get("idir_username", None)
     fire_watch_input = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
@@ -311,6 +318,7 @@ async def update_existing_fire_watch(
                 session,
                 updated_fire_watch,
                 latest_model_run_parameters_id,
+                runs_table,
             )
         except MissingWeatherDataError as e:
             logger.error(f"Missing weather data: {e}")

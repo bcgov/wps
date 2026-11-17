@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, time, timedelta, timezone
 
@@ -16,8 +17,8 @@ from wps_shared.db.crud.fire_watch import (
 )
 from wps_shared.db.crud.hfi_calc import get_fire_centre_station_codes
 from wps_shared.db.crud.weather_models import (
-    get_latest_daily_model_prediction_for_stations,
     get_latest_prediction_timestamp_id_for_model,
+    get_model_and_run_timestamp,
 )
 from wps_shared.db.database import get_async_write_session_scope
 from wps_shared.db.models.fire_watch import FireWatch, FireWatchWeather
@@ -27,6 +28,8 @@ from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.schemas.weather_models import ModelPredictionDetails
 from wps_shared.utils.time import assert_all_utc, get_utc_now
 from wps_shared.weather_models import ModelEnum
+from wps_weather_data.fire_watch import fetch_daily_run_predictions
+from wps_weather_data.runs import RunsTable
 
 logger = logging.getLogger(__name__)
 
@@ -43,15 +46,33 @@ async def gather_fire_watch_inputs(
     session: AsyncSession,
     fire_watch: FireWatch,
     prediction_run_timestamp_id: int,
+    runs_table: RunsTable,
 ) -> tuple[list[ModelPredictionDetails], list[WeatherIndeterminate]]:
     """
     Gather all the inputs required for processing a FireWatch.
     """
 
-    # fetch weather model predictions
-    predictions = await get_latest_daily_model_prediction_for_stations(
-        session, [fire_watch.station_code], prediction_run_timestamp_id
+    # The run is looked up in Postgres, which still keeps track of runs. Its predictions come from
+    # the `runs` table in object storage.
+    model_run = await get_model_and_run_timestamp(session, prediction_run_timestamp_id)
+    if model_run is None:
+        raise MissingWeatherDataError(
+            f"No prediction model run with id {prediction_run_timestamp_id}"
+        )
+    model, run_ts = model_run
+    # The read blocks on the network, so it runs in a thread to keep the event loop free.
+    predictions = await asyncio.to_thread(
+        fetch_daily_run_predictions,
+        runs_table,
+        model,
+        run_ts,
+        prediction_run_timestamp_id,
+        [fire_watch.station_code],
     )
+    if not predictions:
+        raise MissingWeatherDataError(
+            f"No {model.value} predictions from the {run_ts} run for station {fire_watch.station_code}"
+        )
 
     first_prediction_date: datetime = min((p.prediction_timestamp for p in predictions))
 
@@ -418,6 +439,7 @@ async def process_single_fire_watch(
     wfwx_station_map: dict[int, WFWXWeatherStation],
     status_id_dict: dict[str, int],
     prediction_run_timestamp_id: int,
+    runs_table: RunsTable,
 ):
     """
     Process a single FireWatch by gathering inputs, validating them, and saving results.
@@ -427,6 +449,7 @@ async def process_single_fire_watch(
     :param wfwx_station_map: Mapping of station codes to their metadata.
     :param status_id_dict: Mapping of status IDs to their descriptions.
     :param prediction_run_timestamp_id: The ID of the prediction run timestamp.
+    :param runs_table: The `runs` table the model predictions are read from.
     """
     station_metadata = wfwx_station_map.get(fire_watch.station_code)
     if not station_metadata:
@@ -436,7 +459,7 @@ async def process_single_fire_watch(
         return
 
     predictions, actual_weather_data = await gather_fire_watch_inputs(
-        session, fire_watch, prediction_run_timestamp_id
+        session, fire_watch, prediction_run_timestamp_id, runs_table
     )
 
     if not validate_fire_watch_inputs(fire_watch, station_metadata, actual_weather_data):
@@ -460,7 +483,7 @@ async def process_single_fire_watch(
         )
 
 
-async def process_all_fire_watch_weather():
+async def process_all_fire_watch_weather(runs_table: RunsTable):
     """
     Process all FireWatch weather data by gathering inputs, validating them, and saving results.
     """
@@ -494,6 +517,7 @@ async def process_all_fire_watch_weather():
                     wfwx_station_map,
                     status_id_dict,
                     latest_prediction_id,
+                    runs_table,
                 )
             except Exception as e:
                 logger.error(f"Error processing FireWatch {fire_watch.id}: {e}")
@@ -503,6 +527,7 @@ async def reprocess_fire_watch_weather(
     session: AsyncSession,
     fire_watch: FireWatch,
     latest_model_run_parameters_id: int,
+    runs_table: RunsTable,
 ):
     wfwx_station_map = await get_station_metadata([fire_watch.station_code])
     status_id_dict = await get_all_prescription_status(session)
@@ -512,6 +537,7 @@ async def reprocess_fire_watch_weather(
         wfwx_station_map,
         status_id_dict,
         latest_model_run_parameters_id,
+        runs_table,
     )
 
     # flush to ensure the updated records are available for subsequent queries

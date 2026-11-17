@@ -6,6 +6,8 @@ import sys
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.wps_logging import configure_logging
 
+from wps_weather_data.runs import RunsTable
+
 from app.fire_watch.calculate_weather import process_all_fire_watch_weather
 
 logger = logging.getLogger(__name__)
@@ -13,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 async def main():
     try:
-        await process_all_fire_watch_weather()
+        await process_all_fire_watch_weather(RunsTable())
     except Exception as e:
         logger.error("An exception occurred while processing fire watch weather data", exc_info=e)
         rc_message = ":scream: Encountered an error while processing fire watch weather data."
