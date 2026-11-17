@@ -73,6 +73,110 @@ export const monthStarts = (year: number, range: MonthRange): number[] => {
   return starts
 }
 
+const DAY = 24 * 60 * 60 * 1000
+
+// The dates the chart shows, as times on its x axis. Both ends are included.
+export interface DateWindow {
+  start: number
+  end: number
+}
+
+// The narrowest window the chart zooms to.
+export const MIN_WINDOW_DAYS = 7
+
+/** The first to last day of the rows, or null with no rows. */
+export const rowsExtent = (rows: ClimatologyRow[]): DateWindow | null =>
+  rows.length === 0 ? null : { start: rows[0].time, end: rows[rows.length - 1].time }
+
+/**
+ * The window to show: the one chosen, if it is still inside the rows' extent, else the whole
+ * extent. A window chosen for other rows, such as another year, falls back to the whole extent.
+ */
+export const visibleWindow = (chosen: DateWindow | null, extent: DateWindow): DateWindow =>
+  chosen !== null && chosen.start >= extent.start && chosen.end <= extent.end && chosen.end > chosen.start
+    ? chosen
+    : extent
+
+/**
+ * The rows to draw for a window: those inside it, and the nearest row either side so that the
+ * lines and bands run to the edges of the plot rather than stopping short of them.
+ */
+export const rowsInWindow = (rows: ClimatologyRow[], window: DateWindow): ClimatologyRow[] => {
+  const first = Math.max(0, rows.findIndex(row => row.time >= window.start) - 1)
+  const after = rows.findIndex(row => row.time > window.end)
+  return rows.slice(first, after === -1 ? rows.length : after + 1)
+}
+
+/**
+ * A window moved onto days the rows have: the start back to the nearest earlier day and the end
+ * forward to the nearest later one. The timeline's handles can only rest on those days.
+ */
+export const snapToRows = (window: DateWindow, rows: ClimatologyRow[]): DateWindow => {
+  const times = rows.map(row => row.time)
+  const start = times.filter(time => time <= window.start).pop() ?? times[0]
+  const end = times.find(time => time >= window.end) ?? times[times.length - 1]
+  return { start, end }
+}
+
+/**
+ * A window at least `MIN_WINDOW_DAYS` wide, kept inside the extent. A click on the timeline
+ * without a drag proposes a window of one day, which this widens around that day.
+ */
+export const widenWindow = (window: DateWindow, extent: DateWindow): DateWindow => {
+  const minimum = MIN_WINDOW_DAYS * DAY
+  if (window.end - window.start >= minimum) {
+    return window
+  }
+  if (extent.end - extent.start <= minimum) {
+    return extent
+  }
+  const middle = (window.start + window.end) / 2
+  const start = Math.min(Math.max(middle - minimum / 2, extent.start), extent.end - minimum)
+  return { start, end: start + minimum }
+}
+
+/** How far the chart can zoom in on the extent, as a factor of its full width. */
+export const maxZoom = (extent: DateWindow): number =>
+  Math.max(1, (extent.end - extent.start) / (MIN_WINDOW_DAYS * DAY))
+
+// The steps, in days, that day ticks are spaced at as the window narrows.
+const DAY_TICK_STEPS = [1, 2, 7, 14]
+const MAX_DAY_TICKS = 10
+// Below this many days, months are too few to label the axis with, so days are used.
+const DAY_TICKS_BELOW_DAYS = 75
+
+export interface WindowTicks {
+  values: number[]
+  format: (time: number) => string
+}
+
+/** The times to label the x axis of a window at: month starts for a long window, else days. */
+export const windowTicks = (window: DateWindow): WindowTicks => {
+  const days = (window.end - window.start) / DAY
+  const firstDay = Math.ceil(window.start / DAY) * DAY
+  if (days >= DAY_TICKS_BELOW_DAYS) {
+    const values: number[] = []
+    const first = new Date(firstDay)
+    for (let month = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), 1)); ; ) {
+      const time = month.getTime()
+      if (time > window.end) {
+        break
+      }
+      if (time >= window.start) {
+        values.push(time)
+      }
+      month = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 1))
+    }
+    return { values, format: formatMonth }
+  }
+  const step = DAY_TICK_STEPS.find(each => days / each <= MAX_DAY_TICKS) ?? DAY_TICK_STEPS[DAY_TICK_STEPS.length - 1]
+  const values: number[] = []
+  for (let time = firstDay; time <= window.end; time += step * DAY) {
+    values.push(time)
+  }
+  return { values, format: formatDay }
+}
+
 const monthFormat = new Intl.DateTimeFormat('en-CA', { month: 'short', timeZone: 'UTC' })
 const dayFormat = new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 

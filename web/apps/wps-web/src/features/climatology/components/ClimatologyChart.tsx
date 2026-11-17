@@ -1,5 +1,7 @@
 import { areaY, defineChart, lineY, ruleX } from '@tanstack/charts'
 import { crosshair } from '@tanstack/charts/crosshair'
+import { controlledSignal } from '@tanstack/charts/interaction/signal'
+import { type ZoomXChange, type ZoomXWindow, zoomX } from '@tanstack/charts/interaction/zoom'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { Chart } from '@tanstack/charts/react'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
@@ -9,9 +11,13 @@ import { useMemo } from 'react'
 import {
   CLIMATOLOGY_VARIABLES,
   type ClimatologyRow,
+  type DateWindow,
   formatDay,
-  formatMonth,
-  formatValue
+  formatValue,
+  maxZoom,
+  rowsExtent,
+  rowsInWindow,
+  windowTicks
 } from '@/features/climatology/climatologyRows'
 
 // The bands run from cool through a neutral grey to warm, so the order reads without the
@@ -30,8 +36,10 @@ export interface ClimatologyChartInput {
   rows: ClimatologyRow[]
   variable: ClimatologyVariable
   year: number
-  // The times the x axis is labelled at: the first day of each month shown.
-  monthTicks: number[]
+  // The dates shown. The rows outside it are not drawn, and the chart zooms and pans within the
+  // rows' first to last day.
+  dateWindow: DateWindow
+  onDateWindowChange: (dateWindow: DateWindow) => void
   // Today as a time on the chart, or null to leave the marker out.
   today: number | null
 }
@@ -40,12 +48,30 @@ export interface ClimatologyChartProps extends ClimatologyChartInput {
   stationName: string
 }
 
+/** The lowest and highest value of any row, so that zooming does not rescale the y axis. */
+const valueExtent = (rows: ClimatologyRow[]): [number, number] => {
+  const values = rows.flatMap(row =>
+    row.value === null ? [row.minimum, row.maximum] : [row.minimum, row.maximum, row.value]
+  )
+  return [Math.min(...values), Math.max(...values)]
+}
+
 /** The chart: percentile bands, the historical median and the selected year, by day. */
-export const climatologyChartDefinition = ({ rows, variable, year, monthTicks, today }: ClimatologyChartInput) => {
+export const climatologyChartDefinition = ({
+  rows,
+  variable,
+  year,
+  dateWindow,
+  onDateWindowChange,
+  today
+}: ClimatologyChartInput) => {
   const { label, unit } = CLIMATOLOGY_VARIABLES[variable]
+  const shown = rowsInWindow(rows, dateWindow)
+  const extent = rowsExtent(rows) ?? dateWindow
+  const ticks = windowTicks(dateWindow)
   const band = (lower: keyof ClimatologyRow, upper: keyof ClimatologyRow, fill: string) =>
     decorative(
-      areaY(rows, {
+      areaY(shown, {
         x: 'time',
         y1: row => row[lower],
         y2: row => row[upper],
@@ -53,31 +79,48 @@ export const climatologyChartDefinition = ({ rows, variable, year, monthTicks, t
         fillOpacity: 0.85
       })
     )
+  const todayShown = today !== null && today >= dateWindow.start && today <= dateWindow.end
   return defineChart({
     marks: [
       band('minimum', 'p25', BAND_COLOURS.belowNormal),
       band('p25', 'p75', BAND_COLOURS.normal),
       band('p75', 'p90', BAND_COLOURS.aboveNormal),
       band('p90', 'maximum', BAND_COLOURS.extreme),
-      ...(today === null
-        ? []
-        : [decorative(ruleX([today], { x: time => time, stroke: TODAY_COLOUR, strokeDasharray: '4 3' }))]),
-      lineY(rows, { x: 'time', y: 'median', stroke: MEDIAN_COLOUR, strokeWidth: 1.5 }),
-      lineY(rows, { x: 'time', y: 'value', stroke: YEAR_COLOUR, strokeWidth: 2.5 }),
+      ...(todayShown
+        ? [decorative(ruleX([today], { x: time => time, stroke: TODAY_COLOUR, strokeDasharray: '4 3' }))]
+        : []),
+      lineY(shown, { x: 'time', y: 'median', stroke: MEDIAN_COLOUR, strokeWidth: 1.5 }),
+      lineY(shown, { x: 'time', y: 'value', stroke: YEAR_COLOUR, strokeWidth: 2.5 }),
       crosshair({ x: true, y: false })
     ],
     scales: {
       x: {
-        scale: scaleLinear,
-        axis: { ticks: { values: monthTicks, format: (time: number) => formatMonth(time) } }
+        scale: scaleLinear().domain([dateWindow.start, dateWindow.end]),
+        axis: { ticks: { values: ticks.values, format: (time: number) => ticks.format(time) } }
       },
       y: {
-        scale: scaleLinear,
+        scale: scaleLinear().domain(valueExtent(rows)),
         nice: true,
         grid: true,
         axis: { label: `${label} (${unit})` }
       }
     },
+    // The rows either side of the window are drawn to reach its edges, and cut off there.
+    clip: true,
+    controls: [
+      // Wheel zooms once the plot has focus, dragging pans, plus and minus zoom from the keyboard
+      // and Home shows every day again.
+      zoomX({
+        window: controlledSignal<ZoomXWindow<number>, ZoomXChange<number>>(
+          { start: dateWindow.start, end: dateWindow.end },
+          next => onDateWindowChange({ start: next.start, end: next.end })
+        ),
+        extent: [extent.start, extent.end],
+        scaleExtent: [1, maxZoom(extent)],
+        ariaLabel: 'Zoom and pan the dates shown',
+        format: formatDay
+      })
+    ],
     // The pointer finds the day, wherever it is vertically, and one tooltip describes it.
     focus: 'nearest-x',
     maxFocusDistance: Number.POSITIVE_INFINITY,
@@ -109,10 +152,18 @@ export const climatologyChartDefinition = ({ rows, variable, year, monthTicks, t
   })
 }
 
-const ClimatologyChart = ({ rows, variable, year, monthTicks, today, stationName }: ClimatologyChartProps) => {
+const ClimatologyChart = ({
+  rows,
+  variable,
+  year,
+  dateWindow,
+  onDateWindowChange,
+  today,
+  stationName
+}: ClimatologyChartProps) => {
   const definition = useMemo(
-    () => climatologyChartDefinition({ rows, variable, year, monthTicks, today }),
-    [rows, variable, year, monthTicks, today]
+    () => climatologyChartDefinition({ rows, variable, year, dateWindow, onDateWindowChange, today }),
+    [rows, variable, year, dateWindow, onDateWindowChange, today]
   )
   const { label } = CLIMATOLOGY_VARIABLES[variable]
   return (
