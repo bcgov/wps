@@ -67,7 +67,8 @@ sources.
 
 The `station-weather-by-station` cron job runs `python -m wps_weather_data.by_station` each
 night: it replaces the current year's rows from `by_time`, in one commit per resolution. After a
-backfill, run it once with `--from-year` to rebuild the earlier years. The maintenance job
+backfill, run it once with `--from-year` to rebuild the earlier years (as a one-off OpenShift
+job: see `docs/DATA_REPROCESSING.md`). The maintenance job
 vacuums the files each rebuild replaces.
 
 ## actuals.py

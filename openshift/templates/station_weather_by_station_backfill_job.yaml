@@ -1,0 +1,105 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${JOB_NAME}-job-template
+  annotations:
+    description: "One-off job to rebuild the by_station Delta Lake table of station weather in object storage from the by_time table, from a year onwards."
+    tags: "job,station-weather"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: JOB_NAME
+    value: station-weather-by-station-backfill
+  - name: IMAGE_REGISTRY
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
+  - name: APP_LABEL
+    required: true
+  - name: FROM_YEAR
+    description: The first year to rebuild. Every year from it to the current one is rebuilt.
+    value: "1987"
+  - name: MEMORY_REQUEST
+    description: Memory request
+    value: 1Gi
+  - name: MEMORY_LIMIT
+    description: Memory limit. A year of hourly rows for every station is read at once.
+    value: 4Gi
+objects:
+  - kind: Job
+    apiVersion: batch/v1
+    metadata:
+      name: ${JOB_NAME}
+      labels:
+        app: ${APP_LABEL}
+    spec:
+      parallelism: 1
+      completions: 1
+      # A failed run is not retried: it would start again from the first year. A year that fails
+      # is logged and the rest still run; run the job again from that year. Rebuilding a year
+      # twice is harmless.
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            job: ${JOB_NAME}
+            app: ${APP_LABEL}
+        spec:
+          containers:
+            - name: ${JOB_NAME}
+              image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
+              imagePullPolicy: "Always"
+              command:
+                [
+                  "uv",
+                  "run",
+                  "--no-sync",
+                  "python",
+                  "-m",
+                  "wps_weather_data.by_station",
+                  "--from-year",
+                  "${FROM_YEAR}",
+                ]
+              env:
+                - name: UV_NO_CACHE
+                  value: "1"
+                - name: SUFFIX
+                  value: ${SUFFIX}
+                - name: OBJECT_STORE_SERVER
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-server
+                - name: OBJECT_STORE_USER_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-user-id
+                - name: OBJECT_STORE_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-secret
+                - name: OBJECT_STORE_BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${GLOBAL_NAME}
+                      key: object-store-bucket
+              resources:
+                limits:
+                  memory: ${MEMORY_LIMIT}
+                requests:
+                  cpu: "250m"
+                  memory: ${MEMORY_REQUEST}
+          restartPolicy: Never
