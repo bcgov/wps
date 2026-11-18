@@ -1,83 +1,27 @@
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography
-} from '@mui/material'
-import {
-  type ClimatologyMethod,
-  type ClimatologyVariable,
-  type DailyClimatology,
-  getDailyClimatology
-} from '@wps/api/climatologyAPI'
+import { Alert, Box } from '@mui/material'
 import { getStations, StationSource } from '@wps/api/stationAPI'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { CLIMATOLOGY_NAME } from '@wps/utils/constants'
 import { fetchWxStations } from 'features/stations/slices/stationsSlice'
-import { maxBy, range, sortBy } from 'lodash'
+import { sortBy } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { selectFireWeatherStations } from '@/app/rootReducer'
 import type { AppDispatch } from '@/app/store'
-import {
-  buildClimatologyRows,
-  CLIMATOLOGY_VARIABLES,
-  type DateWindow,
-  FIRE_SEASON,
-  FULL_YEAR,
-  formatDay,
-  rowsExtent,
-  todayOnChart,
-  valueExtent,
-  visibleWindow
-} from '@/features/climatology/climatologyRows'
-import ClimatologyChart from '@/features/climatology/components/ClimatologyChart'
-import ClimatologyLegend from '@/features/climatology/components/ClimatologyLegend'
-import ClimatologyTimeline from '@/features/climatology/components/ClimatologyTimeline'
+import ClimatologyView from '@/features/climatology/components/ClimatologyView'
 import StationPicker from '@/features/climatology/components/StationPicker'
 import type { StationOption } from '@/features/climatology/stationGroups'
 import Footer from '@/features/landingPage/components/Footer'
 
-// The data mart's first year of station observations.
-const FIRST_YEAR = 1987
-// The most stations the API combines in one request.
-export const MAX_STATIONS = 150
-
-type Season = 'fire-season' | 'full-year'
-
-const METHOD_DESCRIPTIONS: Record<ClimatologyMethod, string> = {
-  average:
-    "Each day is the mean of the stations that reported it, and the bands are those means' spread over the years.",
-  pooled:
-    'The bands are the spread of every station’s values over the years, and the line is the mean of the stations.',
-  each: 'Each station is compared with its own history, on one shared scale.'
-}
+export { MAX_STATIONS } from '@/features/climatology/components/ClimatologyView'
 
 const ClimatologyPage = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { stations: allStations, error: stationsError } = useSelector(selectFireWeatherStations)
-
-  const currentYear = new Date().getFullYear()
   const [stations, setStations] = useState<StationOption[]>([])
   // The name of the group the stations were chosen as, if they were.
   const [groupLabel, setGroupLabel] = useState<string | null>(null)
-  const [variable, setVariable] = useState<ClimatologyVariable>('temperature')
-  const [year, setYear] = useState(currentYear)
-  const [season, setSeason] = useState<Season>('fire-season')
-  const [method, setMethod] = useState<ClimatologyMethod>('average')
-  const [climatology, setClimatology] = useState<DailyClimatology | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [groupError, setGroupError] = useState<string | null>(null)
-  // The dates chosen by zooming or with the timeline; null shows every day.
-  const [chosenWindow, setChosenWindow] = useState<DateWindow | null>(null)
 
   useEffect(() => {
     dispatch(fetchWxStations(getStations, StationSource.wildfire_one))
@@ -91,83 +35,11 @@ const ClimatologyPage = () => {
       ),
     [allStations]
   )
-  const stationNames = useMemo(() => new Map(stations.map(station => [station.code, station.name])), [stations])
-  const stationCodes = useMemo(() => stations.map(station => station.code), [stations])
-  const tooManyStations = stationCodes.length > MAX_STATIONS
-  // One station is the same whichever way it is combined.
-  const effectiveMethod: ClimatologyMethod = stationCodes.length > 1 ? method : 'average'
-
   const onStationsChange = useCallback((chosen: StationOption[], label: string | null) => {
     setStations(chosen)
     setGroupLabel(label)
   }, [])
   const onGroupError = useCallback((message: string) => setGroupError(message), [])
-
-  useEffect(() => {
-    if (stationCodes.length === 0 || tooManyStations) {
-      setClimatology(null)
-      return
-    }
-    // A response that arrives after the selection has changed again is dropped.
-    let current = true
-    setLoading(true)
-    setError(null)
-    getDailyClimatology(stationCodes, variable, year, effectiveMethod)
-      .then(result => {
-        if (current) {
-          setClimatology(result)
-        }
-      })
-      .catch(() => {
-        if (current) {
-          setClimatology(null)
-          setError('The climatology for these stations could not be loaded.')
-        }
-      })
-      .finally(() => {
-        if (current) {
-          setLoading(false)
-        }
-      })
-    return () => {
-      current = false
-    }
-  }, [stationCodes, tooManyStations, variable, year, effectiveMethod])
-
-  const monthRange = season === 'fire-season' ? FIRE_SEASON : FULL_YEAR
-  const charts = useMemo(
-    () =>
-      (climatology?.series ?? []).map(series => ({
-        series,
-        rows: buildClimatologyRows(series, climatology?.year ?? year, monthRange)
-      })),
-    [climatology, year, monthRange]
-  )
-  const chartsWithRows = charts.filter(chart => chart.rows.length > 0)
-  // The timeline and the zoom span the chart with the most days.
-  const longestRows = useMemo(() => maxBy(charts, chart => chart.rows.length)?.rows ?? [], [charts])
-  const extent = useMemo(() => rowsExtent(longestRows), [longestRows])
-  // A window chosen for other rows, such as another year or other months, shows every day again.
-  const dateWindow = useMemo(() => (extent ? visibleWindow(chosenWindow, extent) : null), [chosenWindow, extent])
-  const showsEveryDay =
-    extent === null || dateWindow === null || (dateWindow.start === extent.start && dateWindow.end === extent.end)
-  const onDateWindowChange = useCallback((next: DateWindow) => setChosenWindow(next), [])
-  // Charts of several stations share one y axis, so they compare at a glance.
-  const yDomain = useMemo(
-    () => (chartsWithRows.length > 1 ? valueExtent(chartsWithRows.flatMap(chart => chart.rows)) : undefined),
-    [chartsWithRows]
-  )
-  const today = useMemo(() => todayOnChart(longestRows, year), [longestRows, year])
-  const years = useMemo(() => range(currentYear, FIRST_YEAR - 1, -1), [currentYear])
-
-  const variableLabel = CLIMATOLOGY_VARIABLES[variable].label.toLowerCase()
-  const combined = effectiveMethod !== 'each' && stationCodes.length > 1
-  const subject = groupLabel ?? (stations.length === 1 ? stations[0].name : `${stations.length} stations`)
-  const referenceYears = (() => {
-    const firsts = charts.flatMap(chart => chart.series.first_reference_year ?? [])
-    const lasts = charts.flatMap(chart => chart.series.last_reference_year ?? [])
-    return firsts.length > 0 ? `${Math.min(...firsts)} to ${Math.max(...lasts)}` : null
-  })()
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -179,160 +51,17 @@ const ClimatologyPage = () => {
           onChange={onStationsChange}
           onError={onGroupError}
         />
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
-          <FormControl size="small" sx={{ width: 220 }}>
-            <InputLabel id="climatology-variable-label">Variable</InputLabel>
-            <Select
-              labelId="climatology-variable-label"
-              label="Variable"
-              value={variable}
-              onChange={event => setVariable(event.target.value as ClimatologyVariable)}
-            >
-              {Object.entries(CLIMATOLOGY_VARIABLES).map(([key, info]) => (
-                <MenuItem key={key} value={key}>
-                  {info.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ width: 120 }}>
-            <InputLabel id="climatology-year-label">Year</InputLabel>
-            <Select
-              labelId="climatology-year-label"
-              label="Year"
-              value={year}
-              onChange={event => setYear(Number(event.target.value))}
-            >
-              {years.map(option => (
-                <MenuItem key={option} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <ToggleButtonGroup
-            size="small"
-            exclusive
-            value={season}
-            onChange={(_, selected: Season | null) => selected && setSeason(selected)}
-            aria-label="Months shown"
-          >
-            <ToggleButton value="fire-season">April to October</ToggleButton>
-            <ToggleButton value="full-year">Full year</ToggleButton>
-          </ToggleButtonGroup>
-          {stationCodes.length > 1 && (
-            <ToggleButtonGroup
-              size="small"
-              exclusive
-              value={method}
-              onChange={(_, selected: ClimatologyMethod | null) => selected && setMethod(selected)}
-              aria-label="How stations are combined"
-            >
-              <ToggleButton value="average">Average</ToggleButton>
-              <ToggleButton value="pooled">Pooled</ToggleButton>
-              <ToggleButton value="each">Each station</ToggleButton>
-            </ToggleButtonGroup>
-          )}
-          {loading && <CircularProgress size={24} aria-label="Loading climatology" />}
-        </Box>
-
         {stationsError && <Alert severity="error">The list of weather stations could not be loaded.</Alert>}
         {groupError && (
           <Alert severity="warning" onClose={() => setGroupError(null)}>
             {groupError}
           </Alert>
         )}
-        {error && <Alert severity="error">{error}</Alert>}
-        {tooManyStations && (
-          <Alert severity="warning">
-            Choose at most {MAX_STATIONS} stations. {stations.length} are chosen.
-          </Alert>
-        )}
-        {stations.length === 0 && (
-          <Typography color="text.secondary">
-            Choose weather stations, or a fire centre, fire zone or station group, to compare a year of daily
-            observations with their history.
-          </Typography>
-        )}
-        {climatology !== null && chartsWithRows.length === 0 && !loading && (
-          <Alert severity="info">
-            {subject} {stations.length === 1 ? 'has' : 'have'} no history of daily {variableLabel} for these months.
-          </Alert>
-        )}
-        {climatology !== null && chartsWithRows.length > 0 && dateWindow !== null && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="h6" component="h2">
-              {subject}: daily {variableLabel}, {climatology.year}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Noon observations, compared with {referenceYears} excluding {climatology.year}.
-              {stationCodes.length > 1 && ` ${METHOD_DESCRIPTIONS[effectiveMethod]}`}
-            </Typography>
-            <ClimatologyLegend
-              yearLabel={combined ? `${climatology.year} (mean of stations)` : `${climatology.year}`}
-            />
-            {effectiveMethod === 'each' ? (
-              charts.map(({ series, rows }) => {
-                const name = stationNames.get(series.station_codes[0]) ?? `${series.station_codes[0]}`
-                return (
-                  <Box key={series.station_codes[0]} data-testid="climatology-station-chart">
-                    <Typography variant="subtitle1" component="h3">
-                      {name} ({series.station_codes[0]})
-                    </Typography>
-                    {rows.length === 0 ? (
-                      <Typography variant="body2" color="text.secondary">
-                        No history of daily {variableLabel} for these months.
-                      </Typography>
-                    ) : (
-                      <ClimatologyChart
-                        rows={rows}
-                        variable={variable}
-                        year={climatology.year}
-                        dateWindow={dateWindow}
-                        onDateWindowChange={onDateWindowChange}
-                        today={today}
-                        yDomain={yDomain}
-                        // A plain wheel scrolls past the stack of charts; Control or Command zooms.
-                        wheelZoom="modifier"
-                        title={name}
-                        height={300}
-                      />
-                    )}
-                  </Box>
-                )
-              })
-            ) : (
-              <ClimatologyChart
-                rows={chartsWithRows[0].rows}
-                variable={variable}
-                year={climatology.year}
-                dateWindow={dateWindow}
-                onDateWindowChange={onDateWindowChange}
-                today={today}
-                title={subject}
-              />
-            )}
-            <ClimatologyTimeline
-              rows={longestRows}
-              year={climatology.year}
-              dateWindow={dateWindow}
-              onDateWindowChange={onDateWindowChange}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="body2" role="status" aria-live="polite">
-                Showing {formatDay(dateWindow.start)} to {formatDay(dateWindow.end)}
-              </Typography>
-              <Button size="small" variant="outlined" disabled={showsEveryDay} onClick={() => setChosenWindow(null)}>
-                Show every day
-              </Button>
-            </Box>
-            <Typography variant="caption" color="text.secondary">
-              Drag the timeline&apos;s handles to choose the dates shown. On the chart,{' '}
-              {effectiveMethod === 'each' ? 'hold Control or Command and scroll' : 'scroll'} to zoom and drag to pan;
-              with the chart focused, + and − zoom, the arrow keys pan and Home shows every day.
-            </Typography>
-          </Box>
-        )}
+        <ClimatologyView
+          stations={stations}
+          groupLabel={groupLabel}
+          emptyMessage="Choose weather stations, or a fire centre, fire zone or station group, to compare a year of daily observations with their history."
+        />
       </Box>
       <Footer />
     </Box>
