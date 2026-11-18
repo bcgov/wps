@@ -108,7 +108,7 @@ const MorecastAboutDataContent = () => (
           fontSize: 'inherit'
         }}
       >
-        Model Run Hours
+        Model resolution and run hours
       </Typography>
 
       <TableContainer component={Paper} sx={{ mt: 1 }}>
@@ -121,25 +121,37 @@ const MorecastAboutDataContent = () => (
               <TableCell>
                 <strong>Run Hours (UTC)</strong>
               </TableCell>
+              <TableCell>
+                <strong>Grid spacing</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Approx. spacing in BC</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {[
-              ['HRDPS', '0, 6, 12, 18'],
-              ['GDPS', '0, 12'],
-              ['RDPS', '0, 6, 12, 18'],
-              ['GFS', '0, 6, 12, 18'],
-              ['NAM', '0, 6, 12, 18'],
-              ['ECMWF', '0, 12']
-            ].map(([model, hours]) => (
+              ['HRDPS', '0, 6, 12, 18', '0.0225° rotated', '≈2.5 km'],
+              ['GDPS', '0, 12', '0.15°', '≈17 × 10 km'],
+              ['RDPS', '0, 6, 12, 18', '0.09° rotated', '≈10 km'],
+              ['ECMWF', '0, 12', '0.1°', '≈11 × 6 km'],
+              ['GFS', '0, 6, 12, 18', '0.25°', '≈28 × 16 km'],
+              ['NAM', '0, 6, 12, 18', '12 km', '12 km']
+            ].map(([model, hours, resolution, approximateSpacing]) => (
               <TableRow key={model}>
                 <TableCell>{model}</TableCell>
-                <TableCell>{hours}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>{hours}</TableCell>
+                <TableCell>{resolution}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>{approximateSpacing}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        Paired distances show approximate spacing north to south × east to west at 55°N in BC. Spacing varies with
+        latitude. HRDPS and RDPS use rotated grids with approximate spacing of 2.5 km and 10 km, respectively.
+      </Typography>
     </Box>
   </Box>
 )
