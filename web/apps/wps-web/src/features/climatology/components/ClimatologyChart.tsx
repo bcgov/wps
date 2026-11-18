@@ -5,21 +5,20 @@ import { type ZoomXChange, type ZoomXWheelActivation, type ZoomXWindow, zoomX } 
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { Chart } from '@tanstack/charts/react'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
-import { tooltip } from '@tanstack/charts/tooltip'
 import type { ClimatologyVariable } from '@wps/api/climatologyAPI'
-import { type PointerEvent, useCallback, useMemo, useRef } from 'react'
+import { type PointerEvent, useCallback, useMemo, useRef, useState } from 'react'
 import {
   CLIMATOLOGY_VARIABLES,
   type ClimatologyRow,
   type DateWindow,
   formatDay,
-  formatValue,
   maxZoom,
   rowsExtent,
   rowsInWindow,
   valueExtent,
   windowTicks
 } from '@/features/climatology/climatologyRows'
+import ClimatologyReadout from '@/features/climatology/components/ClimatologyReadout'
 
 // The bands run from cool through a neutral grey to warm, so the order reads without the
 // legend, and adjacent bands stay apart for colour-blind readers.
@@ -61,7 +60,6 @@ export interface ClimatologyChartProps extends ClimatologyChartInput {
 export const climatologyChartDefinition = ({
   rows,
   variable,
-  year,
   dateWindow,
   onDateWindowChange,
   today,
@@ -125,51 +123,10 @@ export const climatologyChartDefinition = ({
         format: formatDay
       })
     ],
-    // The pointer finds the day, wherever it is vertically, and one tooltip describes it.
+    // The pointer finds the day, wherever it is vertically. Its values are shown in a readout
+    // above the chart, not a tooltip beside the pointer, which would cover the lines.
     focus: 'nearest-x',
-    maxFocusDistance: Number.POSITIVE_INFINITY,
-    tooltip: {
-      use: tooltip,
-      items: [
-        { id: 'day', label: 'Day', text: point => formatDay(point.datum.time) },
-        {
-          id: 'value',
-          label: `${year}`,
-          text: point => (point.datum.value === null ? null : formatValue(point.datum.value, variable))
-        },
-        { id: 'median', label: 'Median', text: point => formatValue(point.datum.median, variable) },
-        {
-          id: 'normal',
-          label: 'Normal (25th to 75th)',
-          text: point => `${formatValue(point.datum.p25, variable)} to ${formatValue(point.datum.p75, variable)}`
-        },
-        { id: 'p90', label: '90th percentile', text: point => formatValue(point.datum.p90, variable) },
-        {
-          id: 'range',
-          label: 'Lowest to highest',
-          text: point =>
-            `${formatValue(point.datum.minimum, variable)} to ${formatValue(point.datum.maximum, variable)}`
-        },
-        {
-          id: 'value-stations',
-          label: `Stations in ${year}`,
-          text: point =>
-            point.datum.valueStationCount !== null && point.datum.stationCount > 1
-              ? `${point.datum.valueStationCount}`
-              : null
-        },
-        {
-          id: 'count',
-          label: rows.some(row => row.stationCount > 1) ? 'Values in the distribution' : 'Years of record',
-          text: point => `${point.datum.count}`
-        },
-        {
-          id: 'stations',
-          label: 'Stations in the distribution',
-          text: point => (point.datum.stationCount > 1 ? `${point.datum.stationCount}` : null)
-        }
-      ]
-    }
+    maxFocusDistance: Number.POSITIVE_INFINITY
   })
 }
 
@@ -190,8 +147,9 @@ const ClimatologyChart = ({
       climatologyChartDefinition({ rows, variable, year, dateWindow, onDateWindowChange, today, yDomain, wheelZoom }),
     [rows, variable, year, dateWindow, onDateWindowChange, today, yDomain, wheelZoom]
   )
+  const [focused, setFocused] = useState<ClimatologyRow | null>(null)
   // The zoom control lies over the plot to catch drags and the wheel, so the chart under it
-  // never sees the pointer. Its movement is passed on here so the tooltip still follows it.
+  // never sees the pointer. Its movement is passed on here so the readout still follows it.
   const interaction = useRef<ChartInteractionController | null>(null)
   const onPointerMove = useCallback((event: PointerEvent) => {
     const controller = interaction.current
@@ -200,16 +158,20 @@ const ClimatologyChart = ({
   const onPointerLeave = useCallback(() => interaction.current?.setControlledFocus(null), [])
   const { label } = CLIMATOLOGY_VARIABLES[variable]
   return (
-    <div data-testid="climatology-chart-host" onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
-      <Chart
-        definition={definition}
-        height={height}
-        ariaLabel={`${label} climatology for ${title}, ${year}`}
-        ariaDescription={`Daily ${label.toLowerCase()} in ${year} against the range, median and percentiles of other years for each day of the year.`}
-        onRender={context => {
-          interaction.current = context.interaction as ChartInteractionController
-        }}
-      />
+    <div>
+      <ClimatologyReadout row={focused} variable={variable} year={year} />
+      <div data-testid="climatology-chart-host" onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
+        <Chart
+          definition={definition}
+          height={height}
+          ariaLabel={`${label} climatology for ${title}, ${year}`}
+          ariaDescription={`Daily ${label.toLowerCase()} in ${year} against the range, median and percentiles of other years for each day of the year.`}
+          onRender={context => {
+            interaction.current = context.interaction as ChartInteractionController
+          }}
+          onFocusChange={point => setFocused(point ? (point.datum as ClimatologyRow) : null)}
+        />
+      </div>
     </div>
   )
 }
