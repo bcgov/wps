@@ -643,7 +643,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           </List>
         </Grid>
         <Grid sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
-          <AboutDataPopover content={MorecastAboutDataContent} maxWidth={450} testId={'morecast-about-data-popover'} />
+          <AboutDataPopover content={MorecastAboutDataContent} maxWidth={600} testId={'morecast-about-data-popover'} />
         </Grid>
       </Grid>
       {forecastSummaryVisible ? (

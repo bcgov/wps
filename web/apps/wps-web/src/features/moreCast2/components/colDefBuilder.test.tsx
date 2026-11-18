@@ -31,16 +31,21 @@ describe('ColDefBuilder', () => {
   const testHeader = 'testHeader'
   const testPrecision = 1
   const testWidth = 1
-  it('adds purple ECMWF columns after GFS for raw and adjusted values', () => {
+  it('adds purple ECMWF columns before NAM and GFS for raw and adjusted values', () => {
     const columns = colDefBuilder.generateNonForecastColDefs(true)
 
-    expect(columns.slice(-4).map(column => column.headerName)).toEqual([
-      WeatherDeterminate.GFS,
-      WeatherDeterminate.GFS_BIAS,
+    expect(columns.slice(-6).map(column => column.headerName)).toEqual([
       WeatherDeterminate.ECMWF,
-      WeatherDeterminate.ECMWF_BIAS
+      WeatherDeterminate.ECMWF_BIAS,
+      WeatherDeterminate.NAM,
+      WeatherDeterminate.NAM_BIAS,
+      WeatherDeterminate.GFS,
+      WeatherDeterminate.GFS_BIAS
     ])
-    for (const column of columns.slice(-2)) {
+    const ecmwfColumns = columns.filter(
+      column => column.headerName === WeatherDeterminate.ECMWF || column.headerName === WeatherDeterminate.ECMWF_BIAS
+    )
+    for (const column of ecmwfColumns) {
       const params = {
         field: column.field,
         colDef: { field: column.field, headerName: column.headerName, computedWidth: DEFAULT_COLUMN_WIDTH }
