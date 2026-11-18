@@ -218,7 +218,9 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     return isNull(modelAsString) ? null : JSON.parse(modelAsString)
   }
 
+  // Initialize current columns with saved visibility and defaults for new columns
   const initShowHideColumnsModel = (): Record<string, ColumnVis[]> => {
+    // First check localStorage for an existing model
     const model = getShowHideColumnsModelFromLocalStorage()
     // merge saved choices with current columns so newly added models remain available
     const savedVisibility = new Map<string, boolean>(
@@ -232,6 +234,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
       updateColumnWithModel: updateColumnWithModel,
       handleClose: handleClose
     })
+    // provide defaults for all current columns while preserving saved choices
     const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
       return {
         columnName: column.field,
