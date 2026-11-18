@@ -8,6 +8,7 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 import type { ClimatologyVariable } from '@wps/api/climatologyAPI'
 import { type PointerEvent, useCallback, useMemo, useRef, useState } from 'react'
 import {
+  axisLabel,
   CLIMATOLOGY_VARIABLES,
   type ClimatologyRow,
   type DateWindow,
@@ -66,7 +67,6 @@ export const climatologyChartDefinition = ({
   yDomain,
   wheelZoom = 'always'
 }: ClimatologyChartInput) => {
-  const { label, unit } = CLIMATOLOGY_VARIABLES[variable]
   const shown = rowsInWindow(rows, dateWindow)
   const extent = rowsExtent(rows) ?? dateWindow
   const ticks = windowTicks(dateWindow)
@@ -103,7 +103,7 @@ export const climatologyChartDefinition = ({
         scale: scaleLinear().domain(yDomain ?? valueExtent(rows)),
         nice: true,
         grid: true,
-        axis: { label: `${label} (${unit})` }
+        axis: { label: axisLabel(variable) }
       }
     },
     // The rows either side of the window are drawn to reach its edges, and cut off there.

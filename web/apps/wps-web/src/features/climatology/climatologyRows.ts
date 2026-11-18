@@ -22,6 +22,7 @@ export interface ClimatologyRow {
 
 export interface ClimatologyVariableInfo {
   label: string
+  // Empty for an index, which has no unit.
   unit: string
   decimals: number
 }
@@ -30,7 +31,25 @@ export const CLIMATOLOGY_VARIABLES: Record<ClimatologyVariable, ClimatologyVaria
   temperature: { label: 'Temperature', unit: '°C', decimals: 1 },
   relative_humidity: { label: 'Relative humidity', unit: '%', decimals: 0 },
   wind_speed: { label: 'Wind speed', unit: 'km/h', decimals: 1 },
-  precipitation: { label: '24 hour precipitation', unit: 'mm', decimals: 1 }
+  precipitation: { label: '24 hour precipitation', unit: 'mm', decimals: 1 },
+  ffmc: { label: 'FFMC', unit: '', decimals: 1 },
+  dmc: { label: 'DMC', unit: '', decimals: 1 },
+  dc: { label: 'DC', unit: '', decimals: 0 },
+  isi: { label: 'ISI', unit: '', decimals: 1 },
+  bui: { label: 'BUI', unit: '', decimals: 1 },
+  fwi: { label: 'FWI', unit: '', decimals: 1 }
+}
+
+/** The variable's name within a sentence: lower case, unless it is an acronym such as FFMC. */
+export const variableInSentence = (variable: ClimatologyVariable) => {
+  const { label } = CLIMATOLOGY_VARIABLES[variable]
+  return label === label.toUpperCase() ? label : label.toLowerCase()
+}
+
+/** The variable's axis label, with its unit if it has one. */
+export const axisLabel = (variable: ClimatologyVariable) => {
+  const { label, unit } = CLIMATOLOGY_VARIABLES[variable]
+  return unit ? `${label} (${unit})` : label
 }
 
 // Months are 1 to 12, and both ends are included.
@@ -200,7 +219,7 @@ export const formatDay = (time: number) => dayFormat.format(time)
 
 export const formatValue = (value: number, variable: ClimatologyVariable) => {
   const { unit, decimals } = CLIMATOLOGY_VARIABLES[variable]
-  const separator = unit === '%' || unit === '°C' ? '' : ' '
+  const separator = unit === '' || unit === '%' || unit === '°C' ? '' : ' '
   return `${value.toFixed(decimals)}${separator}${unit}`
 }
 

@@ -121,6 +121,9 @@ def parse_hourly_actual(station_code: int, hourly):
 
     observation_valid = hourly.get("observationValidInd")
     observation_valid_comment = hourly.get("observationValidComment")
+    # Not columns of the hourly_actuals table, but kept in the wf1 table of object storage.
+    hourly_actual.observation_valid = observation_valid
+    hourly_actual.observation_valid_comment = observation_valid_comment
     if observation_valid is None or bool(observation_valid) is False:
         logger.warning(
             "Invalid hourly received from WF1 API for station code %s at time %s: %s",
@@ -400,7 +403,13 @@ def sfms_daily_mapper(raw_dailies: List[dict]) -> List[SFMSDaily]:
                 ffmc=raw_daily.get("fineFuelMoistureCode"),
                 dmc=raw_daily.get("duffMoistureCode"),
                 dc=raw_daily.get("droughtCode"),
+                isi=raw_daily.get("initialSpreadIndex"),
+                bui=raw_daily.get("buildUpIndex"),
+                fwi=raw_daily.get("fireWeatherIndex"),
                 danger_rating=raw_daily.get("dangerForest"),
+                grass_curing=raw_daily.get("grasslandCuring"),
+                observation_valid=raw_daily.get("observationValidInd"),
+                observation_valid_comment=raw_daily.get("observationValidComment"),
             )
         )
     return sfms_dailies

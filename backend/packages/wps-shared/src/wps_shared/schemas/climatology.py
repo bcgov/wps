@@ -8,12 +8,19 @@ from pydantic import BaseModel
 
 
 class ClimatologyVariable(str, Enum):
-    """The daily weather values climatology is available for."""
+    """The daily values climatology is available for: weather, and the FWI System indices WF1
+    calculated from it."""
 
     TEMPERATURE = "temperature"
     RELATIVE_HUMIDITY = "relative_humidity"
     WIND_SPEED = "wind_speed"
     PRECIPITATION = "precipitation"
+    FFMC = "ffmc"
+    DMC = "dmc"
+    DC = "dc"
+    ISI = "isi"
+    BUI = "bui"
+    FWI = "fwi"
 
 
 class ClimatologyMethod(str, Enum):

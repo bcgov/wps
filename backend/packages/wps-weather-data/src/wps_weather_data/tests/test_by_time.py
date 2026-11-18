@@ -7,6 +7,7 @@ from wps_weather_data.by_time import (
     BY_TIME_SCHEMA,
     DAILY,
     HOURLY,
+    OBSERVED_COLUMNS,
     ByTimeTable,
     by_time_rows_from_run,
 )
@@ -81,6 +82,7 @@ def test_columns_are_mapped_from_the_run():
         "bias_adjusted_wind_speed": 6.0,
         "bias_adjusted_wind_direction": 181.0,
         "bias_adjusted_precipitation": 4.5,
+        **dict.fromkeys(OBSERVED_COLUMNS),
         "run_ts": RUN_TS,
         "ingested_at": INGESTED_AT,
     }
