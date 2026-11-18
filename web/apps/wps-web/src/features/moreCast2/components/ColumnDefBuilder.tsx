@@ -31,10 +31,12 @@ export const ORDERED_COLUMN_HEADERS: WeatherDeterminateType[] = [
   WeatherDeterminate.RDPS_BIAS,
   WeatherDeterminate.GDPS,
   WeatherDeterminate.GDPS_BIAS,
-  WeatherDeterminate.NAM,
-  WeatherDeterminate.NAM_BIAS,
+  WeatherDeterminate.ECMWF,
+  WeatherDeterminate.ECMWF_BIAS,
   WeatherDeterminate.GFS,
-  WeatherDeterminate.GFS_BIAS
+  WeatherDeterminate.GFS_BIAS,
+  WeatherDeterminate.NAM,
+  WeatherDeterminate.NAM_BIAS
 ]
 
 export const PINNED_COLUMNS = ['stationName', 'forDate']
