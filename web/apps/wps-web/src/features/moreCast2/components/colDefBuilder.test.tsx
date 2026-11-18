@@ -55,7 +55,7 @@ describe('ColDefBuilder', () => {
     }
     expect(MORECAST_MODEL_COLORS.ecmwf).toEqual({
       bg: 'rgba(106, 27, 154, 0.1)',
-      border: '#6A1B9A'
+      border: 'rgba(106, 27, 154, 1)'
     })
   })
 

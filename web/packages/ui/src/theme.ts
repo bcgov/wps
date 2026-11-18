@@ -127,12 +127,12 @@ interface ModelDetails {
   }
 }
 export const MORECAST_MODEL_COLORS: ModelDetails = {
-  ecmwf: { bg: 'rgba(106, 27, 154, 0.1)', border: '#6A1B9A' },
-  nam: { bg: 'rgba(255, 20, 147, 0.1)', border: 'rgba(255, 20, 147, 1)' },
-  gfs: { bg: 'rgba(205, 133, 63, 0.1)', border: 'rgba(205, 133, 63, 1)' },
-  gdps: { bg: 'rgba(0, 0, 255, 0.1)', border: 'rgba(0, 0, 255, 1)' },
-  rdps: { bg: 'rgba(56, 152, 52, 0.1)', border: 'rgba(56, 152, 52, 1)' },
-  hrdps: { bg: 'rgba(7, 79, 0, 0.1)', border: 'rgba(7, 79, 0, 1)' }
+  ecmwf: { bg: 'rgba(106, 27, 154, 0.1)', border: 'rgba(106, 27, 154, 1)' },
+  nam: { bg: 'rgba(241, 63, 145, 0.1)', border: 'rgba(241, 63, 145, 1)' },
+  gfs: { bg: 'rgba(199, 135, 75, 0.1)', border: 'rgba(199, 135, 75, 1)' },
+  gdps: { bg: 'rgba(0, 42, 245, 0.1)', border: 'rgba(0, 42, 245, 1)' },
+  rdps: { bg: 'rgba(78, 148, 66, 0.1)', border: 'rgba(78, 148, 66, 1)' },
+  hrdps: { bg: 'rgba(29, 77, 17, 0.1)', border: 'rgba(29, 77, 17, 1)' }
 }
 export type MoreCastModelColors = typeof MORECAST_MODEL_COLORS
 
