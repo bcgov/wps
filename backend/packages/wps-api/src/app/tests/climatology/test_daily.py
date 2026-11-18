@@ -4,7 +4,7 @@ import pyarrow as pa
 import pytest
 from wps_shared.schemas.climatology import ClimatologyMethod, ClimatologyVariable
 from wps_weather_data.by_station import STATIONS_ROWS_SCHEMA
-from wps_weather_data.by_time import ACTUALS
+from wps_weather_data.by_time import ACTUALS, FWI_COLUMNS
 
 from app.climatology.daily import daily_climatology
 
@@ -180,3 +180,29 @@ class TestGroups:
         ]
 
         assert all(result == results[0] for result in results)
+
+
+@pytest.mark.parametrize(
+    "variable", [variable for variable in ClimatologyVariable if variable.value in FWI_COLUMNS]
+)
+def test_each_fwi_index_is_read_from_its_own_column(variable):
+    table = rows(july_first(322, {2024: 80.0, 2025: 90.0, 2026: 85.0}), column=variable.value)
+
+    series = single(table, column=variable)
+
+    (day,) = series.days
+    assert (day.minimum, day.maximum) == (80.0, 90.0)
+    assert [observation.value for observation in series.observations] == [85.0]
+
+
+def test_a_record_wf1_marked_invalid_is_left_out():
+    table = rows(july_first(322, {2023: 10.0, 2024: 20.0, 2025: 99.0, 2026: 15.0}))
+    table = table.set_column(
+        table.schema.get_field_index("observation_valid"),
+        "observation_valid",
+        pa.array([None, True, False, True], pa.bool_()),
+    )
+
+    (day,) = single(table).days
+
+    assert (day.count, day.minimum, day.maximum) == (2, 10.0, 20.0)

@@ -187,3 +187,36 @@ def test_write_observations_does_not_replace_a_value_fetched_from_wf1(tables):
 
     (row,) = by_time.read(HOURLY, [ACTUALS], AT_1900_UTC, AT_1900_UTC).to_pylist()
     assert row["temperature"] == 20.0
+
+
+FWI_HEADER = (
+    '"STATION_CODE","STATION_NAME","DATE_TIME",HOURLY_PRECIPITATION,HOURLY_TEMPERATURE,'
+    "HOURLY_RELATIVE_HUMIDITY,HOURLY_WIND_SPEED,HOURLY_WIND_DIRECTION,HOURLY_WIND_GUST,"
+    "HOURLY_FINE_FUEL_MOISTURE_CODE,HOURLY_INITIAL_SPREAD_INDEX,HOURLY_FIRE_WEATHER_INDEX,"
+    "PRECIPITATION,FINE_FUEL_MOISTURE_CODE,INITIAL_SPREAD_INDEX,FIRE_WEATHER_INDEX,"
+    "DUFF_MOISTURE_CODE,DROUGHT_CODE,BUILDUP_INDEX,DANGER_RATING"
+)
+
+
+def test_the_noon_row_carries_the_daily_values_and_the_hourly_row_its_own():
+    noon = (
+        '"11","SUMMIT","2023071512",0,20.1,30,10,270,25,90.1,9.5,15.2,0,89.0,8.0,14.0,45,400,70,3'
+    )
+
+    hourly, daily = pa.concat_tables(read_observations([FWI_HEADER, noon])).to_pylist()
+
+    assert (hourly["resolution"], daily["resolution"]) == (HOURLY, DAILY)
+    assert [hourly[column] for column in ("ffmc", "isi", "fwi")] == pytest.approx([90.1, 9.5, 15.2])
+    assert (hourly["dmc"], hourly["dc"], hourly["bui"]) == (None, None, None)
+    assert [daily[column] for column in ("ffmc", "dmc", "dc", "isi", "bui", "fwi")] == (
+        pytest.approx([89.0, 45, 400, 8.0, 70, 14.0])
+    )
+    assert (hourly["wind_gust"], hourly["danger_rating"]) == (25, None)
+    assert (daily["wind_gust"], daily["danger_rating"]) == (25, 3)
+    assert daily["observation_valid"] is None
+
+
+def test_a_file_without_fwi_columns_has_null_indices():
+    (row,) = read(line()).to_pylist()
+
+    assert (row["ffmc"], row["isi"], row["fwi"]) == (None, None, None)

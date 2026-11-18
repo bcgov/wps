@@ -28,27 +28,42 @@ logger = logging.getLogger(__name__)
 
 # The files give the time as YYYYMMDDHH in Pacific Standard Time all year.
 _PST_TO_UTC = timedelta(hours=8)
-# The hour 12 row, 20:00 UTC, also carries WF1's daily values. This is its precip total for the
-# 24 hours before.
+# The hour 12 row, 20:00 UTC, also carries WF1's daily values.
 _DAILY_HOUR = "12"
-_DAILY_PRECIPITATION = "PRECIPITATION"
 
-# by_time column -> data mart column.
-_COLUMNS = {
+# by_time column -> data mart column, for an hourly observation.
+_HOURLY_COLUMNS = {
     "temperature": "HOURLY_TEMPERATURE",
     "relative_humidity": "HOURLY_RELATIVE_HUMIDITY",
     "wind_speed": "HOURLY_WIND_SPEED",
     "wind_direction": "HOURLY_WIND_DIRECTION",
     "precipitation": "HOURLY_PRECIPITATION",
+    "wind_gust": "HOURLY_WIND_GUST",
+    "ffmc": "HOURLY_FINE_FUEL_MOISTURE_CODE",
+    "isi": "HOURLY_INITIAL_SPREAD_INDEX",
+    "fwi": "HOURLY_FIRE_WEATHER_INDEX",
+}
+
+# by_time column -> data mart column, for WF1's daily values on the noon row: its precip total for
+# the 24 hours before, its daily FWI System indices and danger rating.
+_DAILY_COLUMNS = {
+    "precipitation": "PRECIPITATION",
+    "ffmc": "FINE_FUEL_MOISTURE_CODE",
+    "dmc": "DUFF_MOISTURE_CODE",
+    "dc": "DROUGHT_CODE",
+    "isi": "INITIAL_SPREAD_INDEX",
+    "bui": "BUILDUP_INDEX",
+    "fwi": "FIRE_WEATHER_INDEX",
+    "danger_rating": "DANGER_RATING",
 }
 
 _BATCH_ROWS = 200_000
 
 
-def _number(text: str, column: str) -> float | None:
+def _number(text: str | None, column: str) -> float | None:
     """The value if it is a number in the column's valid range, else None."""
     try:
-        value = float(text)
+        value = float(text or "")
     except ValueError:
         return None
     low, high = VALID_RANGES[column]
@@ -63,7 +78,9 @@ class _Rows:
         self.resolution = resolution
         self.station_codes: list[int] = []
         self.times: list[str] = []
-        self.values: dict[str, list] = {column: [] for column in _COLUMNS}
+        self.values: dict[str, list] = {
+            column: [] for column in {**_HOURLY_COLUMNS, **_DAILY_COLUMNS}
+        }
 
     def __len__(self) -> int:
         return len(self.station_codes)
@@ -71,8 +88,8 @@ class _Rows:
     def add(self, station_code: int, time: str, values: dict[str, float | None]):
         self.station_codes.append(station_code)
         self.times.append(time)
-        for column, value in values.items():
-            self.values[column].append(value)
+        for column, column_values in self.values.items():
+            column_values.append(values.get(column))
 
     def to_table(self) -> pa.Table:
         local = pc.strptime(pa.array(self.times, pa.string()), format="%Y%m%d%H", unit="us")
@@ -107,21 +124,26 @@ def read_observations(lines: Iterable[str]) -> Iterator[pa.Table]:
     """Read a data mart observations file as `ACTUALS` rows, a batch at a time.
 
     Every row with a value becomes an hourly row. A noon row with a daily precip total also
-    becomes a daily row: the noon observation with that total, which is what WF1's daily
-    actual holds. A value that is missing or outside its valid range is null, as for WF1.
+    becomes a daily row: the noon observation with that total, the daily FWI System indices and
+    the danger rating, which is what WF1's daily actual holds. A value that is missing or outside its valid range is
+    null, as for WF1.
     """
     hourly = _Rows(HOURLY)
     daily = _Rows(DAILY)
     for record in csv.DictReader(lines):
-        values = {column: _number(record[name] or "", column) for column, name in _COLUMNS.items()}
+        values = {
+            column: _number(record.get(name), column) for column, name in _HOURLY_COLUMNS.items()
+        }
         station_code = int(record["STATION_CODE"])
         time = record["DATE_TIME"]
         if any(value is not None for value in values.values()):
             hourly.add(station_code, time, values)
         if time.endswith(_DAILY_HOUR):
-            total = _number(record.get(_DAILY_PRECIPITATION) or "", "precipitation")
-            if total is not None:
-                daily.add(station_code, time, {**values, "precipitation": total})
+            daily_values = {
+                column: _number(record.get(name), column) for column, name in _DAILY_COLUMNS.items()
+            }
+            if daily_values["precipitation"] is not None:
+                daily.add(station_code, time, {**values, **daily_values})
         if len(hourly) >= _BATCH_ROWS:
             yield hourly.to_table()
             hourly = _Rows(HOURLY)

@@ -50,8 +50,9 @@ before. Nothing here adds up hourly values.
 Historical observations from the BCWS data mart
 (https://www.for.gov.bc.ca/ftp/HPR/external/!publish/BCWS_DATA_MART/), which has every station's
 hourly observations back to 1987. `read_observations` turns its CSV files into hourly `ACTUALS`
-rows, converting the Pacific Standard Time hours to UTC. A noon row that carries WF1's daily
-precip total also becomes a daily `ACTUALS` row. `write_observations` writes them to `wf1` and
+rows, converting the Pacific Standard Time hours to UTC, with the wind gust and the hourly FFMC,
+ISI and FWI. A noon row that carries WF1's daily precip total also becomes a daily `ACTUALS` row,
+with WF1's daily FWI System indices and danger rating. `write_observations` writes them to `wf1` and
 `by_time`. A value the hourly actuals job fetched from WF1 is never replaced by one from the
 data mart.
 `data_mart_backfill.py` downloads the files and runs it: `python -m

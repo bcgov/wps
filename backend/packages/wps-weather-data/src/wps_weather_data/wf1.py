@@ -8,7 +8,8 @@ corrected observation, or a forecast changed between fetches, is a second row wi
 itself does not keep.
 
 The rows have the `by_time` columns. `ACTUALS` rows are hourly observations and WF1's daily
-actuals, `FORECAST` rows are noon (20:00 UTC) forecasts. A value WF1 does not have, or that is
+actuals, `FORECAST` rows are noon (20:00 UTC) forecasts. Each carries the FWI System indices WF1
+calculated for it, and an actual whether WF1 accepted it. A value WF1 does not have, or that is
 out of range, is null.
 
 A daily actual is WF1's own daily record for 20:00 UTC. Its precipitation is the total WF1
@@ -50,7 +51,21 @@ VALID_RANGES = {
     "wind_speed": (0, math.inf),
     "wind_direction": (0, 360),
     "precipitation": (0, math.inf),
+    "ffmc": (0, 101),
+    "dmc": (0, math.inf),
+    "dc": (0, math.inf),
+    "isi": (0, math.inf),
+    "bui": (0, math.inf),
+    "fwi": (0, math.inf),
+    "dewpoint": (-math.inf, math.inf),
+    "wind_gust": (0, math.inf),
+    "grass_curing": (0, 100),
+    "danger_rating": (1, 5),
 }
+
+# by_time column -> the record attribute it is read from, where they differ: a noon forecast
+# calls grass curing `gc`.
+_ATTRIBUTES = {"grass_curing": ("grass_curing", "gc")}
 
 
 def _valid(value, column: str) -> float | None:
@@ -62,6 +77,15 @@ def _valid(value, column: str) -> float | None:
     if math.isnan(value) or not low <= value <= high:
         return None
     return value
+
+
+def _attribute(record, column: str):
+    """The record's value for a by_time column, or None if this kind of record has none."""
+    for name in _ATTRIBUTES.get(column, (column,)):
+        value = getattr(record, name, None)
+        if value is not None:
+            return value
+    return None
 
 
 def _timestamp(value) -> datetime:
@@ -89,10 +113,13 @@ def _wf1_table(
         columns["month"].append(timestamp.strftime("%Y-%m"))
         columns["station_code"].append(getattr(record, station_code))
         columns["timestamp"].append(timestamp)
-        for column in VALID_RANGES:
-            columns[column].append(_valid(getattr(record, column), column))
         for column in VALUE_COLUMNS:
-            if column not in VALID_RANGES:
+            if column in VALID_RANGES:
+                # Not every kind of record has every value: an hourly one has no DMC, DC or BUI.
+                columns[column].append(_valid(_attribute(record, column), column))
+            elif column in ("observation_valid", "observation_valid_comment"):
+                columns[column].append(_attribute(record, column))
+            else:
                 columns[column].append(None)
         columns["run_ts"].append(None)
         columns["ingested_at"].append(ingested_at or _timestamp(record.created_at))

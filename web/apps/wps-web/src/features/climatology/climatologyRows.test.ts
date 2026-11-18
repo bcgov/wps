@@ -1,5 +1,6 @@
 import type { ClimatologyDay, ClimatologySeries } from '@wps/api/climatologyAPI'
 import {
+  axisLabel,
   buildClimatologyRows,
   type ClimatologyRow,
   FIRE_SEASON,
@@ -15,6 +16,7 @@ import {
   snapToRows,
   todayOnChart,
   valueExtent,
+  variableInSentence,
   visibleWindow,
   widenWindow,
   windowTicks
@@ -110,6 +112,23 @@ describe('formatting', () => {
     expect(formatValue(41.6, 'relative_humidity')).toBe('42%')
     expect(formatValue(12, 'wind_speed')).toBe('12.0 km/h')
     expect(formatValue(0.25, 'precipitation')).toBe('0.3 mm')
+  })
+
+  it('gives an index without a unit', () => {
+    expect(formatValue(88.46, 'ffmc')).toBe('88.5')
+    expect(formatValue(412.4, 'dc')).toBe('412')
+  })
+})
+
+describe('variable labels', () => {
+  it('lowers the case of a name in a sentence, but not of an acronym', () => {
+    expect(variableInSentence('relative_humidity')).toBe('relative humidity')
+    expect(variableInSentence('bui')).toBe('BUI')
+  })
+
+  it('labels an axis with the unit, if there is one', () => {
+    expect(axisLabel('temperature')).toBe('Temperature (°C)')
+    expect(axisLabel('fwi')).toBe('FWI')
   })
 })
 

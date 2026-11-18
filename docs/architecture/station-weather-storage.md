@@ -223,6 +223,12 @@ A Delta table partitioned by `resolution`, `source` and month. It holds one row 
 | `temperature`, `relative_humidity`, `wind_speed`, `wind_direction` | float32 | |
 | `precipitation` | float32 | The hour's precipitation for `hourly`, the 24-hour total for `daily`. |
 | `bias_adjusted_temperature`, `bias_adjusted_relative_humidity`, `bias_adjusted_wind_speed`, `bias_adjusted_wind_direction`, `bias_adjusted_precipitation` | float32 | Models only, null otherwise. |
+| `ffmc`, `dmc`, `dc`, `isi`, `bui`, `fwi` | float32 | WF1 and the data mart only, null for models: the FWI System indices WF1 calculated. An `hourly` row has only the hourly FFMC, ISI and FWI. |
+| `dewpoint` | float32 | WF1 actuals only. |
+| `wind_gust` | float32 | Data mart hourly observations only; WF1's records do not carry it. |
+| `grass_curing` | float32 | Percent cured, on WF1's daily actuals and noon forecasts. |
+| `danger_rating` | int8 | The forest danger class, 1 to 5, on daily actuals. |
+| `observation_valid`, `observation_valid_comment` | bool, string | Whether WF1 accepted an actual, and why not. Null for the data mart, which does not say. Climatology leaves out a record WF1 marked invalid. |
 | `run_ts` | timestamp, UTC | Models only: the run the row came from. |
 | `ingested_at` | timestamp, UTC | When the row was written. |
 

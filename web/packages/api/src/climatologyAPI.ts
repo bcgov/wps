@@ -1,6 +1,17 @@
 import axios from './axios'
 
-export type ClimatologyVariable = 'temperature' | 'relative_humidity' | 'wind_speed' | 'precipitation'
+export type ClimatologyVariable =
+  | 'temperature'
+  | 'relative_humidity'
+  | 'wind_speed'
+  | 'precipitation'
+  // The FWI System indices, as WF1 calculated them.
+  | 'ffmc'
+  | 'dmc'
+  | 'dc'
+  | 'isi'
+  | 'bui'
+  | 'fwi'
 
 // How several stations are combined: the mean of the stations each day, every station's value
 // pooled into one distribution, or a climatology for each station.

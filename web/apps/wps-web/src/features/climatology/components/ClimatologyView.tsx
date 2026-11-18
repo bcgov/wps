@@ -29,6 +29,7 @@ import {
   rowsExtent,
   todayOnChart,
   valueExtent,
+  variableInSentence,
   visibleWindow
 } from '@/features/climatology/climatologyRows'
 import ClimatologyChart from '@/features/climatology/components/ClimatologyChart'
@@ -135,7 +136,7 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
   const today = useMemo(() => todayOnChart(longestRows, year), [longestRows, year])
   const years = useMemo(() => range(currentYear, FIRST_YEAR - 1, -1), [currentYear])
 
-  const variableLabel = CLIMATOLOGY_VARIABLES[variable].label.toLowerCase()
+  const variableLabel = variableInSentence(variable)
   const combined = effectiveMethod !== 'each' && stationCodes.length > 1
   const subject = groupLabel ?? (stations.length === 1 ? stations[0].name : `${stations.length} stations`)
   const referenceYears = (() => {

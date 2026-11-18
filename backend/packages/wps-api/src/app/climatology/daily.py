@@ -1,6 +1,7 @@
 """Daily climatology: how a variable has been distributed on each day of the year.
 
-The values are daily actuals, which are WF1's noon (20:00 UTC) records. One year is held out
+The values are daily actuals, which are WF1's noon (20:00 UTC) records, less any WF1 marked
+invalid. One year is held out
 to compare against the others, so a year in progress does not shift the distribution it is
 being compared with. Several stations can be combined, as a ClimatologyMethod describes, or
 summarized one by one.
@@ -33,13 +34,15 @@ _ValuesByDate = dict[date, dict[int, float]]
 def _values_by_station(rows: pa.Table, variable: ClimatologyVariable) -> dict[int, _ValuesByDate]:
     """Each station's values by date, from rows as `ByStationTable.read_stations` returns them."""
     by_station: dict[int, _ValuesByDate] = defaultdict(lambda: defaultdict(dict))
-    for station_code, timestamp, value in zip(
+    for station_code, timestamp, value, valid in zip(
         rows["station_code"].to_pylist(),
         rows["timestamp"].to_pylist(),
         rows[variable.value].to_pylist(),
+        rows["observation_valid"].to_pylist(),
         strict=True,
     ):
-        if value is not None:
+        # A record WF1 rejected is left out. A data mart observation does not say, so it is kept.
+        if value is not None and valid is not False:
             # The daily record is at 20:00 UTC, noon PST, so the UTC date is the local date.
             by_station[station_code][timestamp.date()][station_code] = value
     return by_station

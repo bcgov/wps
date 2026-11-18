@@ -35,18 +35,47 @@ FORECAST = "FORECAST"
 # The daily record is the 20:00 UTC (noon PST) row.
 DAILY_HOUR_UTC = 20
 
-VALUE_COLUMNS = (
-    "temperature",
-    "relative_humidity",
-    "wind_speed",
-    "wind_direction",
-    "precipitation",
-    "bias_adjusted_temperature",
-    "bias_adjusted_relative_humidity",
-    "bias_adjusted_wind_speed",
-    "bias_adjusted_wind_direction",
-    "bias_adjusted_precipitation",
-)
+# The FWI System indices, as WF1 calculates them. An hourly row has only the hourly FFMC, ISI and
+# FWI.
+FWI_COLUMNS = ("ffmc", "dmc", "dc", "isi", "bui", "fwi")
+
+# The columns only WF1 and the data mart have values for. A model's rows leave them null.
+OBSERVED_COLUMNS = {
+    **{column: pa.float32() for column in FWI_COLUMNS},
+    "dewpoint": pa.float32(),
+    # Data mart hourly observations only: WF1's records do not carry it.
+    "wind_gust": pa.float32(),
+    # Percent cured, on WF1's dailies and noon forecasts.
+    "grass_curing": pa.float32(),
+    # WF1's forest danger class, 1 to 5, on daily actuals.
+    "danger_rating": pa.int8(),
+    # Whether WF1 accepted an actual, and why not. Null for a data mart observation, which does
+    # not say.
+    "observation_valid": pa.bool_(),
+    "observation_valid_comment": pa.string(),
+}
+
+# Every value column and its type.
+VALUE_TYPES = {
+    **{
+        column: pa.float32()
+        for column in (
+            "temperature",
+            "relative_humidity",
+            "wind_speed",
+            "wind_direction",
+            "precipitation",
+            "bias_adjusted_temperature",
+            "bias_adjusted_relative_humidity",
+            "bias_adjusted_wind_speed",
+            "bias_adjusted_wind_direction",
+            "bias_adjusted_precipitation",
+        )
+    },
+    **OBSERVED_COLUMNS,
+}
+
+VALUE_COLUMNS = tuple(VALUE_TYPES)
 
 _TIMESTAMP = pa.timestamp("us", tz="UTC")
 
@@ -57,7 +86,7 @@ BY_TIME_SCHEMA = pa.schema(
         ("month", pa.string()),
         ("station_code", pa.int32()),
         ("timestamp", _TIMESTAMP),
-        *[(column, pa.float32()) for column in VALUE_COLUMNS],
+        *VALUE_TYPES.items(),
         ("run_ts", _TIMESTAMP),
         ("ingested_at", _TIMESTAMP),
     ]
@@ -100,6 +129,7 @@ def _rows_at_resolution(run: pa.Table, resolution: str) -> pa.Table:
         **{column: run[run_column] for column, run_column in _FROM_RUN.items()},
         "precipitation": precipitation,
         "bias_adjusted_precipitation": bias_adjusted_precipitation,
+        **{column: pa.nulls(count, kind) for column, kind in OBSERVED_COLUMNS.items()},
         "run_ts": run["run_ts"],
         "ingested_at": run["ingested_at"],
     }
