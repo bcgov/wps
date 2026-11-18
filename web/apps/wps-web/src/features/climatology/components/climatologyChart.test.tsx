@@ -1,5 +1,5 @@
 import { createChartScene } from '@tanstack/charts'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ClimatologyRow, DateWindow } from '@/features/climatology/climatologyRows'
 import ClimatologyChart, { climatologyChartDefinition } from './ClimatologyChart'
 
@@ -82,21 +82,24 @@ describe('ClimatologyChart', () => {
     expect(screen.getByRole('img', { name: 'Temperature climatology for AFTON, 2026' })).toBeInTheDocument()
   })
 
-  it('describes a day in a tooltip when stepped to from the keyboard', async () => {
+  it('describes a day in the readout above the chart when stepped to from the keyboard', async () => {
     render(<ClimatologyChart {...input} title="AFTON" />)
+    const readout = screen.getByTestId('climatology-readout')
+    expect(readout).toHaveTextContent('Point at a day on the chart')
     const chart = screen.getByRole('img', { name: /Temperature climatology/ })
 
     chart.focus()
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
 
-    const tooltip = await screen.findByRole('status')
-    expect(tooltip).toHaveTextContent('DayJul 1')
-    expect(tooltip).toHaveTextContent('202620.0°C')
-    expect(tooltip).toHaveTextContent('Median18.0°C')
-    expect(tooltip).toHaveTextContent('Normal (25th to 75th)12.0°C to 24.0°C')
-    expect(tooltip).toHaveTextContent('90th percentile28.0°C')
-    expect(tooltip).toHaveTextContent('Lowest to highest5.0°C to 35.0°C')
-    expect(tooltip).toHaveTextContent('Years of record30')
+    await waitFor(() => expect(readout).toHaveTextContent('Jul 1'))
+    expect(readout).toHaveTextContent('2026 20.0°C')
+    expect(readout).toHaveTextContent('Median 18.0°C')
+    expect(readout).toHaveTextContent('Normal 12.0°C to 24.0°C')
+    expect(readout).toHaveTextContent('90th percentile 28.0°C')
+    expect(readout).toHaveTextContent('Lowest to highest 5.0°C to 35.0°C')
+    expect(readout).toHaveTextContent('Years of record 30')
+    // No tooltip floats over the chart.
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
   it('zooms in from the keyboard', () => {
@@ -120,7 +123,7 @@ describe('ClimatologyChart', () => {
     expect(end).toBeLessThan(days[days.length - 1])
   })
 
-  it('counts the stations in a tooltip when several are combined', async () => {
+  it('counts the stations in the readout when several are combined', async () => {
     const group = rows.map(each => ({
       ...each,
       count: 60,
@@ -133,10 +136,9 @@ describe('ClimatologyChart', () => {
     chart.focus()
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
 
-    const tooltip = await screen.findByRole('status')
-    expect(tooltip).toHaveTextContent('Stations in 20262')
-    expect(tooltip).toHaveTextContent('Values in the distribution60')
-    expect(tooltip).toHaveTextContent('Stations in the distribution2')
+    const readout = screen.getByTestId('climatology-readout')
+    await waitFor(() => expect(readout).toHaveTextContent('2026 20.0°C (2 stations)'))
+    expect(readout).toHaveTextContent('Drawn from 60 values at 2 stations')
   })
 
   it('uses the y axis it is given, so several charts share one', () => {
