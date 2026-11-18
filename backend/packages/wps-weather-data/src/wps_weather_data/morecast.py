@@ -18,8 +18,9 @@ from wps_weather_data.by_time import DAILY, ByTimeTable
 
 logger = logging.getLogger(__name__)
 
-# MoreCast does not show ECMWF.
-MORECAST_MODELS = tuple(model for model in ModelEnum if model != ModelEnum.ECMWF)
+# Every model, ECMWF included. ECMWF's runs are from its 0.1° grid only: its job reads no other,
+# and the backfill from Postgres took the 0.1° run where both grids had one.
+MORECAST_MODELS = tuple(ModelEnum)
 
 
 def fetch_model_predictions(

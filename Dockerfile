@@ -14,7 +14,7 @@ ARG USER_GID=1000
 USER 0
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /uvx /bin/
 
 # Create a directory for the app to run in, and grant worker access
 RUN mkdir /app && chown "$USERNAME" /app
@@ -82,7 +82,7 @@ ARG USER_GID=1000
 USER 0
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /uvx /bin/
 
 # Create a directory for the app to run in, and grant worker access
 RUN mkdir /app && chown "$USERNAME" /app

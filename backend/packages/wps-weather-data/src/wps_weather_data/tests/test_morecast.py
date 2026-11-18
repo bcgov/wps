@@ -93,13 +93,17 @@ def test_only_requested_stations_and_times(by_time):
     assert {(r.station_code, r.utc_timestamp) for r in results} == {(322, AT_2000)}
 
 
-def test_ecmwf_is_left_out(by_time):
+def test_ecmwf_is_included(by_time):
     by_time.merge_run(ModelEnum.ECMWF, RUN_TS, make_rows([AT_2000]))
     by_time.merge_run(ModelEnum.HRDPS, RUN_TS, make_rows([AT_2000]))
 
     results = fetch_model_predictions(by_time, STATIONS, START, END)
 
-    assert [r.determinate for r in results] == [
-        WeatherDeterminate.HRDPS,
-        WeatherDeterminate.HRDPS_BIAS,
-    ]
+    assert sorted(r.determinate for r in results) == sorted(
+        [
+            WeatherDeterminate.ECMWF,
+            WeatherDeterminate.ECMWF_BIAS,
+            WeatherDeterminate.HRDPS,
+            WeatherDeterminate.HRDPS_BIAS,
+        ]
+    )
