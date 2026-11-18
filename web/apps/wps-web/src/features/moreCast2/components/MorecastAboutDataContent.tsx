@@ -150,7 +150,7 @@ const MorecastAboutDataContent = () => (
       </TableContainer>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         Paired distances show approximate spacing north to south × east to west at 55°N in BC. Spacing varies with
-        latitude. HRDPS and RDPS use rotated grids with approximate spacing of 2.5 km and 10 km, respectively.
+        latitude.
       </Typography>
     </Box>
   </Box>
