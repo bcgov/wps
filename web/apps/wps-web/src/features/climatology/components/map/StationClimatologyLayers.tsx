@@ -1,24 +1,20 @@
 import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import type { GeoJsonStation } from '@wps/types/stationTypes'
-import { BC_EXTENT, CENTER_OF_BC } from '@wps/utils/constants'
-import { BASEMAP_STYLE_URL, BASEMAP_TILE_URL } from '@wps/utils/env'
-import { logError } from '@wps/utils/error'
-import { createVectorTileLayer, getStyleJson } from '@wps/utils/vectorLayerUtils'
-import { Feature, Map as OlMap, View } from 'ol'
-import { defaults as defaultControls } from 'ol/control'
+import { BC_EXTENT } from '@wps/utils/constants'
+import { Feature, View } from 'ol'
 import { boundingExtent, buffer, type Extent, extend } from 'ol/extent'
 import type { FeatureLike } from 'ol/Feature'
 import { type Geometry, Point } from 'ol/geom'
 import { Draw } from 'ol/interaction'
 import type { DrawEvent } from 'ol/interaction/Draw'
 import VectorLayer from 'ol/layer/Vector'
+import { unByKey } from 'ol/Observable'
 import { fromLonLat } from 'ol/proj'
 import VectorSource from 'ol/source/Vector'
 import { Circle, Fill, Stroke, Style } from 'ol/style'
-import 'ol/ol.css'
 import { useEffect, useRef, useState } from 'react'
 import { areaLabel, clickStation, stationsInArea } from '@/features/climatology/components/map/stationSelection'
-import { getFireCentreLinePMTilesLayer } from '@/features/map/fireCentreLayer'
+import { useSfmsMap } from '@/features/sfmsInsights/components/map/SFMSMap'
 
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 // The margin around BC and the stations that panning and zooming out stop at, in map units. Map
@@ -32,15 +28,14 @@ export const stationsExtent = (stations: GeoJsonStation[]): Extent =>
     [...bcExtent]
   )
 
-/** A view that starts on BC and every station, and stops panning and zooming out a margin past them. */
-const stationsView = (stations: GeoJsonStation[]) =>
+/** A view where `current` is, that stops panning and zooming out a margin past BC and every station. */
+const stationsView = (stations: GeoJsonStation[], current: View) =>
   new View({
-    zoom: 5,
-    center: fromLonLat(CENTER_OF_BC),
+    center: current.getCenter(),
+    resolution: current.getResolution(),
     extent: buffer(stationsExtent(stations), VIEW_MARGIN),
     showFullExtent: true
   })
-const BASEMAP_LAYER_NAME = 'stationClimatologyBasemap'
 
 const stationStyle = new Style({
   image: new Circle({
@@ -84,17 +79,16 @@ const SMOOTHING_PIXELS = 3
 
 export type StationMapMode = 'click' | 'draw'
 
-export interface StationClimatologyMapProps {
+export interface StationClimatologyLayersProps {
   stations: GeoJsonStation[]
   chosenCodes: number[]
   // The stations chosen on the map, and a name for them when they were chosen by drawing.
   onChoose: (codes: number[], label: string | null) => void
 }
 
-/** A map of the weather stations: click them, or draw around them, to chart their climatology. */
-const StationClimatologyMap = ({ stations, chosenCodes, onChoose }: StationClimatologyMapProps) => {
-  const mapRef = useRef<HTMLDivElement>(document.createElement('div'))
-  const [map, setMap] = useState<OlMap | null>(null)
+/** The weather stations, on the SFMS map: click them, or draw around them, to chart their climatology. */
+const StationClimatologyLayers = ({ stations, chosenCodes, onChoose }: StationClimatologyLayersProps) => {
+  const map = useSfmsMap()
   const [mode, setMode] = useState<StationMapMode>('click')
   const draw = useRef<Draw | null>(null)
   const [hovered, setHovered] = useState<{ name: string; x: number; y: number } | null>(null)
@@ -113,26 +107,22 @@ const StationClimatologyMap = ({ stations, chosenCodes, onChoose }: StationClima
     })
   )
 
+  // The stations and the drawn outline go on the map while this is shown, and come off with it.
   useEffect(() => {
-    const mapObject = new OlMap({
-      target: mapRef.current,
-      layers: [
-        getFireCentreLinePMTilesLayer({ zIndex: 54 }),
-        new VectorLayer({ source: areaSource.current, style: areaStyle, zIndex: 55 }),
-        stationLayer.current
-      ],
-      controls: defaultControls(),
-      view: stationsView([])
-    })
-    mapObject.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
+    if (!map) {
+      return
+    }
+    const areaLayer = new VectorLayer({ source: areaSource.current, style: areaStyle, zIndex: 55 })
+    map.addLayer(areaLayer)
+    map.addLayer(stationLayer.current)
 
     const stationAt = (pixel: number[]) =>
-      mapObject.forEachFeatureAtPixel(pixel, feature => feature, {
+      map.forEachFeatureAtPixel(pixel, feature => feature, {
         layerFilter: layer => layer === stationLayer.current,
         hitTolerance: 6
       })
 
-    mapObject.on('singleclick', event => {
+    const clickKey = map.on('singleclick', event => {
       const { mode: currentMode, chosenCodes: chosen, onChoose: choose } = latest.current
       if (currentMode !== 'click') {
         return
@@ -143,7 +133,7 @@ const StationClimatologyMap = ({ stations, chosenCodes, onChoose }: StationClima
         choose(clickStation(chosen, feature.get('code'), event.originalEvent.shiftKey), null)
       }
     })
-    mapObject.on('pointermove', event => {
+    const moveKey = map.on('pointermove', event => {
       if (event.dragging) {
         return
       }
@@ -151,36 +141,40 @@ const StationClimatologyMap = ({ stations, chosenCodes, onChoose }: StationClima
       // A name popping up under the pointer would get in the way of drawing.
       const named = feature && latest.current.mode === 'click'
       setHovered(named ? { name: feature.get('name'), x: event.pixel[0], y: event.pixel[1] } : null)
-      const target = mapObject.getTargetElement()
+      const target = map.getTargetElement()
       if (target) {
         target.style.cursor = latest.current.mode === 'draw' ? 'crosshair' : feature ? 'pointer' : ''
       }
     })
 
-    const loadBaseMap = async () => {
-      try {
-        const style = await getStyleJson(BASEMAP_STYLE_URL)
-        mapObject.addLayer(await createVectorTileLayer(BASEMAP_TILE_URL, style, 1, BASEMAP_LAYER_NAME))
-      } catch (err) {
-        // The stations still show without the base map.
-        logError(err)
-      }
-    }
-    loadBaseMap()
-    setMap(mapObject)
-
     return () => {
-      mapObject.setTarget(undefined)
+      unByKey([clickKey, moveKey])
+      map.removeLayer(areaLayer)
+      map.removeLayer(stationLayer.current)
+      const target = map.getTargetElement()
+      if (target) {
+        target.style.cursor = ''
+      }
+      // Back on the fire weather map, panning is free again and BC fills the map, as it starts.
+      map.setView(new View({ center: map.getView().getCenter(), resolution: map.getView().getResolution() }))
+      map.updateSize()
+      map.getView().fit(bcExtent, { padding: [50, 50, 50, 50] })
     }
-  }, [])
+  }, [map])
 
-  // Once the stations are known, the view covers every one of them.
+  // Panning and zooming out stop a margin past BC and the stations. The map is narrower beside the
+  // charts, so it is fitted to them once they are known.
+  const fitted = useRef(false)
   useEffect(() => {
-    if (!map || stations.length === 0) {
+    if (!map) {
       return
     }
-    map.setView(stationsView(stations))
-    map.getView().fit(stationsExtent(stations), { padding: [70, 30, 30, 30] })
+    map.setView(stationsView(stations, map.getView()))
+    if (stations.length > 0 && !fitted.current) {
+      fitted.current = true
+      map.updateSize()
+      map.getView().fit(stationsExtent(stations), { padding: [70, 30, 30, 30] })
+    }
   }, [map, stations])
 
   // One feature per station, named and coded for the handlers above.
@@ -247,8 +241,7 @@ const StationClimatologyMap = ({ stations, chosenCodes, onChoose }: StationClima
   }, [map, mode])
 
   return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Box ref={mapRef} data-testid="station-climatology-map" sx={{ width: '100%', height: '100%' }} />
+    <>
       <Box
         sx={{
           position: 'absolute',
@@ -319,8 +312,8 @@ const StationClimatologyMap = ({ stations, chosenCodes, onChoose }: StationClima
           <Typography variant="body2">{hovered.name}</Typography>
         </Box>
       )}
-    </Box>
+    </>
   )
 }
 
-export default StationClimatologyMap
+export default StationClimatologyLayers

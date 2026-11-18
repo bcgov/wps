@@ -1,20 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { GeoJsonStation } from '@wps/types/stationTypes'
+import { Map as OlMap, View } from 'ol'
 import { containsCoordinate } from 'ol/extent'
 import { fromLonLat } from 'ol/proj'
-import StationClimatologyMap, { stationsExtent } from './StationClimatologyMap'
+import { useSfmsMap } from '@/features/sfmsInsights/components/map/SFMSMap'
+import StationClimatologyLayers, { stationsExtent } from './StationClimatologyLayers'
 
-vi.mock('@wps/utils/vectorLayerUtils', () => ({
-  getStyleJson: vi.fn().mockRejectedValue(new Error('No base map in tests')),
-  createVectorTileLayer: vi.fn()
-}))
-
-vi.mock('@/features/map/fireCentreLayer', async () => {
-  const { default: VectorLayer } = await import('ol/layer/Vector')
-  return { getFireCentreLinePMTilesLayer: vi.fn(() => new VectorLayer()) }
-})
-
-vi.mock('@wps/utils/error', () => ({ logError: vi.fn() }))
+vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => ({ useSfmsMap: vi.fn() }))
 
 class ResizeObserver {
   observe() {
@@ -44,9 +36,32 @@ const stations: GeoJsonStation[] = [
 
 // Clicking and drawing on the map need a laid-out page, so they are checked in a browser; the
 // choices they make are tested in stationSelection.test.ts.
-describe('StationClimatologyMap', () => {
+describe('StationClimatologyLayers', () => {
+  let map: OlMap
+  const atlantic = fromLonLat([-30, 40])
+
+  beforeEach(() => {
+    map = new OlMap({ target: document.createElement('div'), view: new View({ center: atlantic, resolution: 1000 }) })
+    vi.mocked(useSfmsMap).mockReturnValue(map)
+  })
+
+  it('puts the stations on the map while shown, and takes them off after', () => {
+    const { unmount } = render(<StationClimatologyLayers stations={stations} chosenCodes={[]} onChoose={vi.fn()} />)
+
+    expect(map.getLayers().getLength()).toBe(2)
+    // The map is fitted to BC and the stations, and panning stops a margin past them.
+    expect(containsCoordinate(stationsExtent(stations), map.getView().getCenter() ?? [])).toBe(true)
+    expect(map.getView().getConstrainedCenter(atlantic)).not.toEqual(atlantic)
+
+    unmount()
+
+    expect(map.getLayers().getLength()).toBe(0)
+    expect(containsCoordinate(stationsExtent([]), map.getView().getCenter() ?? [])).toBe(true)
+    expect(map.getView().getConstrainedCenter(atlantic)).toEqual(atlantic)
+  })
+
   it('starts with clicking stations, and switches to drawing an area', () => {
-    render(<StationClimatologyMap stations={stations} chosenCodes={[]} onChoose={vi.fn()} />)
+    render(<StationClimatologyLayers stations={stations} chosenCodes={[]} onChoose={vi.fn()} />)
 
     expect(screen.getByText(/Click a station to chart it/)).toBeInTheDocument()
 
@@ -57,7 +72,7 @@ describe('StationClimatologyMap', () => {
   })
 
   it('draws an outline by its corners or freehand, with a point to undo', () => {
-    render(<StationClimatologyMap stations={stations} chosenCodes={[]} onChoose={vi.fn()} />)
+    render(<StationClimatologyLayers stations={stations} chosenCodes={[]} onChoose={vi.fn()} />)
     expect(screen.queryByRole('button', { name: 'Undo point' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Draw an area' }))
@@ -70,10 +85,10 @@ describe('StationClimatologyMap', () => {
 
   it('clears the stations chosen', () => {
     const onChoose = vi.fn()
-    const { rerender } = render(<StationClimatologyMap stations={stations} chosenCodes={[]} onChoose={onChoose} />)
+    const { rerender } = render(<StationClimatologyLayers stations={stations} chosenCodes={[]} onChoose={onChoose} />)
     expect(screen.getByRole('button', { name: 'Clear' })).toBeDisabled()
 
-    rerender(<StationClimatologyMap stations={stations} chosenCodes={[322]} onChoose={onChoose} />)
+    rerender(<StationClimatologyLayers stations={stations} chosenCodes={[322]} onChoose={onChoose} />)
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
 
     expect(onChoose).toHaveBeenCalledWith([], null)
