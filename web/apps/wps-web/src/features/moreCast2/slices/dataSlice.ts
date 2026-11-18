@@ -309,6 +309,21 @@ export const createMoreCast2Rows = (
           row.windDirectionRDPS_BIAS = getNumberOrNaN(value.wind_direction)
           row.windSpeedRDPS_BIAS = getNumberOrNaN(value.wind_speed)
           break
+        case WeatherDeterminate.ECMWF:
+          row.precipECMWF = getNumberOrNaN(value.precipitation)
+          row.rhECMWF = getNumberOrNaN(value.relative_humidity)
+          row.tempECMWF = getNumberOrNaN(value.temperature)
+          row.windDirectionECMWF = getNumberOrNaN(value.wind_direction)
+          row.windSpeedECMWF = getNumberOrNaN(value.wind_speed)
+          row.predictionRunTimestampECMWF = value.prediction_run_timestamp
+          break
+        case WeatherDeterminate.ECMWF_BIAS:
+          row.precipECMWF_BIAS = getNumberOrNaN(value.precipitation)
+          row.rhECMWF_BIAS = getNumberOrNaN(value.relative_humidity)
+          row.tempECMWF_BIAS = getNumberOrNaN(value.temperature)
+          row.windDirectionECMWF_BIAS = getNumberOrNaN(value.wind_direction)
+          row.windSpeedECMWF_BIAS = getNumberOrNaN(value.wind_speed)
+          break
         default:
         // no-op
       }
@@ -600,7 +615,7 @@ function sortRowsByStationNameAndDate(rows: MoreCast2Row[]) {
  * @returns A number or NaN.
  */
 const getNumberOrNaN = (value: number | null) => {
-  return isNumber(value) ? value : NaN
+  return isNumber(value) ? value : Number.NaN
 }
 
 /**
@@ -626,92 +641,102 @@ export const createEmptyMoreCast2Row = (
     forDate,
     latitude,
     longitude,
-    precipActual: NaN,
-    rhActual: NaN,
-    tempActual: NaN,
-    windDirectionActual: NaN,
-    windSpeedActual: NaN,
+    precipActual: Number.NaN,
+    rhActual: Number.NaN,
+    tempActual: Number.NaN,
+    windDirectionActual: Number.NaN,
+    windSpeedActual: Number.NaN,
 
     // Indices
-    ffmcCalcActual: NaN,
-    dmcCalcActual: NaN,
-    dcCalcActual: NaN,
-    isiCalcActual: NaN,
-    buiCalcActual: NaN,
-    fwiCalcActual: NaN,
-    dgrCalcActual: NaN,
+    ffmcCalcActual: Number.NaN,
+    dmcCalcActual: Number.NaN,
+    dcCalcActual: Number.NaN,
+    isiCalcActual: Number.NaN,
+    buiCalcActual: Number.NaN,
+    fwiCalcActual: Number.NaN,
+    dgrCalcActual: Number.NaN,
 
-    grassCuringActual: NaN,
+    grassCuringActual: Number.NaN,
 
     // GDPS model predictions
-    precipGDPS: NaN,
-    rhGDPS: NaN,
-    tempGDPS: NaN,
-    windDirectionGDPS: NaN,
-    windSpeedGDPS: NaN,
+    precipGDPS: Number.NaN,
+    rhGDPS: Number.NaN,
+    tempGDPS: Number.NaN,
+    windDirectionGDPS: Number.NaN,
+    windSpeedGDPS: Number.NaN,
 
     // GDPS_BIAS model predictions
-    precipGDPS_BIAS: NaN,
-    rhGDPS_BIAS: NaN,
-    tempGDPS_BIAS: NaN,
-    windDirectionGDPS_BIAS: NaN,
-    windSpeedGDPS_BIAS: NaN,
+    precipGDPS_BIAS: Number.NaN,
+    rhGDPS_BIAS: Number.NaN,
+    tempGDPS_BIAS: Number.NaN,
+    windDirectionGDPS_BIAS: Number.NaN,
+    windSpeedGDPS_BIAS: Number.NaN,
 
     // GFS model predictions
-    precipGFS: NaN,
-    rhGFS: NaN,
-    tempGFS: NaN,
-    windDirectionGFS: NaN,
-    windSpeedGFS: NaN,
+    precipGFS: Number.NaN,
+    rhGFS: Number.NaN,
+    tempGFS: Number.NaN,
+    windDirectionGFS: Number.NaN,
+    windSpeedGFS: Number.NaN,
 
     // GFS_BIAS model predictions
-    precipGFS_BIAS: NaN,
-    rhGFS_BIAS: NaN,
-    tempGFS_BIAS: NaN,
-    windDirectionGFS_BIAS: NaN,
-    windSpeedGFS_BIAS: NaN,
+    precipGFS_BIAS: Number.NaN,
+    rhGFS_BIAS: Number.NaN,
+    tempGFS_BIAS: Number.NaN,
+    windDirectionGFS_BIAS: Number.NaN,
+    windSpeedGFS_BIAS: Number.NaN,
 
     // HRDPS model predictions
-    precipHRDPS: NaN,
-    rhHRDPS: NaN,
-    tempHRDPS: NaN,
-    windDirectionHRDPS: NaN,
-    windSpeedHRDPS: NaN,
+    precipHRDPS: Number.NaN,
+    rhHRDPS: Number.NaN,
+    tempHRDPS: Number.NaN,
+    windDirectionHRDPS: Number.NaN,
+    windSpeedHRDPS: Number.NaN,
 
     // HRDPS_BIAS model predictions
-    precipHRDPS_BIAS: NaN,
-    rhHRDPS_BIAS: NaN,
-    tempHRDPS_BIAS: NaN,
-    windDirectionHRDPS_BIAS: NaN,
-    windSpeedHRDPS_BIAS: NaN,
+    precipHRDPS_BIAS: Number.NaN,
+    rhHRDPS_BIAS: Number.NaN,
+    tempHRDPS_BIAS: Number.NaN,
+    windDirectionHRDPS_BIAS: Number.NaN,
+    windSpeedHRDPS_BIAS: Number.NaN,
 
     // NAM model predictions
-    precipNAM: NaN,
-    rhNAM: NaN,
-    tempNAM: NaN,
-    windDirectionNAM: NaN,
-    windSpeedNAM: NaN,
+    precipNAM: Number.NaN,
+    rhNAM: Number.NaN,
+    tempNAM: Number.NaN,
+    windDirectionNAM: Number.NaN,
+    windSpeedNAM: Number.NaN,
 
     // NAM_BIAS model predictions
-    precipNAM_BIAS: NaN,
-    rhNAM_BIAS: NaN,
-    tempNAM_BIAS: NaN,
-    windDirectionNAM_BIAS: NaN,
-    windSpeedNAM_BIAS: NaN,
+    precipNAM_BIAS: Number.NaN,
+    rhNAM_BIAS: Number.NaN,
+    tempNAM_BIAS: Number.NaN,
+    windDirectionNAM_BIAS: Number.NaN,
+    windSpeedNAM_BIAS: Number.NaN,
 
     // RDPS model predictions
-    precipRDPS: NaN,
-    rhRDPS: NaN,
-    tempRDPS: NaN,
-    windDirectionRDPS: NaN,
-    windSpeedRDPS: NaN,
+    precipRDPS: Number.NaN,
+    rhRDPS: Number.NaN,
+    tempRDPS: Number.NaN,
+    windDirectionRDPS: Number.NaN,
+    windSpeedRDPS: Number.NaN,
 
     // RDPS_BIAS model predictions
-    precipRDPS_BIAS: NaN,
-    rhRDPS_BIAS: NaN,
-    tempRDPS_BIAS: NaN,
-    windDirectionRDPS_BIAS: NaN,
-    windSpeedRDPS_BIAS: NaN
+    precipRDPS_BIAS: Number.NaN,
+    rhRDPS_BIAS: Number.NaN,
+    tempRDPS_BIAS: Number.NaN,
+    windDirectionRDPS_BIAS: Number.NaN,
+    windSpeedRDPS_BIAS: Number.NaN,
+    precipECMWF: Number.NaN,
+    rhECMWF: Number.NaN,
+    tempECMWF: Number.NaN,
+    windDirectionECMWF: Number.NaN,
+    windSpeedECMWF: Number.NaN,
+    precipECMWF_BIAS: Number.NaN,
+    rhECMWF_BIAS: Number.NaN,
+    tempECMWF_BIAS: Number.NaN,
+    windDirectionECMWF_BIAS: Number.NaN,
+    windSpeedECMWF_BIAS: Number.NaN
   }
 }
 
