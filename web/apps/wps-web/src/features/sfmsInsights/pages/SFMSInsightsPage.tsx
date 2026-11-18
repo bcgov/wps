@@ -199,7 +199,7 @@ export const SFMSInsightsPage = () => {
             rasterType={rasterType}
             runType={runType}
             showSnow={showSnow}
-            showRasterTooltip={view === 'map'}
+            showRasterDetails={view === 'map'}
           >
             {view === 'climatology' && (
               <StationClimatologyLayers

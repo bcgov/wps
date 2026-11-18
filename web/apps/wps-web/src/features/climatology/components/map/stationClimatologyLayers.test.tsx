@@ -107,4 +107,16 @@ describe('StationClimatologyLayers', () => {
     expect(containsCoordinate(extent, fromLonLat([-125, 54.5]))).toBe(true)
     expect(containsCoordinate(stationsExtent([]), fromLonLat([-137.576167, 60.77295]))).toBe(false)
   })
+
+  it('leaves out stations far from BC, which are most likely misplaced', () => {
+    const misplaced = (code: number, coordinates: number[]) => ({
+      ...stations[0],
+      properties: { ...stations[0].properties, code },
+      geometry: { type: 'Point', coordinates }
+    })
+
+    const extent = stationsExtent([...stations, misplaced(1, [0, 0]), misplaced(2, [120, 50]), misplaced(3, [-60, 45])])
+
+    expect(extent).toEqual(stationsExtent([]))
+  })
 })
