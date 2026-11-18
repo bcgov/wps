@@ -31,13 +31,9 @@ COPY ./backend/uv.lock /app/
 COPY ./backend/.python-version /app/
 COPY ./backend/packages/wps-api/pyproject.toml /app/packages/wps-api/
 COPY ./backend/packages/cffdrs-vec/pyproject.toml /app/packages/cffdrs-vec/
-COPY ./backend/packages/cffdrs-vec/src /app/packages/cffdrs-vec/src
 COPY ./backend/packages/wps-shared/pyproject.toml /app/packages/wps-shared/
-COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
 COPY ./backend/packages/wps-sfms/pyproject.toml /app/packages/wps-sfms/
-COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
 COPY ./backend/packages/wps-wf1/pyproject.toml /app/packages/wps-wf1/
-COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
 
 # Switch to root to set file permissions
 USER 0
@@ -48,12 +44,7 @@ RUN chmod 444 /app/pyproject.toml /app/uv.lock \
     /app/packages/cffdrs-vec/pyproject.toml \
     /app/packages/wps-shared/pyproject.toml \
     /app/packages/wps-wf1/pyproject.toml \
-    /app/packages/wps-sfms/pyproject.toml && \
-    chmod -R a-w \
-    /app/packages/cffdrs-vec/src \
-    /app/packages/wps-shared/src \
-    /app/packages/wps-sfms/src \
-    /app/packages/wps-wf1/src
+    /app/packages/wps-sfms/pyproject.toml
 
 # Switch back to non-root user
 USER $USERNAME
@@ -61,10 +52,30 @@ USER $USERNAME
 # Fail the build if the base image's python3 doesn't match .python-version, instead of downloading one
 ENV UV_PYTHON_DOWNLOADS=never
 
-# Install dependencies using uv, including setuptools for GDAL build and GDAL itself
-RUN uv sync --frozen --no-dev --package wps-api && \
-    uv pip install setuptools && \
-    uv pip install --no-build-isolation --no-cache-dir --force-reinstall gdal==$(gdal-config --version)
+# The base image already ships GDAL Python bindings (osgeo) built for its python3 and libgdal,
+# so the venv sees system site-packages and skips the gdal sdist instead of compiling it.
+# Venv packages (e.g. numpy from uv.lock) still take precedence over the system copies.
+# Install third-party dependencies only (no workspace source yet), so this layer is reused
+# unless the lockfile or manifests change.
+RUN uv venv --system-site-packages && \
+    uv sync --frozen --no-dev --package wps-api --no-install-workspace --no-install-package gdal
+
+# Copy workspace package source
+COPY ./backend/packages/cffdrs-vec/src /app/packages/cffdrs-vec/src
+COPY ./backend/packages/wps-shared/src /app/packages/wps-shared/src
+COPY ./backend/packages/wps-sfms/src /app/packages/wps-sfms/src
+COPY ./backend/packages/wps-wf1/src /app/packages/wps-wf1/src
+
+USER 0
+RUN chmod -R a-w \
+    /app/packages/cffdrs-vec/src \
+    /app/packages/wps-shared/src \
+    /app/packages/wps-sfms/src \
+    /app/packages/wps-wf1/src
+USER $USERNAME
+
+# Install the workspace packages
+RUN uv sync --frozen --no-dev --package wps-api --no-install-package gdal
 
 # Stage 2: Prepare the final image, including copying Python packages from Stage 1.
 FROM ${DOCKER_IMAGE}
