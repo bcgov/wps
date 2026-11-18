@@ -21,12 +21,22 @@ const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 // units shrink with latitude, so at 60° N this is about 150 km on the ground.
 const VIEW_MARGIN = 300_000
 
-/** What the map shows: BC and every station, some of which are outside it, such as in Yukon. */
+// How far past BC, in degrees, a station still counts in what the map shows. Enough for those in
+// Yukon and Alberta; a station further off is most likely misplaced, and fitting the map to it
+// would zoom out over the continent.
+const NEARBY_DEGREES = 3
+const [[minLon, minLat], [maxLon, maxLat]] = BC_EXTENT
+const nearBC = ([lon, lat]: number[]) =>
+  lon >= minLon - NEARBY_DEGREES &&
+  lon <= maxLon + NEARBY_DEGREES &&
+  lat >= minLat - NEARBY_DEGREES &&
+  lat <= maxLat + NEARBY_DEGREES
+
+/** What the map shows: BC and the stations near it, some of which are outside it, such as in Yukon. */
 export const stationsExtent = (stations: GeoJsonStation[]): Extent =>
-  stations.reduce(
-    (extent, { geometry }) => extend(extent, boundingExtent([fromLonLat(geometry.coordinates)])),
-    [...bcExtent]
-  )
+  stations
+    .filter(({ geometry }) => nearBC(geometry.coordinates))
+    .reduce((extent, { geometry }) => extend(extent, boundingExtent([fromLonLat(geometry.coordinates)])), [...bcExtent])
 
 /** A view where `current` is, that stops panning and zooming out a margin past BC and every station. */
 const stationsView = (stations: GeoJsonStation[], current: View) =>

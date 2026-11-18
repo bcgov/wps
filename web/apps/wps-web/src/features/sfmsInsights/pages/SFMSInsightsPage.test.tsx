@@ -24,7 +24,7 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
       rasterDate,
       rasterType,
       runType,
-      showRasterTooltip,
+      showRasterDetails,
       children
     }: {
       showSnow: boolean
@@ -32,7 +32,7 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
       rasterDate: DateTime | null
       rasterType: string
       runType: string
-      showRasterTooltip: boolean
+      showRasterDetails: boolean
       children?: ReactNode
     }) => (
       <div
@@ -42,7 +42,7 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
         data-raster-date={rasterDate?.toISO() ?? 'null'}
         data-raster-type={rasterType}
         data-run-type={runType}
-        data-raster-tooltip={showRasterTooltip}
+        data-raster-details={showRasterDetails}
       >
         Mock SFMS Map
         {children}
@@ -567,14 +567,14 @@ describe('SFMSInsightsPage', () => {
     renderWithStore()
 
     const map = await screen.findByTestId('sfms-map')
-    expect(map).toHaveAttribute('data-raster-tooltip', 'true')
+    expect(map).toHaveAttribute('data-raster-details', 'true')
     expect(screen.queryByTestId('station-climatology-layers')).not.toBeInTheDocument()
     expect(screen.queryByTestId('station-climatology-panel')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('tab', { name: 'Station climatology' }))
 
     expect(screen.getByTestId('sfms-map')).toBe(map)
-    expect(map).toHaveAttribute('data-raster-tooltip', 'false')
+    expect(map).toHaveAttribute('data-raster-details', 'false')
     expect(screen.getByTestId('station-climatology-layers')).toBeInTheDocument()
     expect(screen.getByTestId('station-climatology-panel')).toBeInTheDocument()
     expect(screen.getByTestId('raster-type-dropdown')).toBeVisible()

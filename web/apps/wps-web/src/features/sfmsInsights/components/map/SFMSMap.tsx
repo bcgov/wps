@@ -41,8 +41,9 @@ interface SFMSMapProps {
   rasterType?: RasterType
   runType?: RunType
   showSnow?: boolean
-  // Whether hovering shows the raster value. Off when the map's children have their own tooltip.
-  showRasterTooltip?: boolean
+  // Whether the raster's legend shows, and hovering shows its value. Off when the map's children
+  // are what the map is for, such as the stations on the station climatology tab.
+  showRasterDetails?: boolean
   // More on the map, such as the station climatology layers, which reach it with `useSfmsMap`.
   children?: ReactNode
 }
@@ -53,7 +54,7 @@ const SFMSMap = ({
   rasterType = 'fwi',
   runType = RunType.ACTUAL,
   showSnow = true,
-  showRasterTooltip = true,
+  showRasterDetails = true,
   children
 }: SFMSMapProps) => {
   const token = useSelector(selectToken)
@@ -148,7 +149,7 @@ const SFMSMap = ({
               height: '100%'
             }}
           ></Box>
-          {showRasterTooltip && (
+          {showRasterDetails && (
             <RasterTooltip
               label={rasterTooltipData.label}
               value={rasterTooltipData.value}
@@ -157,7 +158,7 @@ const SFMSMap = ({
               decimalPlaces={RASTER_CONFIG[rasterType].tooltipDecimalPlaces}
             />
           )}
-          <RasterLegend rasterType={rasterType} />
+          {showRasterDetails && <RasterLegend rasterType={rasterType} />}
           {isLoading && (
             <Box
               sx={{
