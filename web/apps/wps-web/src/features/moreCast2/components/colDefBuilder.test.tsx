@@ -37,10 +37,10 @@ describe('ColDefBuilder', () => {
     expect(columns.slice(-6).map(column => column.headerName)).toEqual([
       WeatherDeterminate.ECMWF,
       WeatherDeterminate.ECMWF_BIAS,
-      WeatherDeterminate.NAM,
-      WeatherDeterminate.NAM_BIAS,
       WeatherDeterminate.GFS,
-      WeatherDeterminate.GFS_BIAS
+      WeatherDeterminate.GFS_BIAS,
+      WeatherDeterminate.NAM,
+      WeatherDeterminate.NAM_BIAS
     ])
     const ecmwfColumns = columns.filter(
       column => column.headerName === WeatherDeterminate.ECMWF || column.headerName === WeatherDeterminate.ECMWF_BIAS
