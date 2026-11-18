@@ -44,6 +44,10 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
   }
 })
 
+vi.mock('@/features/climatology/components/StationClimatologyPanel', () => ({
+  default: () => <div data-testid="station-climatology-panel">Mock Station Climatology</div>
+}))
+
 vi.mock('@wps/utils/vectorLayerUtils', () => ({
   getStyleJson: vi.fn(),
   createVectorTileLayer: vi.fn()
@@ -542,5 +546,23 @@ describe('SFMSInsightsPage', () => {
 
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'true')
+  })
+
+  it('shows the fire weather map first, and station climatology on its tab', async () => {
+    renderWithStore()
+
+    expect(await screen.findByTestId('sfms-map')).toBeInTheDocument()
+    expect(screen.queryByTestId('station-climatology-panel')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Station climatology' }))
+
+    expect(screen.getByTestId('station-climatology-panel')).toBeInTheDocument()
+    expect(screen.queryByTestId('sfms-map')).not.toBeInTheDocument()
+    expect(screen.getByTestId('raster-type-dropdown')).not.toBeVisible()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Fire weather map' }))
+
+    expect(await screen.findByTestId('sfms-map')).toBeInTheDocument()
+    expect(screen.getByTestId('raster-type-dropdown')).toBeVisible()
   })
 })

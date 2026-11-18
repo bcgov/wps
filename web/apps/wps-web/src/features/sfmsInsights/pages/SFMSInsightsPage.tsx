@@ -1,4 +1,4 @@
-import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
+import { Box, Checkbox, CircularProgress, FormControlLabel, Grid, Tab, Tabs } from '@mui/material'
 import { RunType } from '@wps/api/runType'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '@/app/rootReducer'
 import type { AppDispatch } from '@/app/store'
+import StationClimatologyPanel from '@/features/climatology/components/StationClimatologyPanel'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
 import Footer from '@/features/landingPage/components/Footer'
 import type { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
@@ -27,10 +28,13 @@ import {
   selectSFMSInsightsBoundsLoading
 } from '@/features/sfmsInsights/slices/sfmsInsightsSlice'
 
+type InsightsView = 'map' | 'climatology'
+
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
 
   // state
+  const [view, setView] = useState<InsightsView>('map')
   const [runType, setRunType] = useState<RunType>(RunType.ACTUAL)
   const [rasterType, setRasterType] = useState<RasterType>('fuel')
   const [rasterDate, setRasterDate] = useState<DateTime | null>(getDateTimeNowPDT())
@@ -101,7 +105,17 @@ export const SFMSInsightsPage = () => {
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={true} spacing={1} title={SFMS_INSIGHTS_NAME} />
+      <Tabs
+        value={view}
+        onChange={(_, selected: InsightsView) => setView(selected)}
+        sx={{ paddingLeft: 2, borderBottom: 1, borderColor: 'divider' }}
+      >
+        <Tab value="map" label="Fire weather map" />
+        <Tab value="climatology" label="Station climatology" />
+      </Tabs>
+      {view === 'climatology' && <StationClimatologyPanel />}
       <Box
+        hidden={view !== 'map'}
         sx={{
           paddingTop: '0.5em',
           borderBottomWidth: 2,
@@ -167,15 +181,17 @@ export const SFMSInsightsPage = () => {
           </Grid>
         </Grid>
       </Box>
-      <Box sx={{ flex: 1, position: 'relative' }}>
-        <SFMSMap
-          snowDate={snowDate}
-          rasterDate={rasterDate}
-          rasterType={rasterType}
-          runType={runType}
-          showSnow={showSnow}
-        />
-      </Box>
+      {view === 'map' && (
+        <Box sx={{ flex: 1, position: 'relative' }}>
+          <SFMSMap
+            snowDate={snowDate}
+            rasterDate={rasterDate}
+            rasterType={rasterType}
+            runType={runType}
+            showSnow={showSnow}
+          />
+        </Box>
+      )}
       <Footer />
     </Box>
   )
