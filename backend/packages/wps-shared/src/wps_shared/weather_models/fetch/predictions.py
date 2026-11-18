@@ -13,7 +13,6 @@ from wps_shared.db.crud.weather_models import get_latest_station_prediction
 from wps_shared.schemas.morecast_v2 import WeatherIndeterminate
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.utils.time import get_days_from_range, vancouver_tz
-from wps_shared.weather_models import ModelEnum
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +51,6 @@ def fetch_latest_model_run_predictions_by_station_code_and_date_range(
             wind_dir,
             wind_speed,
         ) in daily_result:
-            if model_abbrev == ModelEnum.ECMWF.value:
-                continue
             # Create two WeatherIndeterminates, one for model predictions and one for bias corrected predictions
             results.append(
                 WeatherIndeterminate(
@@ -101,6 +98,7 @@ def post_process_fetched_predictions(weather_indeterminates: List[WeatherIndeter
         grouped_data[key].append(weather_indeterminate)
 
     for key, station_indeterminates in grouped_data.items():
+        # max keeps the first match, and the query orders model runs newest first
         latest_for_station = max(station_indeterminates, key=lambda x: x.utc_timestamp)
         results.append(latest_for_station)
 
