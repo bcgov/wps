@@ -35,7 +35,7 @@ COPY web/apps/wps-web/ apps/wps-web/
 RUN yarn turbo build
 
 # PHASE 2 - prepare hosting.
-FROM docker.io/library/nginx:stable-alpine
+FROM docker.io/library/nginx:1.30.7-alpine
 
 # Copy application sources
 COPY ./openshift/nginx.conf /etc/nginx/nginx.conf
