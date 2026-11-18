@@ -1,3 +1,6 @@
+[tool.uv]
+exclude-newer = "3 days"
+
 [tool.uv.workspace]
 members = ["packages/*"]
 
