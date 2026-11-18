@@ -27,10 +27,12 @@ import {
 import 'ol/ol.css'
 import { selectToken } from 'app/rootReducer'
 import { fromLonLat } from 'ol/proj'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
 const MapContext = React.createContext<OlMap | null>(null)
+/** The SFMS map, for layers drawn on it by the map's children. Null until the map is made. */
+export const useSfmsMap = () => useContext(MapContext)
 const bcExtent = boundingExtent(BC_EXTENT.map(coord => fromLonLat(coord)))
 
 interface SFMSMapProps {
@@ -39,6 +41,10 @@ interface SFMSMapProps {
   rasterType?: RasterType
   runType?: RunType
   showSnow?: boolean
+  // Whether hovering shows the raster value. Off when the map's children have their own tooltip.
+  showRasterTooltip?: boolean
+  // More on the map, such as the station climatology layers, which reach it with `useSfmsMap`.
+  children?: ReactNode
 }
 
 const SFMSMap = ({
@@ -46,7 +52,9 @@ const SFMSMap = ({
   rasterDate,
   rasterType = 'fwi',
   runType = RunType.ACTUAL,
-  showSnow = true
+  showSnow = true,
+  showRasterTooltip = true,
+  children
 }: SFMSMapProps) => {
   const token = useSelector(selectToken)
   const [map, setMap] = useState<OlMap | null>(null)
@@ -140,13 +148,15 @@ const SFMSMap = ({
               height: '100%'
             }}
           ></Box>
-          <RasterTooltip
-            label={rasterTooltipData.label}
-            value={rasterTooltipData.value}
-            pixelCoords={rasterTooltipData.pixel}
-            snowCovered={rasterTooltipData.snowCovered}
-            decimalPlaces={RASTER_CONFIG[rasterType].tooltipDecimalPlaces}
-          />
+          {showRasterTooltip && (
+            <RasterTooltip
+              label={rasterTooltipData.label}
+              value={rasterTooltipData.value}
+              pixelCoords={rasterTooltipData.pixel}
+              snowCovered={rasterTooltipData.snowCovered}
+              decimalPlaces={RASTER_CONFIG[rasterType].tooltipDecimalPlaces}
+            />
+          )}
           <RasterLegend rasterType={rasterType} />
           {isLoading && (
             <Box
@@ -176,6 +186,7 @@ const SFMSMap = ({
             rasterLabel={RASTER_CONFIG[rasterType].label}
             runType={rasterType === 'fmc' ? undefined : runType}
           />
+          {children}
         </Box>
       </MapContext.Provider>
     </ErrorBoundary>

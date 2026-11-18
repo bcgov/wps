@@ -12,7 +12,9 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '@/app/rootReducer'
 import type { AppDispatch } from '@/app/store'
+import StationClimatologyLayers from '@/features/climatology/components/map/StationClimatologyLayers'
 import StationClimatologyPanel from '@/features/climatology/components/StationClimatologyPanel'
+import { useStationChoice } from '@/features/climatology/useStationChoice'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
 import Footer from '@/features/landingPage/components/Footer'
 import type { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
@@ -44,6 +46,8 @@ export const SFMSInsightsPage = () => {
     DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPDT().year })
   )
   const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPDT().plus({ days: 10 }))
+
+  const climatology = useStationChoice(view === 'climatology')
 
   // selectors
   const sfmsBounds = useSelector(selectSFMSInsightsBounds)
@@ -113,9 +117,7 @@ export const SFMSInsightsPage = () => {
         <Tab value="map" label="Fire weather map" />
         <Tab value="climatology" label="Station climatology" />
       </Tabs>
-      {view === 'climatology' && <StationClimatologyPanel />}
       <Box
-        hidden={view !== 'map'}
         sx={{
           paddingTop: '0.5em',
           borderBottomWidth: 2,
@@ -181,17 +183,37 @@ export const SFMSInsightsPage = () => {
           </Grid>
         </Grid>
       </Box>
-      {view === 'map' && (
-        <Box sx={{ flex: 1, position: 'relative' }}>
+      {/* One map for both tabs. Station climatology puts the stations on it, with their charts beside it. */}
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box
+          sx={{
+            position: 'relative',
+            flex: view === 'map' ? 1 : 'none',
+            width: { xs: '100%', md: view === 'map' ? '100%' : '50%' },
+            height: { xs: view === 'map' ? 'auto' : 360, md: 'auto' }
+          }}
+        >
           <SFMSMap
             snowDate={snowDate}
             rasterDate={rasterDate}
             rasterType={rasterType}
             runType={runType}
             showSnow={showSnow}
-          />
+            showRasterTooltip={view === 'map'}
+          >
+            {view === 'climatology' && (
+              <StationClimatologyLayers
+                stations={climatology.stations}
+                chosenCodes={climatology.chosenCodes}
+                onChoose={climatology.onChoose}
+              />
+            )}
+          </SFMSMap>
         </Box>
-      )}
+        {view === 'climatology' && (
+          <StationClimatologyPanel chosen={climatology.chosen} label={climatology.label} error={climatology.error} />
+        )}
+      </Box>
       <Footer />
     </Box>
   )
