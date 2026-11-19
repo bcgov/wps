@@ -159,6 +159,16 @@ def newest_per_key(rows: pa.Table) -> pa.Table:
     return rows.select(BY_TIME_SCHEMA.names)
 
 
+def _months(start: datetime, end: datetime) -> list[str]:
+    """The `month` partitions from `start` to `end`, as YYYY-MM."""
+    months = []
+    year, month = start.year, start.month
+    while (year, month) <= (end.year, end.month):
+        months.append(f"{year:04d}-{month:02d}")
+        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+    return months
+
+
 class ByTimeTable(DeltaWeatherTable):
     """The `by_time` Delta table."""
 
@@ -256,17 +266,18 @@ class ByTimeTable(DeltaWeatherTable):
 
         start = start.astimezone(UTC)
         end = end.astimezone(UTC)
-        wanted = (
-            (pc.field("resolution") == resolution)
-            & pc.field("source").isin(list(sources))
-            & (pc.field("month") >= start.strftime("%Y-%m"))
-            & (pc.field("month") <= end.strftime("%Y-%m"))
-            & (pc.field("timestamp") >= start)
-            & (pc.field("timestamp") <= end)
-        )
+        wanted = (pc.field("timestamp") >= start) & (pc.field("timestamp") <= end)
         if station_codes is not None:
             wanted = wanted & pc.field("station_code").isin(list(station_codes))
-        dataset = self.dataset()
+        # Only the partitions' files are opened. Building the dataset from every file and
+        # filtering it cost several times the memory and time.
+        dataset = self.dataset(
+            partitions=[
+                ("resolution", "=", resolution),
+                ("source", "in", list(sources)),
+                ("month", "in", _months(start, end)),
+            ]
+        )
         return (
             dataset.to_table(filter=wanted)
             .select(BY_TIME_SCHEMA.names)

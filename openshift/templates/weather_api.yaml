@@ -52,8 +52,10 @@ parameters:
     description: Used for specifying which environment sentry is running in
     value: ""
   - name: GUNICORN_WORKERS
+    # One: each worker holds its own open Delta tables, about 1 GiB with by_time and by_station.
+    # Requests are async and the reads run in threads, so one worker serves several at once.
     description: Number of gunicorn workers
-    value: "2"
+    value: "1"
   - name: DEPLOY_VERSION
     description: Changes to force a single rollout after image builds complete
     required: true
