@@ -10,7 +10,7 @@ Keeping the grids would let us backfill a station added later, give forecasts at
 
 ## Setup
 
-Scripts: [`backend/scripts/model_grid_icechunk_spike.py`](../../backend/scripts/model_grid_icechunk_spike.py) writes and measures the stores, and [`backend/scripts/msc_grib_precision_check.py`](../../backend/scripts/msc_grib_precision_check.py) reports the precision MSC packs each field at. Their dependencies (zarr 3.4.2, icechunk 2.3.1, numcodecs 0.17.1 with pcodec, eccodes 2.48.0) are declared in the scripts, not added to the project.
+Scripts: [`backend/scripts/model_grid_icechunk_spike.py`](../../backend/scripts/model_grid_icechunk_spike.py) writes and measures the stores, and [`backend/scripts/grib_precision_check.py`](../../backend/scripts/grib_precision_check.py) reports the precision MSC packs each field at. Their dependencies (zarr 3.4.2, icechunk 2.3.1, numcodecs 0.17.1 with pcodec, eccodes 2.48.0) are declared in the scripts, not added to the project.
 
 - **Data.** HRDPS continental 2.5 km, the 2026-11-19 12Z run, forecast hours 0 to 48, downloaded from the MSC datamart. The same five variables the HRDPS job reads: 2 m temperature, 2 m relative humidity, 10 m wind speed and direction, and accumulated precipitation.
 - **Crop.** HRDPS is a 2540 x 1290 rotated lat-lon grid. The rows and columns covering BC (latitude 48.2 to 60.1, longitude -139.2 to -114.0) are 622 x 680 = 422,960 cells. Uncompressed as float32, a run is 415 MB.
@@ -55,7 +55,7 @@ On local disk, on a laptop:
 
 The `grib` row is the 18Z run of the same day; the others are the 12Z run. On the 18Z run, `f32-pcodec-point` and `i16-pcodec-point` measured within 0.5 MB of their 12Z sizes. A point read in the `grib` variant also reads the hour's scales, which is why it is slower.
 
-What MSC packs each field at, from `msc_grib_precision_check.py` on the 18Z run's hour 24, against the `i16` variants:
+What MSC packs each field at, from `grib_precision_check.py` on the 18Z run's hour 24, against the `i16` variants:
 
 | Variable | Bits per value | MSC's step | `i16` step | `grib` MB per run (pcodec) |
 |---|---|---|---|---|
@@ -83,11 +83,29 @@ Only sizes, compression and errors carry over to ECS. Read and write times on EC
 - **Writing is cheap.** A run encodes and commits in under a second once it is in memory. The cost of a job is the download, which the HRDPS job already does.
 - **The rough estimate held.** The evaluation's 475 GB a year for HRDPS before compression compares with 605 GB measured uncompressed (415 MB x 4 runs x 365 days).
 
+## The other models
+
+`grib_precision_check.py` was run on hour 24 of each model's 2026-11-19 12Z run, fetched the way its job fetches it. Every field is integer-packed GRIB2, and every field's integers were recovered exactly (at most 2 x 10^-9 of a step from a whole X). So the `grib` variant works unchanged for all of them.
+
+| Model | Source | Packing | Temperature step | Relative humidity step | Wind step | Precipitation step |
+|---|---|---|---|---|---|---|
+| HRDPS | MSC datamart | JPEG 2000 | 0.001 K | 0.025 % | 0.01 m/s, 0.1° | 0.00001 mm |
+| RDPS | MSC datamart | JPEG 2000 | 0.025 K | 0.025 % | 0.01 m/s, 0.1° | 0.000025 mm |
+| GDPS | MSC datamart | JPEG 2000 | 0.025 K | 0.25 % | 0.05 m/s, 0.5° | 0.000025 mm |
+| GFS | NOMADS filter, cropped to BC | simple | 0.01 K | 0.1 % | 0.01 m/s (u and v) | 0.0625 mm |
+| ECMWF IFS 0.1° | open data, through herbie | CCSDS | 0.25 K | none: dew point, 0.25 K | 0.03125 m/s (u and v) | 0.00024 m |
+
+- **NAM is gone.** NOMADS answers its NAM directory with "The model is no longer available on nomads.ncep.noaa.gov", and the NAM cron jobs are suspended in dev.
+- **Precision differs by model.** Lossless means keeping what each provider publishes: ECMWF's open data has temperature in 0.25 K steps and GFS has precipitation in 0.0625 mm steps. A field's step can change by hour, so R, E and D are stored per hour.
+- **What differs is the layout, not the encoding.** RDPS and HRDPS are rotated lat-lon and GDPS, GFS and ECMWF regular lat-lon, so each model needs its own store, crop and coordinates. GFS and ECMWF publish wind as u and v and ECMWF publishes dew point, not relative humidity: to stay lossless, store what is published and derive speed, direction and humidity when reading, as the station jobs do. GDPS is 3-hourly to 240 hours, RDPS hourly to 84 and GFS 3-hourly; the GFS job fetches only the hours around noon, so a grid store would fetch more than it does.
+- **NOMADS repacks.** Its filter crops and re-encodes GFS with simple packing. Whether it keeps NOAA's original scales was not checked.
+- **Sizes were not measured** for these models. Their grids are coarser than HRDPS, so far fewer cells cover BC, but GDPS and GFS run to 10 days and more. The spike only knows HRDPS's files and would need each model's URLs, crop and variable names.
+
 ## Open questions
 
 - **Read times on ECS**, for a point forecast and for a map in each layout.
 - **Icechunk on ECS works, with one setting.** A small test (3 hours of one run, one variant) wrote, committed and read back from ECS on 2026-11-19, with conditional writes on. Without the setting, the first commit failed: ECS answers Icechunk's conditional GET with a 304 that carries the object's checksum but no body, and the AWS SDK inside Icechunk rejects it ("expected body checksum to be 0c835fe8 but it was 00000000"). Setting `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` to `when_required` fixes it, as the same incompatibility needed for botocore. The script sets both when it writes to S3. Any job writing Icechunk to ECS will need them.
-- **The other models.** Only HRDPS was measured. RDPS (10 km), GDPS, GFS, NAM and ECMWF have coarser grids, so far fewer cells over BC, but more forecast hours. They need their own runs of the spike.
+- **The other models' sizes.** Only HRDPS was measured. See [The other models](#the-other-models).
 - **More runs.** One run was written. Compression is per run, so it should hold, but the object count and Icechunk's metadata over months of commits are not measured.
 - **ECS quota and cost** for about 100 GB a year per model, and who approves it.
 - **Where the writes go.** Inside the existing model jobs (more memory and time in jobs with tight limits), or a separate job reading the same downloaded files, so that a failure there cannot hold up the station data.

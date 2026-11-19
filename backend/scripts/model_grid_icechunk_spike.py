@@ -188,7 +188,7 @@ def grib_integers(values: np.ndarray, scales: dict) -> np.ndarray:
     ]
     integers = np.rint(unrounded)
     # Each value sits on the field's grid of steps, to within float64 rounding, and decodes to
-    # the same float32 (see msc_grib_precision_check.py).
+    # the same float32 (see grib_precision_check.py).
     if np.abs(unrounded - integers).max() > 1e-6 or not np.array_equal(
         decode_grib(integers, scales).astype(np.float32), values.astype(np.float32)
     ):
