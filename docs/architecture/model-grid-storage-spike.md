@@ -1,6 +1,15 @@
-# Model grid storage spike: HRDPS in Zarr on Icechunk
+# Model grid storage spike: weather model grids in Zarr on Icechunk
 
-Status: spike, run on local disk on 2026-11-19, and in a small test against our object store (ECS). Full read times on ECS are not yet measured.
+Status: spike, run on local disk on 2026-11-19 for HRDPS, RDPS, GDPS, GFS and ECMWF, and in a small test against our object store (ECS). Full read times on ECS are not yet measured.
+
+## Summary
+
+- Every model we ingest publishes integer-packed GRIB2, and storing those integers with each field's scales keeps exactly what the provider publishes. Compressed with pcodec, it is the smallest lossless form for every model, 25 to 50 % smaller than float32.
+- Kept that way, with every hour of every run, BC crops of all five models come to about 200 GB a year. HRDPS is about 80 % of it (162 GB); RDPS is 27 GB and the other three under 6 GB each.
+- Open-Meteo style scaled int16 is about half the size again, but loses precision against the source, so it does not meet the requirement that every variable stays accurate.
+- The runs overlap: a 49-hour HRDPS run covers the same hours as the next seven. Keeping fewer hours per run is the remaining large saving that keeps every value exact.
+- Icechunk works on ECS once the AWS SDK's checksum settings are relaxed. Read times on ECS are the main thing left to measure.
+- NAM is no longer published on NOMADS.
 
 ## Question
 
@@ -10,7 +19,9 @@ Keeping the grids would let us backfill a station added later, give forecasts at
 
 ## Setup
 
-Scripts: [`backend/scripts/model_grid_icechunk_spike.py`](../../backend/scripts/model_grid_icechunk_spike.py) writes and measures the stores, and [`backend/scripts/grib_precision_check.py`](../../backend/scripts/grib_precision_check.py) reports the precision MSC packs each field at. Their dependencies (zarr 3.4.2, icechunk 2.3.1, numcodecs 0.17.1 with pcodec, eccodes 2.48.0) are declared in the scripts, not added to the project.
+Scripts: [`backend/scripts/model_grid_icechunk_spike.py`](../../backend/scripts/model_grid_icechunk_spike.py) writes and measures the stores, for one model at a time (`--model`), and [`backend/scripts/grib_precision_check.py`](../../backend/scripts/grib_precision_check.py) reports the precision each GRIB field is packed at. Their dependencies (zarr 3.4.2, icechunk 2.3.1, numcodecs 0.17.1 with pcodec, eccodes 2.48.0, herbie-data 2026.10.0 for ECMWF) are declared in the scripts, not added to the project.
+
+The setup and results below are HRDPS, which was measured first and in most detail. [The other models](#the-other-models) were run the same way.
 
 - **Data.** HRDPS continental 2.5 km, the 2026-11-19 12Z run, forecast hours 0 to 48, downloaded from the MSC datamart. The same five variables the HRDPS job reads: 2 m temperature, 2 m relative humidity, 10 m wind speed and direction, and accumulated precipitation.
 - **Crop.** HRDPS is a 2540 x 1290 rotated lat-lon grid. The rows and columns covering BC (latitude 48.2 to 60.1, longitude -139.2 to -114.0) are 622 x 680 = 422,960 cells. Uncompressed as float32, a run is 415 MB.
@@ -99,28 +110,46 @@ Only sizes, compression and errors carry over to ECS. Read and write times on EC
 - **Precision differs by model.** Lossless means keeping what each provider publishes: ECMWF's open data has temperature in 0.25 K steps and GFS has precipitation in 0.0625 mm steps. A field's step can change by hour, so R, E and D are stored per hour.
 - **What differs is the layout, not the encoding.** RDPS and HRDPS are rotated lat-lon and GDPS, GFS and ECMWF regular lat-lon, so each model needs its own store, crop and coordinates. GFS and ECMWF publish wind as u and v and ECMWF publishes dew point, not relative humidity: to stay lossless, store what is published and derive speed, direction and humidity when reading, as the station jobs do. GDPS is 3-hourly to 240 hours, RDPS hourly to 84 and GFS 3-hourly; the GFS job fetches only the hours around noon, so a grid store would fetch more than it does.
 - **NOMADS repacks.** Its filter crops and re-encodes GFS with simple packing. Whether it keeps NOAA's original scales was not checked.
-- **Sizes were not measured** for these models. Their grids are coarser than HRDPS, so far fewer cells cover BC, but GDPS and GFS run to 10 days and more. The spike only knows HRDPS's files and would need each model's URLs, crop and variable names.
+
+### Sizes
+
+`model_grid_icechunk_spike.py --model {hrdps,rdps,gdps,gfs,ecmwf}` fetches each model the way its job does and stores the variables as the provider publishes them. Each model's 2026-11-19 run (HRDPS 18Z, the others 12Z) was written on local disk:
+
+| Model | Hours kept | BC crop (cells) | GRIB integers MB per run | Lossless float32 MB per run | int16 MB per run | Runs a day | GRIB integers GB a year |
+|---|---|---|---|---|---|---|---|
+| HRDPS | 0 to 48, hourly | 622 x 680 | 110.7 | 162.6 | 56.1 | 4 | 162 |
+| RDPS | 0 to 84, hourly | 191 x 205 | 18.7 | 26.4 | 11.9 | 4 | 27 |
+| GDPS | 0 to 240, 3-hourly | 79 x 168 | 5.4 | 8.9 | 4.1 | 2 | 3.9 |
+| GFS | 0 to 240, 3-hourly | 48 x 101 | 2.3 | 4.4 | 1.7 | 4 | 3.3 |
+| ECMWF | 0 to 240, 3- then 6-hourly | 119 x 252 | 5.0 | 6.6 | 4.3 | 4 | 5.4 |
+
+- **ECMWF's year** counts its 06 and 18 UTC runs as the 31 hours to 90 they have, against 65 hours for 00 and 12 UTC. The script's own figure, 7.3 GB, counts all four runs as full.
+- **All five models come to about 200 GB a year** lossless with every hour of every run kept, and HRDPS is about 80 % of it.
+- **The GRIB integers are the smallest lossless form for every model**: 25 to 50 % smaller than float32. ECMWF's float32 compresses unusually well (5.9x) because its open data is packed coarsely (0.25 K for temperature), which leaves few distinct values.
+- **Point reads** were 16 to 18 ms and map reads 3 to 6 ms on local disk for every model's `grib` variant. The coarser grids are a single 64 x 64 tile wide or a few, so a map is one or a few chunks.
+- **Writing** took 0.1 s a run. Downloading took most of the time, and for GDPS and ECMWF it is the whole global field (820 and 799 MB a run) to keep a small BC crop. Peak memory was under 710 MiB.
 
 ## Open questions
 
 - **Read times on ECS**, for a point forecast and for a map in each layout.
 - **Icechunk on ECS works, with one setting.** A small test (3 hours of one run, one variant) wrote, committed and read back from ECS on 2026-11-19, with conditional writes on. Without the setting, the first commit failed: ECS answers Icechunk's conditional GET with a 304 that carries the object's checksum but no body, and the AWS SDK inside Icechunk rejects it ("expected body checksum to be 0c835fe8 but it was 00000000"). Setting `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` to `when_required` fixes it, as the same incompatibility needed for botocore. The script sets both when it writes to S3. Any job writing Icechunk to ECS will need them.
-- **The other models' sizes.** Only HRDPS was measured. See [The other models](#the-other-models).
+- **The other models on ECS.** Their sizes are in [Sizes](#sizes); their read times on ECS were not measured.
 - **More runs.** One run was written. Compression is per run, so it should hold, but the object count and Icechunk's metadata over months of commits are not measured.
-- **ECS quota and cost** for about 100 GB a year per model, and who approves it.
+- **ECS quota and cost** for about 200 GB a year for all five models, lossless, and who approves it.
 - **Where the writes go.** Inside the existing model jobs (more memory and time in jobs with tight limits), or a separate job reading the same downloaded files, so that a failure there cannot hold up the station data.
 
 ## Next steps
 
-1. Run the spike against ECS with two or more runs:
+1. Run the spike against ECS with two or more runs of a model, for example RDPS:
 
    ```sh
-   uv run scripts/model_grid_icechunk_spike.py --run 2026-11-19T18 --run 2026-11-20T00 --s3-prefix dev/zarr-spike
+   uv run scripts/model_grid_icechunk_spike.py --model rdps --run 2026-11-19T12 --run 2026-11-19T18 --variant f32-pcodec-point --variant grib-pcodec-point --s3-prefix dev/zarr-spike
    ```
 
-   from `./backend`, with `OBJECT_STORE_SERVER`, `OBJECT_STORE_USER_ID`, `OBJECT_STORE_SECRET` and `OBJECT_STORE_BUCKET` set as the deployments have them. Delete `dev/zarr-spike` afterwards. The datamart keeps about a day, so the runs must be recent.
-2. If ECS reads are fast enough, run it for RDPS and GDPS to size the other models.
-3. Decide on the layout, the precision per variable and where the writes run, then design the job.
+   from `./backend`, with `OBJECT_STORE_SERVER`, `OBJECT_STORE_USER_ID`, `OBJECT_STORE_SECRET` and `OBJECT_STORE_BUCKET` set as the deployments have them. Stores go under `dev/zarr-spike/{model}/{variant}`. Delete `dev/zarr-spike` afterwards, one object at a time: ECS rejects boto3's bulk `DeleteObjects` without a `Content-MD5` header. The MSC datamart keeps about a day, so MSC runs must be recent.
+2. Measure keeping fewer hours per run (`--hours`), which keeps every value exact.
+3. Check whether NOMADS keeps NOAA's original scales for GFS, against a field from NOAA's full file.
+4. Decide on the hours kept, the layout and where the writes run, then design the job.
 
 ## Open-Meteo's quantization
 
