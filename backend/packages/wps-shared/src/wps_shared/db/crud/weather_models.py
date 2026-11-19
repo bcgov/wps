@@ -192,6 +192,7 @@ def get_latest_station_prediction(
             WeatherStationModelPrediction.bias_adjusted_precip_24h,
             WeatherStationModelPrediction.wdir_tgl_10,
             WeatherStationModelPrediction.wind_tgl_10,
+            ModelRunStationElevation.elevation.label("model_elevation"),
         )
         .join(
             PredictionModelRunTimestamp,
@@ -200,6 +201,14 @@ def get_latest_station_prediction(
         )
         .join(
             PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
+        )
+        .outerjoin(
+            ModelRunStationElevation,
+            (
+                ModelRunStationElevation.prediction_model_run_timestamp_id
+                == WeatherStationModelPrediction.prediction_model_run_timestamp_id
+            )
+            & (ModelRunStationElevation.station_code == WeatherStationModelPrediction.station_code),
         )
         .join(
             latest_predictions_subquery,
