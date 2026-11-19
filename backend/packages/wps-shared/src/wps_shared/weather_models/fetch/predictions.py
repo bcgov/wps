@@ -23,6 +23,7 @@ def fetch_latest_model_run_predictions_by_station_code_and_date_range(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
 ) -> List[WeatherIndeterminate]:
+    """Fetch daily predictions with model surface elevations on raw model records."""
     cffdrs_start = perf_counter()
     results: List[WeatherIndeterminate] = []
     days = get_days_from_range(start_time, end_time)
@@ -50,6 +51,7 @@ def fetch_latest_model_run_predictions_by_station_code_and_date_range(
             bias_adjusted_precip_24h,
             wind_dir,
             wind_speed,
+            model_elevation,
         ) in daily_result:
             # Create two WeatherIndeterminates, one for model predictions and one for bias corrected predictions
             results.append(
@@ -64,6 +66,7 @@ def fetch_latest_model_run_predictions_by_station_code_and_date_range(
                     wind_direction=wind_dir,
                     wind_speed=wind_speed,
                     prediction_run_timestamp=prediction_run_timestamp,
+                    model_elevation=model_elevation,
                 )
             )
             results.append(

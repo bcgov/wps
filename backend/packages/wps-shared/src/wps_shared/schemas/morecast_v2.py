@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ModelChoice(str, Enum):
@@ -177,6 +177,10 @@ class WeatherIndeterminate(BaseModel):
     grass_curing: Optional[float] = None
     update_date: Optional[datetime] = None
     prediction_run_timestamp: Optional[datetime] = None
+    model_elevation: Optional[float] = Field(
+        default=None,
+        description="Model surface elevation at the station in metres for raw predictions.",
+    )
 
 
 class IndeterminateDailiesResponse(BaseModel):
