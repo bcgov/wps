@@ -63,6 +63,10 @@ echo Deploy SFMS API
 PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_sfms_api.sh prod render >>"${BATCH_FILE}"
 echo Allow APS to reach SFMS API
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_gateway_networkpolicy.sh prod render >>"${BATCH_FILE}"
+echo Deploy Station Weather API
+PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_weather_api.sh prod render >>"${BATCH_FILE}"
+echo Allow APS to reach Station Weather API
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_weather_gateway_networkpolicy.sh prod render >>"${BATCH_FILE}"
 
 echo ECCC Consumer
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod render >>"${BATCH_FILE}"
