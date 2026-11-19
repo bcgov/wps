@@ -33,8 +33,9 @@ parameters:
     description: Memory request
     value: 512Mi
   - name: MEMORY_LIMIT
+    # Compacting a table after a backfill has peaked at 1.7 GiB.
     description: Memory limit
-    value: 1Gi
+    value: 2Gi
 objects:
   - kind: CronJob
     apiVersion: batch/v1

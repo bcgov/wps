@@ -10,6 +10,19 @@ from wps_shared.sfms.raster_addresser import S3Key
 
 from wps_weather_data.addresser import StationWeatherAddresser
 
+# Delta table properties every table is created with. Each table checkpoints itself every 10
+# commits as part of the write, so opening it reads a checkpoint and at most 9 JSON commits. An
+# open that replayed the 73 commits of a by_station rebuild took 760 MiB instead of 150 MiB, and
+# the maintenance job's checkpoint cannot be relied on to come first. Writes to an existing
+# table ignore it: backend/scripts/station_weather_add_columns.py sets it on those.
+TABLE_CONFIGURATION = {"delta.checkpointInterval": "10"}
+
+# How many files `optimize` compacts at once. Its default is one task per CPU, and a pod sees
+# every CPU of its node (48 in our cluster), so the default ran out of memory in the maintenance
+# job. Even two tasks peaked at about 1.7 GiB compacting wf1 after the data mart backfill; the
+# nightly compaction of a day's files is far smaller.
+COMPACT_TASKS = 1
+
 # How far back a table can be read as it was. Files older than this that no current version
 # refers to are deleted by `maintain`.
 VACUUM_RETENTION_HOURS = 30 * 24
@@ -100,7 +113,7 @@ class DeltaWeatherTable:
         the retention window refers to.
         """
         table = self.open()
-        compacted = table.optimize.compact()
+        compacted = table.optimize.compact(max_concurrent_tasks=COMPACT_TASKS)
         table.create_checkpoint()
         table.cleanup_metadata()
         deleted = table.vacuum(

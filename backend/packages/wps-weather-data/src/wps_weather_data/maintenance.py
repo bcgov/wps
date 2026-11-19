@@ -7,7 +7,7 @@ Design: docs/architecture/station-weather-storage.md
 
 import logging
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 
 from wps_shared.weather_models import ModelEnum
 from wps_shared.wps_logging import configure_logging
@@ -40,17 +40,21 @@ def maintain_all(tables: Iterable[DeltaWeatherTable]) -> bool:
     return succeeded
 
 
+def all_tables() -> Iterator[DeltaWeatherTable]:
+    """Every table, created as it is reached. An open table holds its log state in memory, so
+    creating them one at a time keeps only one open."""
+    yield RunsTable()
+    yield ByTimeTable()
+    yield Wf1Table()
+    yield ByStationTable()
+    yield StationsTable()
+    for model in ModelEnum:
+        yield StagingTable(model)
+
+
 def main():
     configure_logging()
-    tables = [
-        RunsTable(),
-        ByTimeTable(),
-        Wf1Table(),
-        ByStationTable(),
-        StationsTable(),
-        *(StagingTable(model) for model in ModelEnum),
-    ]
-    sys.exit(0 if maintain_all(tables) else 1)
+    sys.exit(0 if maintain_all(all_tables()) else 1)
 
 
 if __name__ == "__main__":

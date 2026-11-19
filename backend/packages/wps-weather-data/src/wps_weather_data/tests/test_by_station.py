@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -7,6 +8,7 @@ from wps_shared.weather_models import ModelEnum
 from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.by_station import STATION_ROWS_SCHEMA, ByStationTable, build
 from wps_weather_data.by_time import ACTUALS, DAILY, HOURLY, ByTimeTable
+from wps_weather_data.table import TABLE_CONFIGURATION
 from wps_weather_data.wf1 import actuals_table, daily_actuals_table
 
 FETCHED = datetime(2026, 11, 17, 21, tzinfo=UTC)
@@ -255,3 +257,20 @@ def test_read_can_be_limited_to_years(by_time, by_station):
     rows = by_station.read_stations(DAILY, [322], years=[2025, 2026])
 
     assert temperatures(rows) == [(2025, 25.0), (2026, 26.0)]
+
+
+def test_tables_checkpoint_themselves(by_time, by_station):
+    """by_time and by_station are created with a checkpoint interval, so a rebuild of many
+    years leaves checkpoints rather than a long log for every reader to replay."""
+    by_time.merge_wf1_rows(
+        daily_actuals_table([daily(noon(year)) for year in range(2000, 2012)], noon(2026))
+    )
+    for year in range(2000, 2012):
+        by_station.build_year(by_time, DAILY, year)
+
+    for table in (by_time, by_station):
+        delta_table = table.open()
+        assert delta_table.metadata().configuration == TABLE_CONFIGURATION
+    # 12 commits with an interval of 10: a checkpoint at version 9.
+    log = Path(by_station.table_uri) / "_delta_log"
+    assert (log / "00000000000000000009.checkpoint.parquet").exists()

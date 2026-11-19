@@ -17,7 +17,7 @@ from deltalake import write_deltalake
 from wps_shared.sfms.raster_addresser import S3Key
 
 from wps_weather_data.addresser import StationWeatherAddresser
-from wps_weather_data.table import DeltaWeatherTable
+from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,7 @@ class StationsTable(DeltaWeatherTable):
             rows.sort_by("station_code"),
             mode="overwrite",
             storage_options=self.storage_options,
+            configuration=TABLE_CONFIGURATION,
         )
         logger.info("Wrote %d stations", rows.num_rows)
         return True

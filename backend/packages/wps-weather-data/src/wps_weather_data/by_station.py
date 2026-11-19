@@ -33,7 +33,7 @@ from wps_shared.wps_logging import configure_logging
 
 from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.by_time import BY_TIME_SCHEMA, DAILY, HOURLY, ByTimeTable
-from wps_weather_data.table import DeltaWeatherTable
+from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +95,7 @@ class ByStationTable(DeltaWeatherTable):
             predicate=f"resolution = '{resolution}' AND year = {year}",
             partition_by=PARTITION_COLUMNS,
             storage_options=self.storage_options,
+            configuration=TABLE_CONFIGURATION,
             writer_properties=WriterProperties(compression="ZSTD"),
         )
         logger.info(

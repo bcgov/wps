@@ -38,7 +38,7 @@ from wps_weather_data.by_time import (
     KEY_COLUMNS,
     VALUE_COLUMNS,
 )
-from wps_weather_data.table import DeltaWeatherTable
+from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
 
 logger = logging.getLogger(__name__)
 
@@ -204,6 +204,7 @@ class Wf1Table(DeltaWeatherTable):
                 mode="append",
                 partition_by=PARTITION_COLUMNS,
                 storage_options=self.storage_options,
+                configuration=TABLE_CONFIGURATION,
                 writer_properties=WriterProperties(compression="ZSTD"),
             )
         logger.info(

@@ -470,7 +470,9 @@ Delta tables need three chores, run by a scheduled job:
 
 - **`optimize`** merges small files. `runs` gets one small file per run, and `by_time` gets new files on every `MERGE`.
 - **`vacuum`** deletes files no longer referenced. Without it, `by_time` grows by about a hundred times its live size in two months. The retention window is how far back time travel reaches; 30 days is a reasonable start.
-- **Checkpoints** keep the transaction log short, so opening a table stays fast.
+- **Checkpoints** keep the transaction log short, so opening a table stays fast and small. Every table is created with `delta.checkpointInterval` 10 (`TABLE_CONFIGURATION`), so it checkpoints itself as it is written and a reader replays at most 9 JSON commits. Without that, the 73 commits of a `by_station` rebuild since the last checkpoint took an open from 150 MiB to 760 MiB, the 1987 backfill did the same to `wf1`, and the maintenance job ran out of memory opening the tables it was meant to checkpoint.
+
+`optimize` compacts one batch of files at a time (`COMPACT_TASKS`): its default is a task per CPU, and a pod sees all 48 of its node's. Compacting `wf1` after the data mart backfill peaked at 1.7 GiB even with two tasks, so the job's memory limit is 2 GiB.
 
 This replaces the `pgslice` partition job and the `pg_dump` archive.
 

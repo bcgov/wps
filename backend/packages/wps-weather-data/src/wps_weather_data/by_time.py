@@ -23,7 +23,7 @@ from wps_shared.weather_models import ModelEnum
 
 from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.runs import build_run_table
-from wps_weather_data.table import DeltaWeatherTable
+from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
 
 logger = logging.getLogger(__name__)
 
@@ -226,6 +226,7 @@ class ByTimeTable(DeltaWeatherTable):
             partition_by=PARTITION_COLUMNS,
             mode="ignore",
             storage_options=self.storage_options,
+            configuration=TABLE_CONFIGURATION,
         )
         # Naming the sources and months as literals lets the merge skip every other partition.
         sources = ", ".join(f"'{name}'" for name in sorted(set(source["source"].to_pylist())))
