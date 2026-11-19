@@ -9,6 +9,7 @@ from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.db.models.observations import HourlyActual
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_weather_data.by_time import ACTUALS, DAILY, HOURLY, ByTimeTable
+from wps_weather_data.stations import StationsTable
 from wps_weather_data.wf1 import Wf1Table
 
 from app.jobs import hourly_actuals
@@ -36,11 +37,13 @@ def tables(monkeypatch, tmp_path):
     by_time = ByTimeTable(str(tmp_path / "by_time"))
     monkeypatch.setattr(hourly_actuals, "Wf1Table", lambda: wf1)
     monkeypatch.setattr(hourly_actuals, "ByTimeTable", lambda: by_time)
-    return wf1, by_time
+    stations = StationsTable(str(tmp_path / "stations"))
+    monkeypatch.setattr(hourly_actuals, "StationsTable", lambda: stations)
+    return wf1, by_time, stations
 
 
 def test_hourly_actuals_job_writes_wf1_and_by_time(mocker: MockerFixture, mock_wfwx_api, tables):
-    wf1, by_time = tables
+    wf1, by_time, _ = tables
     mock_wfwx_api.get_hourly_actuals_all_stations.return_value = [
         hourly_actual(1, 10.0),
         hourly_actual(2, 11.0),
@@ -58,7 +61,7 @@ def test_hourly_actuals_job_writes_wf1_and_by_time(mocker: MockerFixture, mock_w
 
 
 def test_hourly_actuals_job_writes_wf1s_daily_actuals(mocker: MockerFixture, mock_wfwx_api, tables):
-    wf1, by_time = tables
+    wf1, by_time, _ = tables
     mocker.patch.object(
         hourly_actuals.wps_shared.utils.time,
         "get_pst_now",
@@ -107,7 +110,7 @@ def test_hourly_actuals_job_writes_wf1s_daily_actuals(mocker: MockerFixture, moc
 def test_hourly_actuals_job_records_only_changes_in_wf1(
     mocker: MockerFixture, mock_wfwx_api, tables
 ):
-    wf1, by_time = tables
+    wf1, by_time, _ = tables
     mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
     for fetched in ([hourly_actual(1, 10.0)], [hourly_actual(1, 10.0)], [hourly_actual(1, 12.0)]):
         mock_wfwx_api.get_hourly_actuals_all_stations.return_value = fetched
@@ -135,3 +138,30 @@ def test_hourly_actuals_job_fail(mocker: MockerFixture, mock_wfwx_api, tables):
     assert excinfo.value.code == os.EX_SOFTWARE
     # Assert that rocket chat was called.
     assert chatops_spy.call_count == 1
+
+
+def test_hourly_actuals_job_writes_wf1s_stations(mocker: MockerFixture, mock_wfwx_api, tables):
+    _, _, stations = tables
+    mock_wfwx_api.get_hourly_actuals_all_stations.return_value = []
+    mock_wfwx_api.get_station_data.return_value = [
+        {"stationCode": 322, "displayLabel": "AFTON", "stationStatus": {"id": "ACTIVE"}}
+    ]
+    mocker.patch("app.jobs.hourly_actuals.WfwxApi", return_value=mock_wfwx_api)
+
+    with pytest.raises(SystemExit) as excinfo:
+        hourly_actuals.main()
+
+    assert excinfo.value.code == 0
+    rows = stations.read().to_pylist()
+    assert [(row["station_code"], row["name"], row["status"]) for row in rows] == [
+        (322, "AFTON", "ACTIVE")
+    ]
+
+
+@pytest.mark.anyio
+async def test_raw_stations_keeps_wf1s_records():
+    async def pages():
+        yield {"stationCode": 1}
+        yield {"stationCode": 2}
+
+    assert await hourly_actuals._raw_stations(pages()) == [{"stationCode": 1}, {"stationCode": 2}]

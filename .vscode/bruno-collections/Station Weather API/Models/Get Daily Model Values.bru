@@ -1,0 +1,19 @@
+meta {
+  name: Get Daily Model Values
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/weather/v1/models/GDPS/daily?station_codes=322
+  body: none
+  auth: inherit
+}
+
+params:query {
+  station_codes: 322
+}
+
+docs {
+  Models: GDPS, RDPS, HRDPS, GFS, NAM, ECMWF. Without dates: the 10 days from today (UTC).
+}

@@ -72,6 +72,12 @@ backfill, run it once with `--from-year` to rebuild the earlier years (as a one-
 job: see `docs/DATA_REPROCESSING.md`). The maintenance job
 vacuums the files each rebuild replaces.
 
+## stations.py
+
+`StationsTable` is the `stations` dataset: WF1's list of weather stations (code, name, location,
+elevation and status). The hourly actuals job replaces it each run with `replace`, so the
+Station Weather API can list stations without calling WF1. `read` returns every station.
+
 ## actuals.py
 
 `StationObservations` reads `ACTUALS` from `by_time` for a time window, once per model run being

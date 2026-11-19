@@ -1,0 +1,21 @@
+meta {
+  name: Get Too Many Rows (422)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{API_BASE_URL}}/weather/v1/observations/hourly?station_codes=322&start=2020-01-01&end=2025-12-31
+  body: none
+  auth: inherit
+}
+
+params:query {
+  station_codes: 322
+  start: 2020-01-01
+  end: 2025-12-31
+}
+
+docs {
+  Over the 50,000 row limit (stations x days, x 24 for hourly), so it returns 422.
+}

@@ -1,5 +1,5 @@
 """Job that loads hourly observations and daily actuals from WF1 into the `wf1` and `by_time`
-tables in object storage, as `ACTUALS`."""
+tables in object storage, as `ACTUALS`, and WF1's list of stations into the `stations` table."""
 
 import asyncio
 import logging
@@ -13,19 +13,31 @@ from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.models.auto_spatial_advisory import RunTypeEnum
 from wps_shared.wps_logging import configure_logging
 from wps_weather_data.by_time import DAILY_HOUR_UTC, ByTimeTable
+from wps_weather_data.stations import StationsTable, stations_table
 from wps_weather_data.wf1 import Wf1Table, actuals_table, daily_actuals_table
 from wps_wf1.wfwx_api import WfwxApi
 
 logger = logging.getLogger(__name__)
 
 
+async def _raw_stations(raw_stations) -> list[dict]:
+    """WF1's station records as it returns them, for `stations_table`."""
+    return [station async for station in raw_stations]
+
+
 class HourlyActualsJob:
     """Job that downloads the hourly actuals from WF1 and stores them in object storage."""
 
-    def __init__(self, wf1_table: Wf1Table | None = None, by_time_table: ByTimeTable | None = None):
+    def __init__(
+        self,
+        wf1_table: Wf1Table | None = None,
+        by_time_table: ByTimeTable | None = None,
+        stations: StationsTable | None = None,
+    ):
         self.now = wps_shared.utils.time.get_pst_now()
         self.wf1_table = wf1_table or Wf1Table()
         self.by_time_table = by_time_table or ByTimeTable()
+        self.stations = stations or StationsTable()
 
     def _get_start_date(self) -> datetime:
         """Return time N hour ago. E.g. if it's 17h15 now, we'd get YYYYMMDD16. The intention is that
@@ -69,6 +81,8 @@ class HourlyActualsJob:
                 )
             logger.info("Retrieved %s daily actuals", len(daily_actuals))
 
+            raw_stations = await wfwx_api.get_station_data(mapper=_raw_stations)
+
         fetched_at = wps_shared.utils.time.get_utc_now()
         # wf1 records what changed. Every row is merged into by_time, so a merge that failed after
         # the append is made good by the next run, which fetches the same times again.
@@ -78,6 +92,7 @@ class HourlyActualsJob:
         ):
             self.wf1_table.append_changed(rows)
             self.by_time_table.merge_wf1_rows(rows)
+        self.stations.replace(stations_table(raw_stations, fetched_at))
 
 
 def main():

@@ -16,6 +16,7 @@ from wps_weather_data.by_station import ByStationTable
 from wps_weather_data.by_time import ByTimeTable
 from wps_weather_data.runs import RunsTable
 from wps_weather_data.staging import StagingTable
+from wps_weather_data.stations import StationsTable
 from wps_weather_data.wf1 import Wf1Table
 from wps_weather_data.table import DeltaWeatherTable
 
@@ -46,6 +47,7 @@ def main():
         ByTimeTable(),
         Wf1Table(),
         ByStationTable(),
+        StationsTable(),
         *(StagingTable(model) for model in ModelEnum),
     ]
     sys.exit(0 if maintain_all(tables) else 1)
