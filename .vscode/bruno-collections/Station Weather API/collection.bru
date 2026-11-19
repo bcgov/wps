@@ -12,7 +12,8 @@ auth {
 
 docs {
   The public Station Weather API (`app.weather_main:app`), served by the `wps-weather-api-{SUFFIX}`
-  service and published through the APS Kong gateway at `/api/weather/v1`.
+  service and published through the APS Kong gateway at `/api/weather/v1`. Send
+  `Accept: text/csv` for CSV instead of JSON.
 
   Environments:
   - `local`: copy `local.sample.bru` to `local.bru` (git-ignored) and run

@@ -1,0 +1,15 @@
+meta {
+  name: Get Stations CSV
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{API_BASE_URL}}/weather/v1/stations
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: text/csv
+}

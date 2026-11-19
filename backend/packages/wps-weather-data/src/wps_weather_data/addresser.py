@@ -48,3 +48,7 @@ class StationWeatherAddresser:
     def get_by_station_key(self) -> S3Key:
         """S3 key of the `by_station` Delta table: the `by_time` rows, laid out by station."""
         return S3Key(f"{self.root}/by_station")
+
+    def get_stations_key(self) -> S3Key:
+        """S3 key of the `stations` Delta table: WF1's list of weather stations."""
+        return S3Key(f"{self.root}/stations")

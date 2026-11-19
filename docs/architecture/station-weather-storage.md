@@ -128,6 +128,7 @@ weather/stations/
   by_time/                                     Delta table: newest value per station and time
   staging/hrdps/                               Delta table per model: station values while a run downloads
   by_station/                                  Delta table: the by_time rows, partitioned by resolution, station and year
+  stations/                                    Delta table: WF1's list of stations
   hourly_profile/station=322.parquet                       hourly statistics by month and hour of day
   leads/station=322/2026.parquet                           every prediction at every lead, per station
 ```
@@ -142,7 +143,8 @@ That is the production layout. Dev deployments share one bucket, so each writes 
 | `staging` | Delta Lake, one per model | The model job itself, between invocations | That model's job |
 | `wf1` | Delta Lake | Rebuilding `by_time`; history of corrections | The WF1 jobs |
 | `by_time` | Delta Lake | MoreCast; training and ingest (`ACTUALS`) | The model jobs and the WF1 jobs |
-| `by_station` | Delta Lake | Climatology for one station or a group | One nightly job |
+| `by_station` | Delta Lake | Climatology for one station or a group; the Station Weather API | One nightly job |
+| `stations` | Delta Lake | The Station Weather API's list of stations | The hourly actuals job |
 | `hourly_profile` | Parquet | Hourly climatology for a group, on a screen | The same nightly job |
 | `leads` | Parquet | Climatology at a chosen lead, while experimenting | The same nightly job |
 
@@ -261,6 +263,10 @@ A nightly job is the only writer (`wps_weather_data.by_station`, the `station-we
 An earlier version of this design kept plain Parquet files per station: a `history.parquet` for the years that had ended and a file for the current year. It read faster, with no transaction log to open, but the nightly job then updated stations one at a time, a job that stopped part way left a year in two files for readers to reconcile, and the files went through a second S3 client. As a Delta table, at 300 stations and 40 years of daily observations (12,000 files), reading one station's whole record took 30 to 50 ms from local disk once the table was open. That has not been timed against ECS.
 
 This copy lags `by_time` by up to a day. It is derived and can be rebuilt at any time.
+
+### `stations`
+
+WF1's list of weather stations: code, name, latitude, longitude, elevation and status. The hourly actuals job replaces it with what WF1 returns each run, in one commit, and skips the write if WF1 returns none. It lets the public Station Weather API list stations without calling WF1. WF1 lists active, test and project stations only, so a decommissioned station is missing from it though its history is in `by_station`.
 
 ### `hourly_profile`
 
@@ -488,6 +494,8 @@ What this keeps:
 | Climatology, one station | `by_station` | 1 file per year the station has |
 | Climatology, a group, daily | `by_station` | 1 file per station and year |
 | Climatology, a group, hourly | `hourly_profile` | 1 per station |
+| Station Weather API, observations, forecasts and models | `by_station` for dates before the last 2 UTC days, `by_time` for those and later | 1 file per station and year, plus `by_time`'s recent months |
+| Station Weather API, stations | `stations` | 1 |
 | Climatology at a chosen lead | `leads`, with ranged GETs | Per station and year: 1 footer, plus 1 row group per model per month wanted |
 | Fire watch | `runs`, one run of one model | The run's files in its `run_date` partition |
 | `/weather_models` routes | `runs`, for run dates in the window | About 12 files per model after compaction |

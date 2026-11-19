@@ -14,6 +14,7 @@ from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.wps_logging import configure_logging
 from wps_weather_data.by_station import ByStationTable
 from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.stations import StationsTable
 
 from app.routers import station_weather
 
@@ -34,9 +35,12 @@ API_INFO = dedent("""
     Example request:
 
     ```http
-    GET /api/weather/v1/daily?station_codes=322&start=2026-07-01&end=2026-07-31&sources=ACTUALS&sources=GDPS
+    GET /api/weather/v1/observations/daily?station_codes=322,209&start=2026-07-01&end=2026-07-31
     X-API-Key: YOUR_API_KEY
     ```
+
+    `GET /api/weather/v1/stations` lists the stations. Every endpoint returns CSV instead of
+    JSON when sent `Accept: text/csv`.
 
     Warranty Disclaimer:
 
@@ -88,6 +92,12 @@ api = FastAPI(
         "name": "Access Only",
         "url": "https://www2.gov.bc.ca/gov/content/home/copyright",
     },
+    openapi_tags=[
+        {"name": "Stations", "description": "The weather stations"},
+        {"name": "Observations", "description": "What the stations observed, back to 1987"},
+        {"name": "Forecasts", "description": "BC Wildfire Service forecasters' noon forecasts"},
+        {"name": "Models", "description": "Weather model values at the stations"},
+    ],
     docs_url="/weather/docs",
     redoc_url="/weather/redoc",
     openapi_url="/weather/openapi.json",
@@ -102,6 +112,7 @@ async def lifespan(_: Starlette):
     """
     api.state.by_station_table = ByStationTable()
     api.state.by_time_table = ByTimeTable()
+    api.state.stations_table = StationsTable()
     yield
 
 
