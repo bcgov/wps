@@ -24,6 +24,7 @@ APP_LABEL="${APP_NAME}-${SUFFIX}"
 ASA_GO_APP_LABEL="${APP_NAME}-${SUFFIX}-asa-go"
 SFMS_APP_LABEL="${APP_NAME}-${SUFFIX}-sfms"
 SFMS_LEGACY_APP_LABEL="${APP_NAME}-${SUFFIX}-sfms-fwi"
+WEATHER_APP_LABEL="${APP_NAME}-${SUFFIX}-weather"
 
 # Delete (apply) or get (not apply) items matching the a label
 #
@@ -35,6 +36,7 @@ fi
 OC_CLEAN_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,cronjob,job,networkpolicy -o name -l app=${APP_LABEL}"
 OC_CLEAN_ASA_GO_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,cronjob,job,networkpolicy,hpa,vpa -o name -l app=${ASA_GO_APP_LABEL}"
 OC_CLEAN_SFMS_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,cronjob,job,networkpolicy -o name -l 'app in (${SFMS_APP_LABEL},${SFMS_LEGACY_APP_LABEL})'"
+OC_CLEAN_WEATHER_DEPLOY="oc -n ${PROJ_TARGET} ${DELETE_OR_GET} all,cm,pvc,cronjob,job,networkpolicy -o name -l app=${WEATHER_APP_LABEL}"
 
 # Execute commands
 #
@@ -42,7 +44,8 @@ echo -e "\n${PROJ_TARGET}:"
 eval "${OC_CLEAN_DEPLOY}"
 eval "${OC_CLEAN_ASA_GO_DEPLOY}"
 eval "${OC_CLEAN_SFMS_DEPLOY}"
+eval "${OC_CLEAN_WEATHER_DEPLOY}"
 
 # Provide oc command instruction
 #
-display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_ASA_GO_DEPLOY}" "${OC_CLEAN_SFMS_DEPLOY}"
+display_helper "${OC_CLEAN_DEPLOY}" "${OC_CLEAN_ASA_GO_DEPLOY}" "${OC_CLEAN_SFMS_DEPLOY}" "${OC_CLEAN_WEATHER_DEPLOY}"

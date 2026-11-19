@@ -241,3 +241,17 @@ def test_several_stations_are_read_together(by_time, by_station):
         (322, 2026, 2.0),
     ]
     assert by_station.read_stations(DAILY, []).num_rows == 0
+
+
+def test_read_can_be_limited_to_years(by_time, by_station):
+    by_time.merge_wf1_rows(
+        daily_actuals_table(
+            [daily(noon(year), temperature=float(year - 2000)) for year in (2024, 2025, 2026)],
+            FETCHED,
+        )
+    )
+    build(by_station, by_time, 2024, 2026, resolutions=[DAILY])
+
+    rows = by_station.read_stations(DAILY, [322], years=[2025, 2026])
+
+    assert temperatures(rows) == [(2025, 25.0), (2026, 26.0)]

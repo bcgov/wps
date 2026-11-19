@@ -4,10 +4,11 @@ This directory contains APS gateway configuration for services exposed through t
 
 ## Services
 
-| Service    | Gateway config          | Dataset / Product                      |
-| ---------- | ----------------------- | -------------------------------------- |
-| ASA Go API | `asa-go-gw-config.yaml`  |                                        |
-| SFMS API   | `sfms-gw-config.yaml`    | `sfms-dataset.yaml`, `sfms-product.yaml` |
+| Service             | Gateway config             | Dataset / Product                              |
+| ------------------- | -------------------------- | ---------------------------------------------- |
+| ASA Go API          | `asa-go-gw-config.yaml`    |                                                |
+| SFMS API            | `sfms-gw-config.yaml`      | `sfms-dataset.yaml`, `sfms-product.yaml`       |
+| Station Weather API | `weather-gw-config.yaml`   | `weather-dataset.yaml`, `weather-product.yaml` |
 
 ## Gateway IDs
 
@@ -159,3 +160,70 @@ PRODUCT_APP_ID=$(curl -s "${BASE}/products" -H "Authorization: Bearer ${TOKEN}" 
   jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
 curl -X DELETE "${BASE}/products/${PRODUCT_APP_ID}" -H "Authorization: Bearer ${TOKEN}"
 ```
+
+---
+
+## Station Weather API
+
+The Station Weather API provides historical and current BC Wildfire Service weather station
+data: hourly and daily observations (back to 1987 from the BCWS data mart), forecasters' noon
+forecasts, FWI System indices, and weather model values interpolated to stations. It reads only
+from object storage (Delta tables).
+The dedicated `wps-weather-api-${SUFFIX}` service is reachable through the APS gateway, which
+requires an API key and applies rate limits. The service has no public OpenShift route.
+Its network policy is in `openshift/templates/allow_gateway_to_wps_weather_api.yaml`.
+
+The authenticated gateway route exposes `/api/weather/v1`. The unauthenticated docs route
+exposes `/api/weather/docs`, `/api/weather/openapi.json`, and `/api/weather/redoc`; these live
+under `/api/weather/` because the SFMS gateway config already claims `/api/docs` on the same host.
+
+The Directory title is `Station Weather API`. The Product name is
+`Station Weather API${DISPLAY_SUFFIX}`, and the dataset identifier is `psu-weather-${SUFFIX}`.
+
+The Kong service name defaults to `psu-weather-${SUFFIX}` and can be overridden with
+`WEATHER_SERVICE_NAME`. Gateway resources use the tag
+`ns.${APS_NAMESPACE}.${WEATHER_GATEWAY_QUALIFIER}`. The renderer uses `weather-${SUFFIX}`
+for all environments.
+
+Publishing follows the same two flows as the SFMS API above (gateway config with
+`gwa publish-gateway`, Dataset + Product with `gwa apply`), split the same way between the test
+and production tenants.
+
+### Manual production publish
+
+**Gateway config:**
+
+```bash
+APS_NAMESPACE="<gateway-id>" \
+PROJECT_NAMESPACE="<oc-namespace>" \
+GW_HOST="<public-host>" \
+openshift/scripts/render_weather_gateway_config.sh prod ./weather-gw-config-prod.yaml
+
+gwa config set host api.gov.bc.ca
+gwa login
+gwa config set --gateway <gateway-id>
+gwa publish-gateway ./weather-gw-config-prod.yaml --qualifier weather-prod
+```
+
+```bash
+openshift/scripts/render_weather_aps_resources.sh prod /tmp/weather-prod
+
+gwa config set host api.gov.bc.ca
+gwa login
+gwa config set --gateway <gateway-id>
+gwa apply -i /tmp/weather-prod/weather-dataset-prod.yaml
+gwa apply -i /tmp/weather-prod/weather-product-prod.yaml
+```
+
+### Cleanup (PR)
+
+Publish empty gateway config under the Station Weather qualifier. This targets the **test**
+gateway (`gw-11008`), same as the PR publish:
+
+```bash
+gwa publish-gateway openshift/aps/empty-gw-config.yaml --qualifier weather-<suffix>
+```
+
+Dataset and Product — delete from the API Directory on the **test** gateway (`gw-11008`), using
+the same commands as the SFMS cleanup above with `psu-weather-<suffix>` as the dataset name and
+`Station Weather API (<suffix>)` as the product name.

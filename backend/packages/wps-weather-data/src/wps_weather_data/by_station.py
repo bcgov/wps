@@ -117,20 +117,25 @@ class ByStationTable(DeltaWeatherTable):
         return rows.select(STATION_ROWS_SCHEMA.names).cast(STATION_ROWS_SCHEMA)
 
     def read_stations(
-        self, resolution: str, station_codes: Sequence[int], sources: Sequence[str] | None = None
+        self,
+        resolution: str,
+        station_codes: Sequence[int],
+        sources: Sequence[str] | None = None,
+        years: Sequence[int] | None = None,
     ) -> pa.Table:
-        """Read the whole record of several stations, sorted by station, source then time,
-        optionally for some sources only. A station with no rows has none in the result.
+        """Read the record of several stations, sorted by station, source then time, optionally
+        for some sources or UTC years only. A station with no rows has none in the result.
         """
         if not self.exists() or not station_codes:
             return STATIONS_ROWS_SCHEMA.empty_table()
         # Only the stations' own files are opened: the table has a file per station per year.
-        dataset = self.dataset(
-            partitions=[
-                ("resolution", "=", resolution),
-                ("station_code", "in", [str(code) for code in station_codes]),
-            ]
-        )
+        partitions = [
+            ("resolution", "=", resolution),
+            ("station_code", "in", [str(code) for code in station_codes]),
+        ]
+        if years is not None:
+            partitions.append(("year", "in", [str(year) for year in years]))
+        dataset = self.dataset(partitions=partitions)
         wanted = pc.field("source").isin(list(sources)) if sources is not None else None
         return (
             dataset.to_table(filter=wanted, columns=STATIONS_ROWS_SCHEMA.names)
