@@ -1,0 +1,25 @@
+meta {
+  name: Station Weather API
+}
+
+headers {
+  X-API-Key: {{API_KEY}}
+}
+
+auth {
+  mode: none
+}
+
+docs {
+  The public Station Weather API (`app.weather_main:app`), served by the `wps-weather-api-{SUFFIX}`
+  service and published through the APS Kong gateway at `/api/weather/v1`.
+
+  Environments:
+  - `local`: copy `local.sample.bru` to `local.bru` (git-ignored) and run
+    `uv run uvicorn app.weather_main:app --port 8080` from `backend/packages/wps-api`.
+  - `dev`: port-forward to a PR's service, which needs no API key (the gateway checks keys,
+    the app does not): `oc -n e1e498-dev port-forward svc/wps-weather-api-pr-6073 8081:80`.
+    Change the PR number to match.
+  - `gateway`: through the test APS gateway. Set `API_BASE_URL` to the gateway host and the
+    `API_KEY` secret to a key from the test API Services Portal.
+}
