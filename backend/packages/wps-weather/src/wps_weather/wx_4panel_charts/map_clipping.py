@@ -12,6 +12,7 @@ from typing import NamedTuple
 
 import cartopy.crs as ccrs
 import numpy as np
+import xarray as xr
 from shapely.geometry import LineString
 
 # Extra margin on every edge, so contours and high/low detection have data just past
@@ -83,3 +84,40 @@ def visible_map_bounds(
         lat_min=math.floor(border_lats.min() - buffer_deg),
         lat_max=math.ceil(border_lats.max() + buffer_deg),
     )
+
+
+def clip_to_bounds(ds: xr.Dataset, bounds: ClipBounds) -> xr.Dataset:
+    """
+    Cut a GRIB dataset down to the smallest block of the grid that covers the bounds.
+    Call it before ds.load(), so only the kept block is read into memory.
+
+    - GDPS (1-D latitude/longitude): keep the latitudes and longitudes inside the bounds.
+    - RDPS (2-D latitude/longitude on a rotated y/x grid): mark the points inside the
+      bounds, then keep the smallest block of rows and columns that contains all of them.
+      Some points in that block fall outside the bounds; the grid's rows and columns
+      don't line up with lat/lon lines.
+
+    Raises ValueError if no grid points fall inside the bounds.
+    """
+    lons = ds["longitude"] % 360.0  # RDPS uses -180..180, GDPS already 0..360
+    lats = ds["latitude"]
+    in_lon = (lons >= bounds.lon_min) & (lons <= bounds.lon_max)
+    in_lat = (lats >= bounds.lat_min) & (lats <= bounds.lat_max)
+
+    if lons.ndim == 1:
+        if not (in_lon.any() and in_lat.any()):
+            raise ValueError(f"No grid points inside {bounds}")
+        return ds.isel(longitude=in_lon.values, latitude=in_lat.values)
+
+    inside = (in_lon & in_lat).values
+    if not inside.any():
+        raise ValueError(f"No grid points inside {bounds}")
+    y_dim, x_dim = lons.dims
+    rows = np.flatnonzero(inside.any(axis=1))  # rows with at least one inside point
+    cols = np.flatnonzero(inside.any(axis=0))  # columns with at least one inside point
+
+    # One continuous block from the first to the last of those rows/columns, so no
+    # rows or columns are skipped in the middle of the grid.
+    row_block = slice(rows[0], rows[-1] + 1)
+    col_block = slice(cols[0], cols[-1] + 1)
+    return ds.isel({y_dim: row_block, x_dim: col_block})
