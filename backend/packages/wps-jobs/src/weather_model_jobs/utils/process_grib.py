@@ -1,25 +1,47 @@
 """Read a grib file, and store values relevant to weather stations in database."""
 
-from datetime import datetime
-import math
 import logging
+import math
+from collections.abc import Iterator
+from datetime import datetime
 from typing import List, Optional
-from sqlalchemy.orm import Session
+
+import numpy as np
+from affine import Affine
 from osgeo import gdal
 from pyproj import CRS, Transformer
-from affine import Affine
-import numpy as np
-from wps_wf1.wfwx_api import get_stations_synchronously
+from sqlalchemy.orm import Session
+from weather_model_jobs.utils.wind_direction_utils import (
+    calculate_wind_dir_from_u_v,
+    calculate_wind_speed_from_u_v,
+)
+from wps_shared.db.crud.weather_models import get_or_create_prediction_run, get_prediction_model
+from wps_shared.db.models.weather_models import (
+    ModelRunPrediction,
+    PredictionModel,
+    PredictionModelRunTimestamp,
+)
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_dataset_transform, get_transformer
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
-from wps_shared.db.crud.weather_models import get_prediction_model, get_or_create_prediction_run
+from wps_shared.schemas.stations import WeatherStation
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
-from weather_model_jobs.utils.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
+from wps_wf1.wfwx_api import get_stations_synchronously
 
 logger = logging.getLogger(__name__)
 
-GFS_000_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5}
-GFS_003_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5, "apcp_sfc_0": 6, "cumulative_apcp_sfc_0": 7}
+GFS_000_HOURS_RASTER_BANDS = {
+    "tmp_tgl_2": 2,
+    "rh_tgl_2": 3,
+    "u_comp_wind_10m": 4,
+    "v_comp_wind_10m": 5,
+}
+GFS_003_HOURS_RASTER_BANDS = {
+    "tmp_tgl_2": 2,
+    "rh_tgl_2": 3,
+    "u_comp_wind_10m": 4,
+    "v_comp_wind_10m": 5,
+    "apcp_sfc_0": 6,
+    "cumulative_apcp_sfc_0": 7,
+}
 
 
 class PredictionModelNotFound(Exception):
@@ -33,7 +55,14 @@ class DatabaseException(Exception):
 class ModelRunInfo:
     """Information relation to a particular model run"""
 
-    def __init__(self, model_enum=None, projection=None, model_run_timestamp=None, prediction_timestamp=None, variable_name=None):
+    def __init__(
+        self,
+        model_enum=None,
+        projection=None,
+        model_run_timestamp=None,
+        prediction_timestamp=None,
+        variable_name=None,
+    ):
         self.model_enum: Optional[ModelEnum] = model_enum
         self.projection: Optional[ProjectionEnum] = projection
         self.model_run_timestamp: Optional[datetime] = model_run_timestamp
@@ -41,7 +70,9 @@ class ModelRunInfo:
         self.variable_name: Optional[str] = variable_name
 
 
-def calculate_raster_coordinate(longitude: float, latitude: float, transform: Affine, transformer: Transformer):
+def calculate_raster_coordinate(
+    longitude: float, latitude: float, transform: Affine, transformer: Transformer
+):
     """From a given longitude and latitude, calculate the raster coordinate corresponding to the
     top left point of the grid surrounding the given geographic coordinate.
     """
@@ -51,6 +82,20 @@ def calculate_raster_coordinate(longitude: float, latitude: float, transform: Af
     reverse = ~transform
     i_index, j_index = reverse * (raster_long, raster_lat)
     return (math.floor(i_index), math.floor(j_index))
+
+
+def read_station_grid_value(
+    band: gdal.Band, station: WeatherStation, transform: Affine, transformer: Transformer
+) -> np.number | None:
+    """Read the weather grid cell containing the station.
+
+    Return the raw NumPy value, including nodata and nonfinite values. Return
+    None when the station is outside the band.
+    """
+    column, row = calculate_raster_coordinate(station.long, station.lat, transform, transformer)
+    if not (0 <= column < band.XSize and 0 <= row < band.YSize):
+        return None
+    return band.ReadAsArray(column, row, 1, 1)[0, 0]
 
 
 def convert_mps_to_kph(value: float):
@@ -75,7 +120,10 @@ def calculate_relative_humidity(temp: float, dew_temp: float) -> float:
     temp_c = convert_kelvin_to_celsius(temp)
     dew_temp_c = convert_kelvin_to_celsius(dew_temp)
 
-    rh = 100 * (np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04)) / np.exp((17.625 * temp_c) / (temp_c + 243.04)))
+    rh = 100 * (
+        np.exp((17.625 * dew_temp_c) / (dew_temp_c + 243.04))
+        / np.exp((17.625 * temp_c) / (temp_c + 243.04))
+    )
 
     return rh
 
@@ -83,7 +131,9 @@ def calculate_relative_humidity(temp: float, dew_temp: float) -> float:
 class GribFileProcessor:
     """Instances of this object can be used to process and ingest a grib file."""
 
-    def __init__(self, padf_transform=None, raster_to_geo_transformer=None, geo_to_raster_transformer=None):
+    def __init__(
+        self, padf_transform=None, raster_to_geo_transformer=None, geo_to_raster_transformer=None
+    ):
         # Get list of stations we're interested in, and store it so that we only call it once.
         self.stations = get_stations_synchronously()
         self.padf_transform = padf_transform
@@ -91,23 +141,26 @@ class GribFileProcessor:
         self.geo_to_raster_transformer = geo_to_raster_transformer
         self.prediction_model: Optional[PredictionModel] = None
 
-    def yield_value_for_stations(self, raster_band: gdal.Dataset):
-        """Given a list of stations, and a gdal dataset, yield relevant data value"""
+    def yield_value_for_stations(
+        self, raster_band: gdal.Band
+    ) -> Iterator[tuple[WeatherStation, np.number]]:
+        """Yield raw weather values for covered stations and log uncovered stations.
+
+        Preserve nodata values for existing weather processing to handle.
+        """
         for station in self.stations:
-            longitude = station.long
-            latitude = station.lat
-
-            x_coordinate, y_coordinate = calculate_raster_coordinate(longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
-
-            if 0 <= x_coordinate < raster_band.XSize and 0 <= y_coordinate < raster_band.YSize:
-                value = raster_band.ReadAsArray(x_coordinate, y_coordinate, 1, 1)[0, 0]
-            else:
+            value = read_station_grid_value(
+                raster_band, station, self.padf_transform, self.geo_to_raster_transformer
+            )
+            if value is None:
                 logger.warning("coordinate not in raster - %s", station)
                 continue
 
             yield (station, value)
 
-    def yield_uv_wind_data_for_stations(self, u_raster_band: gdal.Dataset, v_raster_band: gdal.Dataset, variable: str):
+    def yield_uv_wind_data_for_stations(
+        self, u_raster_band: gdal.Dataset, v_raster_band: gdal.Dataset, variable: str
+    ):
         """Given a list of stations and 2 gdal datasets (one for u-component of wind, one for v-component
         of wind), yield relevant data
         """
@@ -115,7 +168,9 @@ class GribFileProcessor:
             longitude = station.long
             latitude = station.lat
 
-            x_coordinate, y_coordinate = calculate_raster_coordinate(longitude, latitude, self.padf_transform, self.geo_to_raster_transformer)
+            x_coordinate, y_coordinate = calculate_raster_coordinate(
+                longitude, latitude, self.padf_transform, self.geo_to_raster_transformer
+            )
 
             if (
                 0 <= x_coordinate < u_raster_band.XSize
@@ -186,7 +241,14 @@ class GribFileProcessor:
 
         return variable_name
 
-    def store_prediction_value(self, station_code: int, value: float, prediction_model_run: PredictionModelRunTimestamp, grib_info: ModelRunInfo, session: Session):
+    def store_prediction_value(
+        self,
+        station_code: int,
+        value: float,
+        prediction_model_run: PredictionModelRunTimestamp,
+        grib_info: ModelRunInfo,
+        session: Session,
+    ):
         """Store the values around the area of interest."""
         # Load the record if it exists.
         prediction = (
@@ -209,14 +271,24 @@ class GribFileProcessor:
         session.add(prediction)
         session.commit()
 
-    def process_env_can_grib_file(self, session: Session, dataset, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp):
+    def process_env_can_grib_file(
+        self,
+        session: Session,
+        dataset,
+        grib_info: ModelRunInfo,
+        prediction_run: PredictionModelRunTimestamp,
+    ):
         # for GDPS, RDPS, HRDPS models, always only ever 1 raster band in the dataset
         raster_band = dataset.GetRasterBand(1)
         # Iterate through stations:
         for station, value in self.yield_value_for_stations(raster_band):
             # Convert wind speed from metres per second to kilometres per hour for Environment Canada
             # models (NOAA models handled elswhere)
-            if grib_info.variable_name.lower().startswith("wind_agl") or grib_info.variable_name.lower().startswith("wind_tgl") or grib_info.variable_name.lower().startswith("windspeed_agl"):
+            if (
+                grib_info.variable_name.lower().startswith("wind_agl")
+                or grib_info.variable_name.lower().startswith("wind_tgl")
+                or grib_info.variable_name.lower().startswith("windspeed_agl")
+            ):
                 value = convert_mps_to_kph(value)
 
             self.store_prediction_value(station.code, value, prediction_run, grib_info, session)
@@ -228,28 +300,58 @@ class GribFileProcessor:
         # model_run_timestamp.
         # Need to know this to know which raster band ID we should use for GFS
         # grib files. Also, there won't be an accumulated precip band for the 000 interval.
-        model_run_interval = (grib_info.prediction_timestamp - grib_info.model_run_timestamp).total_seconds() / (60 * 60)
+        model_run_interval = (
+            grib_info.prediction_timestamp - grib_info.model_run_timestamp
+        ).total_seconds() / (60 * 60)
         if model_run_interval == 0:
             tmp_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get("tmp_tgl_2"))
             rh_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get("rh_tgl_2"))
-            u_wind_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get("u_comp_wind_10m"))
-            v_wind_raster_band = dataset.GetRasterBand(GFS_000_HOURS_RASTER_BANDS.get("v_comp_wind_10m"))
+            u_wind_raster_band = dataset.GetRasterBand(
+                GFS_000_HOURS_RASTER_BANDS.get("u_comp_wind_10m")
+            )
+            v_wind_raster_band = dataset.GetRasterBand(
+                GFS_000_HOURS_RASTER_BANDS.get("v_comp_wind_10m")
+            )
             precip_raster_band = None
         else:
             tmp_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get("tmp_tgl_2"))
             rh_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get("rh_tgl_2"))
-            u_wind_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get("u_comp_wind_10m"))
-            v_wind_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get("v_comp_wind_10m"))
+            u_wind_raster_band = dataset.GetRasterBand(
+                GFS_003_HOURS_RASTER_BANDS.get("u_comp_wind_10m")
+            )
+            v_wind_raster_band = dataset.GetRasterBand(
+                GFS_003_HOURS_RASTER_BANDS.get("v_comp_wind_10m")
+            )
             precip_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get("apcp_sfc_0"))
 
         # The GFS grib file has an extra band that contains cumulative precipitation
         if grib_info.model_enum == ModelEnum.GFS:
-            precip_raster_band = dataset.GetRasterBand(GFS_003_HOURS_RASTER_BANDS.get("cumulative_apcp_sfc_0"))
+            precip_raster_band = dataset.GetRasterBand(
+                GFS_003_HOURS_RASTER_BANDS.get("cumulative_apcp_sfc_0")
+            )
 
-        return (tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band)
+        return (
+            tmp_raster_band,
+            rh_raster_band,
+            u_wind_raster_band,
+            v_wind_raster_band,
+            precip_raster_band,
+        )
 
-    def process_noaa_grib_file(self, session: Session, dataset, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp):
-        tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band = self.get_raster_bands(dataset, grib_info)
+    def process_noaa_grib_file(
+        self,
+        session: Session,
+        dataset,
+        grib_info: ModelRunInfo,
+        prediction_run: PredictionModelRunTimestamp,
+    ):
+        (
+            tmp_raster_band,
+            rh_raster_band,
+            u_wind_raster_band,
+            v_wind_raster_band,
+            precip_raster_band,
+        ) = self.get_raster_bands(dataset, grib_info)
 
         for station, tmp_value in self.yield_value_for_stations(tmp_raster_band):
             grib_info.variable_name = "tmp_tgl_2"
@@ -260,13 +362,23 @@ class GribFileProcessor:
         if precip_raster_band:
             for station, apcp_value in self.yield_value_for_stations(precip_raster_band):
                 grib_info.variable_name = "apcp_sfc_0"
-                self.store_prediction_value(station.code, apcp_value, prediction_run, grib_info, session)
-        for station, wdir_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, "wdir_tgl_10"):
+                self.store_prediction_value(
+                    station.code, apcp_value, prediction_run, grib_info, session
+                )
+        for station, wdir_value in self.yield_uv_wind_data_for_stations(
+            u_wind_raster_band, v_wind_raster_band, "wdir_tgl_10"
+        ):
             grib_info.variable_name = "wdir_tgl_10"
-            self.store_prediction_value(station.code, wdir_value, prediction_run, grib_info, session)
-        for station, wind_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, "wind_tgl_10"):
+            self.store_prediction_value(
+                station.code, wdir_value, prediction_run, grib_info, session
+            )
+        for station, wind_value in self.yield_uv_wind_data_for_stations(
+            u_wind_raster_band, v_wind_raster_band, "wind_tgl_10"
+        ):
             grib_info.variable_name = "wind_tgl_10"
-            self.store_prediction_value(station.code, wind_value, prediction_run, grib_info, session)
+            self.store_prediction_value(
+                station.code, wind_value, prediction_run, grib_info, session
+            )
 
     def process_grib_file(self, filename, grib_info: ModelRunInfo, session: Session):
         """Process a grib file, extracting and storing relevant information."""
@@ -282,12 +394,20 @@ class GribFileProcessor:
 
         self.padf_transform = get_dataset_transform(filename)
         # get the model (.e.g. GPDS/RDPS latlon24x.24):
-        self.prediction_model = get_prediction_model(session, grib_info.model_enum, grib_info.projection)
+        self.prediction_model = get_prediction_model(
+            session, grib_info.model_enum, grib_info.projection
+        )
         if not self.prediction_model:
-            raise PredictionModelNotFound("Could not find this prediction model in the database", grib_info.model_enum, grib_info.projection)
+            raise PredictionModelNotFound(
+                "Could not find this prediction model in the database",
+                grib_info.model_enum,
+                grib_info.projection,
+            )
 
         # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
-        prediction_run = get_or_create_prediction_run(session, self.prediction_model, grib_info.model_run_timestamp)
+        prediction_run = get_or_create_prediction_run(
+            session, self.prediction_model, grib_info.model_run_timestamp
+        )
 
         if self.prediction_model.abbreviation in ["GDPS", "RDPS", "HRDPS"]:
             self.process_env_can_grib_file(session, dataset, grib_info, prediction_run)
