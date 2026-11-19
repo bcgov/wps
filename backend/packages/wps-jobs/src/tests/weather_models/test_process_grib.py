@@ -1,12 +1,15 @@
 import math
 import os
 
+import numpy as np
 import pytest
+from affine import Affine
 from aiohttp import ClientSession
 from osgeo import gdal
 from pyproj import CRS
 from weather_model_jobs.utils import process_grib
 from wps_shared.geospatial.geospatial import NAD83_CRS
+from wps_shared.schemas.stations import WeatherStation
 from wps_shared.tests.common import default_mock_client_get
 from wps_shared.weather_models import ModelEnum
 
@@ -75,3 +78,33 @@ def test_read_single_raster_value(monkeypatch: pytest.MonkeyPatch):
     assert math.isclose(value, 21.893, abs_tol=0.001)
 
     del dataset
+
+
+@pytest.mark.parametrize("raw_value", [0.0, 21.125, -9999.0, float("nan"), float("inf")])
+def test_weather_reader_skips_uncovered_stations_and_preserves_raw_values(
+    raw_value: float, caplog: pytest.LogCaptureFixture
+) -> None:
+    with gdal.GetDriverByName("MEM").Create("", 1, 1, 1, gdal.GDT_Float32) as dataset:
+        dataset.SetGeoTransform((-130.05, 0.1, 0, 51.05, 0, -0.1))
+        band = dataset.GetRasterBand(1)
+        band.SetNoDataValue(-9999)
+        band.WriteArray(np.array([[raw_value]], dtype=np.float32))
+        processor = process_grib.GribFileProcessor.__new__(process_grib.GribFileProcessor)
+        processor.stations = [
+            WeatherStation(code=1, name="Outside grid", lat=55, long=-130),
+            WeatherStation(code=2, name="Covered", lat=51, long=-130),
+        ]
+        processor.padf_transform = Affine.from_gdal(*dataset.GetGeoTransform())
+        processor.geo_to_raster_transformer = process_grib.get_transformer(NAD83_CRS, NAD83_CRS)
+
+        values = list(processor.yield_value_for_stations(band))
+
+    assert len(values) == 1
+    station, value = values[0]
+    assert station.code == 2
+    assert isinstance(value, np.float32)
+    if math.isnan(raw_value):
+        assert math.isnan(value)
+    else:
+        assert value == raw_value
+    assert "coordinate not in raster" in caplog.text

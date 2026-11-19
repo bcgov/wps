@@ -8,6 +8,7 @@ from sqlalchemy import extract, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from wps_shared.db.models.model_run_station_elevation import ModelRunStationElevation
 from wps_shared.db.models.weather_models import (
     ModelRunForSFMS,
     ModelRunPrediction,
@@ -90,6 +91,54 @@ def get_model_run_predictions_for_station(
         .filter(ModelRunPrediction.station_code == station_code)
         .order_by(ModelRunPrediction.prediction_timestamp)
     )
+
+
+def get_model_run_station_codes(session: Session, model_run_id: int) -> set[int]:
+    """Return station codes with weather predictions in the model run."""
+    statement = (
+        select(ModelRunPrediction.station_code)
+        .where(ModelRunPrediction.prediction_model_run_timestamp_id == model_run_id)
+        .distinct()
+    )
+    return set(session.scalars(statement))
+
+
+def get_model_run_elevation_station_codes(session: Session, model_run_id: int) -> set[int]:
+    """Return station codes with saved elevation records for the model run.
+
+    Include null elevations so they are treated as processed.
+    """
+    statement = select(ModelRunStationElevation.station_code).where(
+        ModelRunStationElevation.prediction_model_run_timestamp_id == model_run_id
+    )
+    return set(session.scalars(statement))
+
+
+def store_model_run_station_elevations(
+    session: Session,
+    model_run_id: int,
+    station_codes: set[int],
+    elevations: dict[int, float | None],
+) -> None:
+    """Add model elevation records for the given stations and flush the session.
+
+    Round elevations to two decimal places. Store null when a station has no
+    sample. Leave commits to the caller.
+    """
+    rows: list[ModelRunStationElevation] = []
+    for code in sorted(station_codes):
+        elevation = elevations.get(code)
+        if elevation is not None:
+            elevation = round(elevation, 2)
+        rows.append(
+            ModelRunStationElevation(
+                prediction_model_run_timestamp_id=model_run_id,
+                station_code=code,
+                elevation=elevation,
+            )
+        )
+    session.add_all(rows)
+    session.flush()
 
 
 def delete_model_run_predictions(session: Session, older_than: datetime):

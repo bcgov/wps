@@ -2,6 +2,7 @@ import pandas as pd
 import xarray
 import xarray as xr
 from herbie import Herbie
+from pyproj import Transformer
 from weather_model_jobs import ModelRunInfo, ModelRunProcessResult
 from weather_model_jobs.utils.process_grib import (
     calculate_relative_humidity,
@@ -15,6 +16,7 @@ from wps_shared.geospatial.bounds import (
     BC_MIN_LATITUDE,
     BC_MIN_LONGITUDE,
 )
+from wps_shared.schemas.stations import WeatherStation
 
 # ECMWF regex search strings
 TEMP = ":2t:"  # Temperature at 2 meters
@@ -51,6 +53,34 @@ def crop_to_bc(dataset: xr.Dataset) -> xr.Dataset:
     return cropped
 
 
+def get_stations_dataframe(
+    transformer: Transformer, stations: list[WeatherStation]
+) -> pd.DataFrame:
+    """Transform station coordinates and return Herbie's station table.
+
+    Columns are code, name, latitude, and longitude.
+    """
+    stations_df = pd.DataFrame(
+        [station.model_dump(include={"code", "name", "lat", "long"}) for station in stations]
+    ).rename(columns={"lat": "latitude", "long": "longitude"})
+
+    stations_df[["longitude", "latitude"]] = stations_df.apply(
+        lambda row: transformer.transform(row["longitude"], row["latitude"]),
+        axis=1,
+        result_type="expand",
+    )
+    return stations_df
+
+
+def sample_station_points(dataset: xr.Dataset, stations_df: pd.DataFrame) -> xr.Dataset:
+    """Return each station's nearest ECMWF cell, indexed by point_code.
+
+    Sample the supplied cropped dataset using Herbie's nearest point lookup.
+    """
+    selected = dataset.herbie.pick_points(stations_df, method="nearest", use_cached_tree=False)
+    return selected.swap_dims({"point": "point_code"})
+
+
 class ECMWFModelProcessor:
     model_run_info: ModelRunInfo
     data: xarray.Dataset
@@ -77,10 +107,7 @@ class ECMWFModelProcessor:
         weather_ds = xr.merge(datasets, compat="override")
 
         # extract data for each station
-        station_data: xarray.Dataset = weather_ds.herbie.pick_points(
-            stations_df, method="nearest", use_cached_tree=False
-        )
-        station_data = station_data.swap_dims({"point": "point_code"}).herbie.with_wind()
+        station_data = sample_station_points(weather_ds, stations_df).herbie.with_wind()
 
         # calculate rh, convert wind, temp, and precip units
         station_data[RH_FIELD] = xr.apply_ufunc(

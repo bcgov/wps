@@ -19,8 +19,13 @@ from weather_model_jobs import (
     ProjectionEnum,
 )
 from weather_model_jobs.ecmwf_hours import get_ecmwf_forecast_hours
-from weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
+from weather_model_jobs.ecmwf_model_processor import (
+    TEMP,
+    ECMWFModelProcessor,
+    get_stations_dataframe,
+)
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
+from weather_model_jobs.model_elevation_processor import ModelElevationProcessor
 from weather_model_jobs.utils.process_grib import PredictionModelNotFound
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.crud.model_run_repository import ModelRunRepository
@@ -55,21 +60,6 @@ def get_model_run_hours(model_type: ModelEnum):
     if model_type == ModelEnum.ECMWF:
         for hour in [0, 12]:
             yield hour
-
-
-def get_stations_dataframe(
-    transformer: Transformer, stations: List[WeatherStation]
-) -> pd.DataFrame:
-    stations_df = pd.DataFrame(
-        [station.model_dump(include={"code", "name", "lat", "long"}) for station in stations]
-    ).rename(columns={"lat": "latitude", "long": "longitude"})
-
-    stations_df[["longitude", "latitude"]] = stations_df.apply(
-        lambda row: transformer.transform(row["longitude"], row["latitude"]),
-        axis=1,
-        result_type="expand",
-    )
-    return stations_df
 
 
 def get_ecmwf_transformer(working_dir: str, herbie_instance: Herbie) -> Transformer:
@@ -314,7 +304,8 @@ async def process_models():
             ecmwf = ECMWF(temp_dir, stations, model_run_repository)
             ecmwf.process()
 
-            # interpolate and machine learn everything that needs interpolating.
+            ModelElevationProcessor(session, stations).process(ecmwf.model_type)
+
             ecmwf_prediction_processor = ECMWFPredictionProcessor(stations, model_run_repository)
             ecmwf_prediction_processor.process()
 

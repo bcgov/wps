@@ -19,6 +19,7 @@ from weather_model_jobs.common_model_fetchers import (
     check_if_model_run_complete,
     flag_file_as_processed,
 )
+from weather_model_jobs.model_elevation_processor import ModelElevationProcessor
 from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
@@ -402,6 +403,8 @@ def process_models():
     with wps_shared.db.database.get_write_session_scope() as session:
         noaa = NOAA(session, model_type)
         noaa.process()
+
+        ModelElevationProcessor(session, noaa.grib_processor.stations).process(model_type)
 
         # interpolate and machine learn everything that needs interpolating.
         model_value_processor = ModelValueProcessor(session)
