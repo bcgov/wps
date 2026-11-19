@@ -19,7 +19,8 @@ from typing import Annotated
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.csv
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field
 from wps_shared.utils.time import get_utc_now
 from wps_shared.weather_models import ModelEnum
@@ -175,6 +176,14 @@ def get_stations_table(request: Request) -> StationsTable:
     return request.app.state.stations_table
 
 
+def _invalid(parameter: str, value, message: str) -> RequestValidationError:
+    """A 422 in FastAPI's own shape, the same as its checks of the parameters' types return:
+    `{"detail": [{"type", "loc", "msg", "input"}]}`."""
+    return RequestValidationError(
+        [{"type": "value_error", "loc": ("query", parameter), "msg": message, "input": value}]
+    )
+
+
 def station_codes_param(
     station_codes: Annotated[
         list[str],
@@ -191,11 +200,13 @@ def station_codes_param(
     try:
         codes = [int(code) for value in station_codes for code in value.split(",") if code.strip()]
     except ValueError:
-        raise HTTPException(status_code=422, detail="station_codes must be whole numbers")
+        raise _invalid("station_codes", station_codes, "Station codes must be whole numbers")
     codes = list(dict.fromkeys(codes))
     if not codes or len(codes) > MAX_STATIONS:
-        raise HTTPException(
-            status_code=422, detail=f"Ask for 1 to {MAX_STATIONS} stations, not {len(codes)}"
+        raise _invalid(
+            "station_codes",
+            station_codes,
+            f"Ask for 1 to {MAX_STATIONS} stations, not {len(codes)}",
         )
     return codes
 
@@ -269,7 +280,7 @@ def _dates(start: date | None, end: date | None, today: date, ahead: bool) -> tu
         end = end or today
         start = start or end - timedelta(days=DEFAULT_PAST_DAYS - 1)
     if end < start:
-        raise HTTPException(status_code=422, detail="end is before start")
+        raise _invalid("end", end, f"end is before start ({start})")
     return start, end
 
 

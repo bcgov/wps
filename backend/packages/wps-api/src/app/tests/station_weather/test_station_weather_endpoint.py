@@ -389,3 +389,22 @@ def test_docs_are_served_under_weather(client):
         "/weather/v1/forecasts/daily",
         "/weather/v1/models/{model}/{resolution}",
     ]
+
+
+@pytest.mark.parametrize(
+    ("params", "parameter"),
+    [
+        ({"station_codes": "afton"}, "station_codes"),
+        ({"station_codes": 322, "start": "2026-07-02", "end": "2026-07-01"}, "end"),
+        # Checked by FastAPI itself.
+        ({"station_codes": 322, "start": "July"}, "start"),
+    ],
+)
+@pytest.mark.usefixtures("tables")
+def test_every_422_has_fastapis_shape(client, params, parameter):
+    response = client.get(URL, params=params)
+
+    assert response.status_code == 422
+    [error] = response.json()["detail"]
+    assert error["loc"] == ["query", parameter]
+    assert error["msg"]
