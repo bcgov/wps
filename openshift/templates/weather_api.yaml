@@ -121,6 +121,10 @@ objects:
                   value: ${POSTGRES_DATABASE}
                 - name: ENVIRONMENT
                   value: ${ENVIRONMENT}
+                # Selects the deployment's station weather tables: dev/{suffix}/ in dev, the
+                # production root for prod.
+                - name: SUFFIX
+                  value: ${SUFFIX}
                 - name: GUNICORN_WORKERS
                   value: ${GUNICORN_WORKERS}
                 - name: OBJECT_STORE_SERVER
