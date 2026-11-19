@@ -53,7 +53,7 @@ import urllib.request
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import boto3
@@ -333,6 +333,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--s3-prefix", help="write to the object store under this prefix")
     parser.add_argument("--no-conditional-writes", action="store_true")
     parser.add_argument("--points", type=int, default=20, help="point series to time")
+    parser.add_argument(
+        "--recent-cycle",
+        type=int,
+        metavar="RUNS",
+        help="instead of the variants, try the `recent` store's cycle with the first run: add it "
+        "as this many runs, each its own group, delete the older half, expire snapshots and "
+        "garbage collect, measuring the store after each step",
+    )
     return parser.parse_args()
 
 
@@ -473,11 +481,11 @@ def load_run(
 # --- Writing the stores -----------------------------------------------------------------------
 
 
-def storage(args: argparse.Namespace, variant: Variant) -> icechunk.Storage:
+def storage(args: argparse.Namespace, variant: Variant | str) -> icechunk.Storage:
+    """The store of a variant, or of any other name under the model."""
+    name = variant if isinstance(variant, str) else variant.name
     if not args.s3_prefix:
-        return icechunk.local_filesystem_storage(
-            str(args.work_dir / "stores" / args.model / variant.name)
-        )
+        return icechunk.local_filesystem_storage(str(args.work_dir / "stores" / args.model / name))
     # Icechunk's AWS SDK checks response checksums and sends request checksums by default. ECS
     # answers a conditional GET with 304 and the object's checksum but no body, which fails the
     # check ("expected body checksum to be ... but it was 00000000"). As with botocore (see the
@@ -487,7 +495,7 @@ def storage(args: argparse.Namespace, variant: Variant) -> icechunk.Storage:
     os.environ.setdefault("AWS_REQUEST_CHECKSUM_CALCULATION", "when_required")
     return icechunk.s3_storage(
         bucket=os.environ["OBJECT_STORE_BUCKET"],
-        prefix=f"{args.s3_prefix}/{args.model}/{variant.name}",
+        prefix=f"{args.s3_prefix}/{args.model}/{name}",
         endpoint_url=f"https://{os.environ['OBJECT_STORE_SERVER']}",
         access_key_id=os.environ["OBJECT_STORE_USER_ID"],
         secret_access_key=os.environ["OBJECT_STORE_SECRET"],
@@ -496,7 +504,7 @@ def storage(args: argparse.Namespace, variant: Variant) -> icechunk.Storage:
     )
 
 
-def repository(args: argparse.Namespace, variant: Variant) -> icechunk.Repository:
+def repository(args: argparse.Namespace, variant: Variant | str) -> icechunk.Repository:
     config = icechunk.RepositoryConfig.default()
     if args.no_conditional_writes:
         config.storage = icechunk.StorageSettings(
@@ -613,10 +621,11 @@ def write_run(
 # --- Measuring --------------------------------------------------------------------------------
 
 
-def stored_bytes(args: argparse.Namespace, variant: Variant) -> tuple[int, int]:
-    """Bytes and objects the variant's store holds."""
+def stored_bytes(args: argparse.Namespace, variant: Variant | str) -> tuple[int, int]:
+    """Bytes and objects the variant's (or named) store holds."""
+    name = variant if isinstance(variant, str) else variant.name
     if not args.s3_prefix:
-        folder = args.work_dir / "stores" / args.model / variant.name
+        folder = args.work_dir / "stores" / args.model / name
         files = [p for p in folder.rglob("*") if p.is_file()]
         return sum(p.stat().st_size for p in files), len(files)
     client = boto3.client(
@@ -629,7 +638,7 @@ def stored_bytes(args: argparse.Namespace, variant: Variant) -> tuple[int, int]:
     size = count = 0
     pages = client.get_paginator("list_objects_v2").paginate(
         Bucket=os.environ["OBJECT_STORE_BUCKET"],
-        Prefix=f"{args.s3_prefix}/{args.model}/{variant.name}/",
+        Prefix=f"{args.s3_prefix}/{args.model}/{name}/",
     )
     for page in pages:
         for item in page.get("Contents", []):
@@ -685,6 +694,93 @@ def measure_reads(
     return {"point_ms": point_ms, "map_ms": map_ms, "errors": errors, "runs": len(run_times)}
 
 
+# --- The `recent` store's cycle ---------------------------------------------------------------
+
+RECENT = "recent-check"
+
+
+def recent_cycle(
+    args, model: Model, run: datetime, hours: list[int], integers: dict, coordinates: dict
+) -> int:
+    """Add `run` as `args.recent_cycle` runs six hours apart, each its own group of GRIB
+    integers, then delete the older half, expire snapshots and garbage collect. Prints the
+    store's size after each step and checks the kept runs read back exactly."""
+    variant = next(v for v in VARIANTS if v.encoding == "grib")
+    ny, nx = coordinates["latitude"].shape
+    count = args.recent_cycle
+    labels = [f"{run - timedelta(hours=6 * (count - 1 - i)):%Y-%m-%dT%H}" for i in range(count)]
+
+    def report(step: str) -> None:
+        size, objects = stored_bytes(args, RECENT)
+        print(f"  {step:44s} {size / 1e6:8.1f} MB {objects:6d} objects")
+
+    print(f"Recent cycle: {count} runs of {model.name.upper()} as GRIB integers")
+    repo = repository(args, RECENT)
+    try:
+        existing = list(zarr.open_group(repo.readonly_session("main").store, mode="r"))
+    except zarr.errors.GroupNotFoundError:
+        # A new repository has no root group yet.
+        existing = []
+    if existing:
+        print("  the store is not empty: use another --s3-prefix or --work-dir")
+        return 1
+    chunks = chunking(variant, len(hours), ny, nx)
+    for label in labels:
+        session = repo.writable_session("main")
+        group = zarr.open_group(session.store, mode="a").create_group(label)
+        for variable in model.variables:
+            stored = integers[variable.name]
+            array = group.create_array(
+                variable.name,
+                shape=(len(hours), ny, nx),
+                dtype="int32",
+                fill_value=0,
+                dimension_names=("hour", "y", "x"),
+                chunks=chunks["chunks"][1:],
+                shards=chunks["shards"][1:],
+                **codecs(variant, variable),
+            )
+            array[:] = stored["integers"]
+            for name in GRIB_SCALES:
+                group.create_array(f"{variable.name}_{name}", data=stored[name])
+        session.commit(f"add {label}")
+        report(f"added {label}")
+
+    deleted, kept = labels[: count // 2], labels[count // 2 :]
+    session = repo.writable_session("main")
+    root = zarr.open_group(session.store, mode="a")
+    for label in deleted:
+        del root[label]
+    session.commit(f"delete {', '.join(deleted)}")
+    report(f"deleted {', '.join(deleted)}")
+
+    # Only the newest snapshot is kept: the deleted runs are in none of what survives.
+    cutoff = datetime.now(UTC)
+    expired = repo.expire_snapshots(older_than=cutoff)
+    report(f"expired {len(expired)} snapshots")
+    summary = repo.garbage_collect(delete_object_older_than=cutoff)
+    report("garbage collected")
+    print(
+        f"  garbage collection deleted {summary.chunks_deleted} chunks, "
+        f"{summary.manifests_deleted} manifests, {summary.snapshots_deleted} snapshots, "
+        f"{summary.transaction_logs_deleted} transaction logs, "
+        f"{summary.bytes_deleted / 1e6:.1f} MB; delete errors {summary.delete_errors}, "
+        f"failed to delete {summary.objects_failed_to_delete}"
+    )
+
+    root = zarr.open_group(repository(args, RECENT).readonly_session("main").store, mode="r")
+    present = sorted(root.group_keys())
+    exact = all(
+        np.array_equal(root[label][v.name][:], integers[v.name]["integers"])
+        for label in kept
+        for v in model.variables
+    )
+    print(f"  runs in the store: {', '.join(present)}; kept runs read back exactly: {exact}")
+    ok = present == kept and exact and not summary.objects_failed_to_delete
+    print("  cycle " + ("worked" if ok else "FAILED"))
+    return 0 if ok else 1
+
+
 def main() -> int:
     args = parse_args()
     model = MODELS[args.model]
@@ -700,7 +796,7 @@ def main() -> int:
         hours = [h for h in model.hours(run.hour) if args.hours is None or h <= args.hours]
         print(f"{model.name.upper()} run {run:%Y-%m-%dT%H}Z, {len(hours)} hours to {hours[-1]}")
         try:
-            packed = any(variant.encoding == "grib" for variant in variants)
+            packed = args.recent_cycle or any(v.encoding == "grib" for v in variants)
             fields, integers, coordinates, grib = load_run(model, run, hours, downloads, packed)
         except (urllib.error.HTTPError, FileNotFoundError) as error:
             if isinstance(error, urllib.error.HTTPError) and error.code != 404:
@@ -709,6 +805,8 @@ def main() -> int:
             print(f"  skipped: not all of it is published ({error})")
             continue
         loaded.append(run)
+        if args.recent_cycle:
+            return recent_cycle(args, model, run, hours, integers, coordinates)
         grib_bytes += grib
         raw_bytes += sum(values.nbytes for values in fields.values())
         for variant in variants:

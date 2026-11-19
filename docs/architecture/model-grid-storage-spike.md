@@ -7,8 +7,8 @@ Status: spike, run on local disk on 2026-11-19 for HRDPS, RDPS, GDPS, GFS and EC
 - Every model we ingest publishes integer-packed GRIB2, and storing those integers with each field's scales keeps exactly what the provider publishes. Compressed with pcodec, it is the smallest lossless form for every model, 25 to 50 % smaller than float32.
 - Kept that way, with every hour of every run, BC crops of all five models come to about 200 GB a year. HRDPS is about 80 % of it (162 GB); RDPS is 27 GB and the other three under 6 GB each.
 - Open-Meteo style scaled int16 is about half the size again, but loses precision against the source, so it does not meet the requirement that every variable stays accurate.
-- The runs overlap: a 49-hour HRDPS run covers the same hours as the next seven. Keeping fewer hours per run is the remaining large saving that keeps every value exact.
-- Icechunk works on ECS once the AWS SDK's checksum settings are relaxed. Read times on ECS are the main thing left to measure.
+- The runs overlap: a 49-hour HRDPS run covers the same hours as the next seven. The chosen [retention](#retention) keeps every run for about a day and one run per model per day after that, which is about 52 GB a year for all five models, every value exact.
+- Icechunk writes and reads on ECS once the AWS SDK's checksum settings are relaxed, but its garbage collection cannot delete anything there: ECS rejects its bulk deletes without `Content-MD5`. So `recent` keeps each run in its own repository and deletes old ones by prefix. Read times on ECS are the main thing left to measure.
 - NAM is no longer published on NOMADS.
 
 ## Question
@@ -129,13 +129,67 @@ Only sizes, compression and errors carry over to ECS. Read and write times on EC
 - **Point reads** were 16 to 18 ms and map reads 3 to 6 ms on local disk for every model's `grib` variant. The coarser grids are a single 64 x 64 tile wide or a few, so a map is one or a few chunks.
 - **Writing** took 0.1 s a run. Downloading took most of the time, and for GDPS and ECMWF it is the whole global field (820 and 799 MB a run) to keep a small BC crop. Peak memory was under 710 MiB.
 
+## Retention
+
+Decided on 2026-11-19: every run for the current day, and historically one fixed-hour run per model per day. Each model has two stores:
+
+- **`recent`: every run for about the last day.** Each run is its own small Icechunk repository (for example `recent/2026-11-19T12/`), written in one commit. The job adds each new run and deletes the prefixes of runs older than about 24 to 48 hours, one object at a time. Readers list the run prefixes. A first design kept the runs as groups of one repository and reclaimed the space with Icechunk's garbage collection, which does not work on ECS (see [the cycle on ECS](#the-recent-cycle-on-ecs)). This workaround was decided after that test. Its two halves worked on ECS in this spike (creating a repository and committing a run; deleting objects one at a time), but the cycle as a whole, with a repository per run, was not run.
+- **`history`: one run per day, kept.** Appended along the `run` axis, as the spike writes it. The job writes the chosen run to both stores. Nothing is deleted from `history`.
+
+The run kept each day is each model's last full-length run:
+
+| Model | Run kept | Why |
+|---|---|---|
+| HRDPS, RDPS, GFS | 18Z | the last run of the day, full length |
+| GDPS | 12Z | GDPS runs only at 00Z and 12Z |
+| ECMWF | 12Z | its 18Z run goes to 90 hours, its 12Z run to 240 |
+
+Using 12Z for every model would make the models comparable run for run, at the cost of HRDPS, RDPS and GFS's last update of the day. The storage is the same.
+
+Sizes, as GRIB integers, scaled from the measured runs in [Sizes](#sizes):
+
+| Model | `history`, GB a year | `recent`, about a day of runs |
+|---|---|---|
+| HRDPS | 40.4 | about 440 MB |
+| RDPS | 6.8 | about 75 MB |
+| GDPS | 2.0 | about 11 MB |
+| GFS | 0.8 | about 9 MB |
+| ECMWF | 1.8 | about 15 MB |
+| All five | about 52, or about 30 keeping April to October only | about 0.55 GB; a deleted run's objects are gone at once |
+
+- **`history` needs no garbage collection to speak of.** Nothing is deleted from it. Each daily append rewrites only its small `run_time` and per-hour scale arrays, a few KB a day of unreferenced objects, which can wait until ECS or Icechunk can delete in bulk.
+- **What the current day is** is still open. The last 24 to 48 hours is simpler than a calendar day and never leaves a gap after midnight.
+
+### The recent cycle on ECS
+
+`model_grid_icechunk_spike.py --recent-cycle 4` adds one run as four runs, each a group of one repository, deletes the older two, expires snapshots and garbage collects, measuring the store after each step. With the 2026-11-19 12Z RDPS run as GRIB integers:
+
+| Step | Local disk | ECS |
+|---|---|---|
+| Four runs added | 73.7 MB, 99 objects | 73.7 MB, 99 objects |
+| Two deleted (commit) | 73.7 MB | 73.7 MB |
+| Snapshots expired | 73.7 MB | 73.7 MB |
+| Garbage collected | 36.8 MB, 58 objects | 73.7 MB: nothing deleted |
+| Kept runs read back exactly | yes | yes |
+
+On ECS, garbage collection failed on every batch: `DeleteObjects failed: status 400, code InvalidRequest, message Missing required header for this request: Content-MD5`. S3 requires a checksum on `DeleteObjects`; the AWS SDK inside Icechunk sends CRC32, and ECS accepts only `Content-MD5`. It is the same limit that rejects boto3's bulk delete. Configuration does not help: Icechunk's `checksum_algorithm` offers CRC32, CRC32C, CRC64-NVME, SHA-1 and SHA-256 but not MD5, and the checksum environment settings that fixed reads do not apply to a call that always needs one. Deleting objects one at a time works on ECS, and was used to clean up.
+
+Why the SDK cannot be told to use MD5, and the ways around it. The first point and the Icechunk options were checked in this spike; the rest is from memory and not verified:
+
+- **The AWS SDKs dropped MD5 in early 2025.** Their default integrity protections replaced `Content-MD5` with CRC checksums on the operations where S3 requires a checksum, `DeleteObjects` among them. `when_required` does not change that, because this operation always requires one.
+- **Icechunk (the Rust `aws-sdk-s3`)** has no MD5 option. It would take a change in Icechunk: an interceptor that adds `Content-MD5`, or deleting one object at a time. No Icechunk issue for this was looked for.
+- **botocore** has no setting either, but an event handler that computes `Content-MD5` before signing is the known workaround. It would let our own Python code bulk-delete on ECS with a current botocore, as an alternative to the aiobotocore pin. Not tried.
+- **ECS** may accept CRC checksums in newer releases. That is a question for its administrators.
+
+So any design that relies on Icechunk's garbage collection cannot reclaim space on ECS, until ECS accepts other checksums or Icechunk can send MD5 or delete singly. A repository per run in `recent`, deleted by prefix, avoids it.
+
 ## Open questions
 
 - **Read times on ECS**, for a point forecast and for a map in each layout.
 - **Icechunk on ECS works, with one setting.** A small test (3 hours of one run, one variant) wrote, committed and read back from ECS on 2026-11-19, with conditional writes on. Without the setting, the first commit failed: ECS answers Icechunk's conditional GET with a 304 that carries the object's checksum but no body, and the AWS SDK inside Icechunk rejects it ("expected body checksum to be 0c835fe8 but it was 00000000"). Setting `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` to `when_required` fixes it, as the same incompatibility needed for botocore. The script sets both when it writes to S3. Any job writing Icechunk to ECS will need them.
 - **The other models on ECS.** Their sizes are in [Sizes](#sizes); their read times on ECS were not measured.
 - **More runs.** One run was written. Compression is per run, so it should hold, but the object count and Icechunk's metadata over months of commits are not measured.
-- **ECS quota and cost** for about 200 GB a year for all five models, lossless, and who approves it.
+- **ECS quota and cost** for about 52 GB a year for all five models under the chosen [retention](#retention), and who approves it.
 - **Where the writes go.** Inside the existing model jobs (more memory and time in jobs with tight limits), or a separate job reading the same downloaded files, so that a failure there cannot hold up the station data.
 
 ## Next steps
@@ -147,9 +201,9 @@ Only sizes, compression and errors carry over to ECS. Read and write times on EC
    ```
 
    from `./backend`, with `OBJECT_STORE_SERVER`, `OBJECT_STORE_USER_ID`, `OBJECT_STORE_SECRET` and `OBJECT_STORE_BUCKET` set as the deployments have them. Stores go under `dev/zarr-spike/{model}/{variant}`. Delete `dev/zarr-spike` afterwards, one object at a time: ECS rejects boto3's bulk `DeleteObjects` without a `Content-MD5` header. The MSC datamart keeps about a day, so MSC runs must be recent.
-2. Measure keeping fewer hours per run (`--hours`), which keeps every value exact.
+2. Ask whether ECS can accept CRC32 checksums on `DeleteObjects` (newer ECS releases may), and look for, or open, an Icechunk issue for S3-compatible stores that require `Content-MD5`. Either would make Icechunk's garbage collection work. Until then, use a repository per run in `recent`.
 3. Check whether NOMADS keeps NOAA's original scales for GFS, against a field from NOAA's full file.
-4. Decide on the hours kept, the layout and where the writes run, then design the job.
+4. Decide on the layout and where the writes run, then design the job.
 
 ## Open-Meteo's quantization
 
