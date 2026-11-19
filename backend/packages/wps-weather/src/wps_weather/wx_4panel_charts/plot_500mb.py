@@ -19,8 +19,8 @@ import matplotlib.ticker as mticker
 import numpy as np
 import xarray as xr
 from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-from cartopy.util import add_cyclic_point
 from scipy.ndimage import maximum_filter, minimum_filter
+from wps_weather.wx_4panel_charts.gdps_longitude import prepare_gdps_lon_axis
 
 # --------------------------------------------------
 # FINAL "decided" feature values live here
@@ -328,18 +328,7 @@ def plot_500hpa(cfg=None, ax=None, ds_z500=None, ds_vort=None):
     vort = v * 1e5
 
     
-    lon_wrapped = ((lons + 180.0) % 360.0) - 180.0
-    order = np.argsort(lon_wrapped)
-    lon_plot = lon_wrapped[order]
-    
-    Z = H500[:, order]
-    V = vort[:, order]
-    
-    # --- IMPORTANT FIX (same idea as precip): make fields cyclic in longitude ---
-    Z, lon_plot_cyc = add_cyclic_point(Z, coord=lon_plot)
-    V, _            = add_cyclic_point(V, coord=lon_plot)
-    
-    lon_plot = lon_plot_cyc
+    lon_plot, (Z, V) = prepare_gdps_lon_axis(lons, H500, vort)
 
     
     # --- Gridlines + single labels ---

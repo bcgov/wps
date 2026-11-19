@@ -20,9 +20,9 @@ import matplotlib.ticker as mticker
 import numpy as np
 import xarray as xr
 from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-from cartopy.util import add_cyclic_point
 from matplotlib.patches import Patch
 from scipy.ndimage import maximum_filter, minimum_filter
+from wps_weather.wx_4panel_charts.gdps_longitude import prepare_gdps_lon_axis
 
 # --------------------------------------------------
 # FINAL "decided" feature values live here
@@ -326,23 +326,13 @@ def plot_700hpa(
     RH = (rh850 + rh700 + rh500) / 3.0
 
     # --------------------------------------------------
-    # 2) Wrap lon 0–360 -> -180–180
+    # 2) Longitudes ready to plot (see gdps_longitude.py)
     # --------------------------------------------------
     lats = ds_z700["latitude"].values
     lons = ds_z700["longitude"].values
     
     
-    lon_wrapped = ((lons + 180.0) % 360.0) - 180.0
-    order = np.argsort(lon_wrapped)
-    lon_plot = lon_wrapped[order]
-
-    Z = H700.values[:, order]
-    RHv = RH.values[:, order]
-    
-    Z, lon_plot_cyc = add_cyclic_point(Z, coord=lon_plot)
-    RHv,_           = add_cyclic_point(RHv, coord=lon_plot)
-    
-    lon_plot = lon_plot_cyc
+    lon_plot, (Z, RHv) = prepare_gdps_lon_axis(lons, H700.values, RH.values)
 
     # --------------------------------------------------
     # 3) Gridlines + single labels
