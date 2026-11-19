@@ -9,6 +9,7 @@ Status: spike, run on local disk on 2026-11-19 for HRDPS, RDPS, GDPS, GFS and EC
 - Open-Meteo style scaled int16 is about half the size again, but loses precision against the source, so it does not meet the requirement that every variable stays accurate.
 - The runs overlap: a 49-hour HRDPS run covers the same hours as the next seven. The chosen [retention](#retention) keeps every run for about a day and one run per model per day after that, which is about 52 GB a year for all five models, every value exact.
 - Icechunk writes and reads on ECS once the AWS SDK's checksum settings are relaxed, but its garbage collection cannot delete anything there: ECS rejects its bulk deletes without `Content-MD5`. So `recent` keeps each run in its own repository and deletes old ones by prefix. Read times on ECS are the main thing left to measure.
+- Keeping the downloaded GRIB files instead would take about 1 TB a year under the same retention, about 20 times as much, because they cover each model's whole domain. [Cropped GRIB](#compared-with-keeping-the-grib-files) would be about Zarr's size but far slower for point reads.
 - NAM is no longer published on NOMADS.
 
 ## Question
@@ -182,6 +183,28 @@ Why the SDK cannot be told to use MD5, and the ways around it. The first point a
 - **ECS** may accept CRC checksums in newer releases. That is a question for its administrators.
 
 So any design that relies on Icechunk's garbage collection cannot reclaim space on ECS, until ECS accepts other checksums or Icechunk can send MD5 or delete singly. A repository per run in `recent`, deleted by prefix, avoids it.
+
+## Compared with keeping the GRIB files
+
+Keeping the downloaded GRIB files instead of Zarr would take about 20 times the space, because they cover each model's whole domain, not BC:
+
+| Model | GRIB as downloaded, per run | Covers | Zarr GRIB integers, BC crop, per run |
+|---|---|---|---|
+| HRDPS | 662 MB | continental grid | 110.7 MB |
+| RDPS | 487 MB | North America | 18.7 MB |
+| GDPS | 820 MB | the globe | 5.4 MB |
+| GFS | 4 MB | BC, cropped by NOMADS | 2.3 MB |
+| ECMWF | 799 MB | the globe | 5.0 MB |
+
+Under the chosen [retention](#retention), one run per model per day, that is about 1 TB a year of GRIB (HRDPS 242 GB, GDPS 299, ECMWF 292, RDPS 178, GFS 1.5) against about 52 GB of Zarr. The GRIB sizes are as measured in the spike's downloads.
+
+GRIB files cropped to BC would be about the same size as Zarr, possibly smaller: MSC's JPEG 2000 packing compresses each field well. Scaling by the share of cells inside BC, which was not measured, gives about 85 MB a run for HRDPS against 111 MB, and about 4 MB for GDPS against 5.4 MB. GFS's simple packing does not compress, so Zarr is smaller there (2.3 MB against 4). Cropping means re-encoding every file and checking that the values survive exactly.
+
+Cropped GRIB would still be worse to use:
+
+- **Objects.** A file per variable per hour: about 245 per HRDPS run and 425 per RDPS run, against 25 to 40 in Zarr.
+- **Point reads.** One location's forecast decodes a whole field from every hour's file, 49 per variable for HRDPS. Zarr's point layout reads one small chunk per variable.
+- **No commits or versions.** A reader can see a half-written run, and history is kept by hand.
 
 ## Open questions
 
