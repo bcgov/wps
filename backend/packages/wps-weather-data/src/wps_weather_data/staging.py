@@ -28,7 +28,7 @@ from wps_shared.sfms.raster_addresser import S3Key
 from wps_shared.weather_models import ModelEnum
 
 from wps_weather_data.addresser import StationWeatherAddresser
-from wps_weather_data.table import DeltaWeatherTable
+from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +119,7 @@ class StagingTable(DeltaWeatherTable):
             mode="append",
             partition_by=PARTITION_COLUMNS,
             storage_options=self.storage_options,
+            configuration=TABLE_CONFIGURATION,
             writer_properties=WriterProperties(compression="ZSTD"),
         )
         logger.info(

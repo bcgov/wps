@@ -19,8 +19,8 @@ Example usage:
 
 Follow it with `oc -n e1e498-dev logs -f job/station-actuals-data-mart-backfill-wps-{SUFFIX}`. The job runs the deployment's jobs image and writes under that deployment's tables. It is not retried on failure: the log names the year that failed, and running it again from that year is safe, because copying a year twice changes nothing. Delete the job before creating it again.
 
-## Adding the observed columns to existing station weather tables
-- The FWI System indices, dewpoint, wind gust, grass curing, danger rating and observation validity were added to the `wf1`, `by_time` and `by_station` tables after some deployments had created them. `backend/scripts/station_weather_add_columns.py` adds the missing columns in place and keeps every stored row. Tables created after the change already have them.
+## Bringing existing station weather tables up to date
+- The FWI System indices, dewpoint, wind gust, grass curing, danger rating and observation validity were added to the `wf1`, `by_time` and `by_station` tables after some deployments had created them. `backend/scripts/station_weather_add_columns.py` adds the missing columns in place and keeps every stored row. It also sets the checkpoint interval on every table and writes a checkpoint, so each table checkpoints itself as it is written. Tables created after these changes already have both.
 - Run it once, right after deploying the change: the code before it cannot write to a table with the columns, and the code after it cannot write to one without them. Running it again changes nothing.
 - Then fill the columns: run the data mart backfill above for every year (`FROM_YEAR=1987`), and then the `by_station` rebuild below from 1987. Copying a year again fills the new columns of the rows the data mart wrote. A row the WF1 jobs fetched is kept as it is, so days fetched before the change keep null indices.
 
