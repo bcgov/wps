@@ -183,13 +183,18 @@ def test_ecmwf_uses_herbie_for_surface_geopotential_only(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     path = FIXTURES / "surface_geopotential.grib2"
-    herbie = Mock()
-    herbie.return_value.download.return_value = path
+    herbie_class = sampler_module.Herbie
+    monkeypatch.setattr(herbie_class, "find_grib", Mock(return_value=(None, None)))
+    monkeypatch.setattr(herbie_class, "find_idx", Mock(return_value=(None, None)))
+    download = Mock(return_value=path)
+    monkeypatch.setattr(herbie_class, "download", download)
+    herbie = Mock(wraps=herbie_class)
     monkeypatch.setattr(sampler_module, "Herbie", herbie)
     result = sampler_module.ModelElevationSampler(tmp_path).download_and_sample(
         "ECMWF", RUN, [station()]
     )
     assert result[1] == pytest.approx(1049.7510378799082, abs=0.0001, rel=0)
+    assert herbie.call_args.args == ("2026-11-16 00",)
     assert herbie.call_args.kwargs == {
         "model": "ifs",
         "product": "oper",
@@ -199,7 +204,7 @@ def test_ecmwf_uses_herbie_for_surface_geopotential_only(
         "save_dir": tmp_path,
         "verbose": False,
     }
-    herbie.return_value.download.assert_called_once_with(r"^:z:", errors="raise", verbose=False)
+    download.assert_called_once_with(r"^:z:", errors="raise", verbose=False)
 
 
 @pytest.mark.parametrize(

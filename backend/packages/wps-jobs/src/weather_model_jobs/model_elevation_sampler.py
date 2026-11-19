@@ -242,8 +242,10 @@ class ModelElevationSampler:
 
         Request lead zero on the 0.1 degree grid with Herbie's default source order.
         """
+        # herbie expects UTC dates without timezone information
+        model_run_timestamp = run.strftime("%Y-%m-%d %H")
         source = Herbie(
-            run,
+            model_run_timestamp,
             model="ifs",
             product="oper",
             resolution="0p1",
