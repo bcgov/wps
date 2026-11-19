@@ -89,6 +89,27 @@ jobs:
           suffix: prod
           host: api.gov.bc.ca
 
+      - name: Render and publish Station Weather APS gateway config
+        uses: ./.github/actions/aps-publish
+        with:
+          config-name: weather
+          render-script: openshift/scripts/render_weather_gateway_config.sh
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          suffix: prod
+          qualifier-prefix: weather-
+          host: api.gov.bc.ca
+
+      - name: Publish Station Weather dataset and product to API Directory
+        uses: ./.github/actions/weather-aps-apply
+        with:
+          gateway-id: ${{ env.APS_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_ACCT_SECRET }}
+          suffix: prod
+          host: api.gov.bc.ca
+
   set_deployment_status_success:
     name: Set production deployment successful
     needs: [deploy_to_production]

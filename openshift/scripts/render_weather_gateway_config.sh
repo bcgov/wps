@@ -1,0 +1,73 @@
+#!/bin/sh -l
+#
+#% Station Weather APS gateway config render helper
+#%
+#%   Render the declarative APS gateway config for a specific environment.
+#%
+#% Usage:
+#%
+#%   PROJECT_NAMESPACE=<namespace> APS_NAMESPACE=<aps-namespace> GW_HOST=<host> \
+#%   ${THIS_FILE} [SUFFIX] [OUTPUT_PATH]
+#%
+#% Examples:
+#%
+#%   PROJECT_NAMESPACE=e1e498-dev APS_NAMESPACE=dev GW_HOST=psu-pr-0.api.gov.bc.ca \
+#%   ${THIS_FILE} pr-0
+#%
+#%   PROJECT_NAMESPACE=e1e498-prod APS_NAMESPACE=gw-313f6 GW_HOST=psu.api.gov.bc.ca \
+#%   ${THIS_FILE} prod /tmp/weather-gw-config-prod.yaml
+#
+
+set -euo pipefail
+IFS=$'\n\t'
+
+THIS_FILE="$(dirname "$0")/$(basename "$0")"
+SUFFIX="${1:-}"
+OUTPUT_PATH="${2:-$(dirname "$0")/../aps/rendered/weather-gw-config-${SUFFIX}.yaml}"
+TEMPLATE_PATH="${TEMPLATE_PATH:-$(dirname "$0")/../aps/weather-gw-config.yaml}"
+
+[ -n "${SUFFIX}" ] || {
+	sed -n \
+		-e "s|\${THIS_FILE}|${THIS_FILE}|g" \
+		-e 's|^#%||p' \
+		"${THIS_FILE}"
+	exit
+}
+
+[ -n "${PROJECT_NAMESPACE:-}" ] || {
+	echo "PROJECT_NAMESPACE is required" >&2
+	exit 1
+}
+
+[ -n "${APS_NAMESPACE:-}" ] || {
+	echo "APS_NAMESPACE is required" >&2
+	exit 1
+}
+
+[ -n "${GW_HOST:-}" ] || {
+	echo "GW_HOST is required" >&2
+	exit 1
+}
+
+[ -n "$(command -v envsubst)" ] || {
+	echo "envsubst is required" >&2
+	exit 1
+}
+
+WEATHER_SERVICE_NAME="${WEATHER_SERVICE_NAME:-psu-weather-${SUFFIX}}"
+WEATHER_GATEWAY_QUALIFIER="${QUALIFIER_PREFIX-weather-}${SUFFIX}"
+
+mkdir -p "$(dirname "${OUTPUT_PATH}")"
+
+export SUFFIX
+export PROJECT_NAMESPACE
+export APS_NAMESPACE
+export GW_HOST
+export WEATHER_SERVICE_NAME
+export WEATHER_GATEWAY_QUALIFIER
+
+envsubst \
+	'${SUFFIX} ${PROJECT_NAMESPACE} ${APS_NAMESPACE} ${GW_HOST} ${WEATHER_SERVICE_NAME} ${WEATHER_GATEWAY_QUALIFIER}' \
+	<"${TEMPLATE_PATH}" >"${OUTPUT_PATH}"
+
+echo "${OUTPUT_PATH}"

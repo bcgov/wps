@@ -1,0 +1,9 @@
+kind: Product
+name: Station Weather API${DISPLAY_SUFFIX}
+dataset: psu-weather-${SUFFIX}
+environments:
+  - name: ${ENV_TIER}
+    active: true
+    approval: true
+    flow: kong-api-key-only
+    services: [psu-weather-${SUFFIX}]
