@@ -9,6 +9,7 @@ from wps_weather_data.by_time import (
     HOURLY,
     OBSERVED_COLUMNS,
     ByTimeTable,
+    _months,
     by_time_rows_from_run,
 )
 from wps_weather_data.runs import build_run_table
@@ -208,3 +209,10 @@ def test_merge_with_no_rows_writes_nothing(table):
 
     assert offered == 0
     assert table.read(DAILY, ["GDPS"], *WINDOW).num_rows == 0
+
+
+def test_months_cover_the_range_across_a_year_end():
+    start = datetime(2025, 11, 30, tzinfo=UTC)
+    end = datetime(2026, 2, 1, tzinfo=UTC)
+    assert _months(start, end) == ["2025-11", "2025-12", "2026-01", "2026-02"]
+    assert _months(end, end) == ["2026-02"]

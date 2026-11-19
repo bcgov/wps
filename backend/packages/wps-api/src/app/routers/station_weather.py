@@ -32,9 +32,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 MAX_STATIONS = 50
-# The most rows a request may ask for: stations x days, x 24 for hourly. It bounds the response
-# at tens of MB.
-MAX_ROWS = 50_000
+# The most rows a page holds, counted as stations x days, x 24 for hourly. It bounds a response
+# at tens of MB. A page is whole days, so it holds at least one day for every station.
+PAGE_ROWS = 50_000
 # `by_station` is rebuilt nightly, so rows from this many UTC days back are read from `by_time`.
 RECENT_DAYS = 2
 # The dates a request covers when it does not say: the last week of observations, and the next
@@ -128,32 +128,39 @@ class Station(BaseModel):
     status: str | None = Field(description="ACTIVE, TEST or PROJECT")
 
 
+_NEXT = 'The URL of the next page, or null on the last. Also sent as a `Link: rel="next"` header.'
+_PAGE_DATE = "this page covers. Later pages continue to the `end` asked for."
+
+
 class StationsResponse(BaseModel):
     stations: list[Station] = Field(description="Sorted by station code")
 
 
 class ObservationsResponse(BaseModel):
     resolution: Resolution
-    start: date
-    end: date
+    start: date = Field(description=f"The first UTC date {_PAGE_DATE}")
+    end: date = Field(description=f"The last UTC date {_PAGE_DATE}")
     station_codes: list[int]
     rows: list[ObservationRow] = Field(description="Sorted by station, then time")
+    next: str | None = Field(description=_NEXT)
 
 
 class ForecastsResponse(BaseModel):
-    start: date
-    end: date
+    start: date = Field(description=f"The first UTC date {_PAGE_DATE}")
+    end: date = Field(description=f"The last UTC date {_PAGE_DATE}")
     station_codes: list[int]
     rows: list[ForecastRow] = Field(description="Sorted by station, then time")
+    next: str | None = Field(description=_NEXT)
 
 
 class ModelValuesResponse(BaseModel):
     model: Model
     resolution: Resolution
-    start: date
-    end: date
+    start: date = Field(description=f"The first UTC date {_PAGE_DATE}")
+    end: date = Field(description=f"The last UTC date {_PAGE_DATE}")
     station_codes: list[int]
     rows: list[ModelRow] = Field(description="Sorted by station, then time")
+    next: str | None = Field(description=_NEXT)
 
 
 def get_by_station_table(request: Request) -> ByStationTable:
@@ -266,22 +273,28 @@ def _dates(start: date | None, end: date | None, today: date, ahead: bool) -> tu
     return start, end
 
 
-def _check_size(station_codes: list[int], start: date, end: date, resolution: str):
-    days = (end - start).days + 1
-    requested = len(station_codes) * days * (24 if resolution == HOURLY else 1)
-    if requested > MAX_ROWS:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Request covers up to {requested} rows; the limit is {MAX_ROWS}. "
-            "Split it by date.",
-        )
+def _page_end(station_codes: list[int], start: date, end: date, resolution: str) -> date:
+    """The last date of the page that starts at `start`: as many whole days as fit in
+    `PAGE_ROWS`, and at least one."""
+    rows_per_day = len(station_codes) * (24 if resolution == HOURLY else 1)
+    days = max(1, PAGE_ROWS // rows_per_day)
+    return min(end, start + timedelta(days=days - 1))
+
+
+def _next_url(request: Request, page_end: date, end: date) -> str | None:
+    """The same request from the day after this page, or None if this page reaches `end`. It is
+    relative, so it holds behind the gateway, and names `end` so a default cannot move."""
+    if page_end >= end:
+        return None
+    url = request.url.include_query_params(start=page_end + timedelta(days=1), end=end)
+    return f"{url.path}?{url.query}"
 
 
 def _wants_csv(request: Request) -> bool:
     return CSV in request.headers.get("accept", "")
 
 
-def _csv(rows: pa.Table) -> Response:
+def _csv(rows: pa.Table, headers: dict[str, str]) -> Response:
     """The rows as CSV, with times as ISO 8601 UTC like the JSON."""
     for index, field in enumerate(rows.schema):
         if pa.types.is_timestamp(field.type):
@@ -292,19 +305,22 @@ def _csv(rows: pa.Table) -> Response:
             )
     buffer = io.BytesIO()
     pyarrow.csv.write_csv(rows, buffer)
-    return Response(content=buffer.getvalue(), media_type=CSV)
+    return Response(content=buffer.getvalue(), media_type=CSV, headers=headers)
 
 
 _CSV_RESPONSE = {200: {"content": {CSV: {}}}}
 
 _SIZE_NOTE = f"""
-A request may cover at most {MAX_ROWS:,} rows, counted as stations x days, and x 24 for
-hourly. Split larger requests by date. Send `Accept: text/csv` for CSV instead of JSON.
+A long request comes back in pages of whole days, up to {PAGE_ROWS:,} rows each, counted as
+stations x days, and x 24 for hourly. `start` and `end` in the response are the dates of the
+page, and `next` is the URL of the next page, null on the last. The same URL is in the `Link`
+header with `rel="next"`, for CSV too. Send `Accept: text/csv` for CSV instead of JSON.
 """
 
 
 async def _rows_response(
     request: Request,
+    response: Response,
     by_station: ByStationTable,
     by_time: ByTimeTable,
     *,
@@ -319,14 +335,16 @@ async def _rows_response(
 ):
     now = get_utc_now()
     start, end = _dates(start, end, now.date(), ahead)
-    _check_size(station_codes, start, end, resolution)
+    page_end = _page_end(station_codes, start, end, resolution)
+    next_url = _next_url(request, page_end, end)
+    headers = {"Link": f'<{next_url}>; rel="next"'} if next_url else {}
     logger.info(
         "Station weather: %s %s, %d stations, %s to %s",
         source,
         resolution,
         len(station_codes),
         start,
-        end,
+        page_end,
     )
     # The reads block on the network, so they run in a thread to keep the event loop free.
     rows = await asyncio.to_thread(
@@ -337,20 +355,22 @@ async def _rows_response(
         station_codes,
         source,
         start,
-        end,
+        page_end,
         now,
         list(row_model.model_fields),
     )
     if _wants_csv(request):
-        return _csv(rows)
+        return _csv(rows, headers)
+    response.headers.update(headers)
     # Each response model keeps the fields it has: a forecast has no resolution.
     return {
         **envelope,
         "resolution": resolution,
         "start": start,
-        "end": end,
+        "end": page_end,
         "station_codes": station_codes,
         "rows": rows.to_pylist(),
+        "next": next_url,
     }
 
 
@@ -369,7 +389,7 @@ async def get_stations(
     rows = await asyncio.to_thread(stations.read)
     rows = rows.select(list(Station.model_fields))
     if _wants_csv(request):
-        return _csv(rows)
+        return _csv(rows, {})
     return {"stations": rows.to_pylist()}
 
 
@@ -385,10 +405,11 @@ Hourly or daily observations at weather stations, back to 1987, for UTC dates fr
 Daily rows are WF1's daily record at 20:00 UTC (noon PST), with the 24 hour precipitation and
 the FWI System indices.
 {_SIZE_NOTE}""",
-    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters or too many rows"}},
+    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
 )
 async def get_observations(
     request: Request,
+    response: Response,
     resolution: Annotated[Resolution, Path(description="`hourly` or `daily`")],
     station_codes: StationCodes,
     by_station: Annotated[ByStationTable, Depends(get_by_station_table)],
@@ -398,6 +419,7 @@ async def get_observations(
 ):
     return await _rows_response(
         request,
+        response,
         by_station,
         by_time,
         source=ACTUALS,
@@ -420,10 +442,11 @@ BC Wildfire Service forecasters' noon forecasts at weather stations, for UTC dat
 to `end` inclusive. Without dates, the {DEFAULT_FUTURE_DAYS} days from today. Each day holds its
 latest forecast.
 {_SIZE_NOTE}""",
-    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters or too many rows"}},
+    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
 )
 async def get_forecasts(
     request: Request,
+    response: Response,
     station_codes: StationCodes,
     by_station: Annotated[ByStationTable, Depends(get_by_station_table)],
     by_time: Annotated[ByTimeTable, Depends(get_by_time_table)],
@@ -432,6 +455,7 @@ async def get_forecasts(
 ):
     return await _rows_response(
         request,
+        response,
         by_station,
         by_time,
         source=FORECAST,
@@ -454,10 +478,11 @@ A weather model's values at weather stations, for UTC dates from `start` to `end
 Without dates, the {DEFAULT_FUTURE_DAYS} days from today. Each time holds the newest prediction
 made for it, and `run_timestamp` says which run that was.
 {_SIZE_NOTE}""",
-    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters or too many rows"}},
+    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
 )
 async def get_model_values(
     request: Request,
+    response: Response,
     model: Annotated[Model, Path(description="The weather model")],
     resolution: Annotated[Resolution, Path(description="`hourly` or `daily`")],
     station_codes: StationCodes,
@@ -468,6 +493,7 @@ async def get_model_values(
 ):
     return await _rows_response(
         request,
+        response,
         by_station,
         by_time,
         source=model.value,

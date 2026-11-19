@@ -306,14 +306,78 @@ def test_end_before_start_is_rejected(client):
 
 
 @pytest.mark.usefixtures("tables")
-def test_too_many_rows_is_rejected(client):
-    # 6 years of hourly for one station is over 50,000 rows.
+def test_a_long_request_comes_back_in_pages(client, monkeypatch):
+    monkeypatch.setattr(station_weather, "PAGE_ROWS", 2)
+    params = {"station_codes": 322, "start": "2026-07-17", "end": "2026-07-20"}
+
+    first = client.get(URL, params=params)
+
+    body = first.json()
+    assert (body["start"], body["end"]) == ("2026-07-17", "2026-07-18")
+    assert values(first, "timestamp") == [("2026-07-18T20:00:00Z",)]
+    next_url = (
+        "/api/weather/v1/observations/daily?station_codes=322&start=2026-07-19&end=2026-07-20"
+    )
+    assert body["next"] == next_url
+    assert first.headers["link"] == f'<{next_url}>; rel="next"'
+
+    last = client.get(next_url)
+
+    body = last.json()
+    assert (body["start"], body["end"]) == ("2026-07-19", "2026-07-20")
+    assert values(last, "timestamp") == [("2026-07-19T20:00:00Z",)]
+    assert body["next"] is None
+    assert "link" not in last.headers
+
+
+@pytest.mark.usefixtures("tables")
+def test_a_page_has_every_station_for_at_least_a_day(client, monkeypatch):
+    monkeypatch.setattr(station_weather, "PAGE_ROWS", 1)
+
+    response = client.get(
+        URL, params={"station_codes": "322,209", "start": "2026-07-01", "end": "2026-07-02"}
+    )
+
+    assert values(response, "station_code") == [(209,), (322,)]
+    assert response.json()["next"].endswith("start=2026-07-02&end=2026-07-02")
+
+
+@pytest.mark.usefixtures("tables")
+def test_the_next_page_keeps_a_defaulted_end(client, monkeypatch):
+    monkeypatch.setattr(station_weather, "PAGE_ROWS", 3)
+
+    body = client.get(URL, params={"station_codes": 322, "start": "2026-07-14"}).json()
+
+    assert (body["start"], body["end"]) == ("2026-07-14", "2026-07-16")
+    assert body["next"].endswith("start=2026-07-17&end=2026-07-20")
+
+
+@pytest.mark.usefixtures("tables")
+def test_csv_pages_link_in_the_header(client, monkeypatch):
+    monkeypatch.setattr(station_weather, "PAGE_ROWS", 1)
+
+    response = client.get(
+        URL,
+        params={"station_codes": 322, "start": "2026-07-18", "end": "2026-07-19"},
+        headers={"Accept": "text/csv"},
+    )
+
+    assert len(response.text.splitlines()) == 2
+    assert "start=2026-07-19" in response.headers["link"]
+
+
+@pytest.mark.usefixtures("tables")
+def test_hourly_years_are_paged_not_rejected(client):
     response = client.get(
         f"{BASE}/observations/hourly",
         params={"station_codes": 322, "start": "2020-01-01", "end": "2025-12-31"},
     )
-    assert response.status_code == 422
-    assert "limit is 50000" in response.json()["detail"]
+
+    assert response.status_code == 200
+    body = response.json()
+    # 50,000 rows is 2,083 days of 24 hours.
+    assert (body["start"], body["end"]) == ("2020-01-01", "2025-09-13")
+    assert body["next"].endswith("start=2025-09-14&end=2025-12-31")
 
 
 def test_docs_are_served_under_weather(client):
