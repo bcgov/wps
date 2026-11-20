@@ -24,6 +24,9 @@ export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
 
+// Layers rendered with the run's fuel COG as a second band, to paint and label Non-fuel/Water.
+export const pairsWithFuel = (rasterType: RasterType): boolean => RASTER_CONFIG[rasterType].group === 'fbp'
+
 export const getSFMSNGRasterPath = (date: DateTime, rasterType: RasterType, runType: RunType = RunType.ACTUAL) => {
   const dateString = date.toISODate() ?? ''
   const datePath = dateString.replaceAll('-', '/')
@@ -81,13 +84,12 @@ export const getSFMSNGRasterLayer = (
 
   // fbp outputs pair with the run's fuel COG (band 2) to label Non-fuel/Water.
   // Override nodata with NaN to retain numeric NoData sentinels; valid fuel can make combined alpha nonzero.
-  const sources =
-    RASTER_CONFIG[rasterType].group === 'fbp'
-      ? [
-          { url, nodata: Number.NaN },
-          { url: `${API_BASE_URL}/object-store-proxy/${getSFMSNGRasterPath(date, 'fuel', runType)}` }
-        ]
-      : [{ url }]
+  const sources = pairsWithFuel(rasterType)
+    ? [
+        { url, nodata: Number.NaN },
+        { url: `${API_BASE_URL}/object-store-proxy/${getSFMSNGRasterPath(date, 'fuel', runType)}` }
+      ]
+    : [{ url }]
 
   const source = new GeoTIFF({
     sources,
