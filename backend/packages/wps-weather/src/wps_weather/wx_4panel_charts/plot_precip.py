@@ -18,8 +18,8 @@ import matplotlib.ticker as mticker
 import numpy as np
 import xarray as xr
 from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-from cartopy.util import add_cyclic_point
 from scipy.ndimage import maximum_filter
+from wps_weather.wx_4panel_charts.gdps_longitude import prepare_gdps_lon_axis
 
 t0 = time.perf_counter()
 # --------------------------------------------------
@@ -137,13 +137,6 @@ def get_project_root():
     if cwd.name == "src":
         return cwd.parent
     return cwd
-
-
-def wrap_lon_180(lons_1d):
-    """Wrap 0..360 -> -180..180 and return wrapped + sort order."""
-    lon_wrapped = ((lons_1d + 180.0) % 360.0) - 180.0
-    order = np.argsort(lon_wrapped)
-    return lon_wrapped[order], order
 
 
 def infer_precip_var(ds: xr.Dataset):
@@ -275,10 +268,9 @@ def plot_pcpn12(cfg: dict, ax=None, ds_p=None, ds_js=None):
 
         lats = ds_p["latitude"].values
         lons = ds_p["longitude"].values
-        lon_plot, order = wrap_lon_180(lons)
 
         t = time.perf_counter()
-        P0 = da.values[:, order].astype(np.float32)
+        P0 = da.values.astype(np.float32)
 
         # --- IMPORTANT FIX ---
         # outlines need dry-side values so 0.5 contour exists
@@ -290,14 +282,7 @@ def plot_pcpn12(cfg: dict, ax=None, ds_p=None, ds_js=None):
         else:
             P_shade = P_outline.copy()
 
-        # use the ORIGINAL lon_plot for both fields
-        P_outline_cyc, lon_plot_cyc = add_cyclic_point(P_outline, coord=lon_plot)
-        P_shade_cyc, _ = add_cyclic_point(P_shade, coord=lon_plot)
-
-        # overwrite after both are done
-        P_outline = P_outline_cyc
-        P_shade = P_shade_cyc
-        lon_plot = lon_plot_cyc
+        lon_plot, (P_outline, P_shade) = prepare_gdps_lon_axis(lons, P_outline, P_shade)
 
         print("pcpn extract:", time.perf_counter() - t)
     
@@ -466,7 +451,7 @@ def plot_pcpn12(cfg: dict, ax=None, ds_p=None, ds_js=None):
            js_da = list(ds_js.data_vars.values())[0].squeeze()
         finally:
            ds_js.close()
-        JS = js_da.values[:, order].astype(np.float32)
+        _, (JS,) = prepare_gdps_lon_axis(lons, js_da.values.astype(np.float32))
 
         jet_units = str(cfg.get("jet_units", "kt")).lower()
         if jet_units in ["kt", "kts", "knots"]:
