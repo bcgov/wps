@@ -1,4 +1,4 @@
-FROM postgres:16
+FROM docker.io/library/postgres:16
 
 # Set the locale
 ENV LC_ALL en_US.UTF-8
