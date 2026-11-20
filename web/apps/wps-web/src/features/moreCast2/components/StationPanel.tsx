@@ -74,19 +74,10 @@ interface StationPanelProps {
   selectedStationGroup?: StationGroup
   stationGroupMembers: StationGroupMember[]
   setSelectedStationGroup: React.Dispatch<React.SetStateAction<StationGroup | undefined>>
-  elevationComparison?: React.ReactNode
 }
 
 const StationPanel = (props: StationPanelProps) => {
-  const {
-    idir,
-    loading,
-    selectedStationGroup,
-    stationGroups,
-    stationGroupMembers,
-    setSelectedStationGroup,
-    elevationComparison
-  } = {
+  const { idir, loading, selectedStationGroup, stationGroups, stationGroupMembers, setSelectedStationGroup } = {
     ...props
   }
 
@@ -172,7 +163,6 @@ const StationPanel = (props: StationPanelProps) => {
       ) : (
         <CircularProgress />
       )}
-      {elevationComparison}
     </Root>
   )
 }

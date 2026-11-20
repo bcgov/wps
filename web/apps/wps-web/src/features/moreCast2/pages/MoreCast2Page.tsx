@@ -1,5 +1,6 @@
 import { fetchStationGroupsMembers } from 'commonSlices/selectedStationGroupMembers'
 import { fetchStationGroups } from 'commonSlices/stationGroupsSlice'
+import { Box } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import type { StationGroup } from '@wps/api/stationAPI'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
@@ -9,14 +10,14 @@ import { type RootState, selectAuthentication, selectStationGroups, selectStatio
 import type { AppDispatch } from 'app/store'
 import ModelElevationComparisonPanel from 'features/moreCast2/components/ModelElevationComparisonPanel'
 import StationPanel from 'features/moreCast2/components/StationPanel'
-import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
+import TabbedDataGrid, { type ElevationAdjustmentHandle } from 'features/moreCast2/components/TabbedDataGrid'
 import { getModelElevationData } from 'features/moreCast2/modelElevation'
 import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreCast2/slices/dataSlice'
 import { selectedStationsChanged, selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { getDefaultDateRange } from 'features/moreCast2/util'
 import { isEmpty } from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 export const Root = styled('div')({
@@ -27,6 +28,7 @@ export const Root = styled('div')({
 })
 
 export const SidePanel = styled('div')({
+  position: 'relative',
   borderRight: '1px solid black',
   display: 'flex',
   flexDirection: 'column',
@@ -60,6 +62,8 @@ const MoreCast2Page = () => {
   const selectedStations = useSelector(selectSelectedStations)
   const morecast2Rows = useSelector(selectAllMoreCast2Rows)
   const modelPredictions = useSelector((state: RootState) => state.weatherIndeterminates.predictions)
+
+  const gridRef = useRef<ElevationAdjustmentHandle>(null)
 
   // state
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
@@ -120,33 +124,39 @@ const MoreCast2Page = () => {
       <GeneralHeader isBeta={false} spacing={0.985} title={MORE_CAST_NAME} />
       <Content>
         <SidePanel>
-          <StationPanel
-            idir={idir}
-            loading={groupsLoading}
-            stationGroups={groups}
-            selectedStationGroup={selectedStationGroup}
-            setSelectedStationGroup={setSelectedStationGroup}
-            stationGroupMembers={selectedGroupsMembers}
-            elevationComparison={
-              <ModelElevationComparisonPanel
-                station={
-                  comparisonStation
-                    ? {
-                        stationName: comparisonStation.display_label,
-                        stationElevation: comparisonStation.elevation ?? null,
-                        modelElevations:
-                          modelElevationData.stationElevations.get(comparisonStation.station_code)?.modelElevations ??
-                          {}
-                      }
-                    : null
-                }
-                onClose={() => setComparisonStationCode(null)}
-              />
+          {/* keep the selector mounted so closing restores its selection and scroll position */}
+          <Box sx={{ display: 'flex', flex: 1, minHeight: 0, visibility: comparisonStation ? 'hidden' : 'visible' }}>
+            <StationPanel
+              idir={idir}
+              loading={groupsLoading}
+              stationGroups={groups}
+              selectedStationGroup={selectedStationGroup}
+              setSelectedStationGroup={setSelectedStationGroup}
+              stationGroupMembers={selectedGroupsMembers}
+            />
+          </Box>
+          <ModelElevationComparisonPanel
+            key={comparisonStationCode ?? 'closed'}
+            onApply={(model, rate) =>
+              gridRef.current?.applyElevationAdjustment(comparisonStationCode!, model, rate) ??
+              'Forecast data is unavailable.'
             }
+            station={
+              comparisonStation
+                ? {
+                    stationName: comparisonStation.display_label,
+                    stationElevation: comparisonStation.elevation ?? null,
+                    modelElevations:
+                      modelElevationData.stationElevations.get(comparisonStation.station_code)?.modelElevations ?? {}
+                  }
+                : null
+            }
+            onClose={() => setComparisonStationCode(null)}
           />
         </SidePanel>
         <Observations>
           <TabbedDataGrid
+            ref={gridRef}
             fromTo={fromTo}
             setFromTo={setFromTo}
             fetchWeatherIndeterminates={fetchWeatherIndeterminates}

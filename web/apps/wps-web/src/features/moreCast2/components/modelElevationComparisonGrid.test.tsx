@@ -17,6 +17,7 @@ import { MorecastDraftForecast } from '../forecastDraft'
 import * as modelElevation from '../modelElevation'
 import MoreCast2Page from '../pages/MoreCast2Page'
 import { getWeatherIndeterminatesSuccess } from '../slices/dataSlice'
+import { selectedStationsChanged } from '../slices/selectedStationsSlice'
 import { rowIDHasher } from '../util'
 import { DataGridColumns } from './DataGridColumns'
 
@@ -118,6 +119,15 @@ describe('station elevation comparison sidebar', () => {
     vi.restoreAllMocks()
   })
 
+  it('fills a station draft from the selected chart model', async () => {
+    await renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Compare model elevations for Alpha station' }))
+    await userEvent.click(within(panel()).getByRole('button', { name: 'HRDPS' }))
+    await userEvent.click(screen.getByRole('button', { name: '9.8 °C/km' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Apply to temperature forecasts' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Updated temperature forecasts')
+  })
+
   it('opens in the sidebar without changing station expansion, drafts, columns, or requests', async () => {
     await renderPage()
     const columns = vi.spyOn(DataGridColumns, 'getTabColumns')
@@ -125,7 +135,9 @@ describe('station elevation comparison sidebar', () => {
     const requests = vi.mocked(fetchWeatherIndeterminates).mock.calls.length
     const draft = localStorage.getItem('morecastForecastDraft')
     await userEvent.click(compare())
-    expect(screen.getByTestId('morecast2-station-panel')).toContainElement(panel())
+    expect(screen.getByTestId('morecast2-station-panel')).not.toBeVisible()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    expect(panel()).toBeVisible()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(header).toHaveAttribute('aria-expanded', 'true')
     expect(localStorage.getItem('morecastForecastDraft')).toBe(draft)
@@ -133,6 +145,7 @@ describe('station elevation comparison sidebar', () => {
     expect(columns).not.toHaveBeenCalled()
     await userEvent.click(within(panel()).getByRole('button', { name: 'Close elevation comparison' }))
     expect(screen.queryByRole('region', { name: 'Model elevations for Alpha station' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('morecast2-station-panel')).toBeVisible()
   })
 
   it('stays on the chosen station while editing, copying models, and switching tabs', async () => {
@@ -172,7 +185,7 @@ describe('station elevation comparison sidebar', () => {
     expect(panel()).toBeInTheDocument()
     await userEvent.dblClick(cell(1))
     await userEvent.keyboard('{Escape}')
-    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
+    expect(within(cell(1)).queryByRole('spinbutton')).not.toBeInTheDocument()
     expect(panel()).toBeInTheDocument()
     expect(button.closest('[role="row"]')).toHaveAttribute('aria-expanded', 'true')
   })
@@ -196,10 +209,10 @@ describe('station elevation comparison sidebar', () => {
   })
 
   it('closes when its station is deselected and stays closed if it is selected again', async () => {
-    await renderPage()
+    const { store } = await renderPage()
     await userEvent.click(compare())
     const sidebar = screen.getByTestId('morecast2-station-panel')
-    await userEvent.click(within(sidebar).getByText('Alpha station', { exact: true }))
+    act(() => store.dispatch(selectedStationsChanged([stations[1]])))
     expect(screen.queryByRole('region', { name: 'Model elevations for Alpha station' })).not.toBeInTheDocument()
     await userEvent.click(within(sidebar).getByText('Alpha station', { exact: true }))
     expect(compare()).toBeInTheDocument()
