@@ -17,6 +17,7 @@ def test_production_and_local_use_the_production_root(monkeypatch, suffix):
     assert addresser.get_runs_key() == "weather/stations/runs"
     assert addresser.get_by_time_key() == "weather/stations/by_time"
     assert addresser.get_staging_key("GDPS") == "weather/stations/staging/gdps"
+    assert addresser.get_grid_key("HRDPS", "recent") == "weather/grids/hrdps/recent"
 
 
 def test_dev_deployment_keeps_its_own_copy(monkeypatch):
@@ -25,6 +26,7 @@ def test_dev_deployment_keeps_its_own_copy(monkeypatch):
     assert addresser.get_runs_key() == "dev/pr-123/weather/stations/runs"
     assert addresser.get_by_time_key() == "dev/pr-123/weather/stations/by_time"
     assert addresser.get_staging_key("RDPS") == "dev/pr-123/weather/stations/staging/rdps"
+    assert addresser.get_grid_key("RDPS", "history") == "dev/pr-123/weather/grids/rdps/history"
 
 
 def test_delta_uri(monkeypatch):

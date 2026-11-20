@@ -10,6 +10,16 @@ dependencies = [
     "pyarrow>=26,<27",
 ]
 
+[project.optional-dependencies]
+# Model grids in Icechunk (grids.py). Only the jobs that write grids need them, so the API image
+# does without until it reads grids.
+grids = [
+    "eccodes>=2.45,<3",
+    "icechunk>=2.3.1,<3",
+    "numcodecs[pcodec]>=0.17.1,<0.18",
+    "zarr>=3.4.2,<4",
+]
+
 [tool.uv.sources]
 wps-shared = { workspace = true }
 
