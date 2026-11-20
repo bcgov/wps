@@ -68,6 +68,29 @@ objects:
                       "app.jobs.hourly_actuals",
                     ]
                   env:
+                    # The job writes to the wf1 and by_time tables in object storage.
+                    - name: SUFFIX
+                      value: ${SUFFIX}
+                    - name: OBJECT_STORE_SERVER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: OBJECT_STORE_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: OBJECT_STORE_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: OBJECT_STORE_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
                     - name: UV_NO_CACHE
                       value: "1"
                     - name: WFWX_MAX_PAGE_SIZE

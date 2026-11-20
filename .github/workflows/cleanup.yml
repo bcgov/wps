@@ -106,6 +106,55 @@ jobs:
             echo "Product not found or already deleted"
           fi
 
+      - name: Publish Station Weather APS cleanup config
+        uses: ./.github/actions/gwa-publish
+        with:
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
+          config-path: openshift/aps/empty-gw-config.yaml
+          qualifier: weather-${{ env.SUFFIX }}
+          host: api-gov-bc-ca.test.api.gov.bc.ca
+
+      - name: Upload Station Weather APS cleanup config
+        uses: actions/upload-artifact@v7
+        with:
+          name: weather-aps-gateway-config-cleanup-${{ env.SUFFIX }}
+          path: openshift/aps/empty-gw-config.yaml
+
+      - name: Delete Station Weather dataset and product from API Directory
+        shell: bash
+        env:
+          GATEWAY_ID: ${{ env.APS_TEST_GATEWAY_ID }}
+          GWA_CLIENT_ID: ${{ secrets.GWA_TEST_ACCT_ID }}
+          GWA_CLIENT_SECRET: ${{ secrets.GWA_TEST_ACCT_SECRET }}
+          SUFFIX: ${{ env.SUFFIX }}
+        run: |
+          set -euo pipefail
+          APS_HOST="api-gov-bc-ca.test.api.gov.bc.ca"
+
+          gwa config set host "${APS_HOST}"
+          gwa login \
+            --client-id="${GWA_CLIENT_ID}" \
+            --client-secret="${GWA_CLIENT_SECRET}"
+
+          TOKEN=$(grep 'api_key:' "${HOME}/.gwa-config.yaml" | awk '{print $2}')
+          BASE="https://${APS_HOST}/ds/api/v3/gateways/${GATEWAY_ID}"
+
+          curl -sf -X DELETE "${BASE}/datasets/psu-weather-${SUFFIX}" \
+            -H "Authorization: Bearer ${TOKEN}" || echo "Dataset not found or already deleted"
+
+          PRODUCT_NAME="Station Weather API (${SUFFIX})"
+          PRODUCT_APP_ID=$(curl -sf "${BASE}/products" \
+            -H "Authorization: Bearer ${TOKEN}" | \
+            jq -r --arg name "${PRODUCT_NAME}" '.[] | select(.name==$name) | .appId // empty')
+          if [ -n "${PRODUCT_APP_ID}" ]; then
+            curl -sf -X DELETE "${BASE}/products/${PRODUCT_APP_ID}" \
+              -H "Authorization: Bearer ${TOKEN}" || echo "Product delete failed"
+          else
+            echo "Product not found or already deleted"
+          fi
+
       - uses: ./.github/actions/oc-login
         with:
           oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}

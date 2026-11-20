@@ -4,6 +4,7 @@ import pytest
 from app.routers.fire_watch import (
     MissingWeatherDataError,
     create_fire_watch_output,
+    get_runs_table,
     update_existing_fire_watch,
 )
 from fastapi import HTTPException
@@ -49,7 +50,7 @@ def mock_fire_centre():
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.update_fire_watch", new_callable=AsyncMock)
 @patch(
-    "app.routers.fire_watch.get_latest_processed_model_run_id_in_fire_watch_weather",
+    "app.routers.fire_watch.get_latest_processed_model_run_in_fire_watch_weather",
     new_callable=AsyncMock,
 )
 @patch("app.routers.fire_watch.reprocess_fire_watch_weather", new_callable=AsyncMock)
@@ -89,13 +90,15 @@ async def test_update_existing_fire_watch_success(
     mock_create_burn_forecast.return_value = "burn_forecast"
     mock_marshall.return_value = MagicMock()
 
-    result = await update_existing_fire_watch(1, fire_watch_input_request, token)
+    runs_table = MagicMock()
+
+    result = await update_existing_fire_watch(1, fire_watch_input_request, token, runs_table)
 
     assert result == "burn_forecast"
     mock_get_by_id.assert_awaited_once()
     mock_update.assert_awaited_once()
     mock_get_latest_id.assert_awaited_once()
-    mock_reprocess.assert_awaited_once()
+    mock_reprocess.assert_awaited_once_with(mock_session, updated_fire_watch, 123, runs_table)
     mock_get_weather.assert_awaited_once()
     mock_create_burn_forecast.assert_called_once()
 
@@ -132,7 +135,7 @@ async def test_update_existing_fire_watch_not_found(
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.update_fire_watch", new_callable=AsyncMock)
 @patch(
-    "app.routers.fire_watch.get_latest_processed_model_run_id_in_fire_watch_weather",
+    "app.routers.fire_watch.get_latest_processed_model_run_in_fire_watch_weather",
     new_callable=AsyncMock,
 )
 @patch("app.routers.fire_watch.reprocess_fire_watch_weather", new_callable=AsyncMock)
@@ -173,7 +176,7 @@ async def test_update_existing_fire_watch_missing_weather_data(
 @patch("app.routers.fire_watch.get_fire_watch_by_id", new_callable=AsyncMock)
 @patch("app.routers.fire_watch.update_fire_watch", new_callable=AsyncMock)
 @patch(
-    "app.routers.fire_watch.get_latest_processed_model_run_id_in_fire_watch_weather",
+    "app.routers.fire_watch.get_latest_processed_model_run_in_fire_watch_weather",
     new_callable=AsyncMock,
 )
 @patch("app.routers.fire_watch.reprocess_fire_watch_weather", new_callable=AsyncMock)
@@ -229,3 +232,9 @@ async def test_create_fire_watch_output_station_not_found(
     result = create_fire_watch_output(mock_fire_watch, mock_fire_centre, mock_stations)
 
     assert result.station is None
+
+
+def test_get_runs_table_returns_the_table_from_the_app_state():
+    request = MagicMock()
+
+    assert get_runs_table(request) is request.app.state.runs_table

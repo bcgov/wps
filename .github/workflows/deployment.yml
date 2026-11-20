@@ -172,6 +172,10 @@ jobs:
           bash openshift/scripts/oc_provision_noaa_gfs_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_noaa_nam_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_ecmwf_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_station_weather_maintenance_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          bash openshift/scripts/oc_provision_station_weather_by_station_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          MODEL=HRDPS bash openshift/scripts/oc_provision_model_grids_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
+          MODEL=RDPS bash openshift/scripts/oc_provision_model_grids_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_viirs_snow_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_grass_curing_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
           bash openshift/scripts/oc_provision_rdps_sfms_cronjob.sh ${SUFFIX} >>"${BATCH_FILE}"
@@ -249,10 +253,36 @@ jobs:
         run: |
           bash openshift/scripts/oc_provision_sfms_gateway_networkpolicy.sh ${SUFFIX} apply
 
+  deploy-weather-dev:
+    name: Deploy Station Weather API to Dev
+    if: github.triggering_actor != 'renovate'
+    needs: [deploy-requested, build-image, prepare-dev-database]
+    runs-on:
+      group: Larger Runners - OpenShift Static-IP
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/oc-setup
+
+      - uses: ./.github/actions/oc-login
+        with:
+          oc-server: ${{ secrets.OPENSHIFT_CLUSTER }}
+          oc-token: ${{ secrets.OC4_DEV_TOKEN }}
+          oc-namespace: e1e498-dev
+
+      - name: Deploy Station Weather API to Dev
+        shell: bash
+        run: |
+          DEPLOY_VERSION="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" REPLICAS="1" ENVIRONMENT="development" bash openshift/scripts/oc_deploy_weather_api.sh ${SUFFIX} apply
+
+      - name: Allow APS to reach Station Weather API
+        shell: bash
+        run: |
+          bash openshift/scripts/oc_provision_weather_gateway_networkpolicy.sh ${SUFFIX} apply
+
   publish-aps-gateway-dev:
     name: Publish APS Gateway Config to Dev
     if: github.triggering_actor != 'renovate'
-    needs: [deploy-requested, deploy-asa-go-dev, deploy-sfms-dev]
+    needs: [deploy-requested, deploy-asa-go-dev, deploy-sfms-dev, deploy-weather-dev]
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
@@ -283,6 +313,27 @@ jobs:
 
       - name: Publish SFMS dataset and product to test API Directory
         uses: ./.github/actions/sfms-aps-apply
+        with:
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
+          suffix: ${{ env.SUFFIX }}
+          host: api-gov-bc-ca.test.api.gov.bc.ca
+
+      - name: Render and publish Station Weather APS gateway config
+        uses: ./.github/actions/aps-publish
+        with:
+          config-name: weather
+          render-script: openshift/scripts/render_weather_gateway_config.sh
+          gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
+          client-id: ${{ secrets.GWA_TEST_ACCT_ID }}
+          client-secret: ${{ secrets.GWA_TEST_ACCT_SECRET }}
+          suffix: ${{ env.SUFFIX }}
+          qualifier-prefix: weather-
+          host: api-gov-bc-ca.test.api.gov.bc.ca
+
+      - name: Publish Station Weather dataset and product to test API Directory
+        uses: ./.github/actions/weather-aps-apply
         with:
           gateway-id: ${{ env.APS_TEST_GATEWAY_ID }}
           client-id: ${{ secrets.GWA_TEST_ACCT_ID }}

@@ -3,22 +3,22 @@ import pytest
 from wps_shared.db.models.observations import HourlyActual
 from weather_model_jobs import bias_adjusted_variable
 from tests.weather_models.crud import (
-    get_actuals_left_outer_join_with_predictions,
+    get_actuals_paired_with_predictions,
     get_accumulated_precip_by_24h_interval,
     get_predicted_daily_precip,
 )
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel
+from weather_model_jobs.model_values import ModelValues
 from weather_model_jobs.machine_learning import StationMachineLearning
 import math
 
 
 @pytest.fixture()
-def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
+def mock_get_actuals_paired_with_predictions(monkeypatch):
     """Mock out call to DB returning actuals macthed with predictions"""
     monkeypatch.setattr(
         bias_adjusted_variable,
-        "get_actuals_left_outer_join_with_predictions",
-        get_actuals_left_outer_join_with_predictions,
+        "get_actuals_paired_with_predictions",
+        get_actuals_paired_with_predictions,
     )
 
 
@@ -41,15 +41,15 @@ def mock_get_predicted_daily_precip(monkeypatch):
 
 
 def test_bias_adjustment_with_samples(
-    mock_get_actuals_left_outer_join_with_predictions,
+    mock_get_actuals_paired_with_predictions,
     mock_get_accumulated_precip_by_24h_interval,
     mock_get_predicted_daily_precip,
 ):
     predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
 
     machine_learner = StationMachineLearning(
-        session=None,
-        model=PredictionModel(id=1),
+        observations=None,
+        history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
         max_learn_date=datetime.now(),
@@ -85,7 +85,7 @@ def test_bias_adjustment_of_rh_above_100(
                     relative_humidity=105,
                     rh_valid=True,
                 ),
-                ModelRunPrediction(
+                ModelValues(
                     tmp_tgl_2=2,
                     rh_tgl_2=105,
                     apcp_sfc_0=2,
@@ -104,7 +104,7 @@ def test_bias_adjustment_of_rh_above_100(
                     relative_humidity=105,
                     rh_valid=True,
                 ),
-                ModelRunPrediction(
+                ModelValues(
                     tmp_tgl_2=1,
                     rh_tgl_2=105,
                     apcp_sfc_0=3,
@@ -117,15 +117,15 @@ def test_bias_adjustment_of_rh_above_100(
 
     monkeypatch.setattr(
         bias_adjusted_variable,
-        "get_actuals_left_outer_join_with_predictions",
+        "get_actuals_paired_with_predictions",
         get_actuals_and_predictions_with_high_rh,
     )
 
     predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
 
     machine_learner = StationMachineLearning(
-        session=None,
-        model=PredictionModel(id=1),
+        observations=None,
+        history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
         max_learn_date=datetime.now(),
@@ -137,15 +137,15 @@ def test_bias_adjustment_of_rh_above_100(
 
 
 def test_bias_adjustment_without_samples(
-    mock_get_actuals_left_outer_join_with_predictions,
+    mock_get_actuals_paired_with_predictions,
     mock_get_accumulated_precip_by_24h_interval,
     mock_get_predicted_daily_precip,
 ):
     predict_date_without_samples = datetime.fromisoformat("2020-09-03T01:14:51.939836+00:00")
 
     machine_learner = StationMachineLearning(
-        session=None,
-        model=PredictionModel(id=1),
+        observations=None,
+        history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
         max_learn_date=datetime.now(),
@@ -163,15 +163,15 @@ def test_bias_adjustment_without_samples(
 
 
 def test_bias_adjustment_with_missing_model_values(
-    mock_get_actuals_left_outer_join_with_predictions,
+    mock_get_actuals_paired_with_predictions,
     mock_get_accumulated_precip_by_24h_interval,
     mock_get_predicted_daily_precip,
 ):
     predict_date_with_samples = datetime.fromisoformat("2020-09-03T21:14:51.939836+00:00")
 
     machine_learner = StationMachineLearning(
-        session=None,
-        model=PredictionModel(id=1),
+        observations=None,
+        history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
         max_learn_date=datetime.now(),
@@ -195,14 +195,12 @@ def test_each_learn_queries_hourly_data_again(
 
     def query(*args):
         calls.append(args)
-        return get_actuals_left_outer_join_with_predictions(*args)
+        return get_actuals_paired_with_predictions(*args)
 
-    monkeypatch.setattr(
-        bias_adjusted_variable, "get_actuals_left_outer_join_with_predictions", query
-    )
+    monkeypatch.setattr(bias_adjusted_variable, "get_actuals_paired_with_predictions", query)
     machine_learner = StationMachineLearning(
-        session=None,
-        model=PredictionModel(id=1),
+        observations=None,
+        history=None,
         target_coordinate=[-120.4816667, 50.6733333],
         station_code=None,
         max_learn_date=datetime.now(),

@@ -6,7 +6,6 @@ from sqlalchemy import ARRAY, Column, Date, Enum, Float, ForeignKey, Integer, St
 from wps_shared.db.models import Base
 from wps_shared.db.models.common import TZTimeStamp
 from wps_shared.db.models.psu import FireCentre
-from wps_shared.db.models.weather_models import PredictionModelRunTimestamp
 from wps_shared.fuel_types import FuelTypeEnum
 from wps_shared.geospatial.geospatial import NAD83_BC_ALBERS
 
@@ -108,9 +107,8 @@ class FireWatchWeather(Base):
     fire_watch_id = Column(Integer, ForeignKey(FireWatch.id), nullable=False, index=True)
     date = Column(Date, nullable=False, index=True)
     # Weather parameters
-    prediction_model_run_timestamp_id = Column(
-        Integer, ForeignKey(PredictionModelRunTimestamp.id), nullable=False, index=True
-    )
+    # The ECMWF run the weather comes from, by its start time.
+    prediction_run_timestamp = Column(TZTimeStamp, nullable=False, index=True)
     temperature = Column(Float, nullable=False, index=False)
     relative_humidity = Column(Float, nullable=False, index=False)
     wind_speed = Column(Float, nullable=False, index=False)

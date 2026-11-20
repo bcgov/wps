@@ -8,7 +8,6 @@ from weather_model_jobs.utils.process_grib import (
     convert_kelvin_to_celsius,
     convert_mps_to_kph,
 )
-from wps_shared.db.models.weather_models import ModelRunPrediction
 from wps_shared.geospatial.bounds import (
     BC_MAX_LATITUDE,
     BC_MAX_LONGITUDE,
@@ -93,11 +92,11 @@ class ECMWFModelProcessor:
         station_data[PRECIP_FIELD] = station_data[PRECIP_FIELD] * 1000  # m to mm
 
         rename_dict = {
-            TEMP_FIELD: ModelRunPrediction.tmp_tgl_2.name,
-            RH_FIELD: ModelRunPrediction.rh_tgl_2.name,
-            PRECIP_FIELD: ModelRunPrediction.apcp_sfc_0.name,
-            WS_FIELD: ModelRunPrediction.wind_tgl_10.name,
-            WDIR_FIELD: ModelRunPrediction.wdir_tgl_10.name,
+            TEMP_FIELD: "tmp_tgl_2",
+            RH_FIELD: "rh_tgl_2",
+            PRECIP_FIELD: "apcp_sfc_0",
+            WS_FIELD: "wind_tgl_10",
+            WDIR_FIELD: "wdir_tgl_10",
         }
         station_data = station_data.rename(rename_dict)
 

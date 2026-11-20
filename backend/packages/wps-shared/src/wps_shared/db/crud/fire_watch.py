@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,20 +27,17 @@ async def get_all_fire_watches(session: AsyncSession):
 
 
 async def get_fire_watches_missing_weather_for_run(
-    session: AsyncSession, prediction_model_run_timestamp_id: int
+    session: AsyncSession, prediction_run_timestamp: datetime
 ):
     """
-    Return a list of FireWatch objects that do NOT have weather for the given prediction_id.
+    Return a list of FireWatch objects that do NOT have weather for the given model run.
     """
     stmt = (
         select(FireWatch)
         .outerjoin(
             FireWatchWeather,
             (FireWatch.id == FireWatchWeather.fire_watch_id)
-            & (
-                FireWatchWeather.prediction_model_run_timestamp_id
-                == prediction_model_run_timestamp_id
-            ),
+            & (FireWatchWeather.prediction_run_timestamp == prediction_run_timestamp),
         )
         .where(FireWatchWeather.id.is_(None))
     )
@@ -106,11 +105,11 @@ async def get_all_prescription_status(session: AsyncSession) -> dict[str, int]:
 
 
 async def get_fire_watch_weather_by_fire_watch_id_and_model_run(
-    session: AsyncSession, fire_watch_id: int, prediction_model_run_timestamp_id: int
+    session: AsyncSession, fire_watch_id: int, prediction_run_timestamp: datetime
 ):
     stmt = select(FireWatchWeather).where(
         FireWatchWeather.fire_watch_id == fire_watch_id,
-        FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id,
+        FireWatchWeather.prediction_run_timestamp == prediction_run_timestamp,
     )
 
     result = await session.execute(stmt)
@@ -120,35 +119,36 @@ async def get_fire_watch_weather_by_fire_watch_id_and_model_run(
 
 
 async def get_all_fire_watch_weather_with_prescription_status(
-    session: AsyncSession, prediction_model_run_timestamp_id: int
+    session: AsyncSession, prediction_run_timestamp: datetime
 ):
     statement = (
         select(FireWatchWeather, PrescriptionStatus.name)
         .join(PrescriptionStatus, PrescriptionStatus.id == FireWatchWeather.in_prescription)
-        .where(
-            FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id
-        )
+        .where(FireWatchWeather.prediction_run_timestamp == prediction_run_timestamp)
     )
     result = await session.execute(statement)
     return result.all()
 
 
 async def get_fire_watch_weather_by_model_with_prescription_status(
-    session: AsyncSession, fire_watch_id: int, prediction_model_run_timestamp_id: int
+    session: AsyncSession, fire_watch_id: int, prediction_run_timestamp: datetime
 ):
     statement = (
         select(FireWatchWeather, PrescriptionStatus.name)
         .join(PrescriptionStatus, PrescriptionStatus.id == FireWatchWeather.in_prescription)
         .where(
             FireWatchWeather.fire_watch_id == fire_watch_id,
-            FireWatchWeather.prediction_model_run_timestamp_id == prediction_model_run_timestamp_id,
+            FireWatchWeather.prediction_run_timestamp == prediction_run_timestamp,
         )
     )
     result = await session.execute(statement)
     return result.all()
 
 
-async def get_latest_processed_model_run_id_in_fire_watch_weather(session: AsyncSession) -> int:
-    stmt = select(func.max(FireWatchWeather.prediction_model_run_timestamp_id))
+async def get_latest_processed_model_run_in_fire_watch_weather(
+    session: AsyncSession,
+) -> datetime | None:
+    """The newest model run any fire watch has weather for."""
+    stmt = select(func.max(FireWatchWeather.prediction_run_timestamp))
     result = await session.execute(stmt)
     return result.scalar()

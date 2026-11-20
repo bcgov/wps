@@ -18,14 +18,11 @@ from weather_model_jobs import (
     ModelRunProcessResult,
     ProjectionEnum,
 )
+from weather_model_jobs.common_model_fetchers import RunStager, run_is_published
 from weather_model_jobs.ecmwf_hours import get_ecmwf_forecast_hours
 from weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
-from weather_model_jobs.utils.process_grib import PredictionModelNotFound
 from wps_shared.chatops_notification import send_chatops_notification
-from wps_shared.db.crud.model_run_repository import ModelRunRepository
-from wps_shared.db.database import get_write_session_scope
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModelRunTimestamp
 from wps_shared.geospatial.bounds import (
     BC_MAX_LATITUDE,
     BC_MAX_LONGITUDE,
@@ -35,6 +32,8 @@ from wps_shared.geospatial.bounds import (
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_transformer
 from wps_shared.schemas.stations import WeatherStation
 from wps_shared.wps_logging import configure_logging
+from wps_weather_data.runs import RunsTable
+from wps_weather_data.staging import MODEL_FIELDS, StagingTable
 from wps_wf1.wfwx_api import get_stations_asynchronously
 
 gdal.UseExceptions()
@@ -72,6 +71,29 @@ def get_stations_dataframe(
     return stations_df
 
 
+def forecast_hour_source(prediction_hour: int) -> str:
+    """How a run's file for a forecast hour is recorded in `staging`."""
+    return f"fxx={prediction_hour:03d}"
+
+
+def station_values(
+    stations: List[WeatherStation], process_result: ModelRunProcessResult
+) -> list[tuple]:
+    """The forecast's values at each station, as staged:
+    (station_code, prediction_timestamp, variable, value)."""
+    prediction_timestamp = process_result.model_run_info.prediction_timestamp
+    values = []
+    for station in stations:
+        station_data = process_result.data.sel(point_code=station.code)
+        for field in MODEL_FIELDS:
+            if field in station_data:
+                value = station_data[field].item()
+                if pd.isna(value):
+                    value = None
+                values.append((station.code, prediction_timestamp, field, value))
+    return values
+
+
 def get_ecmwf_transformer(working_dir: str, herbie_instance: Herbie) -> Transformer:
     grib = herbie_instance.download(
         TEMP, verbose=False, save_dir=working_dir
@@ -92,48 +114,46 @@ class ECMWF:
         self,
         working_directory: str,
         stations: List[WeatherStation],
-        model_run_repository: ModelRunRepository,
+        staging_table: StagingTable | None = None,
+        runs_table: RunsTable | None = None,
     ):
         self.now = time_utils.get_utc_now()
         self.model_type = ModelEnum.ECMWF
         self.projection = ProjectionEnum.ECMWF_LATLON_0_1
         self.working_directory = working_directory
-        self.model_run_repository = model_run_repository
         self.stations = stations
+        self.staging_table = staging_table or StagingTable(self.model_type)
+        self.runs_table = runs_table or RunsTable()
         self.files_downloaded = 0
         self.files_processed = 0
         self.exception_count = 0
         self.ecmwf_processor = ECMWFModelProcessor(working_directory)
+        # Runs fully staged by the end of process(), ready to publish.
+        self.complete_runs: list[datetime] = []
 
     @staticmethod
     def _get_http_status_code(exception: Exception) -> int | None:
         error = exception.__cause__ or exception
         return getattr(getattr(error, "response", None), "status_code", None)
 
-    def _process_forecast(
-        self,
-        herbie_instance: Herbie,
-        model_info: ModelRunInfo,
-        prediction_run: PredictionModelRunTimestamp,
-    ):
+    def _process_forecast(self, herbie_instance: Herbie, model_info: ModelRunInfo) -> list[tuple]:
         transformer = get_ecmwf_transformer(self.working_directory, herbie_instance)
         stations_df = get_stations_dataframe(transformer, self.stations)
         process_result = self.ecmwf_processor.process_grib_data(
             herbie_instance, model_info, stations_df
         )
-        self.store_processed_result(self.stations, prediction_run, process_result)
+        return station_values(self.stations, process_result)
 
     def _process_forecast_with_retry(
         self,
         herbie_instance: Herbie,
         model_info: ModelRunInfo,
-        prediction_run: PredictionModelRunTimestamp,
         url: str,
-    ):
+    ) -> list[tuple]:
         retries = 0
         while True:
             try:
-                return self._process_forecast(herbie_instance, model_info, prediction_run)
+                return self._process_forecast(herbie_instance, model_info)
             except Exception as exception:
                 status_code = self._get_http_status_code(exception)
                 if (
@@ -171,84 +191,63 @@ class ECMWF:
             logger.info(f"Model run {model_datetime} is in the future. Exiting model run.")
             return
 
-        self.prediction_model = self.model_run_repository.get_prediction_model(
-            self.model_type, self.projection
-        )
-        if not self.prediction_model:
-            raise PredictionModelNotFound(
-                "Could not find this prediction model in the database",
-                self.model_type,
-                self.projection,
-            )
-
-        prediction_run = self.model_run_repository.get_or_create_prediction_run(
-            self.prediction_model, model_datetime
-        )
-        if prediction_run.complete:
+        if run_is_published(self.runs_table, self.staging_table, self.model_type, model_datetime):
             logger.info(f"Prediction run {model_datetime} already completed")
             return
 
+        stager = RunStager(self.staging_table, model_datetime)
         prediction_hours = list(get_ecmwf_forecast_hours())
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            for prediction_hour in prediction_hours:
-                model_info = ModelRunInfo(
-                    model_enum=self.model_type,
-                    model_run_timestamp=model_datetime,
-                    prediction_timestamp=model_datetime + timedelta(hours=prediction_hour),
-                    projection=self.projection,
-                )
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                for prediction_hour in prediction_hours:
+                    # Keyed by forecast hour, so a file from any mirror counts.
+                    source = forecast_hour_source(prediction_hour)
+                    if stager.is_processed(source):
+                        self.files_processed += 1
+                        continue
 
-                H = Herbie(
-                    model_datetime.strftime("%Y-%m-%d %H"),
-                    model="ifs",
-                    product="oper",
-                    resolution="0p1",
-                    levtype="sfc",
-                    fxx=prediction_hour,
-                    save_dir=temp_dir,
-                    verbose=False,
-                )
-
-                url = H.grib
-                if not url:
-                    logger.info(
-                        f"GRIB file not found for {model_datetime} - hour {prediction_hour}. Exiting model run. "
-                    )
-                    return
-
-                self.files_downloaded += 1
-
-                # a different mirror may have supplied this forecast on a previous attempt
-                if self.model_run_repository.get_processed_url_count(list(H.SOURCES.values())):
-                    logger.info(f"file already processed -- {url}")
-                    self.files_processed += 1
-                    continue
-
-                try:
-                    self._process_forecast_with_retry(
-                        H,
-                        model_info,
-                        prediction_run=prediction_run,
-                        url=url,
+                    model_info = ModelRunInfo(
+                        model_enum=self.model_type,
+                        model_run_timestamp=model_datetime,
+                        prediction_timestamp=model_datetime + timedelta(hours=prediction_hour),
+                        projection=self.projection,
                     )
 
-                    self.files_processed += 1
-                    # omit temporary SAS tokens so Azure markers match Herbie's unsigned source URLs
-                    self.model_run_repository.mark_url_as_processed(url.split("?", 1)[0])
-                except Exception:
-                    self.exception_count += 1
-                    logger.exception("unexpected exception processing %s", url)
-                    self.model_run_repository.session.rollback()
+                    H = Herbie(
+                        model_datetime.strftime("%Y-%m-%d %H"),
+                        model="ifs",
+                        product="oper",
+                        resolution="0p1",
+                        levtype="sfc",
+                        fxx=prediction_hour,
+                        save_dir=temp_dir,
+                        verbose=False,
+                    )
 
-            # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
-            if len(prediction_hours) == self.files_processed:
-                logger.info(
-                    "%s model run %s completed with SUCCESS", self.model_type, model_datetime
-                )
-                self.model_run_repository.mark_prediction_model_run_processed(
-                    self.model_type, self.projection, model_datetime
-                )
+                    url = H.grib
+                    if not url:
+                        logger.info(
+                            f"GRIB file not found for {model_datetime} - hour {prediction_hour}. Exiting model run. "
+                        )
+                        return
+
+                    self.files_downloaded += 1
+
+                    try:
+                        values = self._process_forecast_with_retry(H, model_info, url=url)
+                        stager.add(source, model_info.prediction_timestamp, values)
+                        self.files_processed += 1
+                    except Exception:
+                        self.exception_count += 1
+                        logger.exception("unexpected exception processing %s", url)
+        finally:
+            stager.flush()
+
+        # files_processed is incremented whether the file was processed previously or on this run, so we can use it to check if all files were processed.
+        if len(prediction_hours) == self.files_processed:
+            logger.info("%s model run %s completed with SUCCESS", self.model_type, model_datetime)
+            self.complete_runs.append(model_datetime)
 
     def process(self):
         # include yesterday so incomplete runs can finish after UTC midnight
@@ -266,33 +265,6 @@ class ECMWF:
                         hour,
                     )
 
-    def store_processed_result(
-        self,
-        stations: List[WeatherStation],
-        prediction_run: PredictionModelRunTimestamp,
-        process_result: ModelRunProcessResult,
-    ):
-        for station in stations:
-            prediction = self.model_run_repository.get_model_run_prediction(
-                prediction_run, process_result.model_run_info.prediction_timestamp, station.code
-            )
-            if not prediction:
-                prediction = ModelRunPrediction()
-                prediction.prediction_model_run_timestamp_id = prediction_run.id
-                prediction.prediction_timestamp = process_result.model_run_info.prediction_timestamp
-                prediction.station_code = station.code
-
-            station_data = process_result.data.sel(point_code=station.code)
-
-            for field in ModelRunPrediction.get_weather_model_fields():
-                if field in station_data:
-                    value = station_data[field].item()
-                    if pd.isna(value):
-                        value = None
-                    setattr(prediction, field, value)
-
-            self.model_run_repository.store_model_run_prediction(prediction)
-
 
 async def process_models():
     # grab the start time.
@@ -308,15 +280,13 @@ async def process_models():
         logger.info("No stations within ECMWF crop bounds. Skipping processing.")
         return
 
-    with get_write_session_scope() as session:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            model_run_repository = ModelRunRepository(session)
-            ecmwf = ECMWF(temp_dir, stations, model_run_repository)
-            ecmwf.process()
+    with tempfile.TemporaryDirectory() as temp_dir:
+        ecmwf = ECMWF(temp_dir, stations)
+        ecmwf.process()
 
-            # interpolate and machine learn everything that needs interpolating.
-            ecmwf_prediction_processor = ECMWFPredictionProcessor(stations, model_run_repository)
-            ecmwf_prediction_processor.process()
+    # interpolate, machine learn and publish every run that is fully staged.
+    ecmwf_prediction_processor = ECMWFPredictionProcessor(stations)
+    ecmwf_prediction_processor.process(ecmwf.complete_runs)
 
     # calculate the execution time.
     execution_time = datetime.now() - start_time

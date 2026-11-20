@@ -1,0 +1,21 @@
+meta {
+  name: Get Hourly Observations
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{API_BASE_URL}}/weather/v1/observations/hourly?station_codes=322&start=2026-07-01&end=2026-07-02
+  body: none
+  auth: inherit
+}
+
+params:query {
+  station_codes: 322
+  start: 2026-07-01
+  end: 2026-07-02
+}
+
+docs {
+  Hourly observations, with hourly ffmc, isi and fwi, and wind gust from the data mart.
+}

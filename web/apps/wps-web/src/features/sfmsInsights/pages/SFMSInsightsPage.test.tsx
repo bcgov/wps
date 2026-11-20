@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
 import { getDateTimeNowPDT } from '@wps/utils/date'
 import { DateTime } from 'luxon'
+import type { ReactNode } from 'react'
 import { Provider } from 'react-redux'
 import type { Mock } from 'vitest'
 import { createTestStore } from '@/test/testUtils'
@@ -22,13 +23,17 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
       snowDate,
       rasterDate,
       rasterType,
-      runType
+      runType,
+      showRasterDetails,
+      children
     }: {
       showSnow: boolean
       snowDate: DateTime | null
       rasterDate: DateTime | null
       rasterType: string
       runType: string
+      showRasterDetails: boolean
+      children?: ReactNode
     }) => (
       <div
         data-testid="sfms-map"
@@ -37,12 +42,26 @@ vi.mock('@/features/sfmsInsights/components/map/SFMSMap', () => {
         data-raster-date={rasterDate?.toISO() ?? 'null'}
         data-raster-type={rasterType}
         data-run-type={runType}
+        data-raster-details={showRasterDetails}
       >
         Mock SFMS Map
+        {children}
       </div>
     )
   }
 })
+
+vi.mock('@/features/climatology/components/StationClimatologyPanel', () => ({
+  default: () => <div data-testid="station-climatology-panel">Mock Station Climatology</div>
+}))
+
+vi.mock('@/features/climatology/components/map/StationClimatologyLayers', () => ({
+  default: () => <div data-testid="station-climatology-layers">Mock Station Layers</div>
+}))
+
+vi.mock('@/features/climatology/useStationChoice', () => ({
+  useStationChoice: () => ({ stations: [], error: null, chosenCodes: [], chosen: [], label: null, onChoose: vi.fn() })
+}))
 
 vi.mock('@wps/utils/vectorLayerUtils', () => ({
   getStyleJson: vi.fn(),
@@ -542,5 +561,28 @@ describe('SFMSInsightsPage', () => {
 
     const dropdown = screen.getByTestId('raster-type-dropdown')
     expect(dropdown).toHaveAttribute('data-raster-data-available', 'true')
+  })
+
+  it('puts the stations on the same map on the station climatology tab, with their charts beside it', async () => {
+    renderWithStore()
+
+    const map = await screen.findByTestId('sfms-map')
+    expect(map).toHaveAttribute('data-raster-details', 'true')
+    expect(screen.queryByTestId('station-climatology-layers')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('station-climatology-panel')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Station climatology' }))
+
+    expect(screen.getByTestId('sfms-map')).toBe(map)
+    expect(map).toHaveAttribute('data-raster-details', 'false')
+    expect(screen.getByTestId('station-climatology-layers')).toBeInTheDocument()
+    expect(screen.getByTestId('station-climatology-panel')).toBeInTheDocument()
+    expect(screen.getByTestId('raster-type-dropdown')).toBeVisible()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Fire weather map' }))
+
+    expect(screen.getByTestId('sfms-map')).toBe(map)
+    expect(screen.queryByTestId('station-climatology-layers')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('station-climatology-panel')).not.toBeInTheDocument()
   })
 })

@@ -11,7 +11,6 @@ class ModelPredictionDetails(BaseModel):
     update_date: datetime
     abbreviation: str
     prediction_run_timestamp: datetime
-    prediction_model_run_timestamp_id: int
     station_code: int
     rh_tgl_2: Optional[float] = None
     tmp_tgl_2: Optional[float] = None

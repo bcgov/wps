@@ -1,33 +1,22 @@
-"""Read a grib file, and store values relevant to weather stations in database."""
+"""Read a grib file, and extract the values relevant to weather stations."""
 
 from datetime import datetime
 import math
 import logging
 from typing import List, Optional
-from sqlalchemy.orm import Session
 from osgeo import gdal
 from pyproj import CRS, Transformer
 from affine import Affine
 import numpy as np
 from wps_wf1.wfwx_api import get_stations_synchronously
 from wps_shared.geospatial.geospatial import NAD83_CRS, get_dataset_transform, get_transformer
-from wps_shared.db.models.weather_models import ModelRunPrediction, PredictionModel, PredictionModelRunTimestamp
-from wps_shared.db.crud.weather_models import get_prediction_model, get_or_create_prediction_run
-from wps_shared.weather_models import ModelEnum, ProjectionEnum
+from wps_shared.weather_models import ModelEnum, ProjectionEnum, UnhandledPredictionModelType
 from weather_model_jobs.utils.wind_direction_utils import calculate_wind_dir_from_u_v, calculate_wind_speed_from_u_v
 
 logger = logging.getLogger(__name__)
 
 GFS_000_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5}
 GFS_003_HOURS_RASTER_BANDS = {"tmp_tgl_2": 2, "rh_tgl_2": 3, "u_comp_wind_10m": 4, "v_comp_wind_10m": 5, "apcp_sfc_0": 6, "cumulative_apcp_sfc_0": 7}
-
-
-class PredictionModelNotFound(Exception):
-    """Exception raised when specified model cannot be found in database."""
-
-
-class DatabaseException(Exception):
-    """Exception raised to to database related issue."""
 
 
 class ModelRunInfo:
@@ -89,7 +78,6 @@ class GribFileProcessor:
         self.padf_transform = padf_transform
         self.raster_to_geo_transformer = raster_to_geo_transformer
         self.geo_to_raster_transformer = geo_to_raster_transformer
-        self.prediction_model: Optional[PredictionModel] = None
 
     def yield_value_for_stations(self, raster_band: gdal.Dataset):
         """Given a list of stations, and a gdal dataset, yield relevant data value"""
@@ -186,32 +174,16 @@ class GribFileProcessor:
 
         return variable_name
 
-    def store_prediction_value(self, station_code: int, value: float, prediction_model_run: PredictionModelRunTimestamp, grib_info: ModelRunInfo, session: Session):
-        """Store the values around the area of interest."""
-        # Load the record if it exists.
-        prediction = (
-            session.query(ModelRunPrediction)
-            .filter(ModelRunPrediction.prediction_model_run_timestamp_id == prediction_model_run.id)
-            .filter(ModelRunPrediction.prediction_timestamp == grib_info.prediction_timestamp)
-            .filter(ModelRunPrediction.station_code == station_code)
-            .first()
-        )
-        if not prediction:
-            # Record doesn't exist, so we create it.
-            prediction = ModelRunPrediction()
-            prediction.prediction_model_run_timestamp_id = prediction_model_run.id
-            prediction.prediction_timestamp = grib_info.prediction_timestamp
-            prediction.station_code = station_code
-
+    def station_value(self, station_code: int, value: float, grib_info: ModelRunInfo) -> tuple:
+        """A station value, as staged: (station_code, prediction_timestamp, variable, value)."""
         variable_name = self.get_variable_name(grib_info)
-        value = value.item() if isinstance(value, np.float64) else value
-        setattr(prediction, variable_name, value)
-        session.add(prediction)
-        session.commit()
+        value = value.item() if isinstance(value, (np.floating, np.integer)) else value
+        return (station_code, grib_info.prediction_timestamp, variable_name, value)
 
-    def process_env_can_grib_file(self, session: Session, dataset, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp):
+    def process_env_can_grib_file(self, dataset, grib_info: ModelRunInfo) -> list[tuple]:
         # for GDPS, RDPS, HRDPS models, always only ever 1 raster band in the dataset
         raster_band = dataset.GetRasterBand(1)
+        values = []
         # Iterate through stations:
         for station, value in self.yield_value_for_stations(raster_band):
             # Convert wind speed from metres per second to kilometres per hour for Environment Canada
@@ -219,7 +191,8 @@ class GribFileProcessor:
             if grib_info.variable_name.lower().startswith("wind_agl") or grib_info.variable_name.lower().startswith("wind_tgl") or grib_info.variable_name.lower().startswith("windspeed_agl"):
                 value = convert_mps_to_kph(value)
 
-            self.store_prediction_value(station.code, value, prediction_run, grib_info, session)
+            values.append(self.station_value(station.code, value, grib_info))
+        return values
 
     def get_raster_bands(self, dataset, grib_info: ModelRunInfo):
         """Returns raster bands of dataset for temperature, RH, U/V wind components, and
@@ -248,28 +221,31 @@ class GribFileProcessor:
 
         return (tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band)
 
-    def process_noaa_grib_file(self, session: Session, dataset, grib_info: ModelRunInfo, prediction_run: PredictionModelRunTimestamp):
+    def process_noaa_grib_file(self, dataset, grib_info: ModelRunInfo) -> list[tuple]:
         tmp_raster_band, rh_raster_band, u_wind_raster_band, v_wind_raster_band, precip_raster_band = self.get_raster_bands(dataset, grib_info)
+        values = []
 
         for station, tmp_value in self.yield_value_for_stations(tmp_raster_band):
             grib_info.variable_name = "tmp_tgl_2"
-            self.store_prediction_value(station.code, tmp_value, prediction_run, grib_info, session)
+            values.append(self.station_value(station.code, tmp_value, grib_info))
         for station, rh_value in self.yield_value_for_stations(rh_raster_band):
             grib_info.variable_name = "rh_tgl_2"
-            self.store_prediction_value(station.code, rh_value, prediction_run, grib_info, session)
+            values.append(self.station_value(station.code, rh_value, grib_info))
         if precip_raster_band:
             for station, apcp_value in self.yield_value_for_stations(precip_raster_band):
                 grib_info.variable_name = "apcp_sfc_0"
-                self.store_prediction_value(station.code, apcp_value, prediction_run, grib_info, session)
+                values.append(self.station_value(station.code, apcp_value, grib_info))
         for station, wdir_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, "wdir_tgl_10"):
             grib_info.variable_name = "wdir_tgl_10"
-            self.store_prediction_value(station.code, wdir_value, prediction_run, grib_info, session)
+            values.append(self.station_value(station.code, wdir_value, grib_info))
         for station, wind_value in self.yield_uv_wind_data_for_stations(u_wind_raster_band, v_wind_raster_band, "wind_tgl_10"):
             grib_info.variable_name = "wind_tgl_10"
-            self.store_prediction_value(station.code, wind_value, prediction_run, grib_info, session)
+            values.append(self.station_value(station.code, wind_value, grib_info))
+        return values
 
-    def process_grib_file(self, filename, grib_info: ModelRunInfo, session: Session):
-        """Process a grib file, extracting and storing relevant information."""
+    def process_grib_file(self, filename, grib_info: ModelRunInfo) -> list[tuple]:
+        """Process a grib file, returning its values at each station as
+        (station_code, prediction_timestamp, variable, value)."""
         logger.info("processing %s", filename)
         # Open grib file
         dataset = gdal.Open(filename, gdal.GA_ReadOnly)
@@ -281,16 +257,12 @@ class GribFileProcessor:
         self.geo_to_raster_transformer = get_transformer(NAD83_CRS, crs)
 
         self.padf_transform = get_dataset_transform(filename)
-        # get the model (.e.g. GPDS/RDPS latlon24x.24):
-        self.prediction_model = get_prediction_model(session, grib_info.model_enum, grib_info.projection)
-        if not self.prediction_model:
-            raise PredictionModelNotFound("Could not find this prediction model in the database", grib_info.model_enum, grib_info.projection)
 
-        # get the model run (e.g. GDPS latlon24x.24 for 2020 07 07 12h00):
-        prediction_run = get_or_create_prediction_run(session, self.prediction_model, grib_info.model_run_timestamp)
-
-        if self.prediction_model.abbreviation in ["GDPS", "RDPS", "HRDPS"]:
-            self.process_env_can_grib_file(session, dataset, grib_info, prediction_run)
-        elif self.prediction_model.abbreviation in ["GFS", "NAM"]:
-            self.process_noaa_grib_file(session, dataset, grib_info, prediction_run)
+        if grib_info.model_enum in (ModelEnum.GDPS, ModelEnum.RDPS, ModelEnum.HRDPS):
+            values = self.process_env_can_grib_file(dataset, grib_info)
+        elif grib_info.model_enum in (ModelEnum.GFS, ModelEnum.NAM):
+            values = self.process_noaa_grib_file(dataset, grib_info)
+        else:
+            raise UnhandledPredictionModelType(f"Unhandled model type: {grib_info.model_enum}")
         dataset = None
+        return values

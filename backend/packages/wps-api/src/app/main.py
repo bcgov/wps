@@ -4,6 +4,7 @@ See README.md for details on how to run.
 """
 
 import logging
+from contextlib import asynccontextmanager
 from urllib.request import Request
 
 import sentry_sdk
@@ -18,15 +19,18 @@ from wps_shared.schemas.observations import WeatherStationHourlyReadingsResponse
 from wps_shared.schemas.percentiles import CalculatedResponse, PercentileRequest
 from wps_shared.schemas.shared import WeatherDataRequest
 from wps_shared.wps_logging import configure_logging
+from wps_weather_data.by_station import ByStationTable
+from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.runs import RunsTable
 
 from app import health, hourlies
 from app.percentile import get_precalculated_percentiles
 from app.routers import (
+    climatology,
     fba,
     fba_calc,
     fcm,
     fire_watch,
-    forecasts,
     hfi_calc,
     morecast_v2,
     object_store_proxy,
@@ -91,9 +95,24 @@ if config.get("ENVIRONMENT") == "production":
 # This is the api app.
 api = FastAPI(title="Predictive Services API", description=API_INFO, version="0.0.0")
 
+
+@asynccontextmanager
+async def lifespan(_: Starlette):
+    """Create what lives as long as the process.
+
+    The lifespan belongs to the base app because a mounted app's lifespan is never run. The
+    state goes on the api, which is the app its routes see as `request.app`.
+    """
+    # One of each table for the process, so each Delta table is opened once and then refreshed.
+    api.state.by_time_table = ByTimeTable()
+    api.state.runs_table = RunsTable()
+    api.state.by_station_table = ByStationTable()
+    yield
+
+
 # This is our base starlette app - it doesn't do much except glue together
 # the api and the front end.
-app = Starlette()
+app = Starlette(lifespan=lifespan)
 
 
 # Mount the /api
@@ -126,7 +145,6 @@ api.add_middleware(
 )
 api.middleware("http")(catch_exception_middleware)
 
-api.include_router(forecasts.router, tags=["Forecasts"])
 api.include_router(stations.router, tags=["Stations"])
 api.include_router(hfi_calc.router, tags=["HFI"])
 api.include_router(fba_calc.router, tags=["FBA Calc"])
@@ -135,6 +153,7 @@ api.include_router(sfms.router, tags=["SFMS", "Auto Spatial Advisory"])
 api.include_router(sfmsng.router, tags=["SFMS Insights"])
 api.include_router(morecast_v2.router, tags=["Morecast v2"])
 api.include_router(snow.router, tags=["SFMS Insights"])
+api.include_router(climatology.router, tags=["Climatology"])
 api.include_router(fire_watch.router, tags=["Fire Watch"])
 api.include_router(psu.router, tags=["PSU"])
 api.include_router(object_store_proxy.router, tags=["Object Store Proxy"])

@@ -199,11 +199,28 @@ objects:
                         configMapKeyRef:
                           name: ${GLOBAL_NAME}
                           key: env.redis-noaa-cache-expiry
-                    - name: DATA_RETENTION_THRESHOLD
+                    - name: SUFFIX
+                      value: ${SUFFIX}
+                    - name: OBJECT_STORE_SERVER
                       valueFrom:
-                        configMapKeyRef:
+                        secretKeyRef:
                           name: ${GLOBAL_NAME}
-                          key: env.data_retention_threshold
+                          key: object-store-server
+                    - name: OBJECT_STORE_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: OBJECT_STORE_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: OBJECT_STORE_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
                   resources:
                     limits:
                       memory: 1024Mi

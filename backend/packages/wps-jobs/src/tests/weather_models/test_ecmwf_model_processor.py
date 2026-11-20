@@ -10,7 +10,6 @@ from weather_model_jobs.ecmwf_model_processor import (
     ECMWFModelProcessor,
     crop_to_bc,
 )
-from wps_shared.db.models.weather_models import ModelRunPrediction
 from wps_shared.geospatial.bounds import (
     BC_MAX_LATITUDE,
     BC_MAX_LONGITUDE,
@@ -151,24 +150,20 @@ def test_process_grib_data(mock_herbie, mock_stations_df, mock_model_run_info):
     assert isinstance(result, ModelRunProcessResult)
     assert result.model_run_info == mock_model_run_info
     assert result.url == MOCK_GRIB_URL
-    assert ModelRunPrediction.tmp_tgl_2.name in result.data
-    assert ModelRunPrediction.rh_tgl_2.name in result.data
-    assert ModelRunPrediction.apcp_sfc_0.name in result.data
-    assert ModelRunPrediction.wind_tgl_10.name in result.data
-    assert ModelRunPrediction.wdir_tgl_10.name in result.data
-    assert result.data[ModelRunPrediction.tmp_tgl_2.name].values[0] == pytest.approx(
-        0.0, rel=1e-6
-    )  # kelvin to celsius
-    assert result.data[ModelRunPrediction.rh_tgl_2.name].values[0] == pytest.approx(
+    assert "tmp_tgl_2" in result.data
+    assert "rh_tgl_2" in result.data
+    assert "apcp_sfc_0" in result.data
+    assert "wind_tgl_10" in result.data
+    assert "wdir_tgl_10" in result.data
+    assert result.data["tmp_tgl_2"].values[0] == pytest.approx(0.0, rel=1e-6)  # kelvin to celsius
+    assert result.data["rh_tgl_2"].values[0] == pytest.approx(
         100.0, rel=1e-6
     )  # computed relative humidity
-    assert result.data[ModelRunPrediction.apcp_sfc_0.name].values[0] == pytest.approx(
-        200.0, rel=1e-6
-    )  # m to mm
-    assert result.data[ModelRunPrediction.wind_tgl_10.name].values[0] == pytest.approx(
+    assert result.data["apcp_sfc_0"].values[0] == pytest.approx(200.0, rel=1e-6)  # m to mm
+    assert result.data["wind_tgl_10"].values[0] == pytest.approx(
         21.0, rel=1e-2
     )  # u, v to wind speed
-    assert result.data[ModelRunPrediction.wdir_tgl_10.name].values[0] == pytest.approx(
+    assert result.data["wdir_tgl_10"].values[0] == pytest.approx(
         239.0, rel=1e-2
     )  # u, v to wind direction
 

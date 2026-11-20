@@ -12,9 +12,9 @@ from typing import List, Optional
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
-from sqlalchemy.orm import Session
 from weather_model_jobs.bias_adjusted_variable import (
     BIAS_ADJUSTED_VARIABLES,
+    daily_precip_window,
     PRECIPITATION,
     RELATIVE_HUMIDITY,
     TEMPERATURE,
@@ -24,13 +24,35 @@ from weather_model_jobs.bias_adjusted_variable import (
     features,
     u_v,
 )
+from weather_model_jobs.model_history import ModelHistory
 from weather_model_jobs.utils.wind_direction_utils import calculate_wind_dir_from_u_v
-from wps_shared.db.models.weather_models import PredictionModel
+from wps_shared.weather_models import ModelEnum
+from wps_weather_data.actuals import StationObservations
+from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.runs import RunsTable
 
 logger = getLogger(__name__)
 
 # Number of days of historical actual data to learn from when training model.
 MAX_DAYS_TO_LEARN = 19
+
+
+def read_model_history(runs: RunsTable, model: ModelEnum, max_learn_date: datetime) -> ModelHistory:
+    """Read what StationMachineLearning learns from for a run starting at max_learn_date."""
+    start_date = max_learn_date - timedelta(days=MAX_DAYS_TO_LEARN)
+    daily_from, daily_to = daily_precip_window(start_date)
+    return ModelHistory.read(runs, model, start_date, max_learn_date, daily_from, daily_to)
+
+
+def read_observations(by_time: ByTimeTable, max_learn_date: datetime) -> StationObservations:
+    """Read the observations StationMachineLearning learns from for a run starting at
+    max_learn_date. They also cover the 24 hours before the run, which a run's first day of 24
+    hour precip adds."""
+    start_date = max_learn_date - timedelta(days=MAX_DAYS_TO_LEARN)
+    daily_from, daily_to = daily_precip_window(start_date)
+    # A day's observed precip is the 24 hours ending at 20:00.
+    start = min(start_date, daily_from - timedelta(hours=24))
+    return StationObservations.read(by_time, start, max(max_learn_date, daily_to))
 
 
 class HourOfDayRegression:
@@ -63,21 +85,21 @@ class StationMachineLearning:
 
     def __init__(
         self,
-        session: Session,
-        model: PredictionModel,
+        observations: StationObservations,
+        history: ModelHistory,
         target_coordinate: List[float],
         station_code: int,
         max_learn_date: datetime,
     ):
         """
-        : param session: Database session.
-        : param model: Prediction model, e.g. GDPS
+        : param observations: The stations' observations, from `by_time`.
+        : param history: The model's recent predictions, from `runs`.
         : param target_coordinate: Coordinate we're interested in .
         : param station_code: Code of the weather station.
         : param max_learn_date: Maximum date up to which to learn.
         """
-        self.session = session
-        self.model = model
+        self.observations = observations
+        self.history = history
         self.target_coordinate = target_coordinate
         self.station_code = station_code
         self.max_learn_date = max_learn_date
@@ -85,8 +107,8 @@ class StationMachineLearning:
 
     def learn(self):
         context = LearningContext(
-            session=self.session,
-            model=self.model,
+            observations=self.observations,
+            history=self.history,
             station_code=self.station_code,
             start_date=self.max_learn_date - timedelta(days=MAX_DAYS_TO_LEARN),
             end_date=self.max_learn_date,

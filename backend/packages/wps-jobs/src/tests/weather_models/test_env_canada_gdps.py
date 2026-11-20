@@ -8,26 +8,21 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
-import wps_shared.db.crud.weather_models
 import wps_shared.utils.time as time_utils
 from aiohttp import ClientSession
-from sqlalchemy.orm import Session
-from tests.weather_models.crud import get_actuals_left_outer_join_with_predictions
 from tests.weather_models.test_models_common import (
     MockResponse,
     mock_get_stations,
 )
-from weather_model_jobs import bias_adjusted_variable, common_model_fetchers, env_canada
-from wps_shared.db.models.weather_models import (
-    PredictionModel,
-    PredictionModelRunTimestamp,
-    ProcessedModelRunUrl,
-)
+from weather_model_jobs import common_model_fetchers, env_canada
+from weather_model_jobs.common_model_fetchers import RunStager
 from wps_shared.tests.common import default_mock_client_get
 from wps_shared.weather_models import (
     ModelEnum,
     NoFilesProcessed,
 )
+from wps_weather_data.runs import RunsTable
+from wps_weather_data.staging import StagedFile, StagingTable
 
 logger = logging.getLogger(__name__)
 
@@ -75,88 +70,71 @@ def test_model_run_must_be_incomplete_and_past_warning_delay_to_warn(
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
     monkeypatch.setattr(env_canada, "get_model_run_urls", lambda *args: ["url"])
     monkeypatch.setattr(env_canada, "ECCCUrlFetcher", lambda *args: MagicMock())
-    monkeypatch.setattr(env_canada, "check_if_model_run_complete", lambda *args: complete)
-    monkeypatch.setattr(env_canada, "mark_prediction_model_run_processed", MagicMock())
 
-    canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
-    canada.process_model_run_urls = MagicMock()
+    canada = env_canada.EnvCanada(ModelEnum.GDPS)
+
+    def process_urls(urls, fetcher, stager):
+        if complete:
+            stager.add("url", model_run, [])
+
+    canada.process_model_run_urls = process_urls
     monkeypatch.setattr(time_utils, "get_utc_now", lambda: warning_time)
 
     canada.process_model_run(12)
 
     assert canada.has_overdue_incomplete_model_run is expected_overdue
+    assert canada.complete_runs == ([model_run] if complete else [])
+
+
+def test_published_run_is_skipped(monkeypatch: pytest.MonkeyPatch):
+    model_run = datetime(2026, 6, 2, 12, tzinfo=timezone.utc)
+    monkeypatch.setattr(time_utils, "get_utc_now", lambda: model_run + timedelta(hours=1))
+    monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
+    monkeypatch.setattr(env_canada, "get_model_run_urls", lambda *args: ["url"])
+    RunsTable().append_run(
+        ModelEnum.GDPS, model_run, [{"station_code": 1, "prediction_timestamp": model_run}]
+    )
+
+    canada = env_canada.EnvCanada(ModelEnum.GDPS)
+    canada.process_model_run_urls = MagicMock()
+    canada.process_model_run(12)
+
+    canada.process_model_run_urls.assert_not_called()
+    assert canada.complete_runs == []
+
+
+def test_interrupted_run_is_completed_again(monkeypatch: pytest.MonkeyPatch):
+    """A run in `runs` that is still staged was interrupted while publishing."""
+    model_run = datetime(2026, 6, 2, 12, tzinfo=timezone.utc)
+    monkeypatch.setattr(time_utils, "get_utc_now", lambda: model_run + timedelta(hours=1))
+    monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
+    monkeypatch.setattr(env_canada, "get_model_run_urls", lambda *args: ["url"])
+    monkeypatch.setattr(env_canada, "ECCCUrlFetcher", lambda *args: MagicMock())
+    RunsTable().append_run(
+        ModelEnum.GDPS, model_run, [{"station_code": 1, "prediction_timestamp": model_run}]
+    )
+    StagingTable(ModelEnum.GDPS).append_files(model_run, [StagedFile("url", model_run, [])])
+
+    canada = env_canada.EnvCanada(ModelEnum.GDPS)
+    canada.process_model_run(12)
+
+    assert canada.complete_runs == [model_run]
 
 
 @pytest.fixture()
-def mock_get_processed_file_record(monkeypatch):
-    """Mock "get_processed_file_record" to only return the None on the 1st call."""
-    called = False
+def only_first_url_unprocessed(monkeypatch):
+    """Every URL except the first one asked about counts as processed, so only one file is
+    downloaded. Returns the URLs that were downloaded."""
+    downloaded = []
+    is_processed = RunStager.is_processed
 
-    def get_processed_file_record(session: Session, url: str):
-        nonlocal called
-        if called:
-            return ProcessedModelRunUrl()
-        called = True
-        return None
+    def first_url_only(self, source):
+        if not downloaded:
+            downloaded.append(source)
+        return source not in downloaded or is_processed(self, source)
 
-    monkeypatch.setattr(env_canada, "get_processed_file_record", get_processed_file_record)
-
-
-@pytest.fixture()
-def mock_get_actuals_left_outer_join_with_predictions(monkeypatch):
-    """Mock out call to DB returning actuals macthed with predictions"""
-    monkeypatch.setattr(
-        bias_adjusted_variable,
-        "get_actuals_left_outer_join_with_predictions",
-        get_actuals_left_outer_join_with_predictions,
-    )
-
-
-@pytest.fixture()
-def mock_database(monkeypatch):
-    """Mocked out database queries"""
-    gdps_url = (
-        "https://dd.weather.gc.ca/today/model_gdps/15km/00/000/"
-        "20260602T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT000H.grib2"
-    )
-    gdps_processed_model_run = ProcessedModelRunUrl(url=gdps_url)
-    gdps_prediction_model = PredictionModel(
-        id=1,
-        abbreviation="GDPS",
-        projection="latlon.15x.15",
-        name="Global Deterministic Prediction System",
-    )
-    gdps_prediction_model_run = PredictionModelRunTimestamp(
-        id=1,
-        prediction_model_id=1,
-        prediction_run_timestamp=time_utils.get_utc_now(),
-        prediction_model=gdps_prediction_model,
-        complete=True,
-    )
-
-    def mock_get_gdps_prediction_model_run_timestamp_records(*args, **kwargs):
-        return [(gdps_prediction_model_run, gdps_prediction_model)]
-
-    def mock_get_processed_file_record(session, url: str):
-        # We only want the one file to be processed - otherwise our test takes forever
-        if url != gdps_url:
-            return gdps_processed_model_run
-        return None
-
-    def mock_get_prediction_run(*args, **kwargs):
-        return gdps_prediction_model_run
-
-    monkeypatch.setattr(
-        common_model_fetchers,
-        "get_prediction_model_run_timestamp_records",
-        mock_get_gdps_prediction_model_run_timestamp_records,
-    )
-    monkeypatch.setattr(
-        common_model_fetchers, "get_processed_file_record", mock_get_processed_file_record
-    )
-    monkeypatch.setattr(
-        wps_shared.db.crud.weather_models, "get_prediction_run", mock_get_prediction_run
-    )
+    monkeypatch.setattr(RunStager, "is_processed", first_url_only)
+    return downloaded
 
 
 @pytest.fixture()
@@ -188,49 +166,50 @@ def mock_download_fail(monkeypatch):
 
 
 @pytest.fixture()
-def mock_get_processed_file_count(monkeypatch):
-    monkeypatch.setattr(
-        wps_shared.db.crud.weather_models, "get_processed_file_count", mock_get_processed_file_count
-    )
-
-
-@pytest.fixture()
 def mock_get_stations_synchronously(monkeypatch):
     monkeypatch.setattr(common_model_fetchers, "get_stations_synchronously", mock_get_stations)
 
 
-@pytest.mark.usefixtures("mock_get_processed_file_record")
 def test_process_gdps(
     mock_download,
-    mock_database,
-    mock_get_actuals_left_outer_join_with_predictions,
+    only_first_url_unprocessed,
     mock_get_stations_synchronously,
-    mock_get_processed_file_count,
     monkeypatch: pytest.MonkeyPatch,
 ):
     """run main method to see if it runs successfully."""
-    # All files, except one, are marked as already having been downloaded, so we expect one file to
-    # be processed.
+    # All files, except one, are treated as already processed, so we expect one file to be
+    # processed and staged.
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     sys.argv = ["argv", "GDPS"]
     assert env_canada.process_models() == 1
+    staged = {
+        source
+        for hour in (0, 12)
+        for source in StagingTable(ModelEnum.GDPS).processed_sources(
+            common_model_fetchers.model_run_timestamp(time_utils.get_utc_now(), hour)
+        )
+    }
+    assert staged == set(only_first_url_unprocessed)
 
 
 def test_connection_error_increments_connection_error_count_not_exception_count(monkeypatch):
     """Connection failures from the fetcher should not count as unexpected exceptions."""
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
-    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
 
     fetcher = MagicMock()
     fetcher.get.side_effect = requests.ConnectionError("HPFX and DD both unreachable")
 
-    canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
+    canada = env_canada.EnvCanada(ModelEnum.GDPS)
+    stager = MagicMock()
+    stager.is_processed.return_value = False
     canada.process_model_run_urls(
         [
             "https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"
         ],
         fetcher,
+        stager,
     )
+    stager.add.assert_not_called()
 
     assert canada.connection_error_count == 1
     assert canada.exception_count == 0
@@ -239,34 +218,36 @@ def test_connection_error_increments_connection_error_count_not_exception_count(
 def test_http_error_increments_exception_count_not_connection_error_count(monkeypatch):
     """HTTP errors (e.g. 503) from the fetcher are unexpected and must count as exceptions."""
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock)
-    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
 
     fetcher = MagicMock()
     fetcher.get.side_effect = requests.HTTPError("503 Server Error")
 
-    canada = env_canada.EnvCanada(MagicMock(spec=Session), ModelEnum.GDPS)
+    canada = env_canada.EnvCanada(ModelEnum.GDPS)
+    stager = MagicMock()
+    stager.is_processed.return_value = False
     canada.process_model_run_urls(
         [
             "https://dd.weather.gc.ca/today/model_gdps/15km/00/001/20260623T00Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT001H.grib2"
         ],
         fetcher,
+        stager,
     )
+    stager.add.assert_not_called()
 
     assert canada.exception_count == 1
     assert canada.connection_error_count == 0
 
 
 def test_process_models_does_not_raise_when_all_urls_already_processed(
-    mock_database,
-    mock_get_actuals_left_outer_join_with_predictions,
     mock_get_stations_synchronously,
-    mock_get_processed_file_count,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    """A clean re-run where all URLs are already in the DB should not fire NoFilesProcessed."""
+    """A clean re-run where all URLs are already staged should not fire NoFilesProcessed."""
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
-    # Return a truthy record for every URL so all are skipped as already processed.
-    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: object())
+    # Every URL counts as staged, so all are skipped as already processed.
+    monkeypatch.setattr(RunStager, "is_processed", lambda self, source: True)
+    # Publishing is tested elsewhere; nothing here is really staged.
+    monkeypatch.setattr(env_canada, "ModelValueProcessor", MagicMock())
     sys.argv = ["argv", "GDPS"]
     # Should complete without raising — returns 0 (nothing new to process).
     result = env_canada.process_models()
@@ -274,15 +255,11 @@ def test_process_models_does_not_raise_when_all_urls_already_processed(
 
 
 def test_process_models_raises_no_files_processed_when_all_downloads_fail(
-    mock_database,
-    mock_get_actuals_left_outer_join_with_predictions,
     mock_get_stations_synchronously,
-    mock_get_processed_file_count,
     monkeypatch: pytest.MonkeyPatch,
 ):
     """process_models() raises NoFilesProcessed when every download fails with a connection error."""
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
-    monkeypatch.setattr(env_canada, "get_processed_file_record", lambda session, url: None)
     monkeypatch.setattr(requests.Session, "get", MagicMock(side_effect=requests.ConnectionError()))
     monkeypatch.setattr(
         time_utils,
@@ -304,7 +281,6 @@ def test_process_models_delegates_the_verdict_to_judge_run(
     raise_on_no_files: bool,
 ):
     """process_models() must hand its counters to judge_run and return the result."""
-    monkeypatch.setattr("wps_shared.db.database.get_write_session_scope", MagicMock())
     monkeypatch.setattr(env_canada, "ModelValueProcessor", MagicMock())
     monkeypatch.setattr(env_canada, "GribFileProcessor", MagicMock())
 

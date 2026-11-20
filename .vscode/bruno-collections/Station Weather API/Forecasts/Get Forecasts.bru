@@ -1,0 +1,19 @@
+meta {
+  name: Get Forecasts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{API_BASE_URL}}/weather/v1/forecasts/daily?station_codes=322,209
+  body: none
+  auth: inherit
+}
+
+params:query {
+  station_codes: 322,209
+}
+
+docs {
+  Without dates: the 10 days from today (UTC). Add start and end for past forecasts.
+}

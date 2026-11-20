@@ -1,0 +1,17 @@
+meta {
+  name: Get Historic Observations
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{API_BASE_URL}}/weather/v1/observations/daily?station_codes=322&start=1990-04-01&end=1990-10-31
+  body: none
+  auth: inherit
+}
+
+params:query {
+  station_codes: 322
+  start: 1990-04-01
+  end: 1990-10-31
+}

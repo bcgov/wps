@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import Optional
 
 import numpy as np
-from wps_shared.db.models.weather_models import ModelRunPrediction
+
+from weather_model_jobs.model_values import ModelValues
 
 SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_10", "apcp_sfc_0")
 
@@ -101,7 +102,7 @@ def interpolate_bearing(
 
 
 def interpolate_wind_direction(
-    prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, target_timestamp: datetime
+    prediction_a: ModelValues, prediction_b: ModelValues, target_timestamp: datetime
 ):
     """Interpolate wind direction"""
     if prediction_a.wdir_tgl_10 is None or prediction_b.wdir_tgl_10 is None:
@@ -120,18 +121,15 @@ def interpolate_wind_direction(
 
 
 def construct_interpolated_noon_prediction(
-    prediction_a: ModelRunPrediction, prediction_b: ModelRunPrediction, model_keys
-):
+    prediction_a: ModelValues, prediction_b: ModelValues, model_keys
+) -> ModelValues:
     """Construct a noon prediction by interpolating."""
     # create a noon prediction. (using utc hour 20, as that is solar noon in B.C.)
-    noon_prediction = ModelRunPrediction()
+    noon_prediction = ModelValues()
     noon_prediction.prediction_timestamp = prediction_a.prediction_timestamp.replace(hour=20)
 
     # inherit metadata
     noon_prediction.station_code = prediction_a.station_code
-    noon_prediction.prediction_model_run_timestamp_id = (
-        prediction_a.prediction_model_run_timestamp_id
-    )
 
     # throw timestamps into their own variables.
     timestamp_a = prediction_a.prediction_timestamp.timestamp()

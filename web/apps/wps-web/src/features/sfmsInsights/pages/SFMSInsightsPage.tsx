@@ -1,4 +1,4 @@
-import { Box, Checkbox, CircularProgress, FormControlLabel, Grid } from '@mui/material'
+import { Box, Checkbox, CircularProgress, FormControlLabel, Grid, Tab, Tabs } from '@mui/material'
 import { RunType } from '@wps/api/runType'
 import { getMostRecentProcessedSnowByDate } from '@wps/api/snow'
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
@@ -12,6 +12,9 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '@/app/rootReducer'
 import type { AppDispatch } from '@/app/store'
+import StationClimatologyLayers from '@/features/climatology/components/map/StationClimatologyLayers'
+import StationClimatologyPanel from '@/features/climatology/components/StationClimatologyPanel'
+import { useStationChoice } from '@/features/climatology/useStationChoice'
 import ASADatePicker from '@/features/fba/components/ASADatePicker'
 import Footer from '@/features/landingPage/components/Footer'
 import type { RasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
@@ -27,10 +30,13 @@ import {
   selectSFMSInsightsBoundsLoading
 } from '@/features/sfmsInsights/slices/sfmsInsightsSlice'
 
+type InsightsView = 'map' | 'climatology'
+
 export const SFMSInsightsPage = () => {
   const dispatch = useDispatch<AppDispatch>()
 
   // state
+  const [view, setView] = useState<InsightsView>('map')
   const [runType, setRunType] = useState<RunType>(RunType.ACTUAL)
   const [rasterType, setRasterType] = useState<RasterType>('fuel')
   const [rasterDate, setRasterDate] = useState<DateTime | null>(getDateTimeNowPDT())
@@ -40,6 +46,8 @@ export const SFMSInsightsPage = () => {
     DateTime.fromObject({ day: 1, month: 1, year: getDateTimeNowPDT().year })
   )
   const [maxDate, setMaxDate] = useState<DateTime>(getDateTimeNowPDT().plus({ days: 10 }))
+
+  const climatology = useStationChoice(view === 'climatology')
 
   // selectors
   const sfmsBounds = useSelector(selectSFMSInsightsBounds)
@@ -101,6 +109,14 @@ export const SFMSInsightsPage = () => {
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <GeneralHeader isBeta={true} spacing={1} title={SFMS_INSIGHTS_NAME} />
+      <Tabs
+        value={view}
+        onChange={(_, selected: InsightsView) => setView(selected)}
+        sx={{ paddingLeft: 2, borderBottom: 1, borderColor: 'divider' }}
+      >
+        <Tab value="map" label="Fire weather map" />
+        <Tab value="climatology" label="Station climatology" />
+      </Tabs>
       <Box
         sx={{
           paddingTop: '0.5em',
@@ -167,14 +183,36 @@ export const SFMSInsightsPage = () => {
           </Grid>
         </Grid>
       </Box>
-      <Box sx={{ flex: 1, position: 'relative' }}>
-        <SFMSMap
-          snowDate={snowDate}
-          rasterDate={rasterDate}
-          rasterType={rasterType}
-          runType={runType}
-          showSnow={showSnow}
-        />
+      {/* One map for both tabs. Station climatology puts the stations on it, with their charts beside it. */}
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box
+          sx={{
+            position: 'relative',
+            flex: view === 'map' ? 1 : 'none',
+            width: { xs: '100%', md: view === 'map' ? '100%' : '50%' },
+            height: { xs: view === 'map' ? 'auto' : 360, md: 'auto' }
+          }}
+        >
+          <SFMSMap
+            snowDate={snowDate}
+            rasterDate={rasterDate}
+            rasterType={rasterType}
+            runType={runType}
+            showSnow={showSnow}
+            showRasterDetails={view === 'map'}
+          >
+            {view === 'climatology' && (
+              <StationClimatologyLayers
+                stations={climatology.stations}
+                chosenCodes={climatology.chosenCodes}
+                onChoose={climatology.onChoose}
+              />
+            )}
+          </SFMSMap>
+        </Box>
+        {view === 'climatology' && (
+          <StationClimatologyPanel chosen={climatology.chosen} label={climatology.label} error={climatology.error} />
+        )}
       </Box>
       <Footer />
     </Box>
