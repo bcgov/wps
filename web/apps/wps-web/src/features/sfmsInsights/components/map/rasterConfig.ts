@@ -279,12 +279,14 @@ export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value,
   label: fuelCode
 }))
 
-export const NON_FUEL_COLOUR_BREAKS = FUEL_COLOUR_BREAKS.filter(({ min }) => min === 99 || min === 102)
+// BC base-grid Non-fuel/Water codes -> national codes used by the per-run fuel COG
+const NATIONAL_NON_FUEL_BY_BC: Record<number, number> = { 99: 101, 102: 102 }
 
-// The per-run fuel COG paired with fbp outputs uses national codes (Non-fuel is 101, not BC 99).
+export const NON_FUEL_COLOUR_BREAKS = FUEL_COLOUR_BREAKS.filter(({ min }) => min in NATIONAL_NON_FUEL_BY_BC)
+
 export const NATIONAL_NON_FUEL_TYPES: FuelTypeColourMapping[] = FUEL_TYPE_COLOURS.filter(
-  ({ value }) => value === 99 || value === 102
-).map(fuel => ({ ...fuel, value: fuel.value === 99 ? 101 : fuel.value }))
+  ({ value }) => value in NATIONAL_NON_FUEL_BY_BC
+).map(fuel => ({ ...fuel, value: NATIONAL_NON_FUEL_BY_BC[fuel.value] }))
 
 export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   fuel: { group: 'fuel', label: 'Fuel', colourBreaks: FUEL_COLOUR_BREAKS },
