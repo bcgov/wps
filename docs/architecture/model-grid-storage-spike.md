@@ -165,7 +165,7 @@ Sizes, as GRIB integers, scaled from the measured runs in [Sizes](#sizes):
 
 `model_grid_icechunk_spike.py --recent-cycle 4` adds one run as four runs, each a group of one repository, deletes the older two, expires snapshots and garbage collects, measuring the store after each step. With the 2026-11-19 12Z RDPS run as GRIB integers:
 
-| Step | Local disk | ECS, AWS SDK storage (`s3_storage`) | ECS, `object_store` storage (`--object-store`) |
+| Step | Local disk | ECS, AWS SDK storage (`s3_storage`) | ECS, `object_store` storage (`Storage.new_s3_object_store`) |
 |---|---|---|---|
 | Four runs added | 73.7 MB, 99 objects | 73.7 MB, 99 objects | 73.7 MB, 99 objects |
 | Two deleted (commit) | 73.7 MB | 73.7 MB | 73.7 MB |
@@ -179,13 +179,31 @@ Why the SDK cannot be told to use MD5, and the ways around it. The first point a
 
 - **The AWS SDKs dropped MD5 in early 2025.** Their default integrity protections replaced `Content-MD5` with CRC checksums on the operations where S3 requires a checksum, `DeleteObjects` among them. `when_required` does not change that, because this operation always requires one.
 - **Icechunk's default S3 storage (the Rust `aws-sdk-s3`, 1.127.0 in Icechunk 2.3.1)** has no MD5 option.
-- **Icechunk's other S3 storage, `Storage.new_s3_object_store`, uses Apache's `object_store` crate (0.14.2 in Icechunk 2.3.1), which always sends `Content-MD5` on `DeleteObjects`** (`src/aws/client.rs`: "S3 *requires* DeleteObjects to include a Content-MD5 header"). With it, garbage collection worked on ECS, as the table shows. It takes `icechunk.S3Options` (region, endpoint, path-style addressing) and `icechunk.s3_static_credentials`; the spike's `--object-store` flag uses it.
+- **Icechunk's other S3 storage, `Storage.new_s3_object_store`, uses Apache's `object_store` crate (0.14.2 in Icechunk 2.3.1), which always sends `Content-MD5` on `DeleteObjects`** (`src/aws/client.rs`: "S3 *requires* DeleteObjects to include a Content-MD5 header"). With it, garbage collection worked on ECS, as the table shows. It takes `icechunk.S3Options` (region, endpoint, path-style addressing) and `icechunk.s3_static_credentials`; the spike now uses it for every S3 store, and no longer has the AWS SDK storage or its checksum settings.
 - **botocore** has no setting either, but an event handler that computes `Content-MD5` before signing is the known workaround. It would let our own Python code bulk-delete on ECS with a current botocore, as an alternative to the aiobotocore pin. Not tried.
 - **ECS** may accept CRC checksums in newer releases. That is a question for its administrators.
 
 - **Others hit the same limit.** The ECS Community Edition issue [#584](https://github.com/EMCECS/ECS-CommunityEdition/issues/584) reports this exact error with current AWS SDKs; it was closed in 2025 with no comment. Elasticsearch ([#162197](https://github.com/elastic/elasticsearch/pull/162197)) and ClickHouse ([#125566](https://github.com/ClickHouse/ClickHouse/pull/125566)) added MD5 settings for it, and AWS's Java and C++ SDKs have MD5 fallbacks. ECS's release notes are behind Dell's sign-in and were not read; no public statement that any ECS or ObjectScale release accepts CRC32 here was found.
 
 So Icechunk on ECS should use the `object_store` storage. Its garbage collection then reclaims space, and `recent` can be one repository.
+
+### Reads on ECS
+
+The 2026-11-19 18Z HRDPS run was written to ECS through each storage and read back, from a laptop outside the cluster:
+
+| HRDPS 18Z | `object_store` | AWS SDK |
+|---|---|---|
+| Point forecast p50 / p90, GRIB integers, point layout | 898 / 1,085 ms | 957 / 1,113 ms |
+| Point forecast, float32, point layout | 1,236 / 1,565 ms | 1,013 / 1,665 ms |
+| One map, GRIB integers, point layout | 4,406 ms | 4,683 ms |
+| One map, int16, map layout | 144 ms | 196 ms |
+| Point forecast, int16, map layout | 14,973 ms | 16,265 ms |
+| Writing a run, GRIB integers | 19.7 s | 20.6 s |
+
+- **The two storages are as fast as each other.** `object_store` costs nothing and is the only one whose garbage collection works on ECS.
+- **`object_store` needs no checksum settings.** It wrote, committed and read with `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` unset.
+- **The times are mostly round trips from the laptop to ECS,** not the storage. A point forecast is a handful of requests (a chunk per variable, plus the per-hour scales for GRIB integers); a map in the point layout is about 110 chunk requests, and a point forecast in the map layout reads 49 whole fields per variable. Local disk took 16 ms and 30 ms for the GRIB integers. Read times from inside the cluster were not measured, and they decide whether these reads are fast enough for an API.
+- **Writing** is the laptop's upload, about 6 MB/s.
 
 ## Compared with keeping the GRIB files
 
@@ -211,8 +229,8 @@ Cropped GRIB would still be worse to use:
 
 ## Open questions
 
-- **Read times on ECS**, for a point forecast and for a map in each layout.
-- **Icechunk on ECS works, with one setting.** A small test (3 hours of one run, one variant) wrote, committed and read back from ECS on 2026-11-19, with conditional writes on. Without the setting, the first commit failed: ECS answers Icechunk's conditional GET with a 304 that carries the object's checksum but no body, and the AWS SDK inside Icechunk rejects it ("expected body checksum to be 0c835fe8 but it was 00000000"). Setting `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` to `when_required` fixes it, as the same incompatibility needed for botocore. The script sets both when it writes to S3. Any job writing Icechunk to ECS through the default AWS SDK storage will need them. Garbage collection needs the `object_store` storage instead (see [the cycle on ECS](#the-recent-cycle-on-ecs)); whether that storage also needs these settings was not checked.
+- **Read times on ECS from inside the cluster.** From a laptop, a point forecast took about 1 s and a map about 4.5 s in the point layout (see [Reads on ECS](#reads-on-ecs)).
+- **Icechunk on ECS works, with one setting.** A small test (3 hours of one run, one variant) wrote, committed and read back from ECS on 2026-11-19, with conditional writes on. Without the setting, the first commit failed: ECS answers Icechunk's conditional GET with a 304 that carries the object's checksum but no body, and the AWS SDK inside Icechunk rejects it ("expected body checksum to be 0c835fe8 but it was 00000000"). Setting `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` to `when_required` fixes it, as the same incompatibility needed for botocore. The script sets both when it writes to S3. Any job writing Icechunk to ECS through the default AWS SDK storage will need them. Garbage collection needs the `object_store` storage instead (see [the cycle on ECS](#the-recent-cycle-on-ecs)), which needs none of these settings.
 - **The other models on ECS.** Their sizes are in [Sizes](#sizes); their read times on ECS were not measured.
 - **More runs.** One run was written. Compression is per run, so it should hold, but the object count and Icechunk's metadata over months of commits are not measured.
 - **ECS quota and cost** for about 52 GB a year for all five models under the chosen [retention](#retention), and who approves it.
@@ -227,7 +245,7 @@ Cropped GRIB would still be worse to use:
    ```
 
    from `./backend`, with `OBJECT_STORE_SERVER`, `OBJECT_STORE_USER_ID`, `OBJECT_STORE_SECRET` and `OBJECT_STORE_BUCKET` set as the deployments have them. Stores go under `dev/zarr-spike/{model}/{variant}`. Delete `dev/zarr-spike` afterwards, one object at a time: ECS rejects boto3's bulk `DeleteObjects` without a `Content-MD5` header. The MSC datamart keeps about a day, so MSC runs must be recent.
-2. Measure reads through the `object_store` storage on ECS, and check whether it still needs the `AWS_*_CHECKSUM_*` settings (the spike sets them either way).
+2. Measure reads from inside the cluster, from a pod reading the `object_store` stores, to separate ECS's own latency from the laptop's network path.
 3. Ask the object storage team whether ECS will accept the AWS SDKs' CRC checksums, which would also let our own Python code drop the aiobotocore pin.
 4. Check whether NOMADS keeps NOAA's original scales for GFS, against a field from NOAA's full file.
 5. Decide on the layout and where the writes run, then design the job.
