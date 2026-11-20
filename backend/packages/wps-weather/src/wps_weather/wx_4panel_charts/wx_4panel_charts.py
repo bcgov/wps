@@ -27,6 +27,11 @@ from wps_weather.db.crud.wx_4panel_charts import (
 )
 from wps_weather.db.models.wx_4panel_charts import ChartStatusEnum, ECCCModel, ModelNames
 from wps_weather.wx_4panel_charts.config_builder import ConfigBuilder
+from wps_weather.wx_4panel_charts.map_clipping import (
+    ClipBounds,
+    clip_to_bounds,
+    visible_map_bounds,
+)
 from wps_weather.wx_4panel_charts.panel_layout import (
     add_panel_title,
     add_valid_time_stamp,
@@ -56,11 +61,13 @@ class FourPanelChartRunner:
     def __init__(self, s3_client: S3Client):
         self._s3_client = s3_client
 
-    async def _open_dataset_s3(self, key):
+    async def _open_dataset_s3(self, key, bounds: ClipBounds):
         """
-        Creates a xarray.Dataset from the grib file located at the provided S3 key.
+        Creates a xarray.Dataset from the grib file located at the provided S3 key, clipped
+        to the area shown on the chart panels.
 
         :param key: The key to the grib file in object storage.
+        :param bounds: The lon/lat area to keep, from visible_map_bounds.
         :return: An xarray.Dataset object.
         """
         # Get the grib file and read the bytes.
@@ -86,14 +93,16 @@ class FourPanelChartRunner:
                 engine="cfgrib",
                 backend_kwargs={"indexpath": ""},
             )
+            # Clip before load() so only the panel area is read into memory.
+            ds = clip_to_bounds(ds, bounds)
             ds = ds.load()
 
             return ds
 
     @asynccontextmanager
-    async def _dataset(self, key):
+    async def _dataset(self, key, bounds: ClipBounds):
         # Small helper to ensure datasets get closed in the event of an error.
-        ds = await self._open_dataset_s3(key)
+        ds = await self._open_dataset_s3(key, bounds)
         if not isinstance(ds, xr.Dataset):
             logger.error(
                 f"Expected xr.Dataset for key '{key}', got {type(ds).__name__}. Skipping chart."
@@ -119,6 +128,13 @@ class FourPanelChartRunner:
             central_longitude=cfg500.get("central_longitude", -130.0),
             central_latitude=cfg500.get("central_latitude", 50.0),
         )
+        # All four panels share the same extent and projection, so one set of bounds
+        # covers every GRIB file opened for this chart.
+        bounds = visible_map_bounds(
+            cfg500["extent"],
+            cfg500.get("central_longitude", -130.0),
+            cfg500.get("central_latitude", 50.0),
+        )
 
         fig, axes = plt.subplots(
             2,
@@ -133,8 +149,8 @@ class FourPanelChartRunner:
 
         try:
             async with (
-                self._dataset(cfg500["z500_grib"]) as ds_z500,
-                self._dataset(cfg500["vort_grib"]) as ds_vort,
+                self._dataset(cfg500["z500_grib"], bounds) as ds_z500,
+                self._dataset(cfg500["vort_grib"], bounds) as ds_vort,
             ):
                 logger.info(f"Creating 500hpa panel for {output_key}")
                 plotter_500hpa = plotter_factory.get_500hpa_plotter()
@@ -142,8 +158,8 @@ class FourPanelChartRunner:
                 add_panel_title(ax500, "500 HPA HEIGHT & ABS VORTICITY ×10⁻⁵s⁻¹", loc="bl")
 
             async with (
-                self._dataset(cfgmslp["mslp_grib"]) as ds_msl,
-                self._dataset(cfgmslp["thk_grib"]) as ds_thk,
+                self._dataset(cfgmslp["mslp_grib"], bounds) as ds_msl,
+                self._dataset(cfgmslp["thk_grib"], bounds) as ds_thk,
             ):
                 logger.info(f"Creating mslp panel for {output_key}")
                 plotter_mslp_thickness = plotter_factory.get_mslp_thickness_plotter()
@@ -151,10 +167,10 @@ class FourPanelChartRunner:
                 add_panel_title(axmslp, "MSLP HPA & 1000-500 HPA THICKNESS", loc="bl")
 
             async with (
-                self._dataset(cfg700["z700_grib"]) as ds_z700,
-                self._dataset(cfg700["rh850_grib"]) as ds_rh850,
-                self._dataset(cfg700["rh700_grib"]) as ds_rh700,
-                self._dataset(cfg700["rh500_grib"]) as ds_rh500,
+                self._dataset(cfg700["z700_grib"], bounds) as ds_z700,
+                self._dataset(cfg700["rh850_grib"], bounds) as ds_rh850,
+                self._dataset(cfg700["rh700_grib"], bounds) as ds_rh700,
+                self._dataset(cfg700["rh500_grib"], bounds) as ds_rh500,
             ):
                 logger.info(f"Creating 700hpa panel for {output_key}")
                 plotter_700hpa = plotter_factory.get_700hpa_plotter()
@@ -174,10 +190,10 @@ class FourPanelChartRunner:
             try:
                 logger.info(f"Creating precip panel for {output_key}")
                 if cfgpcpn["show_precip"]:
-                    ds_p = await self._open_dataset_s3(cfgpcpn["pcpn_grib"])
+                    ds_p = await self._open_dataset_s3(cfgpcpn["pcpn_grib"], bounds)
 
                 if cfgpcpn.get("show_jet_core", True):
-                    ds_js = await self._open_dataset_s3(cfgpcpn["jet_spd_grib"])
+                    ds_js = await self._open_dataset_s3(cfgpcpn["jet_spd_grib"], bounds)
 
                 plotter_pcpn = plotter_factory.get_pcpn_plotter()
                 plotter_pcpn(cfgpcpn, ax=axpcpn, ds_p=ds_p, ds_js=ds_js)

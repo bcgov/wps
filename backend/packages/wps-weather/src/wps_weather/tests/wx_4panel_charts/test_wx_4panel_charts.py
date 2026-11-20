@@ -84,6 +84,7 @@ _patches = {
     "wps_weather.wx_4panel_charts.plotter_factory": MagicMock(),
     "wps_weather.wx_4panel_charts.wx_4panel_chart_addresser": MagicMock(),
     "wps_weather.wx_4panel_charts.config_builder": MagicMock(),
+    "wps_weather.wx_4panel_charts.map_clipping": MagicMock(),
 }
 
 # Import the module under test with all heavy dependencies mocked.
@@ -176,7 +177,7 @@ class TestOpenDatasetS3:
         runner = make_runner(s3_client)
 
         with pytest.raises(RuntimeError, match="HTTP status code was: 404"):
-            await runner._open_dataset_s3("some/key")
+            await runner._open_dataset_s3("some/key", MagicMock())
 
     @pytest.mark.anyio
     async def test_raises_runtime_error_on_500_status(self):
@@ -186,7 +187,7 @@ class TestOpenDatasetS3:
         runner = make_runner(s3_client)
 
         with pytest.raises(RuntimeError, match="HTTP status code was: 500"):
-            await runner._open_dataset_s3("some/key")
+            await runner._open_dataset_s3("some/key", MagicMock())
 
     @pytest.mark.anyio
     async def test_error_message_includes_key(self):
@@ -196,7 +197,7 @@ class TestOpenDatasetS3:
         runner = make_runner(s3_client)
 
         with pytest.raises(RuntimeError, match="some/specific/key"):
-            await runner._open_dataset_s3("some/specific/key")
+            await runner._open_dataset_s3("some/specific/key", MagicMock())
 
     @pytest.mark.anyio
     async def test_calls_get_object_with_key(self):
@@ -206,9 +207,38 @@ class TestOpenDatasetS3:
         runner = make_runner(s3_client)
 
         with pytest.raises(RuntimeError):
-            await runner._open_dataset_s3("weather/data/file.grib2")
+            await runner._open_dataset_s3("weather/data/file.grib2", MagicMock())
 
         s3_client.get_object.assert_called_once_with("weather/data/file.grib2")
+
+    @pytest.mark.anyio
+    async def test_clips_dataset_to_bounds_before_loading(self):
+        stream = AsyncMock()
+        stream.__aenter__.return_value = stream
+        s3_client = MagicMock()
+        s3_client.get_object = AsyncMock(
+            return_value={"ResponseMetadata": {"HTTPStatusCode": 200}, "Body": stream}
+        )
+        runner = make_runner(s3_client)
+        temp_file = AsyncMock()
+        temp_file.__aenter__.return_value = temp_file
+        bounds = MagicMock()
+        module = "wps_weather.wx_4panel_charts.wx_4panel_charts"
+
+        with (
+            patch(f"{module}.aiofiles") as mock_aiofiles,
+            patch(f"{module}.xr") as mock_xr,
+            patch(f"{module}.clip_to_bounds") as mock_clip,
+        ):
+            mock_aiofiles.tempfile.NamedTemporaryFile.return_value = temp_file
+            result = await runner._open_dataset_s3("some/key", bounds)
+
+        opened = mock_xr.open_dataset.return_value
+        clipped = mock_clip.return_value
+        mock_clip.assert_called_once_with(opened, bounds)
+        opened.load.assert_not_called()  # the full dataset is never loaded
+        clipped.load.assert_called_once()
+        assert result is clipped.load.return_value
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +259,7 @@ class TestDataset:
             mock_xr.Dataset = _FakeDataset
             with patch("wps_weather.wx_4panel_charts.wx_4panel_charts.logger") as mock_logger:
                 with pytest.raises(TypeError):
-                    async with runner._dataset("some/key"):
+                    async with runner._dataset("some/key", MagicMock()):
                         pass
 
                 mock_logger.error.assert_called_once()
@@ -243,7 +273,7 @@ class TestDataset:
         with patch("wps_weather.wx_4panel_charts.wx_4panel_charts.xr") as mock_xr:
             mock_xr.Dataset = _FakeDataset
             with pytest.raises(TypeError, match="int"):
-                async with runner._dataset("some/key"):
+                async with runner._dataset("some/key", MagicMock()):
                     pass
 
 
