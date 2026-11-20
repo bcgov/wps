@@ -20,17 +20,6 @@ RUN apt-get update --fix-missing && apt-get -y install \
     libproj-dev libgeos-dev libsqlite3-dev libpq-dev libtirpc-dev libssl-dev \
     libcurl4-openssl-dev libxml2-dev cmake libabsl-dev
 
-RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-# Enable for mac M1
-# RUN curl -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_arm64.deb > /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-
-
-# - wkhtmltopdf (for making pdf's)
-
-# Enable for mac M1
-# RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_arm64.deb
-RUN dpkg -i /tmp/wkhtmltox_0.12.6.1-2.jammy_amd64.deb
-
 # Install tippecanoe for pmtiles
 RUN git clone https://github.com/felt/tippecanoe.git --branch 2.62.5 && cd tippecanoe && make -j && make install && cd ..
 
@@ -41,6 +30,20 @@ RUN useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 # +x : to execute the poetry binary
 # +r : to read poetry cache
 RUN chmod a+rx /home/$USERNAME
+
+# - wkhtmltopdf (for making pdf's), picking the .deb for the target architecture.
+# BuildKit and buildah set TARGETARCH. Builders that don't set it fall back to
+# dpkg's architecture.
+ARG TARGETARCH
+RUN WKHTMLTOX_ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" && \
+    WKHTMLTOX_URL=https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2 && \
+    case "${WKHTMLTOX_ARCH}" in \
+      amd64|arm64) ;; \
+      *) echo "Unsupported architecture: ${WKHTMLTOX_ARCH}" >&2; exit 1 ;; \
+    esac && \
+    curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/wkhtmltox.deb \
+      "${WKHTMLTOX_URL}/wkhtmltox_0.12.6.1-2.jammy_${WKHTMLTOX_ARCH}.deb" && \
+    dpkg -i /tmp/wkhtmltox.deb
 
 USER $USERNAME
 ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
