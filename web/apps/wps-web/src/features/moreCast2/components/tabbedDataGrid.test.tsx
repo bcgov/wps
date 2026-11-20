@@ -6,6 +6,9 @@ import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
 
+const modelElevationData = { latestRuns: {}, stationElevations: new Map() }
+const onCompareElevations = vi.fn()
+
 const FROM_TO: DateRange = {}
 const SET_FROM_TO: React.Dispatch<React.SetStateAction<DateRange>> = vi.fn()
 const TABS = [
@@ -40,7 +43,13 @@ describe('TabbedDataGrid', () => {
     )
     const { getByRole } = render(
       <Provider store={store}>
-        <TabbedDataGrid fromTo={FROM_TO} setFromTo={SET_FROM_TO} fetchWeatherIndeterminates={vi.fn()} />
+        <TabbedDataGrid
+          modelElevationData={modelElevationData}
+          onCompareElevations={onCompareElevations}
+          fromTo={FROM_TO}
+          setFromTo={SET_FROM_TO}
+          fetchWeatherIndeterminates={vi.fn()}
+        />
       </Provider>
     )
 
@@ -56,6 +65,8 @@ describe('TabbedDataGrid', () => {
     const { getByTestId } = render(
       <Provider store={store}>
         <TabbedDataGrid
+          modelElevationData={modelElevationData}
+          onCompareElevations={onCompareElevations}
           fromTo={FROM_TO}
           setFromTo={SET_FROM_TO}
           fetchWeatherIndeterminates={fetchWeatherIndeterminatesMock}
@@ -78,6 +89,8 @@ describe('TabbedDataGrid', () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={store}>
         <TabbedDataGrid
+          modelElevationData={modelElevationData}
+          onCompareElevations={onCompareElevations}
           fromTo={FROM_TO}
           setFromTo={SET_FROM_TO}
           fetchWeatherIndeterminates={fetchWeatherIndeterminatesMock}
@@ -100,6 +113,8 @@ describe('TabbedDataGrid', () => {
     const { getByTestId, queryByTestId } = render(
       <Provider store={store}>
         <TabbedDataGrid
+          modelElevationData={modelElevationData}
+          onCompareElevations={onCompareElevations}
           fromTo={FROM_TO}
           setFromTo={SET_FROM_TO}
           fetchWeatherIndeterminates={fetchWeatherIndeterminatesMock}

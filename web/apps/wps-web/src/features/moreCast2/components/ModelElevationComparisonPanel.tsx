@@ -1,11 +1,14 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
+import { Box, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { formatElevation, type ModelElevationRow } from '../modelElevation'
 import { ORDERED_COLUMN_HEADERS } from './ColumnDefBuilder'
 
-interface ModelElevationComparisonDialogProps {
-  station: ModelElevationRow | null
+type StationComparison = Pick<ModelElevationRow, 'stationName' | 'stationElevation' | 'modelElevations'>
+
+interface ModelElevationComparisonPanelProps {
+  station: StationComparison | null
   onClose: () => void
 }
 
@@ -14,9 +17,9 @@ const models = ORDERED_COLUMN_HEADERS.filter(
 )
 const differenceFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0, signDisplay: 'exceptZero' })
 const tickFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0 })
-const plot = { left: 64, right: 540, top: 40, bottom: 230 }
+const plot = { left: 48, right: 392, top: 36, bottom: 176 }
 
-const ElevationChart = ({ station }: { station: ModelElevationRow }) => {
+const ElevationChart = ({ station }: { station: StationComparison }) => {
   const theme = useTheme()
   const stationElevation =
     typeof station.stationElevation === 'number' && Number.isFinite(station.stationElevation)
@@ -44,14 +47,14 @@ const ElevationChart = ({ station }: { station: ModelElevationRow }) => {
 
   return (
     <>
-      <Box sx={{ overflowX: 'auto', mt: 2 }}>
+      <Box sx={{ mt: 1 }}>
         <Box
           component="svg"
-          viewBox="0 0 560 315"
+          viewBox="0 0 400 250"
           role="img"
           aria-labelledby="model-elevation-chart-title"
           aria-describedby="model-elevation-chart-description"
-          sx={{ display: 'block', width: '100%', minWidth: 420, fontFamily: theme.typography.fontFamily, fontSize: 13 }}
+          sx={{ display: 'block', width: '100%', fontFamily: theme.typography.fontFamily, fontSize: 13 }}
         >
           <title id="model-elevation-chart-title">Model elevations compared with station elevation</title>
           <desc id="model-elevation-chart-description">
@@ -93,15 +96,15 @@ const ElevationChart = ({ station }: { station: ModelElevationRow }) => {
                 {point.elevation !== null && (
                   <>
                     <circle cx={x} cy={y(point.elevation)} r={5} fill={theme.palette.primary.main} />
-                    <text x={x} y={y(point.elevation) - 12} fill={theme.palette.text.primary}>
+                    <text x={x} y={y(point.elevation) - 10} fill={theme.palette.text.primary}>
                       {formatElevation(point.elevation)}
                     </text>
                   </>
                 )}
-                <text x={x} y={263} fill={theme.palette.text.primary} fontWeight={600}>
+                <text x={x} y={207} fill={theme.palette.text.primary} fontWeight={600}>
                   {point.model}
                 </text>
-                <text x={x} y={286} fill={theme.palette.text.secondary}>
+                <text x={x} y={228} fill={theme.palette.text.secondary}>
                   {point.elevation === null
                     ? 'N/A'
                     : point.difference === null
@@ -113,26 +116,53 @@ const ElevationChart = ({ station }: { station: ModelElevationRow }) => {
           })}
         </Box>
       </Box>
-      <Typography variant="caption" color="text.secondary">
-        {stationElevation === null
-          ? 'Station elevation unavailable. Differences cannot be calculated.'
-          : 'Differences from station elevation are shown below each model.'}
-      </Typography>
+      {stationElevation === null && (
+        <Typography variant="caption" color="text.secondary">
+          Station elevation unavailable. Differences cannot be calculated.
+        </Typography>
+      )}
     </>
   )
 }
 
-const ModelElevationComparisonDialog = ({ station, onClose }: ModelElevationComparisonDialogProps) => (
-  <Dialog
-    open={station !== null}
-    onClose={onClose}
-    fullWidth
-    maxWidth="sm"
-    aria-labelledby="model-elevation-comparison-title"
-  >
-    <DialogTitle id="model-elevation-comparison-title">Model elevations for {station?.stationName}</DialogTitle>
-    {station && (
-      <DialogContent>
+const ModelElevationComparisonPanel = ({ station, onClose }: ModelElevationComparisonPanelProps) =>
+  station && (
+    <Box
+      component="section"
+      aria-labelledby="model-elevation-comparison-title"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+        minHeight: 0,
+        maxHeight: '50%',
+        m: 1,
+        border: 1,
+        borderRadius: 1,
+        borderColor: 'divider',
+        bgcolor: 'background.paper'
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          p: 1,
+          flexShrink: 0,
+          bgcolor: 'grey.100',
+          borderBottom: 1,
+          borderColor: 'divider'
+        }}
+      >
+        <Typography id="model-elevation-comparison-title" variant="subtitle2" sx={{ flex: 1 }}>
+          Model elevations for {station.stationName}
+        </Typography>
+        <IconButton size="small" aria-label="Close elevation comparison" onClick={onClose}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </Box>
+      <Box sx={{ p: 1, overflowY: 'auto', minHeight: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {station.stationElevation !== null && Number.isFinite(station.stationElevation) && (
             <Box component="span" sx={{ width: 24, borderBottom: '2px dashed', flexShrink: 0 }} />
@@ -140,15 +170,8 @@ const ModelElevationComparisonDialog = ({ station, onClose }: ModelElevationComp
           <Typography variant="body2">Station elevation: {formatElevation(station.stationElevation)}</Typography>
         </Box>
         <ElevationChart station={station} />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Uses the model runs shown in the grid headers.
-        </Typography>
-      </DialogContent>
-    )}
-    <DialogActions>
-      <Button onClick={onClose}>Close</Button>
-    </DialogActions>
-  </Dialog>
-)
+      </Box>
+    </Box>
+  )
 
-export default ModelElevationComparisonDialog
+export default ModelElevationComparisonPanel

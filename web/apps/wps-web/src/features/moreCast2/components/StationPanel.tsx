@@ -46,6 +46,8 @@ const Root = styled('div')(({ theme }) => ({
   [`&.${classes.root}`]: {
     display: 'flex',
     flexDirection: 'column',
+    flex: 1,
+    minHeight: 0,
     minWidth: '375px',
     marginTop: theme.spacing(2),
     width: '100%'
@@ -59,6 +61,8 @@ const Root = styled('div')(({ theme }) => ({
   },
 
   [`& .${classes.stationContainer}`]: {
+    flex: 1,
+    minHeight: 0,
     overflowY: 'auto'
   }
 }))
@@ -70,10 +74,19 @@ interface StationPanelProps {
   selectedStationGroup?: StationGroup
   stationGroupMembers: StationGroupMember[]
   setSelectedStationGroup: React.Dispatch<React.SetStateAction<StationGroup | undefined>>
+  elevationComparison?: React.ReactNode
 }
 
 const StationPanel = (props: StationPanelProps) => {
-  const { idir, loading, selectedStationGroup, stationGroups, stationGroupMembers, setSelectedStationGroup } = {
+  const {
+    idir,
+    loading,
+    selectedStationGroup,
+    stationGroups,
+    stationGroupMembers,
+    setSelectedStationGroup,
+    elevationComparison
+  } = {
     ...props
   }
 
@@ -112,7 +125,7 @@ const StationPanel = (props: StationPanelProps) => {
       </div>
       {!loading ? (
         <>
-          <Stack spacing={1}>
+          <Stack spacing={1} sx={{ flexShrink: 0 }}>
             <Box>
               <FormControl className={classes.formControl}>
                 <StationGroupDropdown
@@ -159,6 +172,7 @@ const StationPanel = (props: StationPanelProps) => {
       ) : (
         <CircularProgress />
       )}
+      {elevationComparison}
     </Root>
   )
 }

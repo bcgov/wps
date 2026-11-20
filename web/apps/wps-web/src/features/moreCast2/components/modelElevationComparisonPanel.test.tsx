@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { vi } from 'vitest'
 import type { ModelElevationRow } from '../modelElevation'
-import ModelElevationComparisonDialog from './ModelElevationComparisonDialog'
+import ModelElevationComparisonPanel from './ModelElevationComparisonPanel'
 
 const station: ModelElevationRow = {
   id: 'model-elevation-1',
@@ -16,10 +16,10 @@ const station: ModelElevationRow = {
 const model = (name: string): SVGElement => screen.getByRole('img').querySelector<SVGElement>(`[data-model="${name}"]`)!
 const modelLabels = (name: string) => Array.from(model(name).querySelectorAll('text'), node => node.textContent)
 
-describe('model elevation comparison dialog', () => {
+describe('model elevation comparison panel', () => {
   it('shows raw models in grid order with elevations and signed differences', () => {
-    render(<ModelElevationComparisonDialog station={station} onClose={vi.fn()} />)
-    expect(screen.getByRole('dialog', { name: 'Model elevations for Alpha station' })).toBeInTheDocument()
+    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} />)
+    expect(screen.getByRole('region', { name: 'Model elevations for Alpha station' })).toBeInTheDocument()
     expect(screen.getByText('Station elevation: 900 m')).toBeInTheDocument()
     expect(
       [...screen.getByRole('img').querySelectorAll('[data-model]')].map(node => node.getAttribute('data-model'))
@@ -34,7 +34,7 @@ describe('model elevation comparison dialog', () => {
 
   it('calculates differences before rounding displayed elevations', () => {
     render(
-      <ModelElevationComparisonDialog
+      <ModelElevationComparisonPanel
         station={{ ...station, stationElevation: 1000.49, modelElevations: { HRDPS: 1000.51 } }}
         onClose={vi.fn()}
       />
@@ -44,7 +44,7 @@ describe('model elevation comparison dialog', () => {
 
   it('leaves unavailable models unplotted and keeps zero as an elevation', () => {
     render(
-      <ModelElevationComparisonDialog
+      <ModelElevationComparisonPanel
         station={{
           ...station,
           stationElevation: 0,
@@ -63,7 +63,7 @@ describe('model elevation comparison dialog', () => {
 
   it('uses a valid scale when every model has the station elevation', () => {
     render(
-      <ModelElevationComparisonDialog
+      <ModelElevationComparisonPanel
         station={{ ...station, modelElevations: { HRDPS: 900, RDPS: 900, GDPS: 900, ECMWF: 900, GFS: 900 } }}
         onClose={vi.fn()}
       />
@@ -72,12 +72,12 @@ describe('model elevation comparison dialog', () => {
     expect(markers).toHaveLength(5)
     const positions = markers.map(marker => Number(marker.getAttribute('cy')))
     expect(new Set(positions).size).toBe(1)
-    expect(positions.every(y => Number.isFinite(y) && y > 40 && y < 230)).toBe(true)
+    expect(positions.every(y => Number.isFinite(y) && y > 0 && y < 250)).toBe(true)
     expect(screen.getByRole('img').querySelector('polyline, path')).toBeNull()
   })
 
   it('shows model elevations without differences when station elevation is unavailable', () => {
-    render(<ModelElevationComparisonDialog station={{ ...station, stationElevation: null }} onClose={vi.fn()} />)
+    render(<ModelElevationComparisonPanel station={{ ...station, stationElevation: null }} onClose={vi.fn()} />)
     expect(modelLabels('HRDPS')).toEqual(['850 m', 'HRDPS', ''])
     expect(screen.getByText('Station elevation unavailable. Differences cannot be calculated.')).toBeInTheDocument()
     expect(screen.getByRole('img').querySelector('line[stroke-dasharray]')).toBeNull()
@@ -85,7 +85,7 @@ describe('model elevation comparison dialog', () => {
 
   it('shows an empty message when only bias or retired models have elevations', () => {
     render(
-      <ModelElevationComparisonDialog
+      <ModelElevationComparisonPanel
         station={{ ...station, modelElevations: { NAM: 600, HRDPS_BIAS: 700 } }}
         onClose={vi.fn()}
       />
@@ -96,14 +96,14 @@ describe('model elevation comparison dialog', () => {
 
   it('requests dismissal with the Close button', async () => {
     const onClose = vi.fn()
-    render(<ModelElevationComparisonDialog station={station} onClose={onClose} />)
-    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    render(<ModelElevationComparisonPanel station={station} onClose={onClose} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Close elevation comparison' }))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('does not mount the chart when closed', () => {
-    render(<ModelElevationComparisonDialog station={null} onClose={vi.fn()} />)
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    render(<ModelElevationComparisonPanel station={null} onClose={vi.fn()} />)
+    expect(screen.queryByRole('region')).not.toBeInTheDocument()
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 })

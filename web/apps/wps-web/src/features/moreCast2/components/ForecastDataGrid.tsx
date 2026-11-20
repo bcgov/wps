@@ -27,7 +27,6 @@ import {
 import { CSP_NONCE } from '@wps/utils/env'
 import { DataGridColumns } from 'features/moreCast2/components/DataGridColumns'
 import ModelElevationCell from 'features/moreCast2/components/ModelElevationCell'
-import ModelElevationComparisonDialog from 'features/moreCast2/components/ModelElevationComparisonDialog'
 import ModelHeader from 'features/moreCast2/components/ModelHeader'
 import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import type { MoreCast2Row } from 'features/moreCast2/interfaces'
@@ -37,10 +36,9 @@ import {
   getForecastTreePath,
   getModelElevationCellValue,
   isModelElevationRow,
-  type ModelElevationData,
-  type ModelElevationRow
+  type ModelElevationData
 } from 'features/moreCast2/modelElevation'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 
 const PREFIX = 'ForecastDataGrid'
 
@@ -119,6 +117,7 @@ export interface ForecastDataGridProps {
   collapsedStationCodes: Set<number>
   onStationExpansionChange: (stationCode: number, expanded: boolean) => void
   modelElevationData: ModelElevationData
+  onCompareElevations: (stationCode: number) => void
   processRowUpdate: (newRow: MoreCast2Row) => MoreCast2Row
 }
 
@@ -151,11 +150,9 @@ const ForecastDataGrid = ({
   collapsedStationCodes,
   onStationExpansionChange,
   modelElevationData,
+  onCompareElevations,
   processRowUpdate
 }: ForecastDataGridProps) => {
-  // state
-  const [comparisonStationCode, setComparisonStationCode] = useState<number | null>(null)
-
   // refs
   const apiRef = useGridApiRef()
 
@@ -163,9 +160,6 @@ const ForecastDataGrid = ({
   const displayRows = useMemo(
     () => getForecastDisplayRows(allMoreCast2Rows, modelElevationData.stationElevations),
     [allMoreCast2Rows, modelElevationData.stationElevations]
-  )
-  const comparisonStation = displayRows.find(
-    (row): row is ModelElevationRow => isModelElevationRow(row) && row.stationCode === comparisonStationCode
   )
   const groupingColDef = useMemo<GridGroupingColDefOverride<ForecastDisplayRow>>(
     () => ({
@@ -187,14 +181,14 @@ const ForecastDataGrid = ({
                 field="stationName"
                 value={params.row.stationName}
                 hasFocus={params.hasFocus}
-                onCompareElevations={setComparisonStationCode}
+                onCompareElevations={onCompareElevations}
               />
             }
           />
         )
       }
     }),
-    []
+    [onCompareElevations]
   )
 
   const sectionColumnGroupingModel = useMemo(
@@ -277,10 +271,6 @@ const ForecastDataGrid = ({
   )
 
   // effects
-  useEffect(() => {
-    if (!comparisonStation) setComparisonStationCode(null)
-  }, [comparisonStation])
-
   useEffect(
     () =>
       apiRef.current?.subscribeEvent('rowExpansionChange', node => {
@@ -318,10 +308,6 @@ const ForecastDataGrid = ({
         processRowUpdate={updateGridRow}
         initialState={gridInitialState}
         hideFooter={true}
-      />
-      <ModelElevationComparisonDialog
-        station={comparisonStation ?? null}
-        onClose={() => setComparisonStationCode(null)}
       />
     </Root>
   )
