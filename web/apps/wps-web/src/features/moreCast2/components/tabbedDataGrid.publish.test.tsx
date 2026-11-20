@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import {
   fetchWeatherIndeterminates,
@@ -89,7 +89,7 @@ const createPublishingStore = () => {
   })
 }
 
-const renderPublishing = async (refresh = vi.fn(), testStore = createPublishingStore()) => {
+const renderPublishing = async (refresh = vi.fn(), testStore = createPublishingStore(), collapseStation = false) => {
   localStorage.clear()
   const draft = new MorecastDraftForecast(localStorage)
   draft.createStoredForecast(selectAllMoreCast2Rows(testStore.getState()), DateTime.now())
@@ -98,6 +98,11 @@ const renderPublishing = async (refresh = vi.fn(), testStore = createPublishingS
       <TabbedDataGrid fromTo={{}} setFromTo={vi.fn()} fetchWeatherIndeterminates={refresh} />
     </Provider>
   )
+  if (collapseStation) {
+    const stationHeader = (await screen.findByText('Model elevation')).closest<HTMLElement>('[role="row"]')!
+    await userEvent.click(within(stationHeader).getByRole('button', { name: 'hide children' }))
+    expect(stationHeader).toHaveAttribute('aria-expanded', 'false')
+  }
   await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
   await waitFor(() => expect(screen.getByRole('button', { name: 'Publish to WF1' })).toBeEnabled())
   await userEvent.click(screen.getByRole('button', { name: 'Publish to WF1' }))
@@ -110,7 +115,7 @@ describe('MoreCast publishing', () => {
     vi.restoreAllMocks()
   })
 
-  test('clears saved drafts before refreshing and shows skipped rows', async () => {
+  test('publishes collapsed stations, clears saved drafts before refreshing and shows skipped rows', async () => {
     vi.mocked(submitMoreCastForecastRecords).mockResolvedValue({
       success: true,
       wf1PublishedCount: 0,
@@ -119,7 +124,13 @@ describe('MoreCast publishing', () => {
     const refresh = vi.fn(() => {
       expect(new MorecastDraftForecast(localStorage).hasDraftForecastStored()).toBe(false)
     })
-    const { draft } = await renderPublishing(refresh)
+    const { draft } = await renderPublishing(refresh, createPublishingStore(), true)
+    expect(
+      vi
+        .mocked(submitMoreCastForecastRecords)
+        .mock.calls.at(-1)?.[0]
+        .map(row => row.stationCode)
+    ).toEqual([1])
     expect(await screen.findByRole('dialog', { name: 'Forecasts saved' })).toHaveTextContent('Published 0 to WF1.')
     expect(screen.getByRole('table', { name: 'Forecasts saved only in MoreCast' })).toHaveTextContent('Test station')
     expect(draft.hasDraftForecastStored()).toBe(false)
