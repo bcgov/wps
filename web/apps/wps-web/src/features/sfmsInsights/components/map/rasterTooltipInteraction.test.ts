@@ -153,6 +153,43 @@ describe('RasterTooltipInteraction', () => {
       expect(onTooltipChange).toHaveBeenCalledWith({ value: null, label: '', pixel: null, snowCovered: false })
     })
 
+    it.each([
+      [101, 'Non-fuel'],
+      [102, 'Water'],
+      // Combustible fuel (national C-2) reports the CFB value.
+      [2, '24%']
+    ])('should use fuel band %s before reporting CFB', (fuel, expected) => {
+      mockRasterLayer.getProperties.mockReturnValue({ rasterType: 'cfb' })
+      // fbp layers return [value, fuel, alpha]; alpha 255 means valid.
+      mockRasterLayer.getData.mockReturnValue(new Float32Array([0.24, fuel, 255]))
+      mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
+      expect(onTooltipChange).toHaveBeenLastCalledWith({
+        label: expected === '24%' ? 'CFB' : '',
+        value: expected,
+        pixel: [100, 200],
+        snowCovered: false
+      })
+    })
+
+    it.each([
+      // Value NoData keeps its raw sentinel because the value source's nodata is overridden.
+      [-3.4028235e38, 2, 255],
+      // Alpha 0 means neither source has data at this pixel.
+      [0, 0, 0],
+      [120, 101, 0],
+      [120, 102, 0]
+    ])('should report missing fbp data for %s with fuel %s and alpha %s', (value, fuel, alpha) => {
+      mockRasterLayer.getProperties.mockReturnValue({ rasterType: 'cfb' })
+      mockRasterLayer.getData.mockReturnValue(new Float32Array([value, fuel, alpha]))
+      mockMap.pointerMoveHandler!({ map: mockMap, originalEvent: new MouseEvent('pointermove') })
+      expect(onTooltipChange).toHaveBeenLastCalledWith({
+        label: 'CFB',
+        value: null,
+        pixel: [100, 200],
+        snowCovered: false
+      })
+    })
+
     it('should not call onTooltipChange when callback is not set', () => {
       const interactionWithoutCallback = new RasterTooltipInteraction()
       interactionWithoutCallback.setMap(mockMap)

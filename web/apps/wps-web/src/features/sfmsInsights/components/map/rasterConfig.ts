@@ -279,6 +279,15 @@ export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value,
   label: fuelCode
 }))
 
+// BC base-grid Non-fuel/Water codes -> national codes used by the per-run fuel COG
+const NATIONAL_NON_FUEL_BY_BC: Record<number, number> = { 99: 101, 102: 102 }
+
+export const NON_FUEL_COLOUR_BREAKS = FUEL_COLOUR_BREAKS.filter(({ min }) => min in NATIONAL_NON_FUEL_BY_BC)
+
+export const NATIONAL_NON_FUEL_TYPES: FuelTypeColourMapping[] = FUEL_TYPE_COLOURS.filter(
+  ({ value }) => value in NATIONAL_NON_FUEL_BY_BC
+).map(fuel => ({ ...fuel, value: NATIONAL_NON_FUEL_BY_BC[fuel.value] }))
+
 export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   fuel: { group: 'fuel', label: 'Fuel', colourBreaks: FUEL_COLOUR_BREAKS },
   temperature: { group: 'weather', label: 'Temperature', colourBreaks: TEMPERATURE_COLOUR_BREAKS },
@@ -306,3 +315,13 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
     tooltipDecimalPlaces: 1
   }
 }
+
+// Layers in the FBP group are paired with fuel data as a second source band.
+export const pairsWithFuel = (rasterType: RasterType): boolean => RASTER_CONFIG[rasterType].group === 'fbp'
+
+const RASTER_ALPHA_BAND = 2
+const PAIRED_RASTER_ALPHA_BAND = 3
+
+// OpenLayers band indices are one-based; paired layers have an extra fuel band before alpha.
+export const getAlphaBand = (rasterType?: RasterType): number =>
+  rasterType && pairsWithFuel(rasterType) ? PAIRED_RASTER_ALPHA_BAND : RASTER_ALPHA_BAND

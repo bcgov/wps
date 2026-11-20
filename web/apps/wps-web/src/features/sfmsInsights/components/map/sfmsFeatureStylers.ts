@@ -3,7 +3,15 @@ import type Geometry from 'ol/geom/Geometry'
 import type RenderFeature from 'ol/render/Feature'
 import Fill from 'ol/style/Fill'
 import Style from 'ol/style/Style'
-import { type ColourBreak, FUEL_TYPE_COLOURS, RASTER_CONFIG, type SFMSNGRasterType } from './rasterConfig'
+import {
+  type ColourBreak,
+  FUEL_TYPE_COLOURS,
+  getAlphaBand,
+  NATIONAL_NON_FUEL_TYPES,
+  pairsWithFuel,
+  RASTER_CONFIG,
+  type SFMSNGRasterType
+} from './rasterConfig'
 
 export const SNOW_FILL = 'rgba(255, 255, 255, 1)'
 export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
@@ -13,7 +21,7 @@ export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
 // Note: JavaScript treats number literals like 1, 1.0, and 1 as identical values.
 export const NODATA_THRESHOLD = 10000000000
 const RASTER_BAND = 1
-const ALPHA_BAND = 2
+const FBP_FUEL_BAND = 2
 
 // Helper function to check if a raster value is nodata
 export const isNodataValue = (value: number): boolean => {
@@ -43,13 +51,13 @@ type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
 
 // alpha is transparency: 0 is fully transparent, and any nonzero value is visible.
 // use it as a validity flag because normalize:false may expose valid alpha as 255, not 1
-const transparentWhenAlphaBandIsZero = (): ColourCases => [
-  ['==', ['band', ALPHA_BAND], 0],
+const transparentWhenAlphaBandIsZero = (alphaBand: number): ColourCases => [
+  ['==', ['band', alphaBand], 0],
   [0, 0, 0, 0]
 ]
 
 export const fuelCOGColourExpression = () => {
-  const colourCases: ColourCases = transparentWhenAlphaBandIsZero()
+  const colourCases: ColourCases = transparentWhenAlphaBandIsZero(getAlphaBand('fuel'))
 
   FUEL_TYPE_COLOURS.forEach(({ value, rgb }) => {
     const [r, g, b] = rgb
@@ -64,11 +72,19 @@ export const fuelCOGColourExpression = () => {
 
 // Generate color expression dynamically from color breaks
 export const getSFMSNGRasterColourExpression = (rasterType: SFMSNGRasterType) => {
-  const colourBreaks = RASTER_CONFIG[rasterType].colourBreaks
+  const { colourBreaks } = RASTER_CONFIG[rasterType]
+  const isFbp = pairsWithFuel(rasterType)
   const expression: Array<string | ColourCaseCondition | ColourCaseColour> = [
     'case',
-    ...transparentWhenAlphaBandIsZero()
+    ...transparentWhenAlphaBandIsZero(getAlphaBand(rasterType))
   ]
+
+  if (isFbp) {
+    NATIONAL_NON_FUEL_TYPES.forEach(({ value, rgb }) => {
+      const [r, g, b] = rgb
+      expression.push(['==', ['band', FBP_FUEL_BAND], value], [r, g, b, 1])
+    })
+  }
 
   // Handle nodata values - GeoTIFF nodata is -3.4028235e+38
   // Use threshold checks for floating-point reliability

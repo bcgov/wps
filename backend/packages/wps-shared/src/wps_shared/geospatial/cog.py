@@ -77,7 +77,18 @@ def generate_and_store_cog(
     :param resample_alg: Resampling algorithm for reprojection and overviews (default: Bilinear)
     :return: Path to output COG
     """
-    # Warp to target SRS in memory (no intermediate file)
+    warped = warp_to_memory(src_ds, target_srs, resample_alg)
+    write_cog(warped, output_path, compression, resample_alg)
+    warped = None
+    return output_path
+
+
+def warp_to_memory(
+    src_ds: gdal.Dataset,
+    target_srs: str = SpatialReferenceSystem.WEB_MERCATOR.srs,
+    resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
+) -> gdal.Dataset:
+    """Warp a GDAL dataset to the target SRS as an in-memory dataset."""
     warped = gdal.Warp(
         "",  # Empty string creates in-memory dataset
         src_ds,
@@ -88,8 +99,16 @@ def generate_and_store_cog(
 
     if warped is None:
         raise RuntimeError(f"Failed to warp raster to {target_srs}")
+    return warped
 
-    # Translate to COG format with auto-generated overviews
+
+def write_cog(
+    warped: gdal.Dataset,
+    output_path: str,
+    compression: str = "LZW",
+    overview_resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
+) -> str:
+    """Write an already-warped dataset as a COG with auto-generated overviews."""
     result = gdal.Translate(
         output_path,
         warped,
@@ -98,12 +117,9 @@ def generate_and_store_cog(
             f"COMPRESS={compression}",
             "BIGTIFF=IF_SAFER",
             "OVERVIEWS=IGNORE_EXISTING",  # Always create new overviews
-            f"OVERVIEW_RESAMPLING={OVERVIEW_RESAMPLING[resample_alg]}",
+            f"OVERVIEW_RESAMPLING={OVERVIEW_RESAMPLING[overview_resample_alg]}",
         ],
     )
-
-    # Make sure warped is cleaned up
-    warped = None
 
     if result is None:
         raise RuntimeError(f"Failed to create COG: {output_path}")

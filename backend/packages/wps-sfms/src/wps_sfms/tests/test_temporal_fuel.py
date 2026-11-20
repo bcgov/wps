@@ -42,6 +42,10 @@ def test_bc_grid_values_translate_to_national_lookup_values():
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[99] == 101  # Non-fuel
 
 
+def test_bc_non_combustible_values_come_from_national_fuel_lookup():
+    assert TemporalFuelGrid.bc_non_combustible_values() == [99, 102]
+
+
 CFFDRS_FUEL_TYPES = NATIONAL_FUEL_TYPES.by_grid_value
 
 
