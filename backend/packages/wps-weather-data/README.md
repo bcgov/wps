@@ -93,6 +93,11 @@ published.
   snapshots and garbage collects. It reaches the object store through the object_store crate,
   because Icechunk's default AWS SDK storage cannot delete on ECS.
 
+- `job.py`: run hourly per model (`python -m wps_weather_data.grids.job --model HRDPS`). It
+  writes the model's runs from the last day that `recent` lacks, the daily run (18Z) to
+  `history` as well, skips a run the datamart has not finished publishing, and drops runs older
+  than two days from `recent`. The nightly maintenance job garbage collects the grid stores.
+
 Their dependencies are the `grids` extra, which the jobs install and the API does not. See
 `docs/architecture/model-grid-storage-spike.md`.
 

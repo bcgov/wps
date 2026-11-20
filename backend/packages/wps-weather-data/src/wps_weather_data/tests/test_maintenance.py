@@ -5,8 +5,10 @@ import pytest
 from wps_shared.weather_models import ModelEnum
 
 from wps_weather_data.by_time import ByTimeTable
-from wps_weather_data.maintenance import maintain_all
+from wps_weather_data.grids.models import load_run
+from wps_weather_data.maintenance import maintain_all, maintain_grids
 from wps_weather_data.runs import RunsTable
+from wps_weather_data.tests.grid_helpers import MODEL, RUN, fake_datamart, store, stored_bytes
 
 RUN_TS = datetime(2026, 11, 12, 0, tzinfo=UTC)
 
@@ -68,13 +70,36 @@ def test_main_maintains_runs_by_time_wf1_and_every_models_staging(monkeypatch):
     monkeypatch.setattr(
         maintenance, "maintain_all", lambda tables: maintained.extend(tables) or True
     )
+    grid_stores = []
+    monkeypatch.setattr(
+        maintenance, "maintain_grids", lambda stores, now: grid_stores.extend(stores) or True
+    )
 
     with pytest.raises(SystemExit) as exit_info:
         maintenance.main()
 
     assert exit_info.value.code == 0
+    assert [(s.model.name, s.store) for s in grid_stores] == [
+        (model, store) for model in ("HRDPS", "RDPS") for store in ("recent", "history")
+    ]
     from wps_weather_data.wf1 import Wf1Table
 
     assert [type(table) for table in maintained[:3]] == [RunsTable, ByTimeTable, Wf1Table]
     staging_models = [table.model for table in maintained if isinstance(table, StagingTable)]
     assert staging_models == list(ModelEnum)
+
+
+def test_grid_stores_reclaim_deleted_runs_and_skip_missing_ones(monkeypatch, tmp_path):
+    fake_datamart(monkeypatch)
+    recent, missing = store(tmp_path, "recent"), store(tmp_path, "history")
+    for hours_ago in (12, 6, 0):
+        recent.write_run(load_run(MODEL, RUN - timedelta(hours=hours_ago), tmp_path))
+    recent.delete_runs_before(RUN)
+    size = stored_bytes(tmp_path)
+
+    # Far enough ahead that the deleted runs' snapshots and objects are past their retention.
+    assert maintain_grids([recent, missing], RUN + timedelta(days=30))
+
+    assert stored_bytes(tmp_path) < size
+    assert recent.run_times() == [RUN]
+    assert not missing.exists()

@@ -37,6 +37,7 @@ class GridModel:
     history_run_hour: int
     folder: str  # on the datamart
     grid: str  # as in the datamart's file names
+    run_hours: tuple[int, ...] = (0, 6, 12, 18)  # UTC hours the model runs at
 
     def file_url(self, run_time: datetime, hour: int, variable: Variable) -> str:
         name = (

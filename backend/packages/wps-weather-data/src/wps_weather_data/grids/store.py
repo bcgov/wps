@@ -65,11 +65,19 @@ class GridStore:
         self._storage = storage
 
     @cached_property
-    def repository(self) -> icechunk.Repository:
-        storage = self._storage or object_store_storage(
+    def storage(self) -> icechunk.Storage:
+        return self._storage or object_store_storage(
             StationWeatherAddresser().get_grid_key(self.model.name, self.store)
         )
-        return icechunk.Repository.open_or_create(storage)
+
+    @cached_property
+    def repository(self) -> icechunk.Repository:
+        """The repository, created if it does not exist yet."""
+        return icechunk.Repository.open_or_create(self.storage)
+
+    def exists(self) -> bool:
+        """Whether the repository exists, without creating it."""
+        return icechunk.Repository.exists(self.storage)
 
     def _root(self) -> zarr.Group | None:
         """The latest snapshot's root group, or None while nothing has been written."""
