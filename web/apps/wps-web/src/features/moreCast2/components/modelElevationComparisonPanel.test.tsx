@@ -14,9 +14,41 @@ const station: ModelElevationRow = {
 }
 
 const model = (name: string): SVGElement => screen.getByRole('img').querySelector<SVGElement>(`[data-model="${name}"]`)!
-const modelLabels = (name: string) => Array.from(model(name).querySelectorAll('text'), node => node.textContent)
+const modelLabels = (name: string) => [
+  ...Array.from(model(name).querySelectorAll('text'), node => node.textContent),
+  name,
+  screen.getByRole('button', { name }).nextElementSibling?.textContent
+]
 
 describe('model elevation comparison panel', () => {
+  it('selects an axis label and applies only after an explicit click', async () => {
+    const onApply = vi.fn().mockReturnValue('Updated temperature forecasts for 2 days.')
+    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={onApply} />)
+    const apply = screen.getByRole('button', { name: 'Apply to temperature forecasts' })
+    expect(apply).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: 'Adjustment (°C)' })).toHaveAttribute('readonly')
+    expect(screen.getByRole('textbox', { name: 'Adjustment (°C)' })).toHaveValue('Not set')
+    const label = screen.getByRole('button', { name: 'HRDPS' })
+    label.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(label).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByRole('button', { name: '9.8 °C/km' }))
+    await userEvent.hover(screen.getByRole('button', { name: '9.8 °C/km' }))
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Dry adiabatic')
+    expect(onApply).not.toHaveBeenCalled()
+    expect(screen.getByText('Temperature adjustment')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Adjustment (°C)' })).toHaveValue('-0.5')
+    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
+    await userEvent.clear(rate)
+    expect(screen.getByRole('textbox', { name: 'Adjustment (°C)' })).toHaveValue('Not set')
+    await userEvent.type(rate, '5')
+    expect(screen.getByRole('textbox', { name: 'Adjustment (°C)' })).toHaveValue('-0.2')
+    await userEvent.click(screen.getByRole('button', { name: '9.8 °C/km' }))
+    await userEvent.click(apply)
+    expect(onApply).toHaveBeenCalledWith('HRDPS', 9.8)
+    expect(screen.getByRole('status')).toHaveTextContent('2 days')
+  })
+
   it('shows raw models in grid order with elevations and signed differences', () => {
     render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} />)
     expect(screen.getByRole('region', { name: 'Model elevations for Alpha station' })).toBeInTheDocument()

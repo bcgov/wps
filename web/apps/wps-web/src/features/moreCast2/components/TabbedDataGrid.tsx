@@ -40,11 +40,12 @@ import { selectSelectedStations } from 'features/moreCast2/slices/selectedStatio
 import { fillStationGrassCuringForward, simulateFireWeatherIndices } from 'features/moreCast2/util'
 import { cloneDeep, groupBy, isEqual, isNull, isUndefined } from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AppDispatch } from '@/app/store'
 import MorecastAboutDataContent from '@/features/moreCast2/components/MorecastAboutDataContent'
 import { setRequiredInputEmpty } from '@/features/moreCast2/slices/validInputSlice'
+import { adjustStationTemperatures } from '../temperatureAdjustment'
 
 export interface ColumnClickHandlerProps {
   colDef: GridColDef | null
@@ -151,7 +152,12 @@ const SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY = 'showHideColumnsModel'
 
 const storedDraftForecast = new MorecastDraftForecast(localStorage)
 
+export interface ElevationAdjustmentHandle {
+  applyElevationAdjustment: (stationCode: number, model: string, rate: number) => string
+}
+
 interface TabbedDataGridProps {
+  ref?: React.Ref<ElevationAdjustmentHandle>
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
   fetchWeatherIndeterminates: () => void
@@ -162,6 +168,7 @@ interface TabbedDataGridProps {
 export type handleShowHideChangeType = (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
 
 const TabbedDataGrid = ({
+  ref,
   fromTo,
   setFromTo,
   fetchWeatherIndeterminates,
@@ -231,6 +238,24 @@ const TabbedDataGrid = ({
       setAllRows(newRows)
     },
     [allRows]
+  )
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      applyElevationAdjustment: (stationCode, model, rate) => {
+        const elevations = modelElevationData.stationElevations.get(stationCode)
+        const result = adjustStationTemperatures(visibleRows, stationCode, model, rate, elevations)
+        if (result.rows.length) {
+          // include observations and subsequent days so indices keep their starting values
+          const changed = new Map(result.rows.map(row => [row.id, row]))
+          const stationRows = visibleRows.filter(row => row.stationCode === stationCode)
+          updateColumnHelper(cloneDeep(stationRows.map(row => changed.get(row.id) ?? row)))
+        }
+        return result.message
+      }
+    }),
+    [visibleRows, modelElevationData, updateColumnHelper]
   )
 
   // Persistence forecasting. Get the most recent actual and persist it through the rest of the

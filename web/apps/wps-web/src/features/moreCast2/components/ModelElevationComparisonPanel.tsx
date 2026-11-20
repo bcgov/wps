@@ -1,7 +1,8 @@
 import CloseIcon from '@mui/icons-material/Close'
-import { Box, IconButton, Typography } from '@mui/material'
+import { Box, Button, Divider, IconButton, TextField, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
+import { useState } from 'react'
 import { formatElevation, type ModelElevationRow } from '../modelElevation'
 import { ORDERED_COLUMN_HEADERS } from './ColumnDefBuilder'
 
@@ -9,6 +10,7 @@ type StationComparison = Pick<ModelElevationRow, 'stationName' | 'stationElevati
 
 interface ModelElevationComparisonPanelProps {
   station: StationComparison | null
+  onApply?: (model: string, rate: number) => string
   onClose: () => void
 }
 
@@ -19,7 +21,15 @@ const differenceFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigi
 const tickFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0 })
 const plot = { left: 48, right: 392, top: 36, bottom: 176 }
 
-const ElevationChart = ({ station }: { station: StationComparison }) => {
+const ElevationChart = ({
+  station,
+  selected,
+  onSelect
+}: {
+  station: StationComparison
+  selected: string
+  onSelect: (model: string) => void
+}) => {
   const theme = useTheme()
   const stationElevation =
     typeof station.stationElevation === 'number' && Number.isFinite(station.stationElevation)
@@ -50,7 +60,7 @@ const ElevationChart = ({ station }: { station: StationComparison }) => {
       <Box sx={{ mt: 1 }}>
         <Box
           component="svg"
-          viewBox="0 0 400 250"
+          viewBox="0 0 400 196"
           role="img"
           aria-labelledby="model-elevation-chart-title"
           aria-describedby="model-elevation-chart-description"
@@ -95,26 +105,44 @@ const ElevationChart = ({ station }: { station: StationComparison }) => {
               <g key={point.model} data-model={point.model} textAnchor="middle">
                 {point.elevation !== null && (
                   <>
-                    <circle cx={x} cy={y(point.elevation)} r={5} fill={theme.palette.primary.main} />
+                    <circle
+                      cx={x}
+                      cy={y(point.elevation)}
+                      r={selected === point.model ? 8 : 5}
+                      fill={theme.palette.primary.main}
+                    />
                     <text x={x} y={y(point.elevation) - 10} fill={theme.palette.text.primary}>
                       {formatElevation(point.elevation)}
                     </text>
                   </>
                 )}
-                <text x={x} y={207} fill={theme.palette.text.primary} fontWeight={600}>
-                  {point.model}
-                </text>
-                <text x={x} y={228} fill={theme.palette.text.secondary}>
-                  {point.elevation === null
-                    ? 'N/A'
-                    : point.difference === null
-                      ? ''
-                      : `${differenceFormatter.format(point.difference)} m`}
-                </text>
               </g>
             )
           })}
         </Box>
+      </Box>
+      <Box sx={{ display: 'grid', gridTemplateColumns: `repeat(${models.length}, 1fr)`, ml: '12%', mr: '2%' }}>
+        {points.map(point => (
+          <Box key={point.model} sx={{ textAlign: 'center' }}>
+            <Button
+              size="small"
+              sx={{ minWidth: 0, px: 0, fontSize: 11 }}
+              disabled={point.elevation === null}
+              aria-pressed={selected === point.model}
+              variant={selected === point.model ? 'contained' : 'text'}
+              onClick={() => onSelect(point.model)}
+            >
+              {point.model}
+            </Button>
+            <Typography variant="caption" component="div">
+              {point.elevation === null
+                ? 'N/A'
+                : point.difference === null
+                  ? ''
+                  : `${differenceFormatter.format(point.difference)} m`}
+            </Typography>
+          </Box>
+        ))}
       </Box>
       {stationElevation === null && (
         <Typography variant="caption" color="text.secondary">
@@ -125,53 +153,135 @@ const ElevationChart = ({ station }: { station: StationComparison }) => {
   )
 }
 
-const ModelElevationComparisonPanel = ({ station, onClose }: ModelElevationComparisonPanelProps) =>
-  station && (
-    <Box
-      component="section"
-      aria-labelledby="model-elevation-comparison-title"
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        flexShrink: 0,
-        minHeight: 0,
-        maxHeight: '50%',
-        m: 1,
-        border: 1,
-        borderRadius: 1,
-        borderColor: 'divider',
-        bgcolor: 'background.paper'
-      }}
-    >
+const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelElevationComparisonPanelProps) => {
+  const [selected, setSelected] = useState('')
+  const [rate, setRate] = useState('')
+  const [message, setMessage] = useState('')
+  const modelElevation = station?.modelElevations[selected as keyof typeof station.modelElevations]
+  const valid =
+    selected !== '' &&
+    rate.trim() !== '' &&
+    Number.isFinite(Number(rate)) &&
+    typeof modelElevation === 'number' &&
+    Number.isFinite(modelElevation) &&
+    typeof station?.stationElevation === 'number' &&
+    Number.isFinite(station.stationElevation)
+  const adjustment = valid ? (Number(rate) * (modelElevation! - station!.stationElevation!)) / 1000 : null
+  return (
+    station && (
       <Box
+        component="section"
+        aria-labelledby="model-elevation-comparison-title"
         sx={{
           display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          p: 1,
+          flexDirection: 'column',
           flexShrink: 0,
-          bgcolor: 'grey.100',
-          borderBottom: 1,
-          borderColor: 'divider'
+          minHeight: 0,
+          position: 'absolute',
+          inset: 0,
+          border: 1,
+          borderColor: 'divider',
+          bgcolor: 'background.paper'
         }}
       >
-        <Typography id="model-elevation-comparison-title" variant="subtitle2" sx={{ flex: 1 }}>
-          Model elevations for {station.stationName}
-        </Typography>
-        <IconButton size="small" aria-label="Close elevation comparison" onClick={onClose}>
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
-      <Box sx={{ p: 1, overflowY: 'auto', minHeight: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {station.stationElevation !== null && Number.isFinite(station.stationElevation) && (
-            <Box component="span" sx={{ width: 24, borderBottom: '2px dashed', flexShrink: 0 }} />
-          )}
-          <Typography variant="body2">Station elevation: {formatElevation(station.stationElevation)}</Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            p: 1,
+            flexShrink: 0,
+            bgcolor: 'grey.100',
+            borderBottom: 1,
+            borderColor: 'divider'
+          }}
+        >
+          <Typography
+            id="model-elevation-comparison-title"
+            variant="subtitle2"
+            sx={{ flex: 1, minWidth: 0, fontWeight: 400, overflowWrap: 'anywhere' }}
+          >
+            Model elevations for{' '}
+            <Box component="span" sx={{ fontWeight: 700 }}>
+              {station.stationName}
+            </Box>
+          </Typography>
+          <IconButton size="small" aria-label="Close elevation comparison" onClick={onClose}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
         </Box>
-        <ElevationChart station={station} />
+        <Box sx={{ p: 1, flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {station.stationElevation !== null && Number.isFinite(station.stationElevation) && (
+              <Box component="span" sx={{ width: 24, borderBottom: '2px dashed', flexShrink: 0 }} />
+            )}
+            <Typography variant="body2">Station elevation: {formatElevation(station.stationElevation)}</Typography>
+          </Box>
+          <ElevationChart
+            station={station}
+            selected={selected}
+            onSelect={model => {
+              setSelected(model)
+              setMessage('')
+            }}
+          />
+          {onApply && (
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Divider sx={{ mb: 1 }} />
+              <Typography variant="subtitle2">Temperature adjustment</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                <TextField
+                  sx={{ width: 150, flexShrink: 0 }}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  size="small"
+                  label="Lapse rate (°C/km)"
+                  type="number"
+                  value={rate}
+                  onChange={event => {
+                    setRate(event.target.value)
+                    setMessage('')
+                  }}
+                />
+                <TextField
+                  sx={{ width: 150, flexShrink: 0 }}
+                  size="small"
+                  label="Adjustment (°C)"
+                  value={adjustment === null ? 'Not set' : adjustment.toFixed(1)}
+                  slotProps={{ inputLabel: { shrink: true }, input: { readOnly: true } }}
+                />
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
+                <Typography variant="subtitle2">Preset lapse rates</Typography>
+                <Tooltip title="Dry adiabatic" describeChild>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      setRate('9.8')
+                      setMessage('')
+                    }}
+                  >
+                    9.8 °C/km
+                  </Button>
+                </Tooltip>
+              </Box>
+              <Typography variant="caption">
+                Replaces this station's temperature forecasts in the selected date range.
+              </Typography>
+              <Button variant="contained" disabled={!valid} onClick={() => setMessage(onApply(selected, Number(rate)))}>
+                Apply to temperature forecasts
+              </Button>
+              {message && (
+                <Typography role="status" variant="body2">
+                  {message}
+                </Typography>
+              )}
+            </Box>
+          )}
+        </Box>
       </Box>
-    </Box>
+    )
   )
+}
 
 export default ModelElevationComparisonPanel
