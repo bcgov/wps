@@ -17,7 +17,7 @@ dependencies = [
     "herbie-data>=2026.10.0,<2027",
     "gdal==3.13.3",
     "wps-wf1",
-    "wps-weather-data",
+    "wps-weather-data[grids]",
     "aiofiles>=25.0.0,<26",
     "geoalchemy2>=0,<1",
     "shapely>=2.0.5,<3",
