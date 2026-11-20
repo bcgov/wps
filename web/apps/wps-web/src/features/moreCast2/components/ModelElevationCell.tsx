@@ -1,4 +1,5 @@
-import { Box, Typography } from '@mui/material'
+import TerrainIcon from '@mui/icons-material/Terrain'
+import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import { formatElevation, type ModelElevationRow } from '../modelElevation'
 import StationInfoTooltip from './StationInfoTooltip'
 
@@ -7,9 +8,10 @@ interface ModelElevationCellProps {
   field: string
   value: string
   hasFocus?: boolean
+  onCompareElevations?: (stationCode: number) => void
 }
 
-const ModelElevationCell = ({ row, field, value, hasFocus = false }: ModelElevationCellProps) => {
+const ModelElevationCell = ({ row, field, value, hasFocus = false, onCompareElevations }: ModelElevationCellProps) => {
   if (field === 'stationName') {
     return (
       <Box
@@ -34,9 +36,40 @@ const ModelElevationCell = ({ row, field, value, hasFocus = false }: ModelElevat
             tabIndex={hasFocus ? 0 : -1}
           />
         </Box>
-        <Typography component="span" variant="caption" sx={{ lineHeight: '16px' }}>
-          Elevation: {formatElevation(row.stationElevation)}
-        </Typography>
+        <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography component="span" variant="caption" sx={{ lineHeight: '16px' }}>
+            Elevation: {formatElevation(row.stationElevation)}
+          </Typography>
+          {onCompareElevations && (
+            <Tooltip
+              title="Compare model elevations"
+              arrow
+              slotProps={{
+                popper: {
+                  onClick: event => event.stopPropagation(),
+                  onDoubleClick: event => event.stopPropagation()
+                }
+              }}
+            >
+              <IconButton
+                size="small"
+                aria-label={`Compare model elevations for ${row.stationName}`}
+                tabIndex={hasFocus ? 0 : -1}
+                sx={{ p: 0, width: 16, height: 16 }}
+                onClick={event => {
+                  event.stopPropagation()
+                  onCompareElevations(row.stationCode)
+                }}
+                onDoubleClick={event => event.stopPropagation()}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' || event.key === ' ') event.stopPropagation()
+                }}
+              >
+                <TerrainIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
     )
   }
