@@ -17,7 +17,6 @@ dependencies = [
     "cryptography>=50,<51",
     "sqlalchemy>=2,<3",
     "psycopg2>=2,<3",
-    "postgres>=4,<5",
     "python-decouple>=3,<4",
     "uvicorn>=0,<1",
     "alembic>=1,<2",
