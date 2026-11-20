@@ -16,6 +16,7 @@ from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
 from wps_sfms.interpolation.common import SFMS_NO_DATA
+from wps_sfms.processors.temporal_fuel import TemporalFuelGrid
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import FoliarMoistureContentInputs
@@ -208,7 +209,7 @@ class FoliarMoistureContentProcessor:
             with self._open_datasets(input_dataset_context, inputs) as datasets:
                 self._validate_grids(datasets)
                 fuel, _ = datasets.fuel.replace_nodata_with(np.nan)
-                non_fuel_mask = np.isin(fuel, [99, 102])  # BC base-grid Non-fuel and water
+                non_fuel_mask = np.isin(fuel, TemporalFuelGrid.bc_non_combustible_values())
 
                 with open_bc_mask_dataset() as mask:
                     for target_date, output_key in outputs_to_process.items():
