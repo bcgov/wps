@@ -64,12 +64,13 @@ async def publish_dataset(
             body = await f.read()
         await s3_client.put_object(key=s3_output_key, body=body)
 
-        if cog_key is not None and cog_non_fuel_mask is not None:
-            generate_non_fuel_cog(dataset, cog_key, cog_non_fuel_mask, cog_resample_alg)
-        elif cog_key is not None:
-            generate_web_optimized_cog(
-                input_path=tmp_path, output_path=cog_key, resample_alg=cog_resample_alg
-            )
+        if cog_key is not None:
+            if cog_non_fuel_mask is not None:
+                generate_non_fuel_cog(dataset, cog_key, cog_non_fuel_mask, cog_resample_alg)
+            else:
+                generate_web_optimized_cog(
+                    input_path=tmp_path, output_path=cog_key, resample_alg=cog_resample_alg
+                )
 
     return PublishedRaster(
         output_key=s3_output_key,
