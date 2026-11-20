@@ -35,8 +35,11 @@ The dependencies above are not project dependencies, so run it with uv, from ./b
 That writes to local disk. To write to our object store, set OBJECT_STORE_SERVER,
 OBJECT_STORE_USER_ID, OBJECT_STORE_SECRET and OBJECT_STORE_BUCKET as the deployments do and add
 `--s3-prefix dev/zarr-spike` (any prefix outside the station weather tables). Stores go under
-`{prefix}/{model}/{variant}`. Add `--no-conditional-writes` if the store rejects Icechunk's
-conditional writes. Delete the prefix afterwards. Read times are only meaningful against the
+`{prefix}/{model}/{variant}`. Add `--object-store` to reach S3 through the object_store crate
+rather than the AWS SDK: on ECS, only object_store's bulk deletes (with Content-MD5) work, so
+Icechunk's garbage collection needs it (`--recent-cycle` tries that cycle). Add
+`--no-conditional-writes` if the store rejects Icechunk's conditional writes. Delete the prefix
+afterwards. Read times are only meaningful against the
 object store.
 
 Design: docs/architecture/model-grid-storage-spike.md
@@ -332,6 +335,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--s3-prefix", help="write to the object store under this prefix")
     parser.add_argument("--no-conditional-writes", action="store_true")
+    parser.add_argument(
+        "--object-store",
+        action="store_true",
+        help="reach S3 through the object_store crate instead of the AWS SDK. object_store sends "
+        "Content-MD5 on bulk deletes, which ECS requires",
+    )
     parser.add_argument("--points", type=int, default=20, help="point series to time")
     parser.add_argument(
         "--recent-cycle",
@@ -493,6 +502,23 @@ def storage(args: argparse.Namespace, variant: Variant | str) -> icechunk.Storag
     # the client is built.
     os.environ.setdefault("AWS_RESPONSE_CHECKSUM_VALIDATION", "when_required")
     os.environ.setdefault("AWS_REQUEST_CHECKSUM_CALCULATION", "when_required")
+    if args.object_store:
+        # The AWS SDK sends CRC32 on DeleteObjects, which ECS rejects ("Missing required header
+        # for this request: Content-MD5"), so Icechunk's garbage collection deletes nothing.
+        # object_store always sends Content-MD5 there.
+        return icechunk.Storage.new_s3_object_store(
+            icechunk.S3Options(
+                region="us-east-1",
+                endpoint_url=f"https://{os.environ['OBJECT_STORE_SERVER']}",
+                force_path_style=True,
+            ),
+            os.environ["OBJECT_STORE_BUCKET"],
+            f"{args.s3_prefix}/{args.model}/{name}",
+            icechunk.s3_static_credentials(
+                access_key_id=os.environ["OBJECT_STORE_USER_ID"],
+                secret_access_key=os.environ["OBJECT_STORE_SECRET"],
+            ),
+        )
     return icechunk.s3_storage(
         bucket=os.environ["OBJECT_STORE_BUCKET"],
         prefix=f"{args.s3_prefix}/{args.model}/{name}",
