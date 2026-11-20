@@ -77,11 +77,14 @@ export class GridComponentRenderer {
       const index = headerName.indexOf('_BIAS')
       const prefix = headerName.slice(0, index)
       return (
-        <div data-testid={`${params.colDef.field}-column-header`}>
-          <Typography data-testid={`${params.colDef.field}-column-header`} style={{ fontSize: '14px' }}>
+        <div data-testid={`${params.colDef.field}-column-header`} style={{ textAlign: 'center' }}>
+          <Typography
+            data-testid={`${params.colDef.field}-column-header`}
+            style={{ fontSize: '14px', lineHeight: '20px' }}
+          >
             {prefix}
           </Typography>
-          <Typography style={{ fontSize: '14px' }}>bias</Typography>
+          <Typography style={{ fontSize: '14px', lineHeight: '20px' }}>bias</Typography>
         </div>
       )
     }

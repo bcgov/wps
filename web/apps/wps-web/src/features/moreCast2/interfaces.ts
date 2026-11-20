@@ -124,7 +124,19 @@ export interface MoreCast2Row extends BaseRow {
   windDirectionRDPS_BIAS: number
   windSpeedRDPS_BIAS: number
 
+  precipECMWF: number
+  rhECMWF: number
+  tempECMWF: number
+  windDirectionECMWF: number
+  windSpeedECMWF: number
+  precipECMWF_BIAS: number
+  rhECMWF_BIAS: number
+  tempECMWF_BIAS: number
+  windDirectionECMWF_BIAS: number
+  windSpeedECMWF_BIAS: number
+
   // Prediction run timestamps for each weather model
+  predictionRunTimestampECMWF?: string | null
   predictionRunTimestampGDPS?: string | null
   predictionRunTimestampGFS?: string | null
   predictionRunTimestampHRDPS?: string | null

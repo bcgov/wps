@@ -79,6 +79,7 @@ objects:
         contextDir: ./
       strategy:
         dockerStrategy:
+          forcePull: true
           env:
             - name: "SENTRY_AUTH_TOKEN"
               value: ${SENTRY_AUTH_TOKEN}
