@@ -1,0 +1,107 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Scheduled task to keep a weather model's grids over BC in Icechunk in object storage: its new runs in the recent store, and its daily run in the history store."
+    tags: "cronjob,model-grids"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: JOB_NAME
+    required: true
+  - name: MODEL
+    description: The model, as wps_weather_data.grids.models names it (HRDPS, RDPS)
+    required: true
+  - name: IMAGE_REGISTRY
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
+  - name: SCHEDULE
+    required: true
+  - name: APP_LABEL
+    required: true
+  - name: MEMORY_REQUEST
+    description: Memory request
+    value: 1Gi
+  - name: MEMORY_LIMIT
+    description: Memory limit. A whole HRDPS run over BC is held at once, about 1.2 GiB at peak.
+    value: 2Gi
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1
+    metadata:
+      name: ${JOB_NAME}
+    spec:
+      schedule: ${SCHEDULE}
+      # Two runs at once would race to commit the same runs to the same store.
+      concurrencyPolicy: "Forbid"
+      failedJobsHistoryLimit: 5
+      successfulJobsHistoryLimit: 3
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
+        spec:
+          backoffLimit: 2
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
+                  imagePullPolicy: "Always"
+                  command:
+                    [
+                      "uv",
+                      "run",
+                      "--no-sync",
+                      "python",
+                      "-m",
+                      "wps_weather_data.grids.job",
+                      "--model",
+                      "${MODEL}",
+                    ]
+                  env:
+                    - name: UV_NO_CACHE
+                      value: "1"
+                    - name: SUFFIX
+                      value: ${SUFFIX}
+                    - name: OBJECT_STORE_SERVER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: OBJECT_STORE_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: OBJECT_STORE_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: OBJECT_STORE_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
+                  resources:
+                    limits:
+                      memory: ${MEMORY_LIMIT}
+                    requests:
+                      cpu: "250m"
+                      memory: ${MEMORY_REQUEST}
+              restartPolicy: OnFailure
