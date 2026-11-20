@@ -1,5 +1,12 @@
 import type WebGLTileLayer from 'ol/layer/WebGLTile'
-import { FUEL_TYPE_COLOURS, NATIONAL_NON_FUEL_TYPES, RASTER_CONFIG, type RasterType } from './rasterConfig'
+import {
+  FUEL_TYPE_COLOURS,
+  getAlphaBand,
+  NATIONAL_NON_FUEL_TYPES,
+  pairsWithFuel,
+  RASTER_CONFIG,
+  type RasterType
+} from './rasterConfig'
 import { isNodataValue } from './sfmsFeatureStylers'
 
 export type RasterData = Float32Array | Uint8Array | null
@@ -23,15 +30,15 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
   }
 
   const rawValue = data[0]
-  const alphaValue = data.at(-1)
+  const alphaBand = getAlphaBand(rasterType)
 
   // openlayers appends an alpha band (always last) when GeoTIFF nodata exists; alpha 0 means
   // the pixel is transparent even when the raster band itself reads back as 0.
-  if (data.length > 1 && alphaValue === 0) {
+  if (data.length >= alphaBand && data[alphaBand - 1] === 0) {
     return { value: null, label: defaultLabel }
   }
 
-  if (rasterType && RASTER_CONFIG[rasterType].group === 'fbp') {
+  if (rasterType && pairsWithFuel(rasterType)) {
     const nonFuel = NATIONAL_NON_FUEL_TYPES.find(({ value }) => value === data[1])
     if (nonFuel) {
       return { value: nonFuel.fuelCode, label: '' }

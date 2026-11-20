@@ -10,7 +10,7 @@ import GeoTIFF from 'ol/source/GeoTIFF'
 import { PMTilesVectorSource } from 'ol-pmtiles'
 import { FetchSource } from 'pmtiles'
 import {
-  RASTER_CONFIG,
+  pairsWithFuel,
   type RasterType,
   type SFMSNGRasterType
 } from '@/features/sfmsInsights/components/map/rasterConfig'
@@ -23,9 +23,6 @@ import {
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
-
-// Layers rendered with the run's fuel COG as a second band, to paint and label Non-fuel/Water.
-export const pairsWithFuel = (rasterType: RasterType): boolean => RASTER_CONFIG[rasterType].group === 'fbp'
 
 export const getSFMSNGRasterPath = (date: DateTime, rasterType: RasterType, runType: RunType = RunType.ACTUAL) => {
   const dateString = date.toISODate() ?? ''

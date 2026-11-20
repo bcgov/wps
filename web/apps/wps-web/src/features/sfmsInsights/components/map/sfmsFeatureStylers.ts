@@ -6,7 +6,9 @@ import Style from 'ol/style/Style'
 import {
   type ColourBreak,
   FUEL_TYPE_COLOURS,
+  getAlphaBand,
   NATIONAL_NON_FUEL_TYPES,
+  pairsWithFuel,
   RASTER_CONFIG,
   type SFMSNGRasterType
 } from './rasterConfig'
@@ -19,10 +21,7 @@ export const EMPTY_FILL = 'rgba(0, 0, 0, 0)'
 // Note: JavaScript treats number literals like 1, 1.0, and 1 as identical values.
 export const NODATA_THRESHOLD = 10000000000
 const RASTER_BAND = 1
-const ALPHA_BAND = 2
-// fbp layers combine [value, fuel] sources; OpenLayers appends a single alpha band after them.
 const FBP_FUEL_BAND = 2
-const FBP_ALPHA_BAND = 3
 
 // Helper function to check if a raster value is nodata
 export const isNodataValue = (value: number): boolean => {
@@ -52,13 +51,13 @@ type ColourCases = Array<ColourCaseCondition | ColourCaseColour>
 
 // alpha is transparency: 0 is fully transparent, and any nonzero value is visible.
 // use it as a validity flag because normalize:false may expose valid alpha as 255, not 1
-const transparentWhenAlphaBandIsZero = (alphaBand = ALPHA_BAND): ColourCases => [
+const transparentWhenAlphaBandIsZero = (alphaBand: number): ColourCases => [
   ['==', ['band', alphaBand], 0],
   [0, 0, 0, 0]
 ]
 
 export const fuelCOGColourExpression = () => {
-  const colourCases: ColourCases = transparentWhenAlphaBandIsZero()
+  const colourCases: ColourCases = transparentWhenAlphaBandIsZero(getAlphaBand('fuel'))
 
   FUEL_TYPE_COLOURS.forEach(({ value, rgb }) => {
     const [r, g, b] = rgb
@@ -73,11 +72,11 @@ export const fuelCOGColourExpression = () => {
 
 // Generate color expression dynamically from color breaks
 export const getSFMSNGRasterColourExpression = (rasterType: SFMSNGRasterType) => {
-  const { colourBreaks, group } = RASTER_CONFIG[rasterType]
-  const isFbp = group === 'fbp'
+  const { colourBreaks } = RASTER_CONFIG[rasterType]
+  const isFbp = pairsWithFuel(rasterType)
   const expression: Array<string | ColourCaseCondition | ColourCaseColour> = [
     'case',
-    ...transparentWhenAlphaBandIsZero(isFbp ? FBP_ALPHA_BAND : ALPHA_BAND)
+    ...transparentWhenAlphaBandIsZero(getAlphaBand(rasterType))
   ]
 
   if (isFbp) {
