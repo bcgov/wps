@@ -304,7 +304,9 @@ describe('MoreCast publishing', () => {
     expect(refreshed.find(row => row.stationCode === 1)?.tempActual).toBe(15)
     expect(refreshed.find(row => row.stationCode === 1)?.tempForecast?.value).toBe(20)
     expect(refreshed.find(row => row.stationCode === 2)?.tempForecast?.value).toBe(42)
-    expect(screen.getByText(/^Draft saved /)).toBeVisible()
+    const draftStatus = screen.getByTestId('morecast-draft-status')
+    expect(draftStatus).toBeVisible()
+    expect(screen.getByRole('toolbar', { name: 'Morecast controls' })).not.toContainElement(draftStatus)
 
     await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Publish to WF1' })).toBeEnabled())
@@ -313,7 +315,7 @@ describe('MoreCast publishing', () => {
     const submitted = vi.mocked(submitMoreCastForecastRecords).mock.calls[0][0]
     expect(submitted.map(row => row.stationCode)).toEqual([2])
     expect(localStorage.getItem(draft.STORAGE_KEY)).toBeNull()
-    expect(screen.queryByText(/^Draft saved /)).not.toBeInTheDocument()
+    expect(screen.queryByTestId('morecast-draft-status')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Reset' })).toBeDisabled()
   })
 })
