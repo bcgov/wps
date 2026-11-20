@@ -1,6 +1,6 @@
 import { LinearProgress } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { DataGridPro, type GridCellParams, type GridEventListener } from '@mui/x-data-grid-pro'
+import { DataGridPro, type DataGridProProps, type GridCellParams, type GridEventListener } from '@mui/x-data-grid-pro'
 import { ModelChoice } from '@wps/api/moreCast2API'
 import { MORECAST_WEATHER_PARAMS, type MoreCastParams, theme } from '@wps/ui/theme'
 import { CSP_NONCE } from '@wps/utils/env'
@@ -9,7 +9,7 @@ import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/
 import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
 import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import type { MoreCast2Row } from 'features/moreCast2/interfaces'
-import type React from 'react'
+import React, { useMemo } from 'react'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -57,6 +57,20 @@ interface ForecastSummaryDataGridProps {
 
 const LoadingOverlay = () => <LinearProgress />
 
+// grid configuration
+const slots = { loadingOverlay: LoadingOverlay }
+const columnGroupingModel = getSummaryColumnGroupModel()
+const initialState: DataGridProProps<MoreCast2Row>['initialState'] = {
+  sorting: { sortModel: [{ field: 'stationName', sort: 'asc' }] },
+  pinnedColumns: { left: PINNED_COLUMNS }
+}
+const getCellClassName = ({ field }: GridCellParams) =>
+  field.endsWith('Forecast') || field.endsWith('Actual') ? 'forecastCell' : ''
+const isCellEditable = (params: GridCellParams) => {
+  // actual fields and calculated indices are not editable
+  return params.row[params.field] !== ModelChoice.ACTUAL && !params.field.includes('Calc')
+}
+
 const ForecastSummaryDataGrid = ({
   loading,
   rows,
@@ -64,37 +78,28 @@ const ForecastSummaryDataGrid = ({
   handleColumnHeaderClick,
   processRowUpdate
 }: ForecastSummaryDataGridProps) => {
-  const isCellEditable = (params: GridCellParams) => {
-    // Actual fields and FWI fields (containing the 'Calc' substring) are not editable.
-    return params.row[params.field] !== ModelChoice.ACTUAL && !params.field.includes('Calc')
-  }
+  // derived data
+  const columns = useMemo(() => DataGridColumns.getSummaryColumns(columnClickHandlerProps), [columnClickHandlerProps])
 
+  // render
   return (
     <Root className={classes.root} data-testid={`morecast2-data-grid`}>
       <DataGridPro
         nonce={CSP_NONCE}
-        getCellClassName={params => {
-          return params.field.endsWith('Forecast') || params.field.endsWith('Actual') ? 'forecastCell' : ''
-        }}
-        slots={{
-          loadingOverlay: LoadingOverlay
-        }}
-        initialState={{
-          sorting: {
-            sortModel: [{ field: 'stationName', sort: 'asc' }]
-          },
-          pinnedColumns: { left: PINNED_COLUMNS }
-        }}
-        columnGroupingModel={getSummaryColumnGroupModel()}
+        getCellClassName={getCellClassName}
+        slots={slots}
+        initialState={initialState}
+        columnGroupingModel={columnGroupingModel}
         onColumnHeaderClick={handleColumnHeaderClick}
         loading={loading}
-        columns={DataGridColumns.getSummaryColumns(columnClickHandlerProps)}
+        columns={columns}
         rows={rows}
         isCellEditable={isCellEditable}
         processRowUpdate={processRowUpdate}
+        hideFooter={true}
       />
     </Root>
   )
 }
 
-export default ForecastSummaryDataGrid
+export default React.memo(ForecastSummaryDataGrid)
