@@ -32,7 +32,6 @@ from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies, MultiDatasetContext
 from wps_sfms.raster_inputs import PrimaryFireBehaviourInputs
 from wps_sfms.raster_output import create_masked_output_dataset, open_bc_mask_dataset
-from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -378,14 +377,9 @@ class PrimaryFireBehaviourProcessor:
 
                 # The run's fuel grid (national codes), on the same grid as the output COGs so
                 # Insights can read both per pixel. Nearest neighbour keeps class codes intact.
-                addresser = SFMSNGRasterAddresser()
                 fuel_cog_key = generate_and_store_cog(
                     datasets.fuel.as_gdal_ds(),
-                    addresser.get_cog_key(
-                        addresser.get_fuel_classification_key(
-                            self.datetime_to_process, inputs.run_type
-                        )
-                    ),
+                    inputs.fuel_cog_key,
                     resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
                 )
                 logger.info("Stored fuel classification COG: %s", fuel_cog_key)
