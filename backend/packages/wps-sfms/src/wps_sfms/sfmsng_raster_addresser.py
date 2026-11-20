@@ -257,6 +257,9 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_to_process)
         return PrimaryFireBehaviourInputs(
             fuel_key=fuel_key,
+            fuel_cog_key=self.get_cog_key(
+                self.get_fuel_classification_key(datetime_to_process, run_type)
+            ),
             ffmc_key=ffmc_key,
             bui_key=bui_key,
             wind_speed_key=wind_speed_key,

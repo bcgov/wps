@@ -316,6 +316,9 @@ class TestPrimaryFireBehaviourInputs:
         )
 
         assert result.fuel_key == fuel_key
+        assert result.fuel_cog_key == (
+            f"{addresser.s3_prefix}/sfms_ng/{run_type.value}/2024/04/15/fuel_20240415_cog.tif"
+        )
         assert result.ffmc_key == ffmc_key
         assert result.bui_key == bui_key
         assert result.wind_speed_key == wind_speed_key

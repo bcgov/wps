@@ -81,6 +81,7 @@ def make_datasets(fuel: np.ndarray, **overrides: np.ndarray) -> PrimaryFireBehav
 def make_inputs() -> PrimaryFireBehaviourInputs:
     return PrimaryFireBehaviourInputs(
         fuel_key="/vsis3/test/fuel.tif",
+        fuel_cog_key="/vsis3/test/sfms_ng/actual/2024/07/04/fuel_20240704_cog.tif",
         ffmc_key="/vsis3/test/ffmc.tif",
         bui_key="/vsis3/test/bui.tif",
         wind_speed_key="/vsis3/test/wind_speed.tif",
