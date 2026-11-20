@@ -1,9 +1,4 @@
-# Defaults to the official Canonical image on Amazon ECR Public (avoids Docker Hub pull limits,
-# no login), so the image builds off-cluster without an Artifactory login.
-# The OpenShift BuildConfig (openshift/build.yaml) passes the Artifactory mirror instead:
-# DOCKER_IMAGE=artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
-ARG DOCKER_IMAGE=public.ecr.aws/ubuntu/ubuntu:24.04
-FROM ${DOCKER_IMAGE}
+FROM artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
 
 # Omit checksum if not required
 ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
