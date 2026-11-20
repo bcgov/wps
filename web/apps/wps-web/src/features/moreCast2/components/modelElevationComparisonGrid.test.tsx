@@ -2,16 +2,33 @@ import type { DataGridProProps } from '@mui/x-data-grid-pro'
 import { configureStore } from '@reduxjs/toolkit'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { ModelChoice } from '@wps/api/moreCast2API'
+import { fetchWeatherIndeterminates, WeatherDeterminate, type WeatherIndeterminate } from '@wps/api/moreCast2API'
+import {
+  getStationGroups,
+  getStationGroupsMembers,
+  type StationGroup,
+  type StationGroupMember
+} from '@wps/api/stationAPI'
 import rootReducer from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
 import { vi } from 'vitest'
-import type { ModelElevationData } from '../modelElevation'
-import { createEmptyMoreCast2Row } from '../slices/dataSlice'
+import { MorecastDraftForecast } from '../forecastDraft'
+import * as modelElevation from '../modelElevation'
+import MoreCast2Page from '../pages/MoreCast2Page'
+import { getWeatherIndeterminatesSuccess } from '../slices/dataSlice'
+import { rowIDHasher } from '../util'
 import { DataGridColumns } from './DataGridColumns'
-import ForecastDataGrid, { type ForecastDataGridProps } from './ForecastDataGrid'
 
+vi.mock('@wps/api/stationAPI', async importOriginal => ({
+  ...(await importOriginal<typeof import('@wps/api/stationAPI')>()),
+  getStationGroups: vi.fn(),
+  getStationGroupsMembers: vi.fn()
+}))
+vi.mock('@wps/api/moreCast2API', async importOriginal => ({
+  ...(await importOriginal<typeof import('@wps/api/moreCast2API')>()),
+  fetchWeatherIndeterminates: vi.fn()
+}))
 vi.mock('@mui/x-data-grid-pro', async importOriginal => {
   const actual = await importOriginal<typeof import('@mui/x-data-grid-pro')>()
   return {
@@ -20,108 +37,172 @@ vi.mock('@mui/x-data-grid-pro', async importOriginal => {
   }
 })
 
-const renderGrid = () => {
-  const store = configureStore({ reducer: rootReducer })
-  const columnClickHandlerProps = {
-    colDef: null,
-    contextMenu: null,
-    updateColumnWithModel: vi.fn(),
-    handleClose: vi.fn()
-  }
-  const data: ModelElevationData = {
-    latestRuns: { HRDPS: DateTime.utc(2030, 7, 4) },
-    stationElevations: new Map([
-      [1, { stationElevation: 900, modelElevations: { HRDPS: 850.4, ECMWF: 1100 } }],
-      [2, { stationElevation: 1200, modelElevations: { HRDPS: 1000 } }]
-    ])
-  }
-  const props: ForecastDataGridProps = {
-    loading: false,
-    columnClickHandlerProps,
-    columnVisibilityModel: DataGridColumns.initGridColumnVisibilityModel(columnClickHandlerProps),
-    setColumnVisibilityModel: vi.fn(),
-    onCellDoubleClickHandler: vi.fn(),
-    handleColumnHeaderClick: vi.fn(),
-    columnGroupingModel: [],
-    allMoreCast2Rows: ['Alpha station', 'Beta station'].map((name, index) => ({
-      ...createEmptyMoreCast2Row(`station-${index + 1}`, index + 1, name, DateTime.utc(2030, 7, 4, 20), 50, -120),
-      tempHRDPS: 20,
-      tempForecast: { choice: ModelChoice.MANUAL, value: 22 }
-    })),
-    collapsedStationCodes: new Set(),
-    onStationExpansionChange: vi.fn(),
-    modelElevationData: data,
-    processRowUpdate: vi.fn(row => row)
-  }
-  return {
-    props,
-    ...render(<ForecastDataGrid {...props} />, {
-      wrapper: ({ children }) => <Provider store={store}>{children}</Provider>
-    })
-  }
+const group: StationGroup = {
+  id: '1',
+  display_label: 'Comparison group',
+  group_description: null,
+  group_owner_user_id: 'forecaster',
+  group_owner_user_guid: '1'
 }
+const stations: StationGroupMember[] = ['Alpha station', 'Beta station'].map((name, index) => ({
+  id: String(index + 1),
+  station_code: index + 1,
+  display_label: name,
+  elevation: 900 + index * 300,
+  station_status: 'ACTIVE',
+  fire_centre: { id: '1', display_label: 'Centre' },
+  fire_zone: { id: '1', display_label: 'Zone', fire_centre: '1' }
+}))
+const forecastDate = DateTime.utc().plus({ days: 1 }).startOf('day').set({ hour: 20 })
+const predictions: WeatherIndeterminate[] = stations.map(station => ({
+  id: String(station.station_code),
+  station_code: station.station_code,
+  station_name: station.display_label,
+  determinate: WeatherDeterminate.HRDPS,
+  utc_timestamp: forecastDate.toISO()!,
+  prediction_run_timestamp: forecastDate.minus({ days: 1 }).startOf('day').toISO()!,
+  model_elevation: station.station_code === 1 ? 850.4 : 1000,
+  latitude: 50,
+  longitude: -120,
+  temperature: 20,
+  relative_humidity: 40,
+  precipitation: 0,
+  wind_direction: 180,
+  wind_speed: 10,
+  grass_curing: 60,
+  fine_fuel_moisture_code: null,
+  duff_moisture_code: null,
+  drought_code: null,
+  initial_spread_index: null,
+  build_up_index: null,
+  fire_weather_index: null,
+  danger_rating: null
+}))
 
-describe('station elevation comparison', () => {
-  afterEach(() => vi.restoreAllMocks())
+const renderPage = async () => {
+  vi.mocked(getStationGroups).mockResolvedValue([group])
+  vi.mocked(getStationGroupsMembers).mockResolvedValue(stations)
+  vi.mocked(fetchWeatherIndeterminates).mockResolvedValue({
+    actuals: [],
+    grassCuring: [],
+    predictions,
+    forecasts: predictions.map(row => ({ ...row, determinate: WeatherDeterminate.FORECAST, temperature: 22 }))
+  })
+  const store = configureStore({ reducer: rootReducer })
+  const result = render(
+    <Provider store={store}>
+      <MoreCast2Page />
+    </Provider>
+  )
+  await userEvent.click(await screen.findByRole('combobox'))
+  await userEvent.click(await screen.findByRole('option', { name: 'Comparison group' }))
+  await screen.findByRole('button', { name: 'Compare model elevations for Alpha station' })
+  await userEvent.click(
+    within(screen.getByTestId('morecast2-station-panel')).getByText('Beta station', { exact: true })
+  )
+  await screen.findByRole('button', { name: 'Compare model elevations for Beta station' })
+  return { store, ...result }
+}
+const compare = (name = 'Alpha station') => screen.getByRole('button', { name: `Compare model elevations for ${name}` })
+const panel = (name = 'Alpha station') => screen.getByRole('region', { name: `Model elevations for ${name}` })
+const cell = (code: number, field = 'tempForecast'): HTMLElement =>
+  document.querySelector<HTMLElement>(`[data-id="${rowIDHasher(code, forecastDate)}"] [data-field="${field}"]`)!
 
-  it('opens the selected station without changing forecasts, expansion, or columns', async () => {
-    const { props } = renderGrid()
-    const columns = vi.spyOn(DataGridColumns, 'getTabColumns')
-    const button = screen.getByRole('button', { name: 'Compare model elevations for Beta station' })
-    const header = button.closest<HTMLElement>('[role="row"]')!
-    const draft = localStorage.getItem('morecastForecastDraft')
-    expect(header).toHaveAttribute('aria-expanded', 'true')
-    await userEvent.click(button)
-    const dialog = screen.getByRole('dialog', { name: 'Model elevations for Beta station' })
-    expect(within(dialog).getByText('Station elevation: 1,200 m')).toBeInTheDocument()
-    expect(within(dialog).getByText('-200 m')).toBeInTheDocument()
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(header).toHaveAttribute('aria-expanded', 'true')
-    expect(header).not.toHaveClass('Mui-selected')
-    expect(props.processRowUpdate).not.toHaveBeenCalled()
-    expect(props.onCellDoubleClickHandler).not.toHaveBeenCalled()
-    expect(props.onStationExpansionChange).not.toHaveBeenCalled()
-    expect(localStorage.getItem('morecastForecastDraft')).toBe(draft)
-    expect(columns).not.toHaveBeenCalled()
+describe('station elevation comparison sidebar', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.clearAllMocks()
+  })
+  afterEach(() => {
+    localStorage.clear()
+    vi.restoreAllMocks()
   })
 
-  it('supports keyboard activation, the tooltip, and Escape without collapsing the station', async () => {
-    renderGrid()
-    const button = screen.getByRole('button', { name: 'Compare model elevations for Alpha station' })
-    await userEvent.hover(button)
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Compare model elevations')
+  it('opens in the sidebar without changing station expansion, drafts, columns, or requests', async () => {
+    await renderPage()
+    const columns = vi.spyOn(DataGridColumns, 'getTabColumns')
+    const header = compare().closest('[role="row"]')!
+    const requests = vi.mocked(fetchWeatherIndeterminates).mock.calls.length
+    const draft = localStorage.getItem('morecastForecastDraft')
+    await userEvent.click(compare())
+    expect(screen.getByTestId('morecast2-station-panel')).toContainElement(panel())
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(header).toHaveAttribute('aria-expanded', 'true')
+    expect(localStorage.getItem('morecastForecastDraft')).toBe(draft)
+    expect(fetchWeatherIndeterminates).toHaveBeenCalledTimes(requests)
+    expect(columns).not.toHaveBeenCalled()
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Close elevation comparison' }))
+    expect(screen.queryByRole('region', { name: 'Model elevations for Alpha station' })).not.toBeInTheDocument()
+  })
+
+  it('stays on the chosen station while editing, copying models, and switching tabs', async () => {
+    await renderPage()
+    await userEvent.click(compare())
+    const metadata = vi.spyOn(modelElevation, 'getModelElevationData')
+    await userEvent.dblClick(cell(2))
+    const input = within(cell(2)).getByRole('spinbutton')
+    await userEvent.clear(input)
+    await userEvent.type(input, '25{Enter}')
+    await waitFor(() => expect(within(cell(2)).getByRole('textbox')).toHaveValue('25'))
+    expect(panel()).toBeInTheDocument()
+    expect(
+      new MorecastDraftForecast(localStorage)
+        .getStoredDraftForecasts()
+        ?.rows.find(row => row.stationCode === 2 && row.forDate.toISODate() === forecastDate.toISODate())?.tempForecast
+        ?.value
+    ).toBe(25)
+    await userEvent.dblClick(cell(2, 'tempHRDPS'))
+    await waitFor(() => expect(within(cell(2)).getByRole('textbox')).toHaveValue('20'))
+    await userEvent.click(screen.getByTestId('rh-tab-button-unselected'))
+    expect(panel()).toBeInTheDocument()
+    await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
+    expect(panel()).toBeInTheDocument()
+    await userEvent.click(screen.getByTestId('temp-tab-button-unselected'))
+    expect(panel()).toBeInTheDocument()
+    expect(metadata).not.toHaveBeenCalled()
+    await userEvent.click(compare('Beta station'))
+    expect(within(panel('Beta station')).getByText('-200 m')).toBeInTheDocument()
+  })
+
+  it('supports keyboard activation and keeps Escape available for forecast editing', async () => {
+    await renderPage()
+    const button = compare()
     act(() => button.focus())
     await userEvent.keyboard(' ')
-    expect(screen.getByRole('dialog', { name: 'Model elevations for Alpha station' })).toBeInTheDocument()
+    expect(panel()).toBeInTheDocument()
+    await userEvent.dblClick(cell(1))
     await userEvent.keyboard('{Escape}')
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
+    expect(panel()).toBeInTheDocument()
     expect(button.closest('[role="row"]')).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('refreshes the open chart from current grid elevations', async () => {
-    const { props, rerender } = renderGrid()
-    await userEvent.click(screen.getByRole('button', { name: 'Compare model elevations for Alpha station' }))
-    rerender(
-      <ForecastDataGrid
-        {...props}
-        modelElevationData={{
-          ...props.modelElevationData,
-          stationElevations: new Map([[1, { stationElevation: 900, modelElevations: { HRDPS: 1120 } }]])
-        }}
-      />
+  it('refreshes the comparison from the same elevations as the grid headers', async () => {
+    const { store } = await renderPage()
+    await userEvent.click(compare())
+    const weather = store.getState().weatherIndeterminates
+    act(() =>
+      store.dispatch(
+        getWeatherIndeterminatesSuccess({
+          actuals: weather.actuals,
+          forecasts: weather.forecasts,
+          grassCuring: weather.grassCuring,
+          predictions: weather.predictions.map(row => ({ ...row, model_elevation: 1120 }))
+        })
+      )
     )
-    const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByText('1,120 m')).toBeInTheDocument()
-    expect(within(dialog).getByText('+220 m')).toBeInTheDocument()
+    expect(within(panel()).getByText('1,120 m')).toBeInTheDocument()
+    expect(within(panel()).getByText('+220 m')).toBeInTheDocument()
   })
 
-  it('closes when the station is removed and stays closed if it is added again', async () => {
-    const { props, rerender } = renderGrid()
-    await userEvent.click(screen.getByRole('button', { name: 'Compare model elevations for Alpha station' }))
-    rerender(<ForecastDataGrid {...props} allMoreCast2Rows={props.allMoreCast2Rows.slice(1)} />)
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    rerender(<ForecastDataGrid {...props} />)
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  it('closes when its station is deselected and stays closed if it is selected again', async () => {
+    await renderPage()
+    await userEvent.click(compare())
+    const sidebar = screen.getByTestId('morecast2-station-panel')
+    await userEvent.click(within(sidebar).getByText('Alpha station', { exact: true }))
+    expect(screen.queryByRole('region', { name: 'Model elevations for Alpha station' })).not.toBeInTheDocument()
+    await userEvent.click(within(sidebar).getByText('Alpha station', { exact: true }))
+    expect(compare()).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Model elevations for Alpha station' })).not.toBeInTheDocument()
   })
 })

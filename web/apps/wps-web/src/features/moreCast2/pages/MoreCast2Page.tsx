@@ -5,16 +5,18 @@ import type { StationGroup } from '@wps/api/stationAPI'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import { GeneralHeader } from '@wps/ui/GeneralHeader'
 import { MORE_CAST_DOC_TITLE, MORE_CAST_NAME } from '@wps/utils/constants'
-import { selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
+import { type RootState, selectAuthentication, selectStationGroups, selectStationGroupsMembers } from 'app/rootReducer'
 import type { AppDispatch } from 'app/store'
+import ModelElevationComparisonPanel from 'features/moreCast2/components/ModelElevationComparisonPanel'
 import StationPanel from 'features/moreCast2/components/StationPanel'
 import TabbedDataGrid from 'features/moreCast2/components/TabbedDataGrid'
-import { getWeatherIndeterminates } from 'features/moreCast2/slices/dataSlice'
-import { selectedStationsChanged } from 'features/moreCast2/slices/selectedStationsSlice'
+import { getModelElevationData } from 'features/moreCast2/modelElevation'
+import { getWeatherIndeterminates, selectAllMoreCast2Rows } from 'features/moreCast2/slices/dataSlice'
+import { selectedStationsChanged, selectSelectedStations } from 'features/moreCast2/slices/selectedStationsSlice'
 import { getDefaultDateRange } from 'features/moreCast2/util'
 import { isEmpty } from 'lodash'
 import { DateTime } from 'luxon'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 export const Root = styled('div')({
@@ -27,9 +29,10 @@ export const Root = styled('div')({
 export const SidePanel = styled('div')({
   borderRight: '1px solid black',
   display: 'flex',
+  flexDirection: 'column',
   minWidth: '375px',
   overflowX: 'hidden',
-  overflowY: 'auto',
+  overflowY: 'hidden',
   width: '375px'
 })
 
@@ -49,15 +52,31 @@ export const Observations = styled('div')({
 })
 
 const MoreCast2Page = () => {
+  // store
   const dispatch: AppDispatch = useDispatch()
   const { groups, loading: groupsLoading } = useSelector(selectStationGroups)
   const { members } = useSelector(selectStationGroupsMembers)
   const { idir } = useSelector(selectAuthentication)
+  const selectedStations = useSelector(selectSelectedStations)
+  const morecast2Rows = useSelector(selectAllMoreCast2Rows)
+  const modelPredictions = useSelector((state: RootState) => state.weatherIndeterminates.predictions)
+
+  // state
   const [selectedStationGroup, setSelectedStationGroup] = useState<StationGroup>()
 
   const [fromTo, setFromTo] = useState<DateRange>(() => getDefaultDateRange())
   const [selectedGroupsMembers, setSelectedGroupsMembers] = useState([...members])
+  const [comparisonStationCode, setComparisonStationCode] = useState<number | null>(null)
 
+  // derived data
+  const modelElevationData = useMemo(() => {
+    const stationCodes = new Set(selectedStations.map(station => station.station_code))
+    const modelRows = morecast2Rows.filter(row => stationCodes.has(row.stationCode))
+    return getModelElevationData(modelRows, modelPredictions, selectedStations)
+  }, [morecast2Rows, modelPredictions, selectedStations])
+  const comparisonStation = selectedStations.find(station => station.station_code === comparisonStationCode)
+
+  // callbacks
   const fetchWeatherIndeterminates = useCallback(() => {
     if (fromTo?.startDate && fromTo?.endDate) {
       dispatch(
@@ -65,6 +84,11 @@ const MoreCast2Page = () => {
       )
     }
   }, [dispatch, members, fromTo.startDate, fromTo.endDate])
+
+  // effects
+  useEffect(() => {
+    if (!comparisonStation) setComparisonStationCode(null)
+  }, [comparisonStation])
 
   useEffect(() => {
     document.title = MORE_CAST_DOC_TITLE
@@ -90,6 +114,7 @@ const MoreCast2Page = () => {
     fetchWeatherIndeterminates()
   }, [fetchWeatherIndeterminates])
 
+  // render
   return (
     <Root data-testid="more-cast-2-page">
       <GeneralHeader isBeta={false} spacing={0.985} title={MORE_CAST_NAME} />
@@ -102,6 +127,22 @@ const MoreCast2Page = () => {
             selectedStationGroup={selectedStationGroup}
             setSelectedStationGroup={setSelectedStationGroup}
             stationGroupMembers={selectedGroupsMembers}
+            elevationComparison={
+              <ModelElevationComparisonPanel
+                station={
+                  comparisonStation
+                    ? {
+                        stationName: comparisonStation.display_label,
+                        stationElevation: comparisonStation.elevation ?? null,
+                        modelElevations:
+                          modelElevationData.stationElevations.get(comparisonStation.station_code)?.modelElevations ??
+                          {}
+                      }
+                    : null
+                }
+                onClose={() => setComparisonStationCode(null)}
+              />
+            }
           />
         </SidePanel>
         <Observations>
@@ -109,6 +150,8 @@ const MoreCast2Page = () => {
             fromTo={fromTo}
             setFromTo={setFromTo}
             fetchWeatherIndeterminates={fetchWeatherIndeterminates}
+            modelElevationData={modelElevationData}
+            onCompareElevations={setComparisonStationCode}
           />
         </Observations>
       </Content>

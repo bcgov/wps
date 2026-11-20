@@ -17,7 +17,7 @@ import {
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
 import type { MoreCastParams } from '@wps/ui/theme'
-import { type RootState, selectAuthentication } from 'app/rootReducer'
+import { selectAuthentication } from 'app/rootReducer'
 import { ROLES } from 'features/auth/roles'
 import { type ColumnVis, DataGridColumns, getTabColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
 import ForecastDataGrid from 'features/moreCast2/components/ForecastDataGrid'
@@ -32,7 +32,7 @@ import SaveForecastButton from 'features/moreCast2/components/SaveForecastButton
 import SelectableButton from 'features/moreCast2/components/SelectableButton'
 import { MorecastDraftForecast } from 'features/moreCast2/forecastDraft'
 import type { MoreCast2ForecastRow, MoreCast2Row, PredictionItem } from 'features/moreCast2/interfaces'
-import { getModelElevationData } from 'features/moreCast2/modelElevation'
+import type { ModelElevationData } from 'features/moreCast2/modelElevation'
 import { filterAllVisibleRowsForSimulation, filterRowsForSimulationFromEdited } from 'features/moreCast2/rowFilters'
 import { getRowsToSave, isForecastRowPredicate, isRequiredInputSet } from 'features/moreCast2/saveForecasts'
 import { selectAllMoreCast2Rows, selectWeatherIndeterminatesLoading } from 'features/moreCast2/slices/dataSlice'
@@ -155,15 +155,22 @@ interface TabbedDataGridProps {
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
   fetchWeatherIndeterminates: () => void
+  modelElevationData: ModelElevationData
+  onCompareElevations: (stationCode: number) => void
 }
 
 export type handleShowHideChangeType = (weatherParam: keyof MoreCastParams, columnName: string, value: boolean) => void
 
-const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: TabbedDataGridProps) => {
+const TabbedDataGrid = ({
+  fromTo,
+  setFromTo,
+  fetchWeatherIndeterminates,
+  modelElevationData,
+  onCompareElevations
+}: TabbedDataGridProps) => {
   // store
   const dispatch: AppDispatch = useDispatch()
   const selectedStations = useSelector(selectSelectedStations)
-  const modelPredictions = useSelector((state: RootState) => state.weatherIndeterminates.predictions)
   const loading = useSelector(selectWeatherIndeterminatesLoading)
   const { roles, isAuthenticated } = useSelector(selectAuthentication)
   // All MoreCast2Rows derived from WeatherIndeterminates in dataSlice.ts. Updates in response to
@@ -201,12 +208,6 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     const stationCodes = new Set(selectedStations.map(station => station.station_code))
     return allRows.filter(row => stationCodes.has(row.stationCode))
   }, [allRows, selectedStations])
-
-  const modelElevationData = useMemo(() => {
-    const stationCodes = new Set(selectedStations.map(station => station.station_code))
-    const modelRows = morecast2Rows.filter(row => stationCodes.has(row.stationCode))
-    return getModelElevationData(modelRows, modelPredictions, selectedStations)
-  }, [morecast2Rows, modelPredictions, selectedStations])
 
   // Checks if the displayed rows includes non-Actual rows
   const hasForecastRow = () => {
@@ -716,6 +717,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
             collapsedStationCodes={collapsedStationCodes.current}
             onStationExpansionChange={handleStationExpansionChange}
             modelElevationData={modelElevationData}
+            onCompareElevations={onCompareElevations}
             processRowUpdate={processRowUpdate}
           />
         )}

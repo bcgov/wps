@@ -29,6 +29,9 @@ vi.mock('@wps/api/moreCast2API', async importOriginal => ({
   fetchWeatherIndeterminates: vi.fn()
 }))
 
+const modelElevationData = { latestRuns: {}, stationElevations: new Map() }
+const onCompareElevations = vi.fn()
+
 const timestamp = DateTime.utc(2030, 7, 4, 20)
 const skipped: WF1SkippedForecast[] = [
   { station_code: 1, station_name: 'Test station', for_date: timestamp.toMillis(), reason: 'actual_exists' }
@@ -95,11 +98,19 @@ const renderPublishing = async (refresh = vi.fn(), testStore = createPublishingS
   draft.createStoredForecast(selectAllMoreCast2Rows(testStore.getState()), DateTime.now())
   render(
     <Provider store={testStore}>
-      <TabbedDataGrid fromTo={{}} setFromTo={vi.fn()} fetchWeatherIndeterminates={refresh} />
+      <TabbedDataGrid
+        modelElevationData={modelElevationData}
+        onCompareElevations={onCompareElevations}
+        fromTo={{}}
+        setFromTo={vi.fn()}
+        fetchWeatherIndeterminates={refresh}
+      />
     </Provider>
   )
   if (collapseStation) {
-    const stationHeader = (await screen.findByText('Model elevation')).closest<HTMLElement>('[role="row"]')!
+    const stationHeader = (
+      await screen.findByRole('button', { name: 'Station metadata for Test station' })
+    ).closest<HTMLElement>('[role="row"]')!
     await userEvent.click(within(stationHeader).getByRole('button', { name: 'hide children' }))
     expect(stationHeader).toHaveAttribute('aria-expanded', 'false')
   }
@@ -212,7 +223,13 @@ describe('MoreCast publishing', () => {
     })
     render(
       <Provider store={testStore}>
-        <TabbedDataGrid fromTo={{}} setFromTo={vi.fn()} fetchWeatherIndeterminates={refresh} />
+        <TabbedDataGrid
+          modelElevationData={modelElevationData}
+          onCompareElevations={onCompareElevations}
+          fromTo={{}}
+          setFromTo={vi.fn()}
+          fetchWeatherIndeterminates={refresh}
+        />
       </Provider>
     )
     expect(await screen.findByRole('textbox', { name: 'MANUAL' })).toHaveValue('42')
@@ -267,7 +284,13 @@ describe('MoreCast publishing', () => {
     })
     render(
       <Provider store={store}>
-        <TabbedDataGrid fromTo={{}} setFromTo={vi.fn()} fetchWeatherIndeterminates={vi.fn()} />
+        <TabbedDataGrid
+          modelElevationData={modelElevationData}
+          onCompareElevations={onCompareElevations}
+          fromTo={{}}
+          setFromTo={vi.fn()}
+          fetchWeatherIndeterminates={vi.fn()}
+        />
       </Provider>
     )
 
