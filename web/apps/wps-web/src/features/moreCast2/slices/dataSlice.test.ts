@@ -253,6 +253,61 @@ describe('dataSlice', () => {
     })
   })
   describe('createMoreCast2Rows', () => {
+    it('maps raw and adjusted ECMWF values and the model run timestamp', () => {
+      const runTimestamp = '2023-04-27T00:00:00Z'
+      const raw = {
+        ...weatherIndeterminateGenerator(1, 'Station', WeatherDeterminate.ECMWF, FROM_DATE_STRING),
+        prediction_run_timestamp: runTimestamp
+      }
+      const adjusted = {
+        ...weatherIndeterminateGenerator(1, 'Station', WeatherDeterminate.ECMWF_BIAS, FROM_DATE_STRING),
+        temperature: 12,
+        relative_humidity: 60,
+        precipitation: 2,
+        wind_speed: 8,
+        wind_direction: 190,
+        prediction_run_timestamp: runTimestamp
+      }
+
+      const [row] = createMoreCast2Rows([], [], [], [raw, adjusted])
+
+      expect(row).toMatchObject({
+        tempECMWF: TEMP,
+        rhECMWF: RH,
+        precipECMWF: PRECIP,
+        windSpeedECMWF: WIND_SPEED,
+        windDirectionECMWF: WIND_DIRECTION,
+        tempECMWF_BIAS: 12,
+        rhECMWF_BIAS: 60,
+        precipECMWF_BIAS: 2,
+        windSpeedECMWF_BIAS: 8,
+        windDirectionECMWF_BIAS: 190,
+        predictionRunTimestampECMWF: runTimestamp
+      })
+    })
+
+    it('keeps unavailable ECMWF adjustments missing without replacing them with raw values', () => {
+      const raw = weatherIndeterminateGenerator(1, 'Station', WeatherDeterminate.ECMWF, FROM_DATE_STRING)
+      const adjusted: WeatherIndeterminate = {
+        ...raw,
+        determinate: WeatherDeterminate.ECMWF_BIAS,
+        temperature: null,
+        relative_humidity: null,
+        precipitation: null,
+        wind_speed: null,
+        wind_direction: null
+      }
+
+      const [row] = createMoreCast2Rows([], [], [], [raw, adjusted])
+
+      expect(row.tempECMWF).toBe(TEMP)
+      expect(row.tempECMWF_BIAS).toBeNaN()
+      expect(row.rhECMWF_BIAS).toBeNaN()
+      expect(row.precipECMWF_BIAS).toBeNaN()
+      expect(row.windSpeedECMWF_BIAS).toBeNaN()
+      expect(row.windDirectionECMWF_BIAS).toBeNaN()
+    })
+
     it('should create one row per station per date', () => {
       const stationCode = 1
       const stationName = 'test'

@@ -218,25 +218,28 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
     return isNull(modelAsString) ? null : JSON.parse(modelAsString)
   }
 
-  // Get the showHideColumnsModel from local storage if it exists, else provide default values.
+  // Initialize current columns with saved visibility and defaults for new columns
   const initShowHideColumnsModel = (): Record<string, ColumnVis[]> => {
     // First check localStorage for an existing model
     const model = getShowHideColumnsModelFromLocalStorage()
-    if (model) {
-      return model
-    }
+    // merge saved choices with current columns so newly added models remain available
+    const savedVisibility = new Map<string, boolean>(
+      Object.values(model ?? {}).flatMap(columns =>
+        (columns as ColumnVis[]).map(column => [column.columnName, column.visible] as const)
+      )
+    )
     const weatherModelColumns = DataGridColumns.getWeatherModelColumns({
       colDef: clickedColDef,
       contextMenu: contextMenu,
       updateColumnWithModel: updateColumnWithModel,
       handleClose: handleClose
     })
-    // Provide default with all columns
+    // provide defaults for all current columns while preserving saved choices
     const showHideColumnsUngroupedState = weatherModelColumns.map((column: GridColDef): ColumnVis => {
       return {
         columnName: column.field,
         displayName: getColumnDisplayName(column.headerName ?? ''),
-        visible: true
+        visible: savedVisibility.get(column.field) ?? true
       }
     })
     return groupByWeatherParam(showHideColumnsUngroupedState)
@@ -643,7 +646,7 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
           </List>
         </Grid>
         <Grid sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
-          <AboutDataPopover content={MorecastAboutDataContent} maxWidth={450} testId={'morecast-about-data-popover'} />
+          <AboutDataPopover content={MorecastAboutDataContent} maxWidth={600} testId={'morecast-about-data-popover'} />
         </Grid>
       </Grid>
       {forecastSummaryVisible ? (

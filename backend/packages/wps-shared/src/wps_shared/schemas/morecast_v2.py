@@ -11,6 +11,7 @@ class ModelChoice(str, Enum):
     """Enumerator for all valid forecasted value types"""
 
     GDPS = "GDPS"
+    ECMWF = "ECMWF"
     GFS = "GFS"
     HRDPS = "HRDPS"
     NAM = "NAM"
@@ -33,6 +34,7 @@ class WeatherDeterminate(str, Enum):
     RDPS_BIAS = "RDPS_BIAS"
     GRASS_CURING_CWFIS = "Grass_Curing_CWFIS"
     ECMWF = "ECMWF"
+    ECMWF_BIAS = "ECMWF_BIAS"
 
     # non prediction models
     FORECAST = "Forecast"

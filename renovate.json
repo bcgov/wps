@@ -27,6 +27,16 @@
       "groupName": "Node.js",
       "groupSlug": "nodejs",
       "separateMajorMinor": false
+    },
+    {
+      "matchPackageNames": [
+        "ghcr.io/astral-sh/uv",
+        "astral-sh/uv"
+      ],
+      "groupName": "uv",
+      "groupSlug": "uv",
+      "separateMajorMinor": false,
+      "separateMinorPatch": false
     }
   ]
 }

@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 
 # uv binary for builder
-COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /uvx /bin/
 
 RUN useradd --uid "${USER_UID}" --create-home "${USERNAME}" \
     && chmod a+rx /home/"${USERNAME}"
@@ -79,7 +79,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 USER 0
 
 # Copy uv binary into runtime (enables uv at runtime)
-COPY --from=ghcr.io/astral-sh/uv:0.9.28 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /uvx /bin/
 
 # eccodes C library required by cfgrib at runtime
 RUN apt-get update && apt-get install -y ca-certificates libeccodes-tools \

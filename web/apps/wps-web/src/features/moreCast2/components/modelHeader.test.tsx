@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { userEvent } from '@testing-library/user-event'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { DateTime } from 'luxon'
 import type { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import { createEmptyMoreCast2Row } from '@/features/moreCast2/slices/dataSlice'
 import ModelHeader from './ModelHeader'
 
 describe('ModelHeader', () => {
@@ -14,80 +16,7 @@ describe('ModelHeader', () => {
   })
 
   const createMockRow = (timestamps: Partial<Record<string, string>> = {}): MoreCast2Row => ({
-    ffmcCalcActual: 0,
-    dmcCalcActual: 0,
-    dcCalcActual: 0,
-    isiCalcActual: 0,
-    buiCalcActual: 0,
-    fwiCalcActual: 0,
-    dgrCalcActual: 0,
-    grassCuringActual: 0,
-    precipActual: 0,
-    rhActual: 0,
-    tempActual: 0,
-    windDirectionActual: 0,
-    windSpeedActual: 0,
-    precipGDPS: 0,
-    rhGDPS: 0,
-    tempGDPS: 0,
-    windDirectionGDPS: 0,
-    windSpeedGDPS: 0,
-    precipGDPS_BIAS: 0,
-    rhGDPS_BIAS: 0,
-    tempGDPS_BIAS: 0,
-    windDirectionGDPS_BIAS: 0,
-    windSpeedGDPS_BIAS: 0,
-    precipGFS: 0,
-    rhGFS: 0,
-    tempGFS: 0,
-    windDirectionGFS: 0,
-    windSpeedGFS: 0,
-    precipGFS_BIAS: 0,
-    rhGFS_BIAS: 0,
-    tempGFS_BIAS: 0,
-    windDirectionGFS_BIAS: 0,
-    windSpeedGFS_BIAS: 0,
-    precipHRDPS: 0,
-    rhHRDPS: 0,
-    tempHRDPS: 0,
-    windDirectionHRDPS: 0,
-    windSpeedHRDPS: 0,
-    precipHRDPS_BIAS: 0,
-    rhHRDPS_BIAS: 0,
-    tempHRDPS_BIAS: 0,
-    windDirectionHRDPS_BIAS: 0,
-    windSpeedHRDPS_BIAS: 0,
-    precipNAM: 0,
-    rhNAM: 0,
-    tempNAM: 0,
-    windDirectionNAM: 0,
-    windSpeedNAM: 0,
-    precipNAM_BIAS: 0,
-    rhNAM_BIAS: 0,
-    tempNAM_BIAS: 0,
-    windDirectionNAM_BIAS: 0,
-    windSpeedNAM_BIAS: 0,
-    precipRDPS: 0,
-    rhRDPS: 0,
-    tempRDPS: 0,
-    windDirectionRDPS: 0,
-    windSpeedRDPS: 0,
-    precipRDPS_BIAS: 0,
-    rhRDPS_BIAS: 0,
-    tempRDPS_BIAS: 0,
-    windDirectionRDPS_BIAS: 0,
-    windSpeedRDPS_BIAS: 0,
-    id: '',
-    stationCode: 0,
-    stationName: '',
-    forDate: DateTime.now(),
-    latitude: 0,
-    longitude: 0,
-    predictionRunTimestampRDPS: null,
-    predictionRunTimestampGDPS: null,
-    predictionRunTimestampHRDPS: null,
-    predictionRunTimestampNAM: null,
-    predictionRunTimestampGFS: null,
+    ...createEmptyMoreCast2Row('', 0, '', DateTime.now(), 0, 0),
     ...timestamps
   })
 
@@ -143,10 +72,12 @@ describe('ModelHeader', () => {
         const timestampField = `predictionRunTimestamp${modelType}`
         const allRows = [createMockRow({ [timestampField]: testTimestamp })]
 
-        const { getByTestId, getByText } = render(<ModelHeader params={params} allRows={allRows} />)
+        const { getByTestId, getByText, getByRole } = render(<ModelHeader params={params} allRows={allRows} />)
 
         expect(getByText(modelType)).toBeInTheDocument()
-        expect(getByTestId(`${modelType}-model-run-tooltip`)).toBeInTheDocument()
+        expect(getByTestId(`${modelType}-model-run-tooltip`)).toBe(
+          getByRole('button', { name: `${modelType} model run information` })
+        )
       })
 
       it(`should render without tooltip when ${modelType} has no timestamp`, () => {
@@ -159,6 +90,17 @@ describe('ModelHeader', () => {
         expect(queryByTestId(`${modelType}-model-run-tooltip`)).not.toBeInTheDocument()
       })
     })
+  })
+
+  it('shows ECMWF run information when the info button receives keyboard focus', async () => {
+    const params = createMockParams(WeatherDeterminate.ECMWF, WeatherDeterminate.ECMWF)
+    const allRows = [createMockRow({ predictionRunTimestampECMWF: '2026-11-17T12:00:00Z' })]
+    const { getByRole, findByRole } = render(<ModelHeader params={params} allRows={allRows} />)
+
+    await userEvent.tab()
+
+    expect(getByRole('button', { name: 'ECMWF model run information' })).toHaveFocus()
+    expect(await findByRole('tooltip')).toHaveTextContent('Model run: Nov 17, 2026 12:00 UTC')
   })
 
   describe('timestamp sorting and selection', () => {

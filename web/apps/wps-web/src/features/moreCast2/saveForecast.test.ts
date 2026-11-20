@@ -5,6 +5,16 @@ import { DateTime } from 'luxon'
 
 const baseRow = {
   precipActual: NaN,
+  precipECMWF: 0,
+  rhECMWF: 0,
+  tempECMWF: 0,
+  windDirectionECMWF: 0,
+  windSpeedECMWF: 0,
+  precipECMWF_BIAS: 0,
+  rhECMWF_BIAS: 0,
+  tempECMWF_BIAS: 0,
+  windDirectionECMWF_BIAS: 0,
+  windSpeedECMWF_BIAS: 0,
   precipGDPS: 0,
   precipGDPS_BIAS: 0,
   precipGFS: 0,

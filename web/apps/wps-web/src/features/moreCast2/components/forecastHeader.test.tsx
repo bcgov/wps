@@ -1,10 +1,31 @@
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ModelChoice } from '@wps/api/moreCast2API'
 import ForecastHeader from 'features/moreCast2/components/ForecastHeader'
 import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import { vi } from 'vitest'
 
 describe('ForecastHeader', () => {
+  it.each([ModelChoice.ECMWF, ModelChoice.ECMWF_BIAS])('applies %s to the forecast column', async model => {
+    const colDef = { field: 'tempForecast', headerName: 'Temp' }
+    const updateColumnWithModel = vi.fn()
+    const { getByTestId, getByRole } = render(
+      <ForecastHeader
+        colDef={colDef}
+        columnClickHandlerProps={{ colDef, contextMenu: null, updateColumnWithModel, handleClose: vi.fn() }}
+      />
+    )
+
+    await userEvent.click(getByTestId('tempForecast-column-header'))
+    const input = getByRole('combobox')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'ECMWF')
+    await userEvent.click(getByRole('option', { name: model }))
+    await userEvent.click(getByTestId('apply-model-to-column-button'))
+
+    expect(updateColumnWithModel).toHaveBeenCalledWith(model, colDef)
+  })
+
   const mockColumnClickHandlerProps: ColumnClickHandlerProps = {
     colDef: { field: 'testForecast', headerName: 'test' },
     contextMenu: null,

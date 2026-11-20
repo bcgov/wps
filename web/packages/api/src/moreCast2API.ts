@@ -27,6 +27,8 @@ export enum ModelChoice {
   GDPS_BIAS = 'GDPS_BIAS',
   GFS = 'GFS',
   GFS_BIAS = 'GFS_BIAS',
+  ECMWF = 'ECMWF',
+  ECMWF_BIAS = 'ECMWF_BIAS',
   HRDPS = 'HRDPS',
   HRDPS_BIAS = 'HRDPS_BIAS',
   MANUAL = 'MANUAL',
@@ -48,6 +50,8 @@ export type ModelType =
   | 'GDPS_BIAS'
   | 'GFS'
   | 'GFS_BIAS'
+  | 'ECMWF'
+  | 'ECMWF_BIAS'
   | 'HRDPS'
   | 'HRDPS_BIAS'
   | 'MANUAL'
@@ -72,7 +76,9 @@ export const ModelChoices: ModelType[] = [
   ModelChoice.NAM_BIAS,
   ModelChoice.NULL,
   ModelChoice.RDPS,
-  ModelChoice.RDPS_BIAS
+  ModelChoice.RDPS_BIAS,
+  ModelChoice.ECMWF,
+  ModelChoice.ECMWF_BIAS
 ]
 
 export const WeatherModelChoices: ModelType[] = [
@@ -85,7 +91,9 @@ export const WeatherModelChoices: ModelType[] = [
   ModelChoice.NAM,
   ModelChoice.NAM_BIAS,
   ModelChoice.RDPS,
-  ModelChoice.RDPS_BIAS
+  ModelChoice.RDPS_BIAS,
+  ModelChoice.ECMWF,
+  ModelChoice.ECMWF_BIAS
 ]
 
 export enum WeatherDeterminate {
@@ -95,6 +103,8 @@ export enum WeatherDeterminate {
   GDPS_BIAS = 'GDPS_BIAS',
   GFS = 'GFS',
   GFS_BIAS = 'GFS_BIAS',
+  ECMWF = 'ECMWF',
+  ECMWF_BIAS = 'ECMWF_BIAS',
   HRDPS = 'HRDPS',
   HRDPS_BIAS = 'HRDPS_BIAS',
   NAM = 'NAM',
@@ -113,6 +123,8 @@ export type WeatherDeterminateType =
   | 'GDPS_BIAS'
   | 'GFS'
   | 'GFS_BIAS'
+  | 'ECMWF'
+  | 'ECMWF_BIAS'
   | 'HRDPS'
   | 'HRDPS_BIAS'
   | 'NAM'
@@ -136,7 +148,9 @@ export const WeatherDeterminateChoices = [
   WeatherDeterminate.NAM_BIAS,
   WeatherDeterminate.NULL,
   WeatherDeterminate.RDPS,
-  WeatherDeterminate.RDPS_BIAS
+  WeatherDeterminate.RDPS_BIAS,
+  WeatherDeterminate.ECMWF,
+  WeatherDeterminate.ECMWF_BIAS
 ]
 
 export const weatherModelsWithTooltips = [
@@ -144,7 +158,8 @@ export const weatherModelsWithTooltips = [
   WeatherDeterminate.RDPS,
   WeatherDeterminate.GDPS,
   WeatherDeterminate.NAM,
-  WeatherDeterminate.GFS
+  WeatherDeterminate.GFS,
+  WeatherDeterminate.ECMWF
 ]
 
 export interface WeatherIndeterminate {

@@ -1,4 +1,4 @@
-import { Info as InfoIcon } from '@mui/icons-material'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import type { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
 import { weatherModelsWithTooltips } from '@wps/api/moreCast2API'
@@ -34,25 +34,30 @@ const ModelHeader = ({ params, allRows }: ModelHeaderProps) => {
 
   if (modelType && allRows && allRows.length > 0 && timestamp) {
     return (
-      <Box style={{ display: 'flex', alignItems: 'center' }}>
+      <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+        <Typography style={{ fontSize: '14px', lineHeight: '20px' }}>{headerName}</Typography>
         <Tooltip
           data-testid={`${params.colDef.field}-model-run-tooltip`}
           title={`Model run: ${timestamp.toUTC().toFormat('MMM dd, yyyy HH:mm ZZZZ')}`}
           arrow
           placement="top"
         >
-          <Box style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography style={{ fontSize: '14px' }}>{headerName}</Typography>
-            <IconButton size="small" style={{ padding: '2px' }}>
-              <InfoIcon style={{ fontSize: '12px' }} />
-            </IconButton>
-          </Box>
+          <IconButton
+            aria-label={`${headerName} model run information`}
+            size="small"
+            style={{ padding: '2px', height: '20px', width: '20px' }}
+          >
+            <InfoOutlinedIcon style={{ fontSize: 16 }} />
+          </IconButton>
         </Tooltip>
       </Box>
     )
   }
   return (
-    <Typography data-testid={`${params.colDef.field}-column-header`} style={{ fontSize: '14px' }}>
+    <Typography
+      data-testid={`${params.colDef.field}-column-header`}
+      style={{ fontSize: '14px', lineHeight: '20px', textAlign: 'center' }}
+    >
       {headerName}
     </Typography>
   )
