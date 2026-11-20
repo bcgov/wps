@@ -1,4 +1,4 @@
-import { type AlertColor, GlobalStyles, Grid, List, Stack, Typography } from '@mui/material'
+import { type AlertColor, GlobalStyles, List, Stack, Typography } from '@mui/material'
 import { styled, type Theme, ThemeProvider, useTheme } from '@mui/material/styles'
 import type {
   GridCellParams,
@@ -16,7 +16,7 @@ import {
 } from '@wps/api/moreCast2API'
 import AboutDataPopover from '@wps/ui/AboutDataPopover'
 import type { DateRange } from '@wps/ui/dateRangePicker/types'
-import { type MoreCastParams, theme } from '@wps/ui/theme'
+import type { MoreCastParams } from '@wps/ui/theme'
 import { type RootState, selectAuthentication } from 'app/rootReducer'
 import { ROLES } from 'features/auth/roles'
 import { type ColumnVis, DataGridColumns, getTabColumnGroupModel } from 'features/moreCast2/components/DataGridColumns'
@@ -592,122 +592,106 @@ const TabbedDataGrid = ({ fromTo, setFromTo, fetchWeatherIndeterminates }: Tabbe
   // render
   return (
     <Root>
-      <Grid
-        container
-        sx={{
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
+      <Stack
+        role="toolbar"
+        aria-label="Morecast controls"
+        direction="row"
+        useFlexGap
+        sx={{ flexWrap: 'wrap', alignItems: 'center', gap: 1, p: 1 }}
       >
-        <Grid>
-          <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
-        </Grid>
-        <Grid sx={{ marginRight: theme.spacing(2), marginBottom: theme.spacing(6) }}>
-          <Stack
-            direction="row"
-            spacing={theme.spacing(2)}
-            sx={{
-              alignItems: 'center'
-            }}
+        <MoreCast2DateRangePicker dateRange={fromTo} setDateRange={setFromTo} />
+        <List
+          component={Stack}
+          direction="row"
+          disablePadding
+          sx={{ flexWrap: 'wrap', alignItems: 'center', gap: 1, maxWidth: '100%' }}
+        >
+          <SelectableButton
+            dataTestId="temp-tab-button"
+            onClick={() => setTempVisible(!tempVisible)}
+            selected={tempVisible}
+            weatherParam="temp"
           >
-            {storedDraftForecast.getLastSavedDraftDateTime() && (
-              <Typography sx={{ fontSize: 12 }}>
-                Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}
-              </Typography>
-            )}
-            <ResetForecastButton
-              label={'Reset'}
-              enabled={storedDraftForecast.hasDraftForecastStored()}
-              showResetDialog={showResetDialog}
-              setShowResetDialog={setShowResetDialog}
-              handleResetButtonConfirm={handleResetButtonConfirm}
-              onClick={handleResetClick}
-            />
-            <SaveForecastButton
-              enabled={
-                isAuthenticated &&
-                roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-                hasForecastRow() &&
-                forecastSummaryVisible
-              }
-              label={'Publish to WF1'}
-              onClick={handleSaveClick}
-            />
-          </Stack>
-        </Grid>
-      </Grid>
-      <Grid
-        container
-        sx={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mb: 2
-        }}
-      >
-        <Grid>
-          <List component={Stack} direction="row">
-            <SelectableButton
-              dataTestId="temp-tab-button"
-              onClick={() => setTempVisible(!tempVisible)}
-              selected={tempVisible}
-              weatherParam="temp"
-            >
-              Temp
-            </SelectableButton>
-            <SelectableButton
-              dataTestId="rh-tab-button"
-              onClick={() => setRhVisible(!rhVisible)}
-              selected={rhVisible}
-              weatherParam="rh"
-            >
-              RH
-            </SelectableButton>
-            <SelectableButton
-              dataTestId="wind-direction-tab-button"
-              onClick={() => setWindDirectionVisible(!windDirectionVisible)}
-              selected={windDirectionVisible}
-              weatherParam="windDirection"
-            >
-              Wind Direction
-            </SelectableButton>
-            <SelectableButton
-              dataTestId="wind-speed-tab-button"
-              onClick={() => setWindSpeedVisible(!windSpeedVisible)}
-              selected={windSpeedVisible}
-              weatherParam="windSpeed"
-            >
-              Wind Speed
-            </SelectableButton>
-            <SelectableButton
-              dataTestId="precip-tab-button"
-              onClick={() => setPrecipVisible(!precipVisible)}
-              selected={precipVisible}
-              weatherParam="precip"
-            >
-              Precip
-            </SelectableButton>
-            <SelectableButton
-              dataTestId="grass-curing-tab-button"
-              onClick={() => setGrassCuringVisible(!grassCuringVisible)}
-              selected={grassCuringVisible}
-              weatherParam="gc"
-            >
-              Grass Curing
-            </SelectableButton>
-            <SelectableButton
-              dataTestId="summary-tab-button"
-              onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
-              selected={forecastSummaryVisible}
-              weatherParam="summary"
-            >
-              Forecast Summary
-            </SelectableButton>
-          </List>
-        </Grid>
-        <Grid sx={{ marginLeft: 'auto', paddingRight: theme.spacing(2) }}>
+            Temp
+          </SelectableButton>
+          <SelectableButton
+            dataTestId="rh-tab-button"
+            onClick={() => setRhVisible(!rhVisible)}
+            selected={rhVisible}
+            weatherParam="rh"
+          >
+            RH
+          </SelectableButton>
+          <SelectableButton
+            dataTestId="wind-direction-tab-button"
+            onClick={() => setWindDirectionVisible(!windDirectionVisible)}
+            selected={windDirectionVisible}
+            weatherParam="windDirection"
+          >
+            Wind Direction
+          </SelectableButton>
+          <SelectableButton
+            dataTestId="wind-speed-tab-button"
+            onClick={() => setWindSpeedVisible(!windSpeedVisible)}
+            selected={windSpeedVisible}
+            weatherParam="windSpeed"
+          >
+            Wind Speed
+          </SelectableButton>
+          <SelectableButton
+            dataTestId="precip-tab-button"
+            onClick={() => setPrecipVisible(!precipVisible)}
+            selected={precipVisible}
+            weatherParam="precip"
+          >
+            Precip
+          </SelectableButton>
+          <SelectableButton
+            dataTestId="grass-curing-tab-button"
+            onClick={() => setGrassCuringVisible(!grassCuringVisible)}
+            selected={grassCuringVisible}
+            weatherParam="gc"
+          >
+            Grass Curing
+          </SelectableButton>
+          <SelectableButton
+            dataTestId="summary-tab-button"
+            onClick={() => setForecastSummaryVisible(!forecastSummaryVisible)}
+            selected={forecastSummaryVisible}
+            weatherParam="summary"
+          >
+            Forecast Summary
+          </SelectableButton>
+        </List>
+        <Stack
+          direction="row"
+          useFlexGap
+          sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 1, ml: 'auto' }}
+        >
+          {storedDraftForecast.getLastSavedDraftDateTime() && (
+            <Typography sx={{ fontSize: 12 }}>Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}</Typography>
+          )}
           <AboutDataPopover content={MorecastAboutDataContent} maxWidth={600} testId={'morecast-about-data-popover'} />
-        </Grid>
-      </Grid>
+          <ResetForecastButton
+            label={'Reset'}
+            enabled={storedDraftForecast.hasDraftForecastStored()}
+            showResetDialog={showResetDialog}
+            setShowResetDialog={setShowResetDialog}
+            handleResetButtonConfirm={handleResetButtonConfirm}
+            onClick={handleResetClick}
+          />
+          <SaveForecastButton
+            enabled={
+              isAuthenticated &&
+              roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
+              hasForecastRow() &&
+              forecastSummaryVisible
+            }
+            label={'Publish to WF1'}
+            onClick={handleSaveClick}
+          />
+        </Stack>
+      </Stack>
       {/* keep these styles mounted when switching grids so tab changes do not reinsert them */}
       <ThemeProvider theme={gridTheme}>
         <GlobalStyles styles={inputGlobalStyles} />

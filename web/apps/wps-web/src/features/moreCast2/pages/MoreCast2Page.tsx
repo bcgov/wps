@@ -41,13 +41,12 @@ export const Content = styled('div')({
   overflow: 'hidden'
 })
 
-export const Observations = styled('div')(({ theme }) => ({
+export const Observations = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   flexGrow: 1,
-  marginTop: theme.spacing(2),
   overflow: 'hidden'
-}))
+})
 
 const MoreCast2Page = () => {
   const dispatch: AppDispatch = useDispatch()
