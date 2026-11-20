@@ -18,6 +18,11 @@ const models = ORDERED_COLUMN_HEADERS.filter(
   model => weatherModelsWithTooltips.some(candidate => candidate === model) && model !== WeatherDeterminate.NAM
 )
 const differenceFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0, signDisplay: 'exceptZero' })
+const adjustmentFormatter = new Intl.NumberFormat('en-CA', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+  signDisplay: 'exceptZero'
+})
 const tickFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0 })
 const plot = { left: 48, right: 392, top: 36, bottom: 176 }
 
@@ -242,13 +247,16 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
                     setMessage('')
                   }}
                 />
-                <TextField
-                  sx={{ width: 150, flexShrink: 0 }}
-                  size="small"
-                  label="Adjustment (°C)"
-                  value={adjustment === null ? 'Not set' : adjustment.toFixed(1)}
-                  slotProps={{ inputLabel: { shrink: true }, input: { readOnly: true } }}
-                />
+                <Box
+                  sx={{ width: 150, minHeight: 40, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    Calculated adjustment
+                  </Typography>
+                  <Typography variant="body1">
+                    {adjustment === null ? 'Not set' : `${adjustmentFormatter.format(adjustment)} °C`}
+                  </Typography>
+                </Box>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
                 <Typography variant="subtitle2">Preset lapse rates</Typography>
