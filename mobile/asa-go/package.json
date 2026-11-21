@@ -52,7 +52,7 @@
     "@sentry/react": "10.69.0",
     "@sentry/vite-plugin": "^11.0.0",
     "axios": "^1.7.9",
-    "firebase": "^12.9.0",
+    "firebase": "^13.0.0",
     "jwt-decode": "^4.0.0",
     "keycloak": "../keycloak",
     "lodash": "^4.17.21",
