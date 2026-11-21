@@ -230,6 +230,7 @@ const ForecastDataGrid = ({
                     row={params.row}
                     field={params.field}
                     value={String(params.formattedValue ?? '')}
+                    model={model}
                   />
                 )
               }

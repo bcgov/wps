@@ -1,5 +1,16 @@
 import CloseIcon from '@mui/icons-material/Close'
-import { Box, Button, Divider, IconButton, TextField, Tooltip, Typography } from '@mui/material'
+import SyncAltIcon from '@mui/icons-material/SyncAlt'
+import {
+  Box,
+  Button,
+  Checkbox,
+  Divider,
+  FormControlLabel,
+  IconButton,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { useState } from 'react'
@@ -10,7 +21,7 @@ type StationComparison = Pick<ModelElevationRow, 'stationName' | 'stationElevati
 
 interface ModelElevationComparisonPanelProps {
   station: StationComparison | null
-  onApply?: (model: string, rate: number) => string
+  onApply?: (model: string, adjustmentCelsius: number, overwriteExisting: boolean) => string
   onClose: () => void
 }
 
@@ -18,11 +29,6 @@ const models = ORDERED_COLUMN_HEADERS.filter(
   model => weatherModelsWithTooltips.some(candidate => candidate === model) && model !== WeatherDeterminate.NAM
 )
 const differenceFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0, signDisplay: 'exceptZero' })
-const adjustmentFormatter = new Intl.NumberFormat('en-CA', {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-  signDisplay: 'exceptZero'
-})
 const tickFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0 })
 const plot = { left: 48, right: 392, top: 36, bottom: 176 }
 
@@ -47,13 +53,10 @@ const ElevationChart = ({
     return { model, elevation, difference }
   })
   const modelElevations = points.flatMap(point => (point.elevation === null ? [] : [point.elevation]))
-  if (modelElevations.length === 0) {
-    return <Typography sx={{ my: 3 }}>Model elevations are not available for this station.</Typography>
-  }
 
   const elevations = stationElevation === null ? modelElevations : [...modelElevations, stationElevation]
-  const minimum = Math.min(...elevations)
-  const maximum = Math.max(...elevations)
+  const minimum = elevations.length ? Math.min(...elevations) : 0
+  const maximum = elevations.length ? Math.max(...elevations) : 0
   // leave room for labels and keep equal elevations on a useful scale
   const span = Math.max(maximum - minimum, 100) * 1.2
   const lowerBound = (minimum + maximum - span) / 2
@@ -63,6 +66,7 @@ const ElevationChart = ({
   return (
     <>
       <Box sx={{ mt: 1 }}>
+        {modelElevations.length === 0 && <Typography>Model elevations are not available for this station.</Typography>}
         <Box
           component="svg"
           viewBox="0 0 400 196"
@@ -132,7 +136,6 @@ const ElevationChart = ({
             <Button
               size="small"
               sx={{ minWidth: 0, px: 0, fontSize: 11 }}
-              disabled={point.elevation === null}
               aria-pressed={selected === point.model}
               variant={selected === point.model ? 'contained' : 'text'}
               onClick={() => onSelect(point.model)}
@@ -160,18 +163,29 @@ const ElevationChart = ({
 
 const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelElevationComparisonPanelProps) => {
   const [selected, setSelected] = useState('')
-  const [rate, setRate] = useState('')
+  // keep the entered value as text so clearing and typing do not lose the controlling field
+  const [input, setInput] = useState<{ field: 'rate' | 'adjustment'; value: string }>({ field: 'rate', value: '' })
   const [message, setMessage] = useState('')
+  const [overwriteExisting, setOverwriteExisting] = useState(false)
   const modelElevation = station?.modelElevations[selected as keyof typeof station.modelElevations]
-  const valid =
-    selected !== '' &&
-    rate.trim() !== '' &&
-    Number.isFinite(Number(rate)) &&
+  const hasElevations =
     typeof modelElevation === 'number' &&
     Number.isFinite(modelElevation) &&
     typeof station?.stationElevation === 'number' &&
     Number.isFinite(station.stationElevation)
-  const adjustment = valid ? (Number(rate) * (modelElevation! - station!.stationElevation!)) / 1000 : null
+  const differenceKm = hasElevations ? (modelElevation! - station!.stationElevation!) / 1000 : null
+  const canConvert = differenceKm !== null && differenceKm !== 0
+  const entered =
+    input.value.trim() !== '' && Number.isFinite(Number(input.value)) ? Number(Number(input.value).toFixed(1)) : null
+  const unroundedRate =
+    input.field === 'rate' ? entered : entered !== null && canConvert ? entered / differenceKm! : null
+  const rate = unroundedRate !== null ? Number(unroundedRate.toFixed(1)) : null
+  const unroundedAdjustment =
+    input.field === 'adjustment' ? entered : rate !== null && differenceKm !== null ? rate * differenceKm : null
+  const adjustment = unroundedAdjustment !== null ? Number(unroundedAdjustment.toFixed(1)) : null
+  const displayValue = (field: 'rate' | 'adjustment', value: number | null): string =>
+    input.field === field ? input.value : value !== null && Number.isFinite(value) ? value.toFixed(1) : ''
+  const valid = selected !== '' && adjustment !== null && Number.isFinite(adjustment)
   return (
     station && (
       <Box
@@ -226,6 +240,11 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
             station={station}
             selected={selected}
             onSelect={model => {
+              if (model === selected) return
+              // model changes carry the lapse rate, including one derived from a direct adjustment
+              if (input.field === 'adjustment') {
+                setInput({ field: 'rate', value: rate !== null && Number.isFinite(rate) ? rate.toFixed(1) : '' })
+              }
               setSelected(model)
               setMessage('')
             }}
@@ -236,36 +255,57 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
               <Typography variant="subtitle2">Temperature adjustment</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <TextField
-                  sx={{ width: 150, flexShrink: 0 }}
-                  slotProps={{ inputLabel: { shrink: true } }}
+                  sx={{ flex: 1, minWidth: 0 }}
+                  slotProps={{ inputLabel: { shrink: true }, htmlInput: { step: 0.1 } }}
                   size="small"
                   label="Lapse rate (°C/km)"
                   type="number"
-                  value={rate}
+                  disabled={!canConvert}
+                  value={displayValue('rate', rate)}
+                  onBlur={() => {
+                    if (input.field === 'rate' && rate !== null && Number.isFinite(rate)) {
+                      setInput({ field: 'rate', value: rate.toFixed(1) })
+                    }
+                  }}
                   onChange={event => {
-                    setRate(event.target.value)
+                    setInput({ field: 'rate', value: event.target.value })
                     setMessage('')
                   }}
                 />
-                <Box
-                  sx={{ width: 150, minHeight: 40, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
-                >
-                  <Typography variant="caption" color="text.secondary">
-                    Calculated adjustment
-                  </Typography>
-                  <Typography variant="body1">
-                    {adjustment === null ? 'Not set' : `${adjustmentFormatter.format(adjustment)} °C`}
-                  </Typography>
-                </Box>
+                <SyncAltIcon color="action" fontSize="small" />
+                <TextField
+                  sx={{ flex: 1, minWidth: 0 }}
+                  slotProps={{ inputLabel: { shrink: true }, htmlInput: { step: 0.1 } }}
+                  size="small"
+                  label="Adjustment (°C)"
+                  type="number"
+                  value={displayValue('adjustment', adjustment)}
+                  onBlur={() => {
+                    if (input.field === 'adjustment' && adjustment !== null && Number.isFinite(adjustment)) {
+                      setInput({ field: 'adjustment', value: adjustment.toFixed(1) })
+                    }
+                  }}
+                  onChange={event => {
+                    setInput({ field: 'adjustment', value: event.target.value })
+                    setMessage('')
+                  }}
+                />
               </Box>
+              {!canConvert && (
+                <Typography variant="caption">
+                  Lapse rate conversion requires different station and model elevations. You can enter an adjustment
+                  directly.
+                </Typography>
+              )}
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
                 <Typography variant="subtitle2">Preset lapse rates</Typography>
                 <Tooltip title="Dry adiabatic" describeChild>
                   <Button
                     size="small"
                     variant="outlined"
+                    disabled={!canConvert}
                     onClick={() => {
-                      setRate('9.8')
+                      setInput({ field: 'rate', value: '9.8' })
                       setMessage('')
                     }}
                   >
@@ -274,10 +314,27 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
                 </Tooltip>
               </Box>
               <Typography variant="caption">
-                Replaces this station's temperature forecasts in the selected date range.
+                {overwriteExisting ? 'Replaces' : 'Fills empty'} temperature forecasts for this station in the selected
+                date range.
               </Typography>
-              <Button variant="contained" disabled={!valid} onClick={() => setMessage(onApply(selected, Number(rate)))}>
-                Apply to temperature forecasts
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={overwriteExisting}
+                    onChange={event => {
+                      setOverwriteExisting(event.target.checked)
+                      setMessage('')
+                    }}
+                  />
+                }
+                label="Overwrite existing forecasts"
+              />
+              <Button
+                variant="contained"
+                disabled={!valid}
+                onClick={() => setMessage(onApply(selected, adjustment!, overwriteExisting))}
+              >
+                {overwriteExisting ? 'Replace temperature forecasts' : 'Fill empty temperature forecasts'}
               </Button>
               {message && (
                 <Typography role="status" variant="body2">

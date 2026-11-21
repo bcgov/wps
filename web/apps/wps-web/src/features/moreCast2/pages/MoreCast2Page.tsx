@@ -137,9 +137,13 @@ const MoreCast2Page = () => {
           </Box>
           <ModelElevationComparisonPanel
             key={comparisonStationCode ?? 'closed'}
-            onApply={(model, rate) =>
-              gridRef.current?.applyElevationAdjustment(comparisonStationCode!, model, rate) ??
-              'Forecast data is unavailable.'
+            onApply={(model, adjustmentCelsius, overwriteExisting) =>
+              gridRef.current?.applyElevationAdjustment(
+                comparisonStationCode!,
+                model,
+                adjustmentCelsius,
+                overwriteExisting
+              ) ?? 'Forecast data is unavailable.'
             }
             station={
               comparisonStation

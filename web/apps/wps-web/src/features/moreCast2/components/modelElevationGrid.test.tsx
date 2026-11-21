@@ -143,6 +143,23 @@ describe('station sections', () => {
     vi.restoreAllMocks()
   })
 
+  it('labels the terrain action and model elevations with tooltips, including unavailable elevations', async () => {
+    renderGrid()
+    const terrain = await screen.findByRole('button', { name: 'Compare model elevations for Alpha station' })
+    await userEvent.hover(terrain)
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Forecast by elevation')
+    await userEvent.unhover(terrain)
+    await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument())
+    const header = stationHeader('Alpha station')
+    for (const model of ['HRDPS', 'ECMWF']) {
+      const elevation = header.querySelector<HTMLElement>(`[data-field="temp${model}"] span`)!
+      await userEvent.hover(elevation)
+      expect(await screen.findByRole('tooltip')).toHaveTextContent(`${model} Elevation`)
+      await userEvent.unhover(elevation)
+      await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument())
+    }
+  })
+
   it('starts expanded with one header per station and centred model values', async () => {
     const { container } = renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })

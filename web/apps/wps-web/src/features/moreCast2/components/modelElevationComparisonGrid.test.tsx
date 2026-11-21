@@ -124,8 +124,8 @@ describe('station elevation comparison sidebar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Compare model elevations for Alpha station' }))
     await userEvent.click(within(panel()).getByRole('button', { name: 'HRDPS' }))
     await userEvent.click(screen.getByRole('button', { name: '9.8 °C/km' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Apply to temperature forecasts' }))
-    expect(screen.getByRole('status')).toHaveTextContent('Updated temperature forecasts')
+    await userEvent.click(screen.getByRole('button', { name: 'Fill empty temperature forecasts' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Filled temperature forecasts')
   })
 
   it('opens in the sidebar without changing station expansion, drafts, columns, or requests', async () => {

@@ -154,7 +154,12 @@ const SHOW_HIDE_COLUMNS_LOCAL_STORAGE_KEY = 'showHideColumnsModel'
 const storedDraftForecast = new MorecastDraftForecast(localStorage)
 
 export interface ElevationAdjustmentHandle {
-  applyElevationAdjustment: (stationCode: number, model: string, rate: number) => string
+  applyElevationAdjustment: (
+    stationCode: number,
+    model: string,
+    adjustmentCelsius: number,
+    overwriteExisting?: boolean
+  ) => string
 }
 
 interface TabbedDataGridProps {
@@ -244,9 +249,8 @@ const TabbedDataGrid = ({
   useImperativeHandle(
     ref,
     () => ({
-      applyElevationAdjustment: (stationCode, model, rate) => {
-        const elevations = modelElevationData.stationElevations.get(stationCode)
-        const result = adjustStationTemperatures(visibleRows, stationCode, model, rate, elevations)
+      applyElevationAdjustment: (stationCode, model, adjustmentCelsius, overwriteExisting = false) => {
+        const result = adjustStationTemperatures(visibleRows, stationCode, model, adjustmentCelsius, overwriteExisting)
         if (result.rows.length) {
           // include observations and subsequent days so indices keep their starting values
           const changed = new Map(result.rows.map(row => [row.id, row]))
@@ -256,7 +260,7 @@ const TabbedDataGrid = ({
         return result.message
       }
     }),
-    [visibleRows, modelElevationData, updateColumnHelper]
+    [visibleRows, updateColumnHelper]
   )
 
   // Persistence forecasting. Get the most recent actual and persist it through the rest of the
