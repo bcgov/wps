@@ -16,7 +16,7 @@ import { setDateOfInterest } from '@/slices/dateOfInterestSlice'
 import { type RunParametersState, initialState as runParametersInitialState } from '@/slices/runParametersSlice'
 import { createTestStore } from '@/testUtils'
 import type { FireCentre } from '@/types/fireCentre'
-import { formatDatetimeWithTimezone } from '@/utils/timezoneUtils'
+import { formatBCDatetime } from '@/utils/timezoneUtils'
 
 // Mock hooks
 vi.mock('@/hooks/useRunParameterForDate', () => ({
@@ -36,12 +36,12 @@ import { AdvisoryStatus } from '@/utils/constants'
 import { getToday } from '@/utils/dataSliceUtils'
 
 const TEST_FOR_DATE = '2025-07-14'
-const TEST_RUN_DATETIME = '2025-07-13'
+const TEST_RUN_DATETIME = '2025-07-13T20:00:00Z'
 const EXPECTED_FOR_DATE = DateTime.fromISO(TEST_FOR_DATE).toLocaleString({
   month: 'short',
   day: 'numeric'
 })
-const EXPECTED_RUN_DATETIME = formatDatetimeWithTimezone(DateTime.fromISO(TEST_RUN_DATETIME))
+const EXPECTED_RUN_DATETIME = formatBCDatetime(DateTime.fromISO(TEST_RUN_DATETIME))
 
 const testRunParameter: RunParameter = {
   for_date: TEST_FOR_DATE,

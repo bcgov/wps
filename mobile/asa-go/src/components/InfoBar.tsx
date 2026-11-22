@@ -1,6 +1,7 @@
 import { Box, Typography, useTheme } from '@mui/material'
 import { DateTime } from 'luxon'
-import { StatusEnum } from '@/utils/constants'
+import { ASA_GO_TIMEZONE, StatusEnum } from '@/utils/constants'
+import { getBCTimezoneLabel } from '@/utils/timezoneUtils'
 
 interface StatusStyle {
   backgroundColor: string
@@ -17,7 +18,7 @@ interface InfoBarProps {
 }
 
 const getValidUntilDateTime = (validUntil?: string | null) =>
-  validUntil ? DateTime.fromISO(validUntil) : DateTime.invalid('missing validUntil')
+  validUntil ? DateTime.fromISO(validUntil, { zone: ASA_GO_TIMEZONE }) : DateTime.invalid('missing validUntil')
 
 const getValidUntilString = (validUntil?: string | null) => {
   const validUntilDateTime = getValidUntilDateTime(validUntil)
@@ -25,21 +26,22 @@ const getValidUntilString = (validUntil?: string | null) => {
     return 'n/a'
   }
 
-  const today = DateTime.now().startOf('day')
+  const today = DateTime.now().setZone(ASA_GO_TIMEZONE).startOf('day')
   const validUntilDay = validUntilDateTime.startOf('day')
+  const timezoneLabel = getBCTimezoneLabel(validUntilDateTime.toISODate() ?? '')
 
   if (validUntilDay.equals(today)) {
-    return `${validUntilDateTime.toFormat('HH:mm')} Today`
+    return `${validUntilDateTime.toFormat('HH:mm')} ${timezoneLabel} Today`
   }
 
   if (validUntilDay.equals(today.plus({ days: 1 }))) {
     if (validUntilDateTime.hour === 0 && validUntilDateTime.minute === 0) {
-      return 'Midnight Tonight'
+      return `Midnight Tonight ${timezoneLabel}`
     }
-    return `${validUntilDateTime.toFormat('HH:mm')} Tomorrow`
+    return `${validUntilDateTime.toFormat('HH:mm')} ${timezoneLabel} Tomorrow`
   }
 
-  return validUntilDateTime.toFormat('MMM d, HH:mm')
+  return `${validUntilDateTime.toFormat('MMM d, HH:mm')} ${timezoneLabel}`
 }
 
 const InfoBar = ({ validUntil, viewingDate, status, statusText, Icon }: InfoBarProps) => {

@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon'
-import { formatDatetimeWithTimezone, getBCTimezoneLabel } from '@/utils/timezoneUtils'
+import { DateTime, Settings } from 'luxon'
+import { formatBCDatetime, formatDatetimeWithTimezone, getBCTimezoneLabel } from '@/utils/timezoneUtils'
 
 describe('getBCTimezoneLabel', () => {
   it('should be PDT before BC moved to permanent Pacific Time', () => {
@@ -26,5 +26,21 @@ describe('formatDatetimeWithTimezone', () => {
   it('should keep PST for Pacific winter times before the switch', () => {
     const pst = DateTime.fromISO('2026-01-15T20:00:00Z', { zone: 'America/Vancouver' })
     expect(formatDatetimeWithTimezone(pst)).toMatch(/January 15, 2026.*12:00.*PST$/)
+  })
+})
+
+describe('formatBCDatetime', () => {
+  afterEach(() => {
+    Settings.defaultZone = 'system'
+  })
+
+  it.each(['America/Toronto', 'UTC', 'Asia/Tokyo'])('shows the same BC issue time on a %s device', zone => {
+    Settings.defaultZone = zone
+    expect(formatBCDatetime(DateTime.fromISO('2026-11-22T05:00:00Z'))).toMatch(/November 21, 2026.*10:00.*PCT$/)
+  })
+
+  it('uses the BC date when selecting the label at the transition', () => {
+    expect(formatBCDatetime(DateTime.fromISO('2026-11-01T05:00:00Z'))).toMatch(/October 31, 2026.*10:00.*PDT$/)
+    expect(formatBCDatetime(DateTime.fromISO('2026-11-01T08:00:00Z'))).toMatch(/November 1, 2026.*1:00.*PCT$/)
   })
 })
