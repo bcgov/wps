@@ -6,7 +6,6 @@ import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import { PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
 import QuickAccessList from './QuickAccessList'
 import SupportSection from './SupportSection'
@@ -36,7 +35,7 @@ const QuickAccessDrawer = ({
   publicTools,
   bcpsTools
 }: QuickAccessDrawerProps) => (
-  <Drawer onClose={onClose} open={isOpen}>
+  <Drawer slotProps={{ paper: { 'aria-labelledby': 'quick-access-title' } }} onClose={onClose} open={isOpen}>
     <Box
       component="nav"
       aria-label="Quick access"
@@ -52,7 +51,9 @@ const QuickAccessDrawer = ({
           p: 2
         }}
       >
-        <Typography sx={{ fontWeight: 700 }}>Quick Access</Typography>
+        <Typography component="h2" id="quick-access-title" sx={{ fontWeight: 700 }}>
+          Quick Access
+        </Typography>
         <Tooltip title="Close quick access">
           <IconButton aria-label="Close quick access" onClick={onClose} size="small">
             <CloseIcon />
@@ -88,7 +89,7 @@ const QuickAccessDrawer = ({
             <Divider />
             <QuickAccessList
               favouriteRoutes={favouriteRoutes}
-              headingColor={PUBLIC_TOOL_ICON_COLOUR}
+              headingColor="#A64000"
               onNavigate={onClose}
               onToggleFavourite={onToggleFavourite}
               title="Public Access"

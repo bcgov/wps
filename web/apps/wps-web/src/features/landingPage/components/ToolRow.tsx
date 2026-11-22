@@ -7,7 +7,6 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { openFeedbackForm } from '@wps/ui/openFeedbackForm'
 import type { ToolInfo } from 'features/landingPage/toolInfo'
-import type React from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import FavouriteButton from './FavouriteButton'
 import ToolIconTile from './ToolIconTile'
@@ -22,10 +21,6 @@ interface ToolRowProps {
 
 const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
   const isExternal = tool.isExternal === true
-  const handleFeedbackLinkClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault()
-    await openFeedbackForm()
-  }
 
   return (
     <Paper
@@ -67,18 +62,31 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
             </Typography>
             <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flex: '0 0 auto' }}>
               {tool.isBeta && <Chip color="primary" label="Beta" size="small" variant="outlined" />}
-              <FavouriteButton isFavourite={isFavourite} onToggle={onToggleFavourite} toolName={tool.name} />
+              <FavouriteButton
+                id={`directory-pin-${tool.route}`}
+                isFavourite={isFavourite}
+                onToggle={onToggleFavourite}
+                toolName={tool.name}
+              />
             </Stack>
           </Stack>
           <Typography color="text.secondary" sx={{ display: 'block', mt: 'auto', pt: 1 }} variant="caption">
             Managed by:{' '}
-            <MuiLink
-              href={tool.managedBy.href ?? '#'}
-              onClick={tool.managedBy.opensFeedback ? handleFeedbackLinkClick : undefined}
-              underline="hover"
-            >
-              {tool.managedBy.name}
-            </MuiLink>
+            {tool.managedBy.href ? (
+              <MuiLink href={tool.managedBy.href} underline="hover">
+                {tool.managedBy.name}
+              </MuiLink>
+            ) : (
+              tool.managedBy.name
+            )}
+            {tool.managedBy.opensFeedback && (
+              <>
+                {' '}
+                <MuiLink component="button" type="button" variant="inherit" onClick={() => openFeedbackForm()}>
+                  Report a bug
+                </MuiLink>
+              </>
+            )}
           </Typography>
         </Box>
       </Stack>
@@ -103,6 +111,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
 
       {isExternal ? (
         <Button
+          aria-label={`Open ${tool.name}`}
           href={tool.route}
           rel="noreferrer"
           sx={{
@@ -119,6 +128,7 @@ const ToolRow = ({ isFavourite, onToggleFavourite, tool }: ToolRowProps) => {
         </Button>
       ) : (
         <Button
+          aria-label={`Open ${tool.name}`}
           component={RouterLink}
           sx={{
             alignSelf: 'center',

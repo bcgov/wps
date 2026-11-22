@@ -28,7 +28,10 @@ const QuickAccessList = ({
   tools
 }: QuickAccessListProps) => (
   <Box>
-    <Typography sx={{ color: headingColor, fontSize: '0.875rem', fontWeight: 700, px: 2, pb: 0.5, pt: 1.5 }}>
+    <Typography
+      component="h3"
+      sx={{ color: headingColor, fontSize: '0.875rem', fontWeight: 700, px: 2, pb: 0.5, pt: 1.5 }}
+    >
       {title.toUpperCase()}
     </Typography>
     <List disablePadding>
@@ -49,6 +52,7 @@ const QuickAccessList = ({
             key={`${title}-${tool.route}`}
             secondaryAction={
               <FavouriteButton
+                id={`drawer-pin-${tool.route}`}
                 isFavourite={favouriteRoutes.includes(tool.route)}
                 onToggle={() => onToggleFavourite(tool.route)}
                 toolName={tool.name}

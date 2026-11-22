@@ -95,9 +95,7 @@ describe('LandingPage', () => {
       'src',
       '/images/asa-go-logo.png'
     )
-    expect(screen.getAllByRole('link', { name: 'CSBC - Predictive Services' })).toHaveLength(
-      toolInfos.length + apiTools.length
-    )
+    expect(screen.getAllByRole('button', { name: 'Report a bug' })).toHaveLength(toolInfos.length + apiTools.length)
     const bcwsManagedByLinks = screen.getAllByRole('link', { name: BCWS_PREDICTIVE_SERVICES_MANAGED_BY.name })
     expect(bcwsManagedByLinks).toHaveLength(2)
     for (const managedByLink of bcwsManagedByLinks) {
@@ -105,7 +103,7 @@ describe('LandingPage', () => {
     }
   })
 
-  it('opens the feedback form from the CSBC managed by link', async () => {
+  it('opens the feedback form from the Report a bug button', async () => {
     const user = userEvent.setup()
     const mockForm = {
       appendToDom: vi.fn(),
@@ -115,7 +113,7 @@ describe('LandingPage', () => {
     mockGetFeedback.mockReturnValue({ createForm: mockCreateForm } as unknown as ReturnType<typeof getFeedback>)
     renderPage()
 
-    await user.click(screen.getAllByRole('link', { name: 'CSBC - Predictive Services' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Report a bug' })[0])
 
     await waitFor(() => {
       expect(mockCreateForm).toHaveBeenCalled()
@@ -148,32 +146,38 @@ describe('LandingPage', () => {
       name: sfmsApiInfo.name
     })
 
-    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute('target', '_blank')
-    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute('rel', 'noreferrer')
-    expect(fbpGoTitleLink).toHaveAttribute('href', fbpGoInfo.route)
-    expect(fbpGoTitleLink).toHaveAttribute('target', '_blank')
-    expect(fbpGoTitleLink).toHaveAttribute('rel', 'noreferrer')
-    expect(within(wxDataViewerCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
+    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: `Open ${fbpGoInfo.name}` })).toHaveAttribute(
       'target',
       '_blank'
     )
-    expect(within(wxDataViewerCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
+    expect(within(fbpGoCard as HTMLElement).getByRole('link', { name: `Open ${fbpGoInfo.name}` })).toHaveAttribute(
       'rel',
       'noreferrer'
     )
+    expect(fbpGoTitleLink).toHaveAttribute('href', fbpGoInfo.route)
+    expect(fbpGoTitleLink).toHaveAttribute('target', '_blank')
+    expect(fbpGoTitleLink).toHaveAttribute('rel', 'noreferrer')
+    expect(
+      within(wxDataViewerCard as HTMLElement).getByRole('link', { name: `Open ${wxDataViewerInfo.name}` })
+    ).toHaveAttribute('target', '_blank')
+    expect(
+      within(wxDataViewerCard as HTMLElement).getByRole('link', { name: `Open ${wxDataViewerInfo.name}` })
+    ).toHaveAttribute('rel', 'noreferrer')
     expect(wxDataViewerTitleLink).toHaveAttribute('href', wxDataViewerInfo.route)
     expect(wxDataViewerTitleLink).toHaveAttribute('target', '_blank')
     expect(wxDataViewerTitleLink).toHaveAttribute('rel', 'noreferrer')
-    expect(within(wxNetworkAlertsCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
-      'target',
-      '_blank'
-    )
+    expect(
+      within(wxNetworkAlertsCard as HTMLElement).getByRole('link', { name: `Open ${wxNetworkAlertsInfo.name}` })
+    ).toHaveAttribute('target', '_blank')
     expect(wxNetworkAlertsTitleLink).toHaveAttribute('href', wxNetworkAlertsInfo.route)
     expect(wxNetworkAlertsTitleLink).toHaveAttribute('target', '_blank')
     expect(wxNetworkAlertsTitleLink).toHaveAttribute('rel', 'noreferrer')
-    expect(within(sfmsApiCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute('target', '_blank')
+    expect(within(sfmsApiCard as HTMLElement).getByRole('link', { name: `Open ${sfmsApiInfo.name}` })).toHaveAttribute(
+      'target',
+      '_blank'
+    )
     expect(sfmsApiTitleLink).toHaveAttribute('href', 'https://api.gov.bc.ca/devportal/api-directory/4445')
-    expect(within(sfmsApiCard as HTMLElement).getByRole('link', { name: 'Open' })).toHaveAttribute(
+    expect(within(sfmsApiCard as HTMLElement).getByRole('link', { name: `Open ${sfmsApiInfo.name}` })).toHaveAttribute(
       'href',
       'https://api.gov.bc.ca/devportal/api-directory/4445'
     )
@@ -190,7 +194,9 @@ describe('LandingPage', () => {
       .getByRole('heading', { name: percentileCalcInfo.name })
       .closest('article')
 
-    await user.click(within(percentileCalculatorCard as HTMLElement).getByRole('link', { name: 'Open' }))
+    await user.click(
+      within(percentileCalculatorCard as HTMLElement).getByRole('link', { name: `Open ${percentileCalcInfo.name}` })
+    )
 
     expect(screen.getByTestId('location')).toHaveTextContent(percentileCalcInfo.route)
   })
@@ -237,6 +243,28 @@ describe('LandingPage', () => {
     await waitFor(() => {
       expect(JSON.parse(localStorage.getItem(LANDING_PAGE_FAVOURITES_STORAGE_KEY) ?? '[]')).toEqual([tool.route])
     })
+  })
+
+  it.each(['directory', 'drawer'])('keeps keyboard focus on the moved pin in the %s', async surface => {
+    const user = userEvent.setup()
+    renderPage()
+    if (surface === 'drawer') await user.click(screen.getByRole('button', { name: 'Open quick access' }))
+    const scope = within(
+      surface === 'drawer' ? screen.getByRole('dialog', { name: 'Quick Access' }) : screen.getByRole('main')
+    )
+    const add = { name: 'Add FBP Go to favourites' }
+    scope.getByRole('button', add).focus()
+    await user.keyboard('[Space]')
+    expect(scope.getByRole('button', { name: 'Remove FBP Go from favourites' })).toHaveFocus()
+    await user.keyboard('[Space]')
+    expect(scope.getByRole('button', add)).toHaveFocus()
+  })
+
+  it('links directly to the public tools heading', () => {
+    renderPage()
+    const heading = screen.getByRole('heading', { name: 'Public Access' })
+    expect(screen.getByRole('link', { name: 'Jump to public tools' })).toHaveAttribute('href', `#${heading.id}`)
+    expect(heading).toHaveAttribute('tabindex', '-1')
   })
 
   it('restores favourites from local storage', () => {

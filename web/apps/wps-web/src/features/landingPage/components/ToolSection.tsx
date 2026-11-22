@@ -44,7 +44,7 @@ const ToolSection = ({
       >
         {icon}
       </Box>
-      <Typography component="h2" id={headingId} sx={{ fontSize: '1.125rem', fontWeight: 700 }}>
+      <Typography component="h2" id={headingId} tabIndex={-1} sx={{ fontSize: '1.125rem', fontWeight: 700 }}>
         {title}
       </Typography>
     </Stack>
