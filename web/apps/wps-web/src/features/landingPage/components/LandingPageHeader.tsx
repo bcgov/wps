@@ -10,10 +10,11 @@ import { MS_TEAMS_SPRINT_REVIEW_URL, SPRINT_REVIEW_BOARD_URL } from '@wps/utils/
 const BC_WILDFIRE_STATUS_URL = 'https://www2.gov.bc.ca/gov/content/safety/wildfire-status'
 
 interface LandingPageHeaderProps {
+  publicSectionId?: string
   onOpenQuickAccess: () => void
 }
 
-const LandingPageHeader = ({ onOpenQuickAccess }: LandingPageHeaderProps) => (
+const LandingPageHeader = ({ onOpenQuickAccess, publicSectionId }: LandingPageHeaderProps) => (
   <Box
     component="header"
     sx={{
@@ -53,6 +54,12 @@ const LandingPageHeader = ({ onOpenQuickAccess }: LandingPageHeaderProps) => (
       <Typography color="text.secondary" sx={{ mt: 1.5, maxWidth: 960 }} variant="body2">
         BCPS Access Only tools require a BC Government account, while Public Access apps are open to all users. Pin any
         app using the pushpin icon to save it to your personal <strong>My Favourites</strong> section.
+        {publicSectionId && (
+          <>
+            {' '}
+            <Link href={`#${publicSectionId}`}>Jump to public tools</Link>
+          </>
+        )}
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 1, maxWidth: 960 }} variant="body2">
         Collaborate with us by adding our biweekly{' '}

@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack'
 import { API_ACCESS_COLOUR, PUBLIC_TOOL_ICON_COLOUR } from '@wps/ui/theme'
 import { LANDING_PAGE_DOC_TITLE } from '@wps/utils/constants'
 import Footer from 'features/landingPage/components/Footer'
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { readFavouriteRoutes, storeFavouriteRoutes } from '@/features/landingPage/favouritesStorage'
 import LandingPageHeader from '../components/LandingPageHeader'
 import QuickAccessDrawer from '../components/QuickAccessDrawer'
@@ -34,7 +34,18 @@ const LandingPage = () => {
     document.title = LANDING_PAGE_DOC_TITLE
   }, [])
 
+  const pendingFocus = useRef<string | null>(null)
+  // Moving a tool between sections remounts its pin button.
+  useLayoutEffect(() => {
+    if (pendingFocus.current) {
+      document.getElementById(pendingFocus.current)?.focus()
+      pendingFocus.current = null
+    }
+  })
+
   const toggleFavourite = (route: string) => {
+    const pinId = `${isDrawerOpen ? 'drawer' : 'directory'}-pin-${route}`
+    pendingFocus.current = document.activeElement?.id === pinId ? pinId : null
     setFavouriteRoutes(current => {
       const next = current.includes(route)
         ? current.filter(favouriteRoute => favouriteRoute !== route)
@@ -71,7 +82,10 @@ const LandingPage = () => {
           }
         }}
       >
-        <LandingPageHeader onOpenQuickAccess={() => setIsDrawerOpen(true)} />
+        <LandingPageHeader
+          publicSectionId={visiblePublicTools.length ? PUBLIC_SECTION_ID : undefined}
+          onOpenQuickAccess={() => setIsDrawerOpen(true)}
+        />
 
         <Stack spacing={5}>
           {favouriteTools.length > 0 && (
