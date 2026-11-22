@@ -1,10 +1,11 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { fetchPercentiles } from 'features/percentileCalculator/slices/percentilesSlice'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTestStore } from '@/test/testUtils'
 import PercentileCalculatorPage from './PercentileCalculatorPage'
+import PercentileCalculatorPageWithDisclaimer from './PercentileCalculatorPageWithDisclaimer'
 
 const MOCKED_CURRENT_YEAR = 2024
 
@@ -59,6 +60,23 @@ const renderPage = (search = '') =>
 describe('PercentileCalculatorPage', () => {
   beforeEach(() => {
     vi.mocked(fetchPercentiles).mockClear()
+  })
+
+  it('identifies the warranty dialog and opens the calculator after acceptance', () => {
+    render(
+      <Provider store={createTestStore()}>
+        <MemoryRouter>
+          <PercentileCalculatorPageWithDisclaimer showDisclaimer />
+        </MemoryRouter>
+      </Provider>
+    )
+
+    const dialog = screen.getByRole('dialog', { name: 'Warranty Disclaimer' })
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    expect(within(dialog).getByRole('heading', { name: 'Warranty Disclaimer', level: 1 })).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Accept' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByTestId('change-time-range')).toBeInTheDocument()
   })
 
   it('fetches percentiles on mount when station codes are in the URL', async () => {
