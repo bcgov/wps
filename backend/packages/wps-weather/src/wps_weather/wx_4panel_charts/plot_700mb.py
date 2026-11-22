@@ -23,6 +23,7 @@ from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 from cartopy.util import add_cyclic_point
 from matplotlib.patches import Patch
 from scipy.ndimage import maximum_filter, minimum_filter
+from wps_weather.wx_4panel_charts.projection import ChartLambertConformal
 
 # --------------------------------------------------
 # FINAL "decided" feature values live here
@@ -286,7 +287,7 @@ def plot_700hpa(
     plt.rcParams["axes.linewidth"] = cfg.get("axes_linewidth", 0.3)
 
     pc = ccrs.PlateCarree()
-    proj = ccrs.LambertConformal(
+    proj = ChartLambertConformal(
         central_longitude=cfg["central_longitude"],
         central_latitude=cfg["central_latitude"],
     )

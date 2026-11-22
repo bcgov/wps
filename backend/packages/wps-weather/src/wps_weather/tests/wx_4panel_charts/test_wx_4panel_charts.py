@@ -64,6 +64,7 @@ _patches = {
     # native / heavy libs
     "cartopy": MagicMock(),
     "cartopy.crs": MagicMock(),
+    "wps_weather.wx_4panel_charts.projection": MagicMock(),
     "matplotlib": MagicMock(),
     "matplotlib.pyplot": MagicMock(),
     "xarray": MagicMock(),

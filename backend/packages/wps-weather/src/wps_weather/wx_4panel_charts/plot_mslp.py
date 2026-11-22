@@ -22,6 +22,7 @@ import xarray as xr
 from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 from cartopy.util import add_cyclic_point
 from scipy.ndimage import maximum_filter, minimum_filter
+from wps_weather.wx_4panel_charts.projection import ChartLambertConformal
 
 # --------------------------------------------------
 # FINAL "decided" feature values live here
@@ -238,7 +239,7 @@ def plot_mslp_thickness(cfg=None, ax=None, ds_msl=None, ds_thk=None):
     plt.rcParams["axes.linewidth"] = 0.3
 
     pc = ccrs.PlateCarree()
-    proj = ccrs.LambertConformal(
+    proj = ChartLambertConformal(
         central_longitude=cfg["central_longitude"],
         central_latitude=cfg["central_latitude"],
     )

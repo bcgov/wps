@@ -20,6 +20,7 @@ import xarray as xr
 from cartopy.feature import NaturalEarthFeature, ShapelyFeature
 from cartopy.util import add_cyclic_point
 from scipy.ndimage import maximum_filter
+from wps_weather.wx_4panel_charts.projection import ChartLambertConformal
 
 t0 = time.perf_counter()
 # --------------------------------------------------
@@ -248,7 +249,7 @@ def plot_pcpn12(cfg: dict, ax=None, ds_p=None, ds_js=None):
     plt.rcParams["axes.linewidth"] = cfg.get("axes_linewidth", 0.3)
 
     pc = ccrs.PlateCarree()
-    proj = ccrs.LambertConformal(
+    proj = ChartLambertConformal(
         central_longitude=cfg["central_longitude"],
         central_latitude=cfg["central_latitude"],
     )
