@@ -10,7 +10,6 @@ from typing import List, Optional, Tuple
 
 import aiofiles
 import cartopy
-import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import xarray as xr
 from wps_shared import config
@@ -43,6 +42,7 @@ from wps_weather.wx_4panel_charts.plot_mslp_rdps import CFG_MSLP_RDPS
 from wps_weather.wx_4panel_charts.plot_precip import PLOT_CONFIG_PCPN12 as CFG_PCPN_GDPS
 from wps_weather.wx_4panel_charts.plot_precip_rdps import PLOT_CONFIG_PCPN3_RDPS as CFG_PCPN_RDPS
 from wps_weather.wx_4panel_charts.plotter_factory import PlotterFactory
+from wps_weather.wx_4panel_charts.projection import ChartLambertConformal
 from wps_weather.wx_4panel_charts.wx_4panel_chart_addresser import WX4PanelChartAddresser
 
 DEFAULT_FIG_SIZE = (11.8, 10)
@@ -115,7 +115,7 @@ class FourPanelChartRunner:
         output_key: str,
         plotter_factory: PlotterFactory,
     ):
-        proj = ccrs.LambertConformal(
+        proj = ChartLambertConformal(
             central_longitude=cfg500.get("central_longitude", -130.0),
             central_latitude=cfg500.get("central_latitude", 50.0),
         )

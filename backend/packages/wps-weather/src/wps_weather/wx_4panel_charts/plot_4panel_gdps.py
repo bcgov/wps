@@ -11,11 +11,11 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import cartopy.crs as ccrs
 import matplotlib
 import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+from wps_weather.wx_4panel_charts.projection import ChartLambertConformal
 from wps_weather.wx_4panel_charts.plot_500mb import CFG_500 as CFG_500
 
 # -----------------------------
@@ -142,7 +142,7 @@ def make_4panel(
     outdir = ROOT / output_dir
     outdir.mkdir(exist_ok=True)
 
-    proj = ccrs.LambertConformal(
+    proj = ChartLambertConformal(
         central_longitude=cfg500.get("central_longitude", -130.0),
         central_latitude=cfg500.get("central_latitude", 50.0),
     )
