@@ -67,11 +67,12 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
       elevation={6}
       square
       sx={{
-        height: 104,
+        height: 72,
+        flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
-        px: 5,
-        gap: 6,
+        px: { xs: 2, sm: 4 },
+        gap: { xs: 2, sm: 4 },
         zIndex: 30,
         bgcolor: CONTROL_BACKGROUND_COLOUR,
         borderTop: '1px solid',
@@ -140,10 +141,10 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
         aria-label={`Timeline slider 0 to ${end} hours`}
         sx={{
           color: theme.palette.primary.main,
-          height: 8,
+          height: 4,
           '& .MuiSlider-thumb': {
-            width: 26,
-            height: 26,
+            width: 20,
+            height: 20,
             backgroundColor: 'white',
             border: '4px solid #E3A82B',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
@@ -154,11 +155,11 @@ const TimelineController = ({ currentHour, setCurrentHour, start, end, step }: T
           '& .MuiSlider-rail': {
             backgroundColor: BUTTON_BORDER_COLOUR,
             opacity: 1,
-            height: 8,
+            height: 4,
             borderRadius: 4
           },
           '& .MuiSlider-track': {
-            height: 8,
+            height: 4,
             borderRadius: 4,
             background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, #005599 100%)`,
             border: 'none'
