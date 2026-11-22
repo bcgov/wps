@@ -1,4 +1,12 @@
 import { DateTime } from 'luxon'
+import { ASA_GO_TIMEZONE } from '@/utils/constants'
+
+/** Format advisory timestamps in the same fixed BC time used for run dates and critical hours. */
+export const formatBCDatetime = (dt: DateTime): string => {
+  const bcTime = dt.setZone(ASA_GO_TIMEZONE)
+  const formatted = bcTime.toLocaleString({ ...DateTime.DATETIME_FULL, timeZoneName: undefined })
+  return `${formatted} ${getBCTimezoneLabel(bcTime.toISODate() ?? '')}`
+}
 
 // BC moved to permanent Pacific Time (UTC-7) on Nov 1, 2026; it's labelled PCT from then on instead of PDT.
 const PCT_START_DATE = '2026-11-01'

@@ -2,7 +2,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import { render, screen } from '@testing-library/react'
 import { DateTime, Settings } from 'luxon'
 import type { ComponentProps } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { theme } from '@/theme'
 import { StatusEnum } from '@/utils/constants'
 import InfoBar from './InfoBar'
@@ -16,6 +16,9 @@ const renderInfoBar = (props: Partial<ComponentProps<typeof InfoBar>> = {}) =>
   )
 
 describe('InfoBar', () => {
+  beforeEach(() => {
+    Settings.defaultZone = 'UTC-7'
+  })
   afterEach(() => {
     vi.useRealTimers()
     Settings.defaultZone = 'system'
@@ -32,7 +35,7 @@ describe('InfoBar', () => {
     const validUntil = DateTime.fromISO('2024-07-15T18:00:00').toUTC().toISO()
 
     renderInfoBar({ validUntil })
-    expect(screen.getByText(/Valid until: 18:00 Today\./)).toBeInTheDocument()
+    expect(screen.getByText(/Valid until: 18:00 PDT Today\./)).toBeInTheDocument()
   })
 
   it('renders valid until as tomorrow when the expiry is tomorrow', () => {
@@ -41,7 +44,7 @@ describe('InfoBar', () => {
     const validUntil = DateTime.fromISO('2024-07-16T08:00:00').toUTC().toISO()
 
     renderInfoBar({ validUntil })
-    expect(screen.getByText(/Valid until: 08:00 Tomorrow\./)).toBeInTheDocument()
+    expect(screen.getByText(/Valid until: 08:00 PDT Tomorrow\./)).toBeInTheDocument()
   })
 
   it('renders valid until as midnight tonight when the expiry is local midnight tomorrow', () => {
@@ -55,10 +58,10 @@ describe('InfoBar', () => {
       .toISO()
 
     renderInfoBar({ validUntil })
-    expect(screen.getByText(/Valid until: Midnight Tonight\./)).toBeInTheDocument()
+    expect(screen.getByText(/Valid until: Midnight Tonight PDT\./)).toBeInTheDocument()
   })
 
-  it('renders valid until as tomorrow when the expiry is not local midnight', () => {
+  it('uses BC midnight even when the device is in Toronto', () => {
     Settings.defaultZone = 'America/Toronto'
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2024-07-15T16:00:00Z'))
@@ -69,7 +72,28 @@ describe('InfoBar', () => {
       .toISO()
 
     renderInfoBar({ validUntil })
-    expect(screen.getByText(/Valid until: 03:00 Tomorrow\./)).toBeInTheDocument()
+    expect(screen.getByText(/Valid until: Midnight Tonight PDT\./)).toBeInTheDocument()
+  })
+
+  it.each(['America/Toronto', 'UTC', 'Asia/Tokyo'])('uses BC today near midnight on a %s device', zone => {
+    Settings.defaultZone = zone
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-22T05:00:00Z'))
+    renderInfoBar({ validUntil: '2026-11-22T06:00:00Z' })
+    expect(screen.getByText(/Valid until: 23:00 PCT Today\./)).toBeInTheDocument()
+  })
+
+  it('labels the next BC day as tomorrow on a Tokyo device', () => {
+    Settings.defaultZone = 'Asia/Tokyo'
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-22T05:00:00Z'))
+    renderInfoBar({ validUntil: '2026-11-22T20:00:00Z' })
+    expect(screen.getByText(/Valid until: 13:00 PCT Tomorrow\./)).toBeInTheDocument()
+  })
+
+  it('renders n/a for an invalid timestamp', () => {
+    renderInfoBar({ validUntil: 'invalid' })
+    expect(screen.getByText(/Valid until: n\/a\./)).toBeInTheDocument()
   })
 
   it('renders valid until as a date when the expiry date is in the past', () => {
@@ -78,7 +102,7 @@ describe('InfoBar', () => {
     const validUntil = DateTime.fromISO('2024-07-14T18:00:00').toUTC().toISO()
 
     renderInfoBar({ validUntil })
-    expect(screen.getByText(/Valid until: Jul 14, 18:00\./)).toBeInTheDocument()
+    expect(screen.getByText(/Valid until: Jul 14, 18:00 PDT\./)).toBeInTheDocument()
   })
 
   it('renders n/a when validUntil is null', () => {

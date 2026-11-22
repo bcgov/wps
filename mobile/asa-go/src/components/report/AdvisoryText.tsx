@@ -18,7 +18,7 @@ import {
   getMinStartAndMaxEndTime
 } from '@/utils/criticalHoursStartEndTime'
 import { getToday } from '@/utils/dataSliceUtils'
-import { formatDatetimeWithTimezone, getBCTimezoneLabel } from '@/utils/timezoneUtils'
+import { formatBCDatetime, getBCTimezoneLabel } from '@/utils/timezoneUtils'
 
 export interface AdvisoryTextProps {
   selectedFireCentre: FireCentre | undefined
@@ -233,7 +233,7 @@ const AdvisoryText = ({ selectedFireCentre, selectedFireZoneUnit }: AdvisoryText
 
         {runParameter?.run_datetime && (
           <AdvisoryTypography data-testid="bulletin-issue-date" sx={{ whiteSpace: 'pre-wrap' }}>
-            {`Issued on ${formatDatetimeWithTimezone(DateTime.fromISO(runParameter.run_datetime))} for ${displayForDate}.\n\n`}
+            {`Issued on ${formatBCDatetime(DateTime.fromISO(runParameter.run_datetime))} for ${displayForDate}.\n\n`}
           </AdvisoryTypography>
         )}
 
