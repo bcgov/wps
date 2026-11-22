@@ -29,6 +29,7 @@ const StyledModal = styled(Modal)({
     padding: 16
   },
   [`& .${classes.title}`]: {
+    margin: 0,
     fontSize: '1.5rem',
     fontWeight: 'bold',
     textAlign: 'center'
@@ -60,13 +61,21 @@ const PercentileCalculatorPageWithDisclaimer: React.FunctionComponent<Props> = (
   }
 
   return (
-    <StyledModal open={show} aria-labelledby="disclaimer-modal" onClose={handleClose}>
-      <div className={classes.cardWrapper}>
+    <StyledModal open={show} onClose={handleClose}>
+      <div
+        className={classes.cardWrapper}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="disclaimer-title"
+        tabIndex={-1}
+      >
         <Card className={classes.card}>
           <div className={classes.iconWrapper}>
             <InfoIcon color="secondary" fontSize="large" />
           </div>
-          <div className={classes.title}>Warranty Disclaimer</div>
+          <h1 id="disclaimer-title" className={classes.title}>
+            Warranty Disclaimer
+          </h1>
           <p>
             This 90th Percentile Forest Fire Weather Index (FWI) system software and related documentation is provided
             as a public service by the Government of British Columbia, Box 9411, Victoria, British Columbia, Canada V8W
