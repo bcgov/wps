@@ -189,6 +189,10 @@ class ByTimeTable(DeltaWeatherTable):
         older run, as a backfill does, fills gaps without undoing newer predictions.
         """
         run = build_run_table(model, run_ts, rows, ingested_at or datetime.now(UTC))
+        return self.merge_run_table(model, run_ts, run)
+
+    def merge_run_table(self, model: ModelEnum, run_ts: datetime, run: pa.Table) -> int:
+        """Merge in a model run's rows in the `runs` schema, as `merge_run` does."""
         source = by_time_rows_from_run(run)
         if source.num_rows == 0:
             logger.warning(

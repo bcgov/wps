@@ -699,3 +699,30 @@ def test_publish_run_with_no_station_predictions_keeps_the_run_in_staging(
     assert not runs.has_run(ModelEnum.ECMWF, RUN_TS)
     assert not by_time.exists()
     assert staging.processed_sources(RUN_TS) == {"fxx=000"}
+
+
+def test_a_publish_interrupted_is_finished_without_appending_again(
+    setup_processor, tables, mocker: MockerFixture
+):
+    processor, _ = setup_processor
+    runs, by_time, staging = tables
+    processor.stations = [WeatherStation(code=1, long=10.0, lat=50.0, name="Station 1")]
+    stage_run(staging, RUN_TS, 1, [18])
+    at_1800 = RUN_TS + timedelta(hours=18)
+    process_station = mocker.patch.object(
+        processor,
+        "_process_model_run_for_station",
+        return_value=[StationPrediction(station_code=1, prediction_timestamp=at_1800)],
+    )
+    merge = mocker.patch.object(by_time, "_merge", side_effect=MemoryError)
+    with pytest.raises(MemoryError):
+        processor.publish_run(RUN_TS)
+    mocker.stop(merge)
+
+    processor.publish_run(RUN_TS)
+
+    assert process_station.call_count == 1
+    versions = runs.dataset().to_table(columns=["ingested_at"])["ingested_at"].to_pylist()
+    assert len(versions) == 1
+    assert by_time.read(HOURLY, [ModelEnum.ECMWF.value], at_1800, at_1800).num_rows == 1
+    assert not staging.has_run(RUN_TS)

@@ -4,7 +4,7 @@ is already published, and turning a fully staged run into station predictions.
 A run is downloaded into `staging`, then published: its station predictions are appended to
 `runs`, merged into `by_time`, and the run is deleted from `staging`, in that order. A run in
 `runs` with nothing left in `staging` is done. A run in both was interrupted while publishing, and
-is published again.
+what is left of publishing it is done.
 
 Design: docs/architecture/station-weather-storage.md
 """
@@ -79,6 +79,29 @@ def run_is_published(
 ) -> bool:
     """Whether a run is done: in `runs`, with nothing left in `staging`."""
     return runs_table.has_run(model, run_ts) and not staging_table.has_run(run_ts)
+
+
+def finish_interrupted_publish(
+    runs_table: RunsTable,
+    by_time_table: ByTimeTable,
+    staging_table: StagingTable,
+    model: ModelEnum,
+    run_ts: datetime,
+) -> bool:
+    """Finish publishing a run that an earlier invocation appended to `runs` and was then stopped:
+    merge it into `by_time` and delete it from `staging`. Returns whether there was one.
+
+    Appending it again would leave a copy of the whole run in `runs` for every retry. A run staged
+    again since it was appended is being reprocessed, not finished, so it is left to be published.
+    """
+    appended_at = runs_table.newest_version(model, run_ts)
+    staged_at = staging_table.last_written_at(run_ts)
+    if appended_at is None or staged_at is None or appended_at <= staged_at:
+        return False
+    logger.info("%s model run %s is already in runs, finishing publishing it", model.value, run_ts)
+    by_time_table.merge_run_table(model, run_ts, runs_table.read(model, run_ts, run_ts))
+    staging_table.delete_run(run_ts)
+    return True
 
 
 class RunStager:
@@ -175,6 +198,10 @@ class ModelValueProcessor:
     def publish_run(self, run_ts: datetime):
         """Compute a staged run's station predictions, append them to `runs`, merge them into
         `by_time`, then delete the run from `staging`."""
+        if finish_interrupted_publish(
+            self.runs_table, self.by_time_table, self.staging_table, self.model_type, run_ts
+        ):
+            return
         logger.info("Interpolating values for %s model run %s", self.model_type.value, run_ts)
         staged = self.staging_table.station_values(run_ts)
         history = read_model_history(self.runs_table, self.model_type, run_ts)

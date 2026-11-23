@@ -143,6 +143,17 @@ def test_has_run_is_true_only_for_a_published_run(table):
     assert not table.has_run(ModelEnum.GDPS, RUN_TS + timedelta(hours=12))
 
 
+def test_newest_version_is_when_the_run_was_last_appended(table):
+    assert table.newest_version(ModelEnum.GDPS, RUN_TS) is None
+    later = INGESTED_AT + timedelta(days=1)
+    for ingested_at in (later, INGESTED_AT):
+        table.append_run(ModelEnum.GDPS, RUN_TS, make_rows([101]), ingested_at=ingested_at)
+
+    assert table.newest_version(ModelEnum.GDPS, RUN_TS) == later
+    assert table.newest_version(ModelEnum.RDPS, RUN_TS) is None
+    assert table.newest_version(ModelEnum.GDPS, RUN_TS + timedelta(hours=12)) is None
+
+
 def test_latest_run_ts_is_the_newest_run_since(table):
     since = RUN_TS - timedelta(days=1)
     assert table.latest_run_ts(ModelEnum.ECMWF, since) is None

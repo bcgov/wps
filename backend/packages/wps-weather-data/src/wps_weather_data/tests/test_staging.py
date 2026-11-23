@@ -50,6 +50,16 @@ def test_processed_sources_are_the_files_staged_for_the_run(staging):
     assert staging.processed_sources(OTHER_RUN_TS) == {"c"}
 
 
+def test_last_written_at_is_when_the_run_was_last_staged(staging):
+    assert staging.last_written_at(RUN_TS) is None
+    staging.append_files(RUN_TS, [temperature_file(AT_0300, {322: 1.0}, source="a")])
+    first = staging.last_written_at(RUN_TS)
+    staging.append_files(RUN_TS, [temperature_file(AT_0600, {322: 2.0}, source="b")])
+
+    assert staging.last_written_at(RUN_TS) > first
+    assert staging.last_written_at(OTHER_RUN_TS) is None
+
+
 def test_a_file_with_no_station_values_still_counts_as_processed(staging):
     staging.append_files(RUN_TS, [StagedFile("empty", AT_0300, [])])
 

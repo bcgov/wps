@@ -129,6 +129,15 @@ class RunsTable(DeltaWeatherTable):
             return False
         return self.dataset().count_rows(filter=self._runs_filter(model, run_ts, run_ts)) > 0
 
+    def newest_version(self, model: ModelEnum, run_ts: datetime) -> datetime | None:
+        """When the newest version of the run was written (its `ingested_at`), if it is here."""
+        if not self.exists():
+            return None
+        ingested_at = self.dataset().to_table(
+            columns=["ingested_at"], filter=self._runs_filter(model, run_ts, run_ts)
+        )["ingested_at"]
+        return pc.max(ingested_at).as_py()
+
     def latest_run_ts(self, model: ModelEnum, since: datetime) -> datetime | None:
         """The newest published run of the model that started at or after `since`, if any."""
         if not self.exists():
