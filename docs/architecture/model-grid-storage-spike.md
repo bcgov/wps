@@ -1,6 +1,6 @@
 # Model grid storage spike: weather model grids in Zarr on Icechunk
 
-Status: spike, run on 2026-11-19 on local disk for HRDPS, RDPS, GDPS, GFS and ECMWF, and against our object store (ECS) for HRDPS and RDPS. The design is now built for HRDPS and RDPS in `wps_weather_data.grids` (see [As built](#as-built)). Read times from inside the cluster are not measured.
+Status: spike, run on 2026-11-19 on local disk for HRDPS, RDPS, GDPS, GFS and ECMWF, and against our object store (ECS) for HRDPS and RDPS. The design is now built for HRDPS, RDPS and GDPS in `wps_weather_data.grids` (see [As built](#as-built)). Read times from inside the cluster are not measured.
 
 The decisions here and in the related documents are listed in [weather-data-decisions.md](weather-data-decisions.md).
 
@@ -234,7 +234,7 @@ The 2026-11-19 18Z HRDPS run was written to ECS through each storage and read ba
 
 ## As built
 
-`wps_weather_data.grids`, described in the [package README](../../backend/packages/wps-weather-data/README.md#grids), implements this for HRDPS and RDPS, about 47 of the 52 GB a year:
+`wps_weather_data.grids`, described in the [package README](../../backend/packages/wps-weather-data/README.md#grids), implements this for HRDPS, RDPS and GDPS, about 49 of the 52 GB a year:
 
 - **A separate job, hourly for each model**, not part of the station jobs, so that a failure in one cannot hold up the other. It downloads the files again for itself.
 - **A run is stored only once the datamart has all of it**, checked before anything is downloaded, and committed once. A file that disappears part way leaves nothing committed, and the run is tried again the next hour.
@@ -284,7 +284,7 @@ Cropped GRIB would still be worse to use:
 2. Measure reads from inside the cluster, from a pod reading the `object_store` stores, to separate ECS's own latency from the laptop's network path.
 3. Ask the object storage team whether ECS will accept the AWS SDKs' CRC checksums, which would also let our own Python code drop the aiobotocore pin.
 4. Check whether NOMADS keeps NOAA's original scales for GFS, against a field from NOAA's full file.
-5. Add GDPS, GFS and ECMWF to the job, and endpoints that read the grids.
+5. Add GFS and ECMWF to the job, and endpoints that read the grids.
 
 ## Open-Meteo's quantization
 

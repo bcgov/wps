@@ -92,6 +92,7 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_station_weather_by_
 echo Model Grids
 PROJ_TARGET=${PROJ_TARGET} MODEL=HRDPS bash $(dirname ${0})/oc_provision_model_grids_cronjob.sh prod >>"${BATCH_FILE}"
 PROJ_TARGET=${PROJ_TARGET} MODEL=RDPS bash $(dirname ${0})/oc_provision_model_grids_cronjob.sh prod >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MODEL=GDPS bash $(dirname ${0})/oc_provision_model_grids_cronjob.sh prod >>"${BATCH_FILE}"
 echo VIIRS Snow
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh prod >>"${BATCH_FILE}"
 echo Grass Curing

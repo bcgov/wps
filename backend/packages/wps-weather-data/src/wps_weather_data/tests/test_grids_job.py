@@ -20,6 +20,18 @@ def test_runs_of_the_last_day_oldest_first():
     assert run_times(MODEL, NOW) == [at(19, 0), at(19, 6), at(19, 12), at(19, 18)]
 
 
+def test_gdps_runs_twice_a_day_at_three_hour_steps():
+    gdps = models.MODELS["GDPS"]
+
+    assert run_times(gdps, NOW) == [at(19, 0), at(19, 12)]
+    assert gdps.history_run_hour in gdps.run_hours
+    assert (gdps.hours[0], gdps.hours[1], gdps.hours[-1]) == (0, 3, 240)
+    assert gdps.file_url(at(19, 12), 240, gdps.variables[0]) == (
+        "https://dd.weather.gc.ca/today/model_gdps/15km/12/240/"
+        "20261119T12Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT240H.grib2"
+    )
+
+
 def test_new_runs_go_to_recent_and_the_daily_run_to_history(monkeypatch, tmp_path):
     fake_datamart(monkeypatch)
     recent, history = store(tmp_path, "recent"), store(tmp_path, "history")
