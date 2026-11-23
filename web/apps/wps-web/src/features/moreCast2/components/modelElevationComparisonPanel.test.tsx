@@ -21,6 +21,64 @@ const modelLabels = (name: string) => [
 ]
 
 describe('model elevation comparison panel', () => {
+  beforeEach(() => localStorage.clear())
+  afterEach(() => localStorage.clear())
+
+  it.each(['', ' ', 'invalid', 'NaN', 'Infinity'])('ignores invalid saved rate %s', saved => {
+    localStorage.setItem('morecastLastLapseRate', saved)
+    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={vi.fn()} />)
+    expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveValue(null)
+  })
+
+  it.each(['0.0', '-6.5', '9.8'])('prefills saved rate %s without selecting a model', saved => {
+    localStorage.setItem('morecastLastLapseRate', saved)
+    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={vi.fn()} />)
+    expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveDisplayValue(saved)
+    expect(screen.getByRole('button', { name: 'Fill temperature forecasts' })).toBeDisabled()
+    expect(screen.queryByText('Preset lapse rates')).not.toBeInTheDocument()
+  })
+
+  it('saves a derived rate only on Fill and restores it when reopened', async () => {
+    const props = { station, onClose: vi.fn(), onApply: vi.fn() }
+    const { unmount } = render(<ModelElevationComparisonPanel {...props} />)
+    await userEvent.click(screen.getByRole('button', { name: 'RDPS' }))
+    await userEvent.type(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' }), '-2')
+    expect(localStorage.getItem('morecastLastLapseRate')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
+    expect(localStorage.getItem('morecastLastLapseRate')).toBe('-8.0')
+    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
+    await userEvent.clear(rate)
+    await userEvent.type(rate, '5')
+    await userEvent.tab()
+    unmount()
+    render(<ModelElevationComparisonPanel {...props} />)
+    expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveDisplayValue('-8.0')
+  })
+
+  it('does not overwrite a saved rate when applying an adjustment without elevations', async () => {
+    localStorage.setItem('morecastLastLapseRate', '6.5')
+    render(
+      <ModelElevationComparisonPanel
+        station={{ ...station, stationElevation: null }}
+        onClose={vi.fn()}
+        onApply={vi.fn()}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
+    await userEvent.type(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' }), '2')
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
+    expect(localStorage.getItem('morecastLastLapseRate')).toBe('6.5')
+  })
+
+  it('explains the date range in a tooltip even when Fill is disabled', async () => {
+    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={vi.fn()} />)
+    const fill = screen.getByRole('button', { name: 'Fill temperature forecasts' })
+    await userEvent.hover(fill.parentElement!)
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Fill temperature forecasts for this station in the selected date range.'
+    )
+  })
+
   it('rounds an entered adjustment on blur and applies the rounded value', async () => {
     const onApply = vi.fn()
     render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={onApply} />)
@@ -30,7 +88,7 @@ describe('model elevation comparison panel', () => {
     await userEvent.tab()
     expect(adjustment).toHaveDisplayValue('-2.3')
     expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveValue(-9.2)
-    await userEvent.click(screen.getByRole('button', { name: 'Fill empty temperature forecasts' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(onApply).toHaveBeenCalledWith('RDPS', -2.3, false)
   })
 
@@ -43,7 +101,7 @@ describe('model elevation comparison panel', () => {
     await userEvent.tab()
     expect(rate).toHaveValue(6.6)
     expect(rate).toHaveDisplayValue('6.6')
-    await userEvent.click(screen.getByRole('button', { name: 'Fill empty temperature forecasts' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(onApply).toHaveBeenCalledWith('RDPS', 1.6, false)
   })
 
@@ -65,7 +123,7 @@ describe('model elevation comparison panel', () => {
     const roundedRate = Number((value / 0.3).toFixed(1))
     expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveValue(roundedRate)
     expect(onApply).not.toHaveBeenCalled()
-    await userEvent.click(screen.getByRole('button', { name: 'Fill empty temperature forecasts' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(onApply).toHaveBeenCalledWith('RDPS', roundedRate, false)
   })
 
@@ -81,14 +139,14 @@ describe('model elevation comparison panel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
     expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toBeDisabled()
     await userEvent.type(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' }), '2')
-    await userEvent.click(screen.getByRole('button', { name: 'Fill empty temperature forecasts' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(onApply).toHaveBeenCalledWith('HRDPS', 2, false)
     await userEvent.click(screen.getByRole('checkbox', { name: 'Overwrite existing forecasts' }))
     await userEvent.click(screen.getByRole('button', { name: 'RDPS' }))
     expect(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' })).toHaveValue(null)
-    expect(screen.getByRole('button', { name: 'Replace temperature forecasts' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Fill temperature forecasts' })).toBeDisabled()
     await userEvent.type(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' }), '3')
-    await userEvent.click(screen.getByRole('button', { name: 'Replace temperature forecasts' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(onApply).toHaveBeenLastCalledWith('RDPS', 3, true)
   })
 
@@ -113,23 +171,23 @@ describe('model elevation comparison panel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
     expect(rate).toHaveValue(-8)
     expect(adjustment).toHaveValue(null)
-    expect(screen.getByRole('button', { name: 'Fill empty temperature forecasts' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Fill temperature forecasts' })).toBeDisabled()
     await userEvent.click(screen.getByRole('button', { name: 'RDPS' }))
     expect(rate).toHaveValue(-8)
     expect(adjustment).toHaveValue(-2)
     expect(onApply).not.toHaveBeenCalled()
-    await userEvent.click(screen.getByRole('button', { name: 'Fill empty temperature forecasts' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(onApply).toHaveBeenCalledWith('RDPS', -2, false)
     await userEvent.clear(adjustment)
-    expect(screen.getByRole('button', { name: 'Fill empty temperature forecasts' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Fill temperature forecasts' })).toBeDisabled()
     await userEvent.type(adjustment, '0')
-    expect(screen.getByRole('button', { name: 'Fill empty temperature forecasts' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Fill temperature forecasts' })).toBeEnabled()
   })
 
   it('selects an axis label and applies only after an explicit click', async () => {
     const onApply = vi.fn().mockReturnValue('Filled temperature forecasts for 2 days.')
     render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={onApply} />)
-    const apply = screen.getByRole('button', { name: 'Fill empty temperature forecasts' })
+    const apply = screen.getByRole('button', { name: 'Fill temperature forecasts' })
     expect(apply).toBeDisabled()
     const adjustment = screen.getByRole('spinbutton', { name: 'Adjustment (°C)' })
     expect(adjustment).toHaveValue(null)
@@ -137,9 +195,8 @@ describe('model elevation comparison panel', () => {
     label.focus()
     await userEvent.keyboard('{Enter}')
     expect(label).toHaveAttribute('aria-pressed', 'true')
-    await userEvent.click(screen.getByRole('button', { name: '9.8 °C/km' }))
-    await userEvent.hover(screen.getByRole('button', { name: '9.8 °C/km' }))
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Dry adiabatic')
+    await userEvent.clear(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' }))
+    await userEvent.type(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' }), '9.8')
     expect(onApply).not.toHaveBeenCalled()
     expect(screen.getByText('Temperature adjustment')).toBeInTheDocument()
     expect(adjustment).toHaveValue(-0.5)
@@ -153,7 +210,8 @@ describe('model elevation comparison panel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'GDPS' }))
     expect(adjustment).toHaveValue(0)
     await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
-    await userEvent.click(screen.getByRole('button', { name: '9.8 °C/km' }))
+    await userEvent.clear(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' }))
+    await userEvent.type(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' }), '9.8')
     await userEvent.click(apply)
     expect(onApply.mock.calls[0][0]).toBe('HRDPS')
     expect(onApply.mock.calls[0][1]).toBe(-0.5)

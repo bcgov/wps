@@ -123,8 +123,9 @@ describe('station elevation comparison sidebar', () => {
     await renderPage()
     await userEvent.click(screen.getByRole('button', { name: 'Compare model elevations for Alpha station' }))
     await userEvent.click(within(panel()).getByRole('button', { name: 'HRDPS' }))
-    await userEvent.click(screen.getByRole('button', { name: '9.8 °C/km' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Fill empty temperature forecasts' }))
+    await userEvent.clear(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' }))
+    await userEvent.type(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' }), '9.8')
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(screen.getByRole('status')).toHaveTextContent('Filled temperature forecasts')
   })
 

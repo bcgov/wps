@@ -19,6 +19,17 @@ import { ORDERED_COLUMN_HEADERS } from './ColumnDefBuilder'
 
 type StationComparison = Pick<ModelElevationRow, 'stationName' | 'stationElevation' | 'modelElevations'>
 
+const LAPSE_RATE_STORAGE_KEY = 'morecastLastLapseRate'
+
+const getStoredLapseRate = (): string => {
+  try {
+    const stored = localStorage.getItem(LAPSE_RATE_STORAGE_KEY)
+    return stored?.trim() && Number.isFinite(Number(stored)) ? Number(stored).toFixed(1) : ''
+  } catch {
+    return ''
+  }
+}
+
 interface ModelElevationComparisonPanelProps {
   station: StationComparison | null
   onApply?: (model: string, adjustmentCelsius: number, overwriteExisting: boolean) => string
@@ -164,7 +175,10 @@ const ElevationChart = ({
 const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelElevationComparisonPanelProps) => {
   const [selected, setSelected] = useState('')
   // keep the entered value as text so clearing and typing do not lose the controlling field
-  const [input, setInput] = useState<{ field: 'rate' | 'adjustment'; value: string }>({ field: 'rate', value: '' })
+  const [input, setInput] = useState<{ field: 'rate' | 'adjustment'; value: string }>(() => ({
+    field: 'rate',
+    value: getStoredLapseRate()
+  }))
   const [message, setMessage] = useState('')
   const [overwriteExisting, setOverwriteExisting] = useState(false)
   const modelElevation = station?.modelElevations[selected as keyof typeof station.modelElevations]
@@ -297,26 +311,6 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
                   directly.
                 </Typography>
               )}
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
-                <Typography variant="subtitle2">Preset lapse rates</Typography>
-                <Tooltip title="Dry adiabatic" describeChild>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    disabled={!canConvert}
-                    onClick={() => {
-                      setInput({ field: 'rate', value: '9.8' })
-                      setMessage('')
-                    }}
-                  >
-                    9.8 °C/km
-                  </Button>
-                </Tooltip>
-              </Box>
-              <Typography variant="caption">
-                {overwriteExisting ? 'Replaces' : 'Fills empty'} temperature forecasts for this station in the selected
-                date range.
-              </Typography>
               <FormControlLabel
                 control={
                   <Checkbox
@@ -329,13 +323,27 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
                 }
                 label="Overwrite existing forecasts"
               />
-              <Button
-                variant="contained"
-                disabled={!valid}
-                onClick={() => setMessage(onApply(selected, adjustment!, overwriteExisting))}
-              >
-                {overwriteExisting ? 'Replace temperature forecasts' : 'Fill empty temperature forecasts'}
-              </Button>
+              <Tooltip title="Fill temperature forecasts for this station in the selected date range." describeChild>
+                <Box component="span" sx={{ display: 'block' }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    disabled={!valid}
+                    onClick={() => {
+                      setMessage(onApply(selected, adjustment!, overwriteExisting))
+                      if (rate !== null && Number.isFinite(rate)) {
+                        try {
+                          localStorage.setItem(LAPSE_RATE_STORAGE_KEY, rate.toFixed(1))
+                        } catch {
+                          // remembering a preference must not prevent filling forecasts
+                        }
+                      }
+                    }}
+                  >
+                    Fill temperature forecasts
+                  </Button>
+                </Box>
+              </Tooltip>
               {message && (
                 <Typography role="status" variant="body2">
                   {message}
