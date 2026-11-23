@@ -16,12 +16,14 @@ Design: docs/architecture/model-grid-storage-spike.md
 
 import logging
 from collections.abc import Iterable
+from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from functools import cached_property
 
 import icechunk
 import numpy as np
 import zarr
+from icechunk._icechunk_python import RepoUpdateRetryConfig  # not exported by icechunk
 from wps_shared import config
 from zarr.codecs import ZstdCodec
 from zarr.codecs.numcodecs import PCodec
@@ -33,6 +35,10 @@ from wps_weather_data.grids.models import MODELS, SCALES, VariableRun
 logger = logging.getLogger(__name__)
 
 TILE = 64
+# How often a refused update of the repository is retried: about half a minute in all. Icechunk's
+# default is 100 tries, over an hour. Updates only ever compete with the nightly maintenance, so a
+# store that refuses for longer is stuck, and the job should fail and say so.
+UPDATE_TRIES = 15
 RUN_FORMAT = "%Y-%m-%dT%H"
 
 
@@ -74,7 +80,10 @@ class GridStore:
     @cached_property
     def repository(self) -> icechunk.Repository:
         """The repository, created if it does not exist yet."""
-        return icechunk.Repository.open_or_create(self.storage)
+        tries = icechunk.StorageRetriesSettings(max_tries=UPDATE_TRIES)
+        config = icechunk.RepositoryConfig.default()
+        config.repo_update_retries = RepoUpdateRetryConfig(default=tries)
+        return icechunk.Repository.open_or_create(self.storage, config=config)
 
     def exists(self) -> bool:
         """Whether the repository exists, without creating it."""
@@ -96,7 +105,10 @@ class GridStore:
     def write_run(self, run_time: datetime, crop: Crop, variables: Iterable[VariableRun]) -> bool:
         """Add a run in one commit, a variable at a time. Returns False if the store already
         has it."""
-        return bool(write_run([self], run_time, crop, variables))
+        written, failures = write_run([self], run_time, crop, variables)
+        if failures:
+            raise failures[self]
+        return bool(written)
 
     def _group(self, run_time: datetime) -> zarr.Group:
         root = self._root()
@@ -234,24 +246,51 @@ class _RunWriter:
 
 def write_run(
     stores: list[GridStore], run_time: datetime, crop: Crop, variables: Iterable[VariableRun]
-) -> list[GridStore]:
+) -> tuple[list[GridStore], dict[GridStore, Exception]]:
     """Add a run to each store that lacks it, a variable at a time: each variable is written to
     every store as it arrives, so only one is held at once, and each store commits once all are
-    written. `variables` is only consumed if a store lacks the run. Returns the stores written."""
+    written. `variables` is only consumed if a store lacks the run.
+
+    A store that fails does not stop the others. Returns the stores written, and the error of
+    each that failed. An error reading `variables` is raised, with nothing committed."""
     for store in stores[1:]:
         if store.model != stores[0].model:
             raise ValueError("a run can only be written to stores of one model")
-    writers = [w for w in (_RunWriter(s, run_time, crop) for s in stores) if not w.exists]
+    writers: list[_RunWriter] = []
+    failures: dict[GridStore, Exception] = {}
+    for store in stores:
+        with _recording_failure(store, run_time, failures):
+            writer = _RunWriter(store, run_time, crop)
+            if not writer.exists:
+                writers.append(writer)
     if not writers:
-        return []
+        return [], failures
     expected = [v.name for v in stores[0].model.variables]
-    written = []
+    received = []
     for variable_run in variables:
-        written.append(variable_run.variable.name)
+        received.append(variable_run.variable.name)
         for writer in writers:
-            writer.add(variable_run)
-    if written != expected:
-        raise ValueError(f"the run has {written}, the model {expected}")
+            with _recording_failure(writer.store, run_time, failures):
+                writer.add(variable_run)
+        writers = [writer for writer in writers if writer.store not in failures]
+        if not writers:
+            return [], failures
+    if received != expected:
+        raise ValueError(f"the run has {received}, the model {expected}")
+    written = []
     for writer in writers:
-        writer.commit()
-    return [writer.store for writer in writers]
+        with _recording_failure(writer.store, run_time, failures):
+            writer.commit()
+            written.append(writer.store)
+    return written, failures
+
+
+@contextmanager
+def _recording_failure(store: GridStore, run_time: datetime, failures: dict[GridStore, Exception]):
+    """Log an error writing a run to a store and record it in `failures`, instead of raising."""
+    try:
+        yield
+    except Exception as error:
+        name = f"{store.model.name} run {run_name(run_time)}"
+        logger.exception("Failed to write %s to %s", name, store.store)
+        failures[store] = error

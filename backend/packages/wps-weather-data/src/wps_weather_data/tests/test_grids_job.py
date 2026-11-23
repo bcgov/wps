@@ -5,7 +5,7 @@ import pytest
 
 from wps_weather_data.grids import models
 from wps_weather_data.grids.job import keep_grids, run_times
-from wps_weather_data.tests.grid_helpers import MODEL, fake_datamart, store
+from wps_weather_data.tests.grid_helpers import MODEL, fake_datamart, refuse_writes, store
 
 # 19:30 UTC on 19 November: the 18Z run is the latest.
 NOW = datetime(2026, 11, 19, 19, 30, tzinfo=UTC)
@@ -74,6 +74,61 @@ def test_the_daily_run_missing_from_history_is_written_there(monkeypatch, tmp_pa
     history = store(tmp_path, "history-new")
 
     assert keep_grids(MODEL, recent, history, NOW) == [at(19, 18)]
+    assert history.run_times() == [at(19, 18)]
+
+
+@pytest.mark.parametrize("step", ["add", "commit"])
+def test_a_stuck_recent_store_does_not_hold_up_history(monkeypatch, tmp_path, step):
+    downloaded = fake_datamart(monkeypatch)
+    recent, history = store(tmp_path, "recent"), store(tmp_path, "history")
+    refuse_writes(monkeypatch, recent, step)
+
+    with pytest.raises(ExceptionGroup, match="TEST recent; stored 1 runs"):
+        keep_grids(MODEL, recent, history, NOW)
+
+    assert history.run_times() == [at(19, 18)]
+    assert recent.run_times() == []
+    # Once recent has failed, the runs only it keeps are not downloaded.
+    assert {url.split("/")[-1][:11] for url in downloaded} == {"20261119T00", "20261119T18"}
+
+
+def test_a_stuck_history_store_does_not_hold_up_recent(monkeypatch, tmp_path):
+    fake_datamart(monkeypatch)
+    recent, history = store(tmp_path, "recent"), store(tmp_path, "history")
+    refuse_writes(monkeypatch, history, "commit")
+
+    with pytest.raises(ExceptionGroup, match="TEST history"):
+        keep_grids(MODEL, recent, history, NOW)
+
+    assert recent.run_times() == run_times(MODEL, NOW)
+
+
+def test_a_store_that_cannot_be_read_does_not_hold_up_the_other(monkeypatch, tmp_path):
+    fake_datamart(monkeypatch)
+    recent, history = store(tmp_path, "recent"), store(tmp_path, "history")
+
+    def unreadable():
+        raise OSError("unreadable")
+
+    monkeypatch.setattr(recent, "run_times", unreadable)
+    with pytest.raises(ExceptionGroup, match="TEST recent"):
+        keep_grids(MODEL, recent, history, NOW)
+
+    assert history.run_times() == [at(19, 18)]
+
+
+def test_failing_to_delete_old_runs_fails_the_job_after_the_runs_are_kept(monkeypatch, tmp_path):
+    fake_datamart(monkeypatch)
+    recent, history = store(tmp_path, "recent"), store(tmp_path, "history")
+
+    def refuse(cutoff):
+        raise OSError("refused")
+
+    monkeypatch.setattr(recent, "delete_runs_before", refuse)
+    with pytest.raises(ExceptionGroup, match="TEST recent; stored 4 runs"):
+        keep_grids(MODEL, recent, history, NOW)
+
+    assert recent.run_times() == run_times(MODEL, NOW)
     assert history.run_times() == [at(19, 18)]
 
 
