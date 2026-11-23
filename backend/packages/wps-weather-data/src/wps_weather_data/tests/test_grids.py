@@ -201,3 +201,24 @@ def test_stores_of_different_models_are_refused_together(tmp_path, run):
 
 def test_an_empty_store_has_no_runs(tmp_path):
     assert store(tmp_path).run_times() == []
+
+
+def test_the_grids_coordinates_are_read_once(tmp_path, run, monkeypatch):
+    recent = store(tmp_path)
+    recent.write_run(RUN, run[0], run[1].values())
+    recent.nearest_cell(50.1, -120.2)
+    monkeypatch.setattr(recent, "_root", lambda: pytest.fail("read again"))
+
+    assert recent.nearest_cell(55.0, -125.0)
+
+
+def test_every_variable_is_decoded_with_its_own_scales(tmp_path, run):
+    crop, variables = run
+    recent = store(tmp_path)
+    recent.write_run(RUN, crop, variables.values())
+
+    point = recent.read_point(RUN, 3, 4)
+
+    assert list(point) == ["forecast_hour", "temperature", "precipitation"]
+    for name, variable_run in variables.items():
+        assert np.array_equal(point[name], variable_run.values()[:, 3, 4])
