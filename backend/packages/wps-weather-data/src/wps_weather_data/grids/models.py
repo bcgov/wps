@@ -13,7 +13,14 @@ from pathlib import Path
 
 import numpy as np
 
-from wps_weather_data.grids.grib import GribScales, bc_crop, decode, grib_integers, read_field
+from wps_weather_data.grids.grib import (
+    Crop,
+    GribScales,
+    bc_crop,
+    decode,
+    grib_integers,
+    read_field,
+)
 
 DATAMART = "https://dd.weather.gc.ca/today"
 SCALES = GribScales._fields
@@ -88,20 +95,17 @@ MODELS = {
 
 
 @dataclass
-class RunGrid:
-    """One model run over BC, as GRIB integers with each hour's scales."""
+class VariableRun:
+    """One variable of a run over BC, as GRIB integers with each hour's scales."""
 
-    model: GridModel
-    run_time: datetime
-    latitude: np.ndarray  # (y, x)
-    longitude: np.ndarray
-    integers: dict[str, np.ndarray]  # per variable, (hours, y, x) int32
-    scales: dict[str, dict[str, np.ndarray]]  # per variable, {"reference": (hours,), ...}
+    variable: Variable
+    integers: np.ndarray  # (hours, y, x) int32
+    scales: dict[str, np.ndarray]  # {"reference": (hours,), ...}
 
-    def values(self, name: str) -> np.ndarray:
-        """A variable's decoded values, (hours, y, x)."""
-        scales = (self.scales[name][s][:, np.newaxis, np.newaxis] for s in SCALES)
-        return decode(self.integers[name], GribScales(*scales))
+    def values(self) -> np.ndarray:
+        """The decoded values, (hours, y, x)."""
+        scales = (self.scales[s][:, np.newaxis, np.newaxis] for s in SCALES)
+        return decode(self.integers, GribScales(*scales))
 
 
 def download(url: str, path: Path, attempts: int = 3) -> Path:
@@ -123,34 +127,53 @@ def download(url: str, path: Path, attempts: int = 3) -> Path:
     return path
 
 
-def load_run(model: GridModel, run_time: datetime, folder: Path) -> RunGrid:
-    """Download a run into `folder` and read it, cropped to BC. Raises urllib.error.HTTPError
-    (404) if any of its files is not published yet."""
-    wanted = [
-        (variable, hour)
-        for variable in model.variables
-        for hour in model.hours
-        if not (variable.accumulated and hour == 0)
-    ]
+def url_exists(url: str) -> bool:
+    try:
+        urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=30).close()
+        return True
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return False
+        raise
 
-    def fetch(item: tuple[Variable, int]) -> Path:
-        url = model.file_url(run_time, item[1], item[0])
-        return download(url, folder / url.rsplit("/", 1)[1])
 
+def run_published(model: GridModel, run_time: datetime) -> bool:
+    """Whether the datamart has all of a run. It publishes a run hour by hour, so the run is
+    complete once every variable's last hour is there."""
+    last = model.hours[-1]
+    return all(url_exists(model.file_url(run_time, last, v)) for v in model.variables)
+
+
+def _fetch(model: GridModel, run_time: datetime, hour: int, variable: Variable, folder: Path):
+    url = model.file_url(run_time, hour, variable)
+    return download(url, folder / url.rsplit("/", 1)[1])
+
+
+def load_crop(model: GridModel, run_time: datetime, folder: Path) -> Crop:
+    """The rows and columns of the model's grid covering BC, from the run's first file."""
+    variable = model.variables[0]
+    return bc_crop(_fetch(model, run_time, model.hours[-1], variable, folder))
+
+
+def load_variable(
+    model: GridModel, run_time: datetime, variable: Variable, crop: Crop, folder: Path
+) -> VariableRun:
+    """Download one variable of a run into `folder` and read it, cropped to BC. Each file is
+    deleted once read, so a run's files never all take disk at once. Raises
+    urllib.error.HTTPError (404) if a file is not published."""
+    # Hour 0 of an accumulated variable has no file and stays zero, which zero scales decode to.
+    hours = [h for h in model.hours if not (variable.accumulated and h == 0)]
     with ThreadPoolExecutor(8) as pool:
-        paths = list(pool.map(fetch, wanted))
-
-    crop = bc_crop(paths[0])
+        paths = list(pool.map(lambda h: _fetch(model, run_time, h, variable, folder), hours))
     shape = (len(model.hours), crop.y.stop - crop.y.start, crop.x.stop - crop.x.start)
-    # Hour 0 of an accumulated variable stays zero, which zero scales decode to.
-    integers = {v.name: np.zeros(shape, np.int32) for v in model.variables}
-    scales = {
-        v.name: {s: np.zeros(len(model.hours), np.float64) for s in SCALES} for v in model.variables
-    }
-    for (variable, hour), path in zip(wanted, paths):
+    integers = np.zeros(shape, np.int32)
+    scales = {s: np.zeros(len(model.hours), np.float64) for s in SCALES}
+    for hour, path in zip(hours, paths):
         values, field_scales = read_field(path)
+        path.unlink()
         index = model.hours.index(hour)
-        integers[variable.name][index] = grib_integers(values, field_scales)[crop.y, crop.x]
+        # Cropped first: the check behind grib_integers copies the field a few times.
+        integers[index] = grib_integers(values[crop.y, crop.x], field_scales)
         for name, value in zip(SCALES, field_scales):
-            scales[variable.name][name][index] = value
-    return RunGrid(model, run_time, crop.latitude, crop.longitude, integers, scales)
+            scales[name][index] = value
+    return VariableRun(variable, integers, scales)
