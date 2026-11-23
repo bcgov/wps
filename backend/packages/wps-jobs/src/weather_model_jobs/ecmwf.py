@@ -18,7 +18,11 @@ from weather_model_jobs import (
     ModelRunProcessResult,
     ProjectionEnum,
 )
-from weather_model_jobs.common_model_fetchers import RunStager, run_is_published
+from weather_model_jobs.common_model_fetchers import (
+    RunStager,
+    publish_staged_runs,
+    run_is_published,
+)
 from weather_model_jobs.ecmwf_hours import get_ecmwf_forecast_hours
 from weather_model_jobs.ecmwf_model_processor import TEMP, ECMWFModelProcessor
 from weather_model_jobs.ecmwf_prediction_processor import ECMWFPredictionProcessor
@@ -46,6 +50,8 @@ logger = logging.getLogger(__name__)
 
 RETRYABLE_HTTP_STATUS_CODES = {429, 503}
 MAX_DOWNLOAD_RETRIES = 3
+# Yesterday's runs too, so incomplete runs can finish after UTC midnight.
+DAYS_AGO = (1, 0)
 INITIAL_RETRY_DELAY_SECONDS = 2
 
 
@@ -178,13 +184,23 @@ class ECMWF:
                 )
                 time.sleep(delay)
 
+    def _run_ts(self, model_run_hour: int, days_ago: int) -> datetime:
+        return (self.now - timedelta(days=days_ago)).replace(
+            hour=model_run_hour, minute=0, second=0, microsecond=0
+        )
+
+    def expected_runs(self):
+        """The runs the job covers, each with every file it should have, as staged."""
+        sources = [forecast_hour_source(hour) for hour in get_ecmwf_forecast_hours()]
+        for days_ago in DAYS_AGO:
+            for hour in get_model_run_hours(self.model_type):
+                yield self._run_ts(hour, days_ago), sources
+
     def process_model_run(self, model_run_hour, days_ago: int = 0):
         """Process a particular model run"""
         self.files_downloaded = 0
         self.files_processed = 0
-        model_datetime = (self.now - timedelta(days=days_ago)).replace(
-            hour=model_run_hour, minute=0, second=0, microsecond=0
-        )
+        model_datetime = self._run_ts(model_run_hour, days_ago)
         logger.info("Processing %s model run %s", self.model_type, model_datetime)
 
         if model_datetime > self.now:
@@ -250,8 +266,7 @@ class ECMWF:
             self.complete_runs.append(model_datetime)
 
     def process(self):
-        # include yesterday so incomplete runs can finish after UTC midnight
-        for days_ago in (1, 0):
+        for days_ago in DAYS_AGO:
             for hour in get_model_run_hours(self.model_type):
                 try:
                     self.process_model_run(hour, days_ago=days_ago)
@@ -282,10 +297,13 @@ async def process_models():
 
     with tempfile.TemporaryDirectory() as temp_dir:
         ecmwf = ECMWF(temp_dir, stations)
+        ecmwf_prediction_processor = ECMWFPredictionProcessor(stations)
+        publish_staged_runs(
+            ecmwf_prediction_processor, ecmwf.staging_table, ecmwf.expected_runs(), ecmwf.now
+        )
         ecmwf.process()
 
-    # interpolate, machine learn and publish every run that is fully staged.
-    ecmwf_prediction_processor = ECMWFPredictionProcessor(stations)
+    # interpolate, machine learn and publish every run that is now fully staged.
     ecmwf_prediction_processor.process(ecmwf.complete_runs)
 
     # calculate the execution time.

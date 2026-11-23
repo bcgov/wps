@@ -8,6 +8,7 @@ from weather_model_jobs.common_model_fetchers import (
     RunStager,
     accumulate_nam_precipitation,
     model_run_timestamp,
+    publish_staged_runs,
     run_is_published,
 )
 from weather_model_jobs.model_values import ModelValues, StationPrediction
@@ -631,3 +632,57 @@ def test_a_run_staged_again_is_reprocessed_as_a_newer_version(_, processor):
     assert [row["tmp_tgl_2"] for row in rows] == [12.0]
     hourly = ByTimeTable().read(HOURLY, ["GDPS"], at_1800, at_1800).to_pylist()
     assert [row["temperature"] for row in hourly] == [12.0]
+
+
+URLS = ["url-1", "url-2"]
+
+
+def publish_first(staging, expected_runs, hours_later=1, publisher=None):
+    """Run publish_staged_runs some hours from now. Returns the publisher it was given."""
+    publisher = publisher or MagicMock()
+    now = datetime.now(UTC) + timedelta(hours=hours_later)
+    publish_staged_runs(publisher, staging, expected_runs, now)
+    return publisher
+
+
+def test_fully_staged_runs_are_published_first():
+    staging = StagingTable(ModelEnum.GDPS)
+    later_run = RUN_TS + timedelta(hours=12)
+    for url in URLS:
+        stage(staging, RUN_TS, url)
+    # The later run is still missing a file, and the one after has none.
+    stage(staging, later_run, "url-1")
+    expected = [(RUN_TS + timedelta(hours=hours), URLS) for hours in (0, 12, 24)]
+
+    publisher = publish_first(staging, expected)
+
+    publisher.process.assert_called_once_with([RUN_TS])
+
+
+def test_a_run_with_no_expected_files_is_not_published_first():
+    staging = StagingTable(ModelEnum.GDPS)
+    stage(staging, RUN_TS, "url-1")
+
+    publish_first(staging, [(RUN_TS, [])]).process.assert_not_called()
+
+
+def test_a_run_staged_too_long_ago_waits_for_the_downloads():
+    staging = StagingTable(ModelEnum.GDPS)
+    for url in URLS:
+        stage(staging, RUN_TS, url)
+
+    publish_first(staging, [(RUN_TS, URLS)], hours_later=4).process.assert_not_called()
+
+
+def test_a_run_that_fails_to_publish_first_does_not_stop_the_others():
+    staging = StagingTable(ModelEnum.GDPS)
+    later_run = RUN_TS + timedelta(hours=12)
+    for run_ts in (RUN_TS, later_run):
+        for url in URLS:
+            stage(staging, run_ts, url)
+    publisher = MagicMock()
+    publisher.process.side_effect = [OSError("object store is down"), None]
+
+    publish_first(staging, [(RUN_TS, URLS), (later_run, URLS)], publisher=publisher)
+
+    assert [c.args for c in publisher.process.call_args_list] == [([RUN_TS],), ([later_run],)]

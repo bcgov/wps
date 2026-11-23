@@ -16,6 +16,7 @@ from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     RunStager,
     model_run_timestamp,
+    publish_staged_runs,
     run_is_published,
 )
 from weather_model_jobs.model_job_runner import judge_run, run_model_job
@@ -317,16 +318,22 @@ class NOAA:
                 # as we can.
                 logger.exception("unexpected exception processing %s", url)
 
+    def _model_run_urls(self, model_run_hour) -> list[str]:
+        if self.model_type == ModelEnum.GFS:
+            return list(get_gfs_model_run_download_urls(self.now, model_run_hour))
+        return list(get_nam_model_run_download_urls(self.now, model_run_hour))
+
+    def expected_runs(self):
+        """The runs the job covers, each with the urls of all its files."""
+        for hour in get_gfs_and_nam_model_run_hours():
+            yield model_run_timestamp(self.now, int(hour)), self._model_run_urls(hour)
+
     def process_model_run(self, model_run_hour):
         """Process a particular model run"""
         logger.info("Processing {} model run {}".format(self.model_type, model_run_hour))
 
         # Get the urls for the current model run.
-        if self.model_type == ModelEnum.GFS:
-            urls = list(get_gfs_model_run_download_urls(self.now, model_run_hour))
-        elif self.model_type == ModelEnum.NAM:
-            urls = list(get_nam_model_run_download_urls(self.now, model_run_hour))
-
+        urls = self._model_run_urls(model_run_hour)
         run_ts = model_run_timestamp(self.now, int(model_run_hour))
         if run_is_published(self.runs_table, self.staging_table, self.model_type, run_ts):
             logger.info("%s model run %s is already published", self.model_type, run_ts)
@@ -372,10 +379,11 @@ def process_models():
     start_time = datetime.datetime.now()
 
     noaa = NOAA(model_type)
+    model_value_processor = ModelValueProcessor(model_type)
+    publish_staged_runs(model_value_processor, noaa.staging_table, noaa.expected_runs(), noaa.now)
     noaa.process()
 
-    # interpolate, machine learn and publish every run that is fully staged.
-    model_value_processor = ModelValueProcessor(model_type)
+    # interpolate, machine learn and publish every run that is now fully staged.
     model_value_processor.process(noaa.complete_runs)
 
     # calculate the execution time.

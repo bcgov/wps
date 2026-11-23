@@ -352,7 +352,9 @@ Three Postgres tables tracked ingest. The model jobs no longer use them: the sta
 
 #### One job invocation
 
-The job does this for each run its schedule covers. Env Canada and NOAA work out the runs with `model_run_timestamp`; ECMWF checks today's and yesterday's 00 and 12 UTC runs.
+Before downloading anything, the job publishes the runs that an earlier invocation finished staging (`publish_staged_runs`), so that a slow or unreachable source does not hold them up. It does so only for runs staged in the last three hours. If publishing one keeps killing the job, downloading goes first again after that, because the sources keep their files for about a day.
+
+It then does this for each run its schedule covers. Env Canada and NOAA work out the runs with `model_run_timestamp`; ECMWF checks today's and yesterday's 00 and 12 UTC runs.
 
 | Step | What happens | Code |
 |---|---|---|
@@ -369,6 +371,7 @@ Env Canada and NOAA record a file by its URL. ECMWF records it by forecast hour,
 
 | Step | What happens | Code |
 |---|---|---|
+| 0. Finish an interrupted publish | If the run is already in `runs`, newer than anything staged for it, only steps 5 and 6 are done, from that version. | `finish_interrupted_publish` |
 | 1. Read the run back | The run's values, per station, one dict per prediction time in time order. A value staged twice takes the newest `written_at`. | `StagingTable.station_values` |
 | 2. Read the training history | The model's recent runs from `runs`, read once for every station. | `read_model_history` in `machine_learning.py` |
 | 3. Compute the station predictions | Precip, the interpolated 20:00 row and the bias adjustments, in memory. | `ModelValueProcessor._process_model_run_for_station`, `ECMWFPredictionProcessor._process_model_run_for_station` |
