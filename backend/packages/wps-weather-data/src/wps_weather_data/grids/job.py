@@ -1,11 +1,11 @@
 """Keep a model's grids: write its new runs to `recent`, and the daily run to `history`.
 
-Run hourly for each model, so a run is stored soon after the datamart has all of it:
+Run hourly for each model, so a run is stored soon after all of it is published:
 
     python -m wps_weather_data.grids.job --model HRDPS
 
 Each time, it looks at the model's runs from the last day that `recent` (or, for the daily run,
-`history`) does not have yet. A run the datamart has not finished publishing is skipped until
+`history`) does not have yet. A run not all published yet is skipped until
 the next time. A run is downloaded and written a variable at a time, so only one variable's
 files and values are held at once, and committed when all are written. Then it drops runs older
 than two days from `recent`; the nightly maintenance job reclaims their space.
@@ -20,7 +20,6 @@ import logging
 import os
 import sys
 import tempfile
-import urllib.error
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -35,11 +34,12 @@ from wps_weather_data.grids.models import (
     load_variable,
     run_published,
 )
+from wps_weather_data.grids.sources import NotPublishedError
 from wps_weather_data.grids.store import GridStore, write_run
 
 logger = logging.getLogger(__name__)
 
-# How far back runs are looked for. The datamart keeps about a day.
+# How far back runs are looked for. The MSC datamart keeps about a day.
 LOOKBACK = timedelta(hours=24)
 # How long `recent` keeps every run. Two days, so it never has a gap after midnight.
 RECENT_WINDOW = timedelta(hours=48)
@@ -87,11 +87,9 @@ def keep_grids(model: GridModel, recent: GridStore, history: GridStore, now: dat
                     for variable in model.variables
                 )
                 stored, failed = write_run(targets, run_time, crop, variables)
-            except urllib.error.HTTPError as error:
-                # A file gone missing part way: nothing was committed, so try again next time.
-                if error.code != 404:
-                    raise
-                logger.info("%s run %s is missing %s", model.name, run_time, error.url)
+            except NotPublishedError as error:
+                # A field gone missing part way: nothing was committed, so try again next time.
+                logger.info("%s run %s is missing %s", model.name, run_time, error)
                 continue
         failures.update(failed)
         if stored:

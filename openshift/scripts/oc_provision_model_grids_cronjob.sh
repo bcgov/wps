@@ -12,7 +12,7 @@ source "$(dirname ${0})/common/common"
 #%   oc_deploy_to_production.sh / deployment.yml for how this is combined with
 #%   other resources and applied together in one call.
 #%
-#%   MODEL is required: the model whose grids the job keeps (HRDPS, RDPS, GDPS).
+#%   MODEL is required: the model whose grids the job keeps (HRDPS, RDPS, GDPS, GFS, ECMWF).
 #%
 #% Usage:
 #%
@@ -37,8 +37,8 @@ MODEL_LOWER=$(echo "${MODEL}" | tr '[:upper:]' '[:lower:]')
 #
 PROJ_TARGET="${PROJ_TARGET:-${PROJ_DEV}}"
 
-# Hourly at a random minute, if schedule not specified: a run is stored soon after the datamart
-# has all of it.
+# Hourly at a random minute, if schedule not specified: a run is stored soon after all of it
+# is published.
 SCHEDULE="${SCHEDULE:-$((RANDOM % 60)) * * * *}"
 
 # Process template

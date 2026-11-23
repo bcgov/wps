@@ -1,6 +1,5 @@
 """A test model and a fake MSC datamart for the grids tests."""
 
-import urllib.error
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -18,6 +17,7 @@ from wps_weather_data.grids.models import (
     load_crop,
     load_variable,
 )
+from wps_weather_data.grids.sources import NotPublishedError
 from wps_weather_data.grids.store import GridStore
 
 RUN = datetime(2026, 11, 19, 18, tzinfo=UTC)
@@ -27,6 +27,30 @@ LONGITUDES = np.arange(-142.0, -109.0, 1.0)
 HOURS = (0, 3, 6)
 OFFSETS = {"T": 270.0, "P": 0.0}
 
+
+class FakeDatamart:
+    """A source of synthetic fields. See fake_datamart."""
+
+    unpublished: set[str] = frozenset()
+    vanished: set[str] = frozenset()
+    fetched: list[str] = []
+
+    def exists(self, run_time: datetime, hour: int, layer: str) -> bool:
+        return f"{run_time:%Y%m%dT%H}" not in self.unpublished
+
+    def fetch(self, run_time: datetime, hour: int, layer: str, path: Path):
+        if layer == "P" and hour == 0:
+            raise AssertionError("there is no precipitation field for hour 0")
+        run = f"{run_time:%Y%m%dT%H}"
+        url = f"https://datamart/{run}Z_{layer}_{hour:03d}"
+        if run in self.unpublished | self.vanished:
+            raise NotPublishedError(url)
+        self.fetched.append(url)
+        write_grib(path, field(layer, hour))
+
+
+DATAMART = FakeDatamart()
+
 MODEL = GridModel(
     "TEST",
     (
@@ -35,8 +59,7 @@ MODEL = GridModel(
     ),
     hours=HOURS,
     history_run_hour=18,
-    folder="test",
-    grid="LatLon1",
+    source=DATAMART,
 )
 
 
@@ -74,33 +97,14 @@ def write_grib(path: Path, values: np.ndarray) -> Path:
 def fake_datamart(
     monkeypatch, unpublished: set[str] = frozenset(), vanished: set[str] = frozenset()
 ) -> list[str]:
-    """Register the test model and serve its files from a fake datamart. Runs (as YYYYMMDDTHH)
-    in `unpublished` are not there at all; runs in `vanished` look published but their
-    downloads answer 404. Returns the URLs downloaded."""
+    """Register the test model and reset the fake datamart it comes from. Runs (as YYYYMMDDTHH)
+    in `unpublished` are not there at all; runs in `vanished` look published but cannot be
+    fetched. Returns the URLs fetched."""
     monkeypatch.setitem(models.MODELS, "TEST", MODEL)
-    downloaded = []
-
-    def parse(url: str) -> tuple[str, str, int]:
-        # .../{YYYYMMDD}T{HH}Z_MSC_TEST_{layer}_LatLon1_PT{hour}H.grib2
-        name = url.rsplit("/", 1)[1]
-        run, rest = name.split("Z_MSC_TEST_")
-        return run, rest.split("_")[0], int(name[-10:-7])
-
-    def url_exists(url: str) -> bool:
-        return parse(url)[0] not in unpublished
-
-    def download(url: str, path: Path) -> Path:
-        run, layer, hour = parse(url)
-        if layer == "P" and hour == 0:
-            raise AssertionError("there is no precipitation file for hour 0")
-        if run in unpublished | vanished:
-            raise urllib.error.HTTPError(url, 404, "Not Found", None, None)
-        downloaded.append(url)
-        return write_grib(path, field(layer, hour))
-
-    monkeypatch.setattr(models, "url_exists", url_exists)
-    monkeypatch.setattr(models, "download", download)
-    return downloaded
+    monkeypatch.setattr(DATAMART, "unpublished", unpublished)
+    monkeypatch.setattr(DATAMART, "vanished", vanished)
+    monkeypatch.setattr(DATAMART, "fetched", [])
+    return DATAMART.fetched
 
 
 def load_run(folder: Path, run_time: datetime = RUN) -> tuple[Crop, dict[str, VariableRun]]:

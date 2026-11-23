@@ -1,6 +1,6 @@
 # Model grid storage spike: weather model grids in Zarr on Icechunk
 
-Status: spike, run on 2026-11-19 on local disk for HRDPS, RDPS, GDPS, GFS and ECMWF, and against our object store (ECS) for HRDPS and RDPS. The design is now built for HRDPS, RDPS and GDPS in `wps_weather_data.grids` (see [As built](#as-built)). Read times from inside the cluster are not measured.
+Status: spike, run on 2026-11-19 on local disk for HRDPS, RDPS, GDPS, GFS and ECMWF, and against our object store (ECS) for HRDPS and RDPS. The design is now built for all five models in `wps_weather_data.grids` (see [As built](#as-built)). Read times from inside the cluster are not measured.
 
 The decisions here and in the related documents are listed in [weather-data-decisions.md](weather-data-decisions.md).
 
@@ -235,15 +235,16 @@ The 2026-11-19 18Z HRDPS run was written to ECS through each storage and read ba
 
 ## As built
 
-`wps_weather_data.grids`, described in the [package README](../../backend/packages/wps-weather-data/README.md#grids), implements this for HRDPS, RDPS and GDPS, about 49 of the 52 GB a year:
+`wps_weather_data.grids`, described in the [package README](../../backend/packages/wps-weather-data/README.md#grids), implements this for all five models:
 
 - **A separate job, hourly for each model**, not part of the station jobs, so that a failure in one cannot hold up the other. It downloads the files again for itself.
-- **A run is stored only once the datamart has all of it**, checked before anything is downloaded, and committed once. A file that disappears part way leaves nothing committed, and the run is tried again the next hour.
+- **Sources.** HRDPS, RDPS and GDPS come from the MSC datamart, GFS from NOAA's files on AWS and ECMWF from its open data on Google. NOAA and ECMWF fields are fetched as byte ranges found in the index beside each file. GFS is NOAA's own encoding, not NOMADS's. ECMWF's 06 and 18 UTC runs are now kept to 144 hours, which is how far they go (90 when the spike was run).
+- **A run is stored only once all of it is published**, checked before anything is downloaded, and committed once. A file that disappears part way leaves nothing committed, and the run is tried again the next hour.
 - **One variable at a time.** Each is downloaded, cropped, converted to GRIB integers, written to every store that needs the run, and its files deleted. Cropping comes before the conversion. HRDPS peaked at 508 MiB, against 826 MiB holding the whole run, measured on a laptop writing to local disk. The cron job's limit is 1 GiB.
 - **The stores are independent.** `history` is committed first, and a store that fails is left alone for the rest of that hour's job while the other is kept. The job then fails, with the errors. Icechunk retries a refused update 15 times, about half a minute, instead of its default of 100 times, over an hour. The job is stopped after 30 minutes. On 2026-11-23 ECS refused every update of HRDPS `recent` for about 12 hours, with nothing else writing to it, and before these changes that blocked the whole HRDPS job. Deleting the store cleared it; the cause is not known.
 - **Maintenance** is the nightly `station-weather-maintenance` job. It expires snapshots older than a day and garbage collects objects older than an hour, so a grid store cannot be read as it was more than about a day ago.
 
-HRDPS and RDPS have run in dev since 2026-11-20, and `backend/scripts/model_grid_check.py` checks what is stored against the datamart. GDPS has been stored and checked on local disk.
+HRDPS and RDPS have run in dev since 2026-11-20, and `backend/scripts/model_grid_check.py` checks what is stored against the datamart. GDPS, GFS and ECMWF have been stored and checked on local disk: on 2026-11-23, every field compared with what was published was exact (30 for GDPS, 48 for GFS, 100 for two ECMWF runs), and the peaks were 443, 146 and 368 MiB.
 
 ## Compared with keeping the GRIB files
 
@@ -285,7 +286,7 @@ Cropped GRIB would still be worse to use:
    from `./backend`, with `OBJECT_STORE_SERVER`, `OBJECT_STORE_USER_ID`, `OBJECT_STORE_SECRET` and `OBJECT_STORE_BUCKET` set as the deployments have them. Stores go under `dev/zarr-spike/{model}/{variant}`. Delete `dev/zarr-spike` afterwards, one object at a time: ECS rejects boto3's bulk `DeleteObjects` without a `Content-MD5` header. The MSC datamart keeps about a day, so MSC runs must be recent.
 2. Measure reads from inside the cluster, from a pod reading the `object_store` stores, to separate ECS's own latency from the laptop's network path.
 3. Ask the object storage team whether ECS will accept the AWS SDKs' CRC checksums, which would also let our own Python code drop the aiobotocore pin.
-4. Add GFS and ECMWF to the job, and endpoints that read the grids.
+4. Add endpoints that read the grids.
 
 ## Open-Meteo's quantization
 

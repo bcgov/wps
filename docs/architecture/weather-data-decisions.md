@@ -2,7 +2,7 @@
 
 What we decided for station weather, model grids and the Station Weather API, and why. The detail and the measurements are in the documents each section names.
 
-As of 2026-11-23. The station tables and the Station Weather API run in a dev deployment. The model grid job has run in dev for HRDPS and RDPS since 2026-11-20. GDPS was added on 2026-11-23 and has not been checked there. Production has not been backfilled.
+As of 2026-11-23. The station tables and the Station Weather API run in a dev deployment. The model grid job has run in dev for HRDPS and RDPS since 2026-11-20. GDPS, GFS and ECMWF were added on 2026-11-23 and have not been checked there. Production has not been backfilled.
 
 | Data | Where | Detail |
 |---|---|---|
@@ -55,12 +55,13 @@ As of 2026-11-23. The station tables and the Station Weather API run in a dev de
 | Chunks are 64 x 64 cells with every hour; a variable's run is one object | A point forecast is one chunk per variable. Maps are slower |
 | Reach ECS through the `object_store` crate, not the AWS SDK | ECS requires `Content-MD5` on bulk deletes. Through the SDK, garbage collection deletes nothing. `object_store` was as fast |
 | A separate hourly job per model | A failure cannot hold up the station data. It downloads the files again for itself |
-| A run is stored only once the datamart has all of it | Nothing is downloaded for an incomplete run, and nothing is committed if a file vanishes |
+| A run is stored only once all of it is published | Nothing is downloaded for an incomplete run, and nothing is committed if a file vanishes |
 | One variable at a time, cropped before conversion, files deleted once read | Peak memory 508 MiB for HRDPS, down from 826 MiB. The limit is 1 GiB |
 | One download feeds both stores | The daily run is needed by both |
 | A failing store does not stop the other; `history` commits first; retries and the job are time-limited | A stuck `recent` on ECS blocked the whole HRDPS job on 2026-11-23 |
 | Nightly maintenance expires snapshots after a day, then garbage collects | Reclaims deleted runs' space. Grids cannot be read as they were further back than that |
-| HRDPS, RDPS and GDPS first | All three come from the MSC datamart, and they are about 49 of the 52 GB a year |
+| All five models: HRDPS, RDPS, GDPS, GFS and ECMWF | NAM is no longer published. GFS and ECMWF keep wind as u and v, and ECMWF dew point instead of humidity, because that is what is published |
+| GFS comes from NOAA's files on AWS and ECMWF from its open data on Google, a field at a time by byte range | NOMADS's filter is almost but not exactly NOAA's files. Only the fields kept are downloaded, not whole files |
 
 ## Station Weather API
 
@@ -83,8 +84,7 @@ As of 2026-11-23. The station tables and the Station Weather API run in a dev de
 ## Still open
 
 - Read times for the grids inside the cluster. From a laptop, a point forecast took about 1 s and a map about 4.5 s.
-- Endpoints that read the grids, and grid jobs for GFS and ECMWF.
-- Where GFS comes from: NOMADS is almost but not exactly NOAA's own files, which are on AWS. NAM is no longer on NOMADS.
+- Endpoints that read the grids.
 - ECS quota and cost approval for the grids, and whether ECS will accept CRC checksums.
 - Merges into `by_time` by two jobs at once, or during compaction: untested on ECS, and the jobs do not retry.
 - `hourly_profile` and `leads`: designed, not built.

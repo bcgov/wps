@@ -213,7 +213,7 @@ class _RunWriter:
                 root.create_array(coordinate, data=data, compressors=ZstdCodec(level=3))
         elif root["latitude"].shape != (ny, nx):
             raise ValueError(f"the store's grid is {root['latitude'].shape}, the run's {(ny, nx)}")
-        hours = store.model.hours
+        hours = store.model.forecast_hours(run_time)
         self.group = root.create_group(self.name, attributes={"forecast_hours": list(hours)})
         self.chunks = (len(hours), TILE, TILE)
         # A variable's whole run is one object.

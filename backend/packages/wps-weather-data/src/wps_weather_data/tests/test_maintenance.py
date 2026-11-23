@@ -79,7 +79,9 @@ def test_main_maintains_runs_by_time_wf1_and_every_models_staging(monkeypatch):
 
     assert exit_info.value.code == 0
     assert [(s.model.name, s.store) for s in grid_stores] == [
-        (model, store) for model in ("HRDPS", "RDPS", "GDPS") for store in ("recent", "history")
+        (model, store)
+        for model in ("HRDPS", "RDPS", "GDPS", "GFS", "ECMWF")
+        for store in ("recent", "history")
     ]
     from wps_weather_data.wf1 import Wf1Table
 

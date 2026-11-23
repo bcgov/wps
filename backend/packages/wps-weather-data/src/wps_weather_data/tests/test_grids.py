@@ -152,6 +152,19 @@ def test_a_run_missing_a_variable_is_not_committed(tmp_path, run):
     assert recent.run_times() == []
 
 
+def test_runs_of_different_lengths_are_kept_in_one_store(tmp_path, monkeypatch):
+    short_run = RUN.replace(hour=6)
+    monkeypatch.setitem(MODEL.other_hours, 6, HOURS[:2])
+    recent = store(tmp_path)
+    for run_time in (short_run, RUN):
+        crop, variables = load_run(tmp_path / "files", run_time)
+        recent.write_run(run_time, crop, variables.values())
+
+    assert recent.read_point(short_run, 0, 0)["forecast_hour"].tolist() == list(HOURS[:2])
+    assert recent.read_point(short_run, 0, 0)["temperature"].size == 2
+    assert recent.read_point(RUN, 0, 0)["temperature"].size == len(HOURS)
+
+
 def test_a_location_outside_bc_is_refused(tmp_path, run):
     recent = store(tmp_path)
     recent.write_run(RUN, run[0], run[1].values())
