@@ -505,6 +505,7 @@ def test_publish_run_fails_without_deleting_staging_when_runs_write_fails(_, pro
         return_value=[StationPrediction(station_code=1215, prediction_timestamp=at_1800)]
     )
     processor.runs_table = MagicMock()
+    processor.runs_table.newest_version.return_value = None
     processor.runs_table.append_run.side_effect = OSError("object store is down")
     processor.by_time_table = MagicMock()
 
@@ -555,3 +556,78 @@ def test_publish_run_with_no_station_predictions_keeps_the_run_in_staging(_, pro
     assert not ByTimeTable().exists()
     # Still staged, so the next run does not download it all again.
     assert processor.staging_table.processed_sources(run_ts) == {"url-18"}
+
+
+def versions(runs: RunsTable, run_ts: datetime) -> int:
+    """How many times the run has been appended to `runs`."""
+    return len(set(runs.dataset().to_table(columns=["ingested_at"])["ingested_at"].to_pylist()))
+
+
+def stage_and_stub_predictions(processor, run_ts: datetime, temperature=10.0):
+    """Stage a run whose one station gets one prediction. Returns the time it is for."""
+    at_1800 = run_ts.replace(hour=18)
+    stage(processor.staging_table, run_ts, "url-1", staged_values(at_1800, temperature, 1.0))
+    processor._process_model_run_for_station = MagicMock(
+        return_value=[
+            StationPrediction(
+                station_code=1215, prediction_timestamp=at_1800, tmp_tgl_2=temperature
+            )
+        ]
+    )
+    return at_1800
+
+
+@pytest.mark.parametrize(
+    "table, method",
+    [(ByTimeTable, "merge_run"), (StagingTable, "delete_run")],
+    ids=["after_the_append", "after_the_merge"],
+)
+@patch("weather_model_jobs.common_model_fetchers.read_model_history")
+def test_a_publish_interrupted_is_finished_without_appending_again(
+    mock_read_model_history, processor, table, method
+):
+    run_ts = datetime(2025, 6, 5, 12, tzinfo=UTC)
+    at_1800 = stage_and_stub_predictions(processor, run_ts)
+    with patch.object(table, method, side_effect=MemoryError), pytest.raises(MemoryError):
+        processor.publish_run(run_ts)
+    assert versions(processor.runs_table, run_ts) == 1
+    mock_read_model_history.reset_mock()
+
+    processor.publish_run(run_ts)
+
+    assert versions(processor.runs_table, run_ts) == 1
+    hourly = ByTimeTable().read(HOURLY, ["GDPS"], at_1800, at_1800).to_pylist()
+    assert [row["temperature"] for row in hourly] == [10.0]
+    assert run_is_published(processor.runs_table, processor.staging_table, ModelEnum.GDPS, run_ts)
+    # Nothing is computed again, so the training reads are not repeated.
+    mock_read_model_history.assert_not_called()
+
+
+@patch("weather_model_jobs.common_model_fetchers.read_model_history")
+def test_a_publish_interrupted_many_times_leaves_one_version(_, processor):
+    run_ts = datetime(2025, 6, 5, 12, tzinfo=UTC)
+    stage_and_stub_predictions(processor, run_ts)
+    with patch.object(ByTimeTable, "_merge", side_effect=MemoryError):
+        for _ in range(3):
+            with pytest.raises(MemoryError):
+                processor.publish_run(run_ts)
+
+    processor.publish_run(run_ts)
+
+    assert versions(processor.runs_table, run_ts) == 1
+
+
+@patch("weather_model_jobs.common_model_fetchers.read_model_history")
+def test_a_run_staged_again_is_reprocessed_as_a_newer_version(_, processor):
+    run_ts = datetime(2025, 6, 5, 12, tzinfo=UTC)
+    stage_and_stub_predictions(processor, run_ts, temperature=10.0)
+    processor.publish_run(run_ts)
+    at_1800 = stage_and_stub_predictions(processor, run_ts, temperature=12.0)
+
+    processor.publish_run(run_ts)
+
+    assert versions(processor.runs_table, run_ts) == 2
+    rows = processor.runs_table.read(ModelEnum.GDPS, run_ts, run_ts).to_pylist()
+    assert [row["tmp_tgl_2"] for row in rows] == [12.0]
+    hourly = ByTimeTable().read(HOURLY, ["GDPS"], at_1800, at_1800).to_pylist()
+    assert [row["temperature"] for row in hourly] == [12.0]

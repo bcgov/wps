@@ -136,6 +136,15 @@ class StagingTable(DeltaWeatherTable):
             return False
         return self.dataset().count_rows(filter=self._run_filter(run_ts)) > 0
 
+    def last_written_at(self, run_ts: datetime) -> datetime | None:
+        """When a file of the run was last staged, if any has been."""
+        if not self.exists():
+            return None
+        written_at = self.dataset().to_table(
+            columns=["written_at"], filter=self._run_filter(run_ts)
+        )["written_at"]
+        return pc.max(written_at).as_py()
+
     def processed_sources(self, run_ts: datetime) -> set[str]:
         """The files of the run that have been processed."""
         if not self.exists():

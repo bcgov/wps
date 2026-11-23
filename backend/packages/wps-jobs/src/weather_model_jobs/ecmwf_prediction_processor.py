@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import List
 
 from weather_model_jobs import ModelEnum
+from weather_model_jobs.common_model_fetchers import finish_interrupted_publish
 from weather_model_jobs.ecmwf_hours import get_ecmwf_forecast_hours
 from weather_model_jobs.machine_learning import (
     StationMachineLearning,
@@ -55,6 +56,10 @@ class ECMWFPredictionProcessor:
     def publish_run(self, run_ts: datetime):
         """Compute a staged run's station predictions, append them to `runs`, merge them into
         `by_time`, then delete the run from `staging`."""
+        if finish_interrupted_publish(
+            self.runs_table, self.by_time_table, self.staging_table, ModelEnum.ECMWF, run_ts
+        ):
+            return
         logger.info("Interpolating values for model run: %s", run_ts)
         staged = self.staging_table.station_values(run_ts)
         history = read_model_history(self.runs_table, ModelEnum.ECMWF, run_ts)

@@ -453,7 +453,8 @@ After publishing, these rows, and every other row in the `20261117T12` partition
 |---|---|---|
 | Partway through downloading | The run in `staging`, not in `runs` | Processes the files that have no marker row yet. Files since the last commit are fetched again. |
 | Downloaded, but publishing failed | The run complete in `staging`, not in `runs` | Publishes it again. |
-| After appending to `runs`, before deleting from `staging` | The run in both | Publishes it again. The second append is a newer version of the run, which readers prefer, and the keyed merge is harmless to repeat. |
+| After appending to `runs`, before deleting from `staging` | The run in both, its version in `runs` newer than anything in `staging` | Merges that version into `by_time` and deletes the run from `staging` (`finish_interrupted_publish`), without computing or appending it again. The keyed merge is harmless to repeat. Appending it again on each retry once left up to 10 copies of a run in `runs`. |
+| A published run downloaded again, to reprocess it | The run in both, with files in `staging` newer than its version in `runs` | Publishes it as a newer version, which readers prefer. |
 | The run produced no station predictions | The run complete in `staging`, an error logged | Leaves it there, so it is not downloaded again. |
 | Finished | The run in `runs` only | Skips it. |
 
