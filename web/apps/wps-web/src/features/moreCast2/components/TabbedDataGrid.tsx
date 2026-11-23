@@ -700,11 +700,6 @@ const TabbedDataGrid = ({
             useFlexGap
             sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 1, ml: 'auto' }}
           >
-            <AboutDataPopover
-              content={MorecastAboutDataContent}
-              maxWidth={600}
-              testId={'morecast-about-data-popover'}
-            />
             <ResetForecastButton
               label={'Reset'}
               enabled={storedDraftForecast.hasDraftForecastStored()}
@@ -725,12 +720,13 @@ const TabbedDataGrid = ({
             />
           </Stack>
         </Stack>
-        <Stack direction="row" sx={{ justifyContent: 'flex-end', px: 1, pb: 0.5, minHeight: '1.5rem' }}>
+        <Stack direction="row" sx={{ justifyContent: 'flex-end', px: 1, pb: 0.5, gap: 2, minHeight: '1.5rem' }}>
           {storedDraftForecast.getLastSavedDraftDateTime() && (
             <Typography data-testid="morecast-draft-status" variant="caption" color="text.secondary">
               Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}
             </Typography>
           )}
+          <AboutDataPopover content={MorecastAboutDataContent} maxWidth={600} testId={'morecast-about-data-popover'} />
         </Stack>
       </Stack>
       {/* keep these styles mounted when switching grids so tab changes do not reinsert them */}
