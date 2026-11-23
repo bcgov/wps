@@ -1,5 +1,7 @@
 # Station weather data on object storage
 
+The decisions here and in the related documents are listed in [weather-data-decisions.md](weather-data-decisions.md).
+
 ## Summary
 
 This proposes moving station weather data out of Postgres and onto object storage. That covers model predictions, observations and forecasts at each weather station.
@@ -13,11 +15,11 @@ We compared Parquet, GeoParquet, Delta Lake, Zarr and Icechunk with four local b
 
 - **Delta Lake** for the two tables that jobs write to, `runs` and `by_time`. Several jobs write to each, and both need compaction. That is what Delta Lake is for.
 - **Delta Lake** for `by_station` as well, the copy of `by_time` laid out by station. It has a single writer and would work as plain Parquet files, which is how it was first designed. It is a Delta table so that a nightly rebuild is one commit, a bad one can be undone, and it goes through the same client and upkeep as the other tables.
-- **Plain Parquet** for the other files derived from them (`hourly_profile`, `leads`), which have a single writer and are read by screens.
+- **Plain Parquet** for the other files derived from them (`hourly_profile`, `leads`), which have a single writer and are read by screens. Neither is built.
 
-GeoParquet and Icechunk are a poor fit. Zarr is a poor fit for model runs and a reasonable but second-best fit for station history.
+For station data, GeoParquet and Icechunk are a poor fit, and Zarr is a poor fit for model runs and a reasonable but second-best fit for station history.
 
-Nothing here is built. Delta Lake has been run against our object store in a throwaway table: four writers appending at once lost no commits, and `MERGE`, `optimize`, `vacuum` and checkpoints worked. No real read path has been timed there. See [Main risks](#main-risks).
+The `runs`, `staging`, `wf1`, `by_time`, `by_station` and `stations` tables are built and run in a dev deployment; what is done and what is left is under [Plan](#plan). Before that, Delta Lake was run against our object store in a throwaway table: four writers appending at once lost no commits, and `MERGE`, `optimize`, `vacuum` and checkpoints worked. No read path has been timed from inside the cluster. See [Main risks](#main-risks).
 
 ## Goals
 
@@ -28,10 +30,9 @@ Nothing here is built. Delta Lake has been run against our object store in a thr
 
 ## Non-goals
 
-- Backfilling history. Climatology history starts when this is built.
-- FWI indices in the station history. It holds weather variables only for now.
+- Calculating FWI indices. The station history holds the ones WF1 and the data mart publish.
 - Moving the rest of the application off Postgres.
-- Storing the gridded model output. We will store grids only if we have to. The ingest jobs keep only values at station locations, and this design does not change that.
+- Storing the gridded model output. The station jobs keep only values at station locations. Grids are kept separately, by their own jobs, in [model-grid-storage-spike.md](model-grid-storage-spike.md).
 
 ## Background
 
@@ -67,7 +68,7 @@ None of these storage formats has an index that can be added later. The way the 
 | Use case | Lookup key | Read shape | Data |
 |---|---|---|---|
 | MoreCast | Date range and source, across many stations | Wide and shallow: all stations, a few days, the newest value per day | Observations, forecasts and models, daily |
-| Climatology, one station | Station, across all years | Narrow and deep | Observations, forecasts and models, daily and hourly, weather variables only for now |
+| Climatology, one station | Station, across all years | Narrow and deep | Observations, forecasts and models, daily and hourly, with the observed and forecast FWI indices |
 | Climatology, a group of stations | Stations and a time-of-year window, across all years | A band through every year | The same |
 | Climatology at a chosen lead | One station or a group, filtered by how far ahead each prediction was made | Either shape, with several predictions per time | Models, every run |
 | Model run detail (`/weather_models` routes, training) | Model and run | One run or a few weeks of runs, every prediction time | Models, every run |
@@ -75,7 +76,7 @@ None of these storage formats has an index that can be added later. The way the 
 Decisions behind this table:
 
 - **MoreCast needs only the newest run per day.** Run is how the winning row is picked, not something MoreCast looks up.
-- **Climatology history starts now.** There is no backfill, so the deep reads grow by a year per year.
+- **Climatology history starts in 1987 for observations.** They are backfilled from the BCWS data mart. Forecasts and models start when their tables do, plus what `station_weather_backfill.py` copies from Postgres.
 - **Climatology needs both shapes**, one station and groups of stations.
 - **Lead has to stay a free choice.** We want to experiment with which prediction counts as the historical one, so no single lead can be baked in. See [Lead time](#lead-time).
 
@@ -145,8 +146,8 @@ That is the production layout. Dev deployments share one bucket, so each writes 
 | `by_time` | Delta Lake | MoreCast; training and ingest (`ACTUALS`) | The model jobs and the WF1 jobs |
 | `by_station` | Delta Lake | Climatology for one station or a group; the Station Weather API | One nightly job |
 | `stations` | Delta Lake | The Station Weather API's list of stations | The hourly actuals job |
-| `hourly_profile` | Parquet | Hourly climatology for a group, on a screen | The same nightly job |
-| `leads` | Parquet | Climatology at a chosen lead, while experimenting | The same nightly job |
+| `hourly_profile` | Parquet | Hourly climatology for a group, on a screen | The same nightly job (not built) |
+| `leads` | Parquet | Climatology at a chosen lead, while experimenting | The same nightly job (not built) |
 
 The Parquet files have deterministic keys: a reader computes the key from the station and never lists the bucket. The Delta tables are read through their transaction log, `by_station` included.
 
@@ -185,7 +186,7 @@ Every observation and forecaster's forecast as fetched from WF1. It is to observ
 
 The WF1 jobs append a row only when it is new or differs from the newest version already stored, with the `ingested_at` of that fetch (`Wf1Table.append_changed`). A corrected observation is therefore a second row with a later `ingested_at`, and the original stays. Each job then merges every row it fetched into `by_time`, not only the changed ones, so a merge that failed after the append is made good by the next run, which fetches the same rows again. In `by_time` a row is replaced only by one fetched at least as recently.
 
-A value WF1 does not have, or that is outside its valid range (RH 0 to 100, wind direction 0 to 360, wind speed and precip not negative), is null. That replaces the per-variable validity flags of `hourly_actuals`. `ACTUALS` has no `daily` rows yet: nothing reads a noon observation from `by_time`, and MoreCast takes its observations from WF1 directly.
+A value WF1 does not have, or that is outside its valid range (RH 0 to 100, wind direction 0 to 360, wind speed and precip not negative), is null. That replaces the per-variable validity flags of `hourly_actuals`. MoreCast takes its observations from WF1 directly, not from `by_time`.
 
 A side effect is that it records forecast history from now on, even though WF1 itself keeps only the latest forecast: each time a forecast changes between fetches, the new value is appended. That history is only as fine as the fetch interval, and it covers forecasts published by any tool, not only MoreCast.
 
@@ -252,7 +253,7 @@ Each write is a Delta `MERGE` on station, timestamp, resolution and source, limi
 
 `by_time` is entirely derived. The model rows can be rebuilt from `runs`, and the `ACTUALS` and `FORECAST` rows from `wf1`, in each case by taking the newest version.
 
-FWI indices are out of scope for now. Adding them later means adding columns, which older files simply lack.
+The FWI columns were added after the first tables were written. Existing tables need `backend/scripts/station_weather_add_columns.py` before newer code writes to them.
 
 ### `by_station`
 
@@ -537,13 +538,13 @@ No code reads or writes the six legacy tables: `weather_station_model_prediction
 
 ## Main risks
 
-Nothing here is built. The full list of what was and was not checked is in [station-weather-storage-evaluation.md](station-weather-storage-evaluation.md#what-is-and-isnt-verified). The ones that could change the design:
+What was checked while the design was being chosen is listed in full in [station-weather-storage-evaluation.md](station-weather-storage-evaluation.md#what-is-and-isnt-verified). The risks that could still change the design:
 
 1. **Several Delta writers on ECS.** Checked on 2026-11-16 with `backend/scripts/object_store_delta_check.py`: four processes appending to one table at once lost no commits. That is one run, from one machine, on a tiny table, so the first real slice should keep checking for lost runs. The fallback is one table per writer.
 2. **Latency against ECS.** A cold open of a tiny Delta table took 839 ms against our object store. Every other timing is from local disk, and no real read path has been timed.
 3. **Delta Lake at full size.** `MERGE` was benchmarked on a small daily table only, not on `by_time` with hourly data.
 4. **Station count.** The benchmarks assume 300; the dev deployment had 320. Sizes and row counts scale with it.
-5. **The climatology screen.** What it shows is undecided, and one read, pooled hourly percentiles for a group over decades, is not served.
+5. **The climatology screen.** Daily climatology is built. Hourly is not, and one read, pooled hourly percentiles for a group over decades, is not served.
 6. **Weaker guarantees than Postgres.** No transactions across tables, no unique constraints, and a colliding merge fails instead of waiting. Concurrent merges on ECS are untested and the jobs do not retry. See [Transaction guarantees](#transaction-guarantees).
 
 ## Plan
@@ -554,7 +555,7 @@ Nothing here is built. The full list of what was and was not checked is in [stat
 4. Done: MoreCast reads its model values from `by_time`, fire watch reads its ECMWF run from `runs`, and training reads `runs` (see "Training reads `runs`" below). The `/weather_models` routes were removed separately (#6060). Nothing falls back to Postgres, so a deployment's tables must be filled with `backend/scripts/station_weather_backfill.py` before it serves users: `by_time` for the days MoreCast shows, and `runs` and `ACTUALS` for the 19 days training learns from.
 5. and 6. Done: every model job stages runs in `staging` instead of `model_run_predictions`, keeps its bookkeeping in `staging` and `runs`, and no longer writes `weather_station_model_predictions`. Dropping the four legacy tables and retiring the `pgslice` job waits for the production backfill, as described under "What stays in Postgres".
 7. Done: the WF1 jobs write `ACTUALS` and `FORECAST` to `wf1` and `by_time` only, training and ingest read `ACTUALS` from `by_time`, and the two noon forecast routes (`POST /forecasts/noon/` and `/forecasts/noon/summaries/`), which no web or mobile code called, are removed. `hourly_actuals` and `noon_forecasts` wait for the production backfill, with the other legacy tables.
-8. Add the nightly job that writes `by_station`, `hourly_profile` and `leads`, and build the climatology reads on them. `by_station` is written, as a Delta table: built from three real years of data mart observations in local tables, a station's daily record matched `by_time`. It has not run against ECS. The first climatology read is built on it: `GET /api/climatology/daily?station_codes=…` returns, for each day of the year, the lowest, 25th, median, 75th, 90th and highest of the stations' daily actuals over every year but one, and that year's values to compare. Several stations, up to 150, are combined one of three ways: `average` takes each day's mean of the stations that reported it, `pooled` draws the distribution from every station's value and compares the year's mean, and `each` returns a climatology per station. Each day carries how many stations contributed, because a group's membership changes over the decades. The web page at `/insights/climatology` charts it as percentile bands with the median and the selected year, one chart per station for `each`, and offers fire centres, fire zones (`GET /api/climatology/fire-centres`, from WF1) and saved station groups as ways to choose stations. The statistics are computed on request from the stations' `by_station` rows, read in one pass over their partitions; a group read has not been timed against ECS. `hourly_profile`, `leads` and the group and hourly climatology reads are not built. The observations it needs from before these tables existed come from the BCWS data mart, which has hourly observations back to 1987: `backend/scripts/station_actuals_data_mart_backfill.py` copies them into `wf1` and `by_time` as `ACTUALS`, hourly and daily; the daily rows are the noon rows that carry WF1's daily precip total. Postgres never held the daily actuals, so `station_weather_backfill.py` copies hourly ones only. Tried on the 1987 file and three days of 2026 against local tables, not yet against ECS or for every year.
+8. Add the nightly job that writes `by_station`, `hourly_profile` and `leads`, and build the climatology reads on them. `by_station` is written, as a Delta table: built from three real years of data mart observations in local tables, a station's daily record matched `by_time`. It has since been rebuilt from 1987 in dev, on ECS (16,185 files). The first climatology read is built on it: `GET /api/climatology/daily?station_codes=…` returns, for each day of the year, the lowest, 25th, median, 75th, 90th and highest of the stations' daily actuals over every year but one, and that year's values to compare. Several stations, up to 150, are combined one of three ways: `average` takes each day's mean of the stations that reported it, `pooled` draws the distribution from every station's value and compares the year's mean, and `each` returns a climatology per station. Each day carries how many stations contributed, because a group's membership changes over the decades. The web page at `/insights/climatology` charts it as percentile bands with the median and the selected year, one chart per station for `each`, and offers fire centres, fire zones (`GET /api/climatology/fire-centres`, from WF1) and saved station groups as ways to choose stations. The statistics are computed on request from the stations' `by_station` rows, read in one pass over their partitions; a group read has not been timed against ECS. `hourly_profile`, `leads` and the group and hourly climatology reads are not built. The observations it needs from before these tables existed come from the BCWS data mart, which has hourly observations back to 1987: `wps_weather_data.data_mart_backfill` copies them into `wf1` and `by_time` as `ACTUALS`, hourly and daily; the daily rows are the noon rows that carry WF1's daily precip total. Postgres never held the daily actuals, so `station_weather_backfill.py` copies hourly ones only. It has since run in dev from 1987 on, on ECS. Production has not been backfilled.
 
 Steps 7 and 8 do not depend on steps 4 to 6. History only accumulates once `by_time` is being written, so steps 2 and 7 are worth starting early even if readers move later.
 
@@ -571,6 +572,6 @@ Bias adjustment learns, per station, from the model's own values paired with hou
 
 1. **How do API pods avoid the cold open?** Opening a Delta table took 839 ms against our object store. The design says to keep table state in memory and refresh it; how, and how stale it may be, is not worked out.
 2. **Which lead rules are worth keeping?** Undecided. Lead stays a free choice while we experiment with `leads`. Rules that prove useful should become their own sources in `by_time` and `by_station`.
-3. **What does the climatology screen show?** Undecided. The design assumes percentiles by day of year for daily data, and statistics by month and hour of day for hourly data. A screen that needs pooled hourly percentiles for a group over decades is the one case this does not serve.
+3. **What does the climatology screen show for hourly data?** Daily data is shown as percentiles by day of year. For hourly data the design assumes statistics by month and hour of day, which is undecided. A screen that needs pooled hourly percentiles for a group over decades is the one case this does not serve.
 4. **Where will hourly forecasts come from, and will their history be recorded?**
 5. **How long is the `vacuum` retention window?** It sets how far back Delta time travel reaches. 30 days is the proposed start.

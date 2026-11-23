@@ -15,6 +15,7 @@ Design: docs/architecture/model-grid-storage-spike.md
 """
 
 import logging
+from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
 from functools import cached_property
 
@@ -26,8 +27,8 @@ from zarr.codecs import ZstdCodec
 from zarr.codecs.numcodecs import PCodec
 
 from wps_weather_data.addresser import StationWeatherAddresser
-from wps_weather_data.grids.grib import BC_LATITUDE, BC_LONGITUDE, GribScales, decode
-from wps_weather_data.grids.models import MODELS, SCALES, RunGrid
+from wps_weather_data.grids.grib import BC_LATITUDE, BC_LONGITUDE, Crop, GribScales, decode
+from wps_weather_data.grids.models import MODELS, SCALES, VariableRun
 
 logger = logging.getLogger(__name__)
 
@@ -92,46 +93,10 @@ class GridStore:
         names = root.group_keys() if root is not None else []
         return sorted(datetime.strptime(n, RUN_FORMAT).replace(tzinfo=UTC) for n in names)
 
-    def write_run(self, grid: RunGrid) -> bool:
-        """Add a run in one commit. Returns False if the store already has it."""
-        if grid.model.name != self.model.name:
-            raise ValueError(f"a {grid.model.name} run cannot go in a {self.model.name} store")
-        name = run_name(grid.run_time)
-        session = self.repository.writable_session("main")
-        root = zarr.open_group(session.store, mode="a")
-        if name in root:
-            return False
-        ny, nx = grid.latitude.shape
-        if "latitude" not in root:
-            for coordinate in ("latitude", "longitude"):
-                data = getattr(grid, coordinate)
-                root.create_array(coordinate, data=data, compressors=ZstdCodec(level=3))
-        elif root["latitude"].shape != (ny, nx):
-            raise ValueError(f"the store's grid is {root['latitude'].shape}, the run's {(ny, nx)}")
-        hours = len(self.model.hours)
-        group = root.create_group(name, attributes={"forecast_hours": list(self.model.hours)})
-        for variable in self.model.variables:
-            array = group.create_array(
-                variable.name,
-                shape=(hours, ny, nx),
-                dtype="int32",
-                fill_value=0,
-                chunks=(hours, TILE, TILE),
-                # A variable's whole run is one object.
-                shards=(hours, -(-ny // TILE) * TILE, -(-nx // TILE) * TILE),
-                serializer=PCodec(level=8),
-                compressors=None,
-                dimension_names=("hour", "y", "x"),
-                attributes={"units": variable.units},
-            )
-            array[:] = grid.integers[variable.name]
-            for scale in SCALES:
-                group.create_array(
-                    f"{variable.name}_{scale}", data=grid.scales[variable.name][scale]
-                )
-        session.commit(f"{self.model.name} run {name}")
-        logger.info("Wrote %s run %s to %s", self.model.name, name, self.store)
-        return True
+    def write_run(self, run_time: datetime, crop: Crop, variables: Iterable[VariableRun]) -> bool:
+        """Add a run in one commit, a variable at a time. Returns False if the store already
+        has it."""
+        return bool(write_run([self], run_time, crop, variables))
 
     def _group(self, run_time: datetime) -> zarr.Group:
         root = self._root()
@@ -216,3 +181,77 @@ class GridStore:
             "chunks_deleted": summary.chunks_deleted,
             "objects_failed_to_delete": summary.objects_failed_to_delete,
         }
+
+
+class _RunWriter:
+    """One run being written to one store, a variable at a time, until `commit`."""
+
+    def __init__(self, store: GridStore, run_time: datetime, crop: Crop):
+        self.store = store
+        self.name = run_name(run_time)
+        self.session = store.repository.writable_session("main")
+        root = zarr.open_group(self.session.store, mode="a")
+        self.exists = self.name in root
+        if self.exists:
+            return
+        ny, nx = crop.latitude.shape
+        if "latitude" not in root:
+            for coordinate in ("latitude", "longitude"):
+                data = getattr(crop, coordinate)
+                root.create_array(coordinate, data=data, compressors=ZstdCodec(level=3))
+        elif root["latitude"].shape != (ny, nx):
+            raise ValueError(f"the store's grid is {root['latitude'].shape}, the run's {(ny, nx)}")
+        hours = store.model.hours
+        self.group = root.create_group(self.name, attributes={"forecast_hours": list(hours)})
+        self.chunks = (len(hours), TILE, TILE)
+        # A variable's whole run is one object.
+        self.shards = (len(hours), -(-ny // TILE) * TILE, -(-nx // TILE) * TILE)
+        self.shape = (len(hours), ny, nx)
+
+    def add(self, variable_run: VariableRun):
+        variable = variable_run.variable
+        array = self.group.create_array(
+            variable.name,
+            shape=self.shape,
+            dtype="int32",
+            fill_value=0,
+            chunks=self.chunks,
+            shards=self.shards,
+            serializer=PCodec(level=8),
+            compressors=None,
+            dimension_names=("hour", "y", "x"),
+            attributes={"units": variable.units},
+        )
+        array[:] = variable_run.integers
+        for scale in SCALES:
+            self.group.create_array(f"{variable.name}_{scale}", data=variable_run.scales[scale])
+
+    def commit(self):
+        model = self.store.model.name
+        self.session.commit(f"{model} run {self.name}")
+        logger.info("Wrote %s run %s to %s", model, self.name, self.store.store)
+
+
+def write_run(
+    stores: list[GridStore], run_time: datetime, crop: Crop, variables: Iterable[VariableRun]
+) -> list[GridStore]:
+    """Add a run to each store that lacks it, a variable at a time: each variable is written to
+    every store as it arrives, so only one is held at once, and each store commits once all are
+    written. `variables` is only consumed if a store lacks the run. Returns the stores written."""
+    for store in stores[1:]:
+        if store.model != stores[0].model:
+            raise ValueError("a run can only be written to stores of one model")
+    writers = [w for w in (_RunWriter(s, run_time, crop) for s in stores) if not w.exists]
+    if not writers:
+        return []
+    expected = [v.name for v in stores[0].model.variables]
+    written = []
+    for variable_run in variables:
+        written.append(variable_run.variable.name)
+        for writer in writers:
+            writer.add(variable_run)
+    if written != expected:
+        raise ValueError(f"the run has {written}, the model {expected}")
+    for writer in writers:
+        writer.commit()
+    return [writer.store for writer in writers]

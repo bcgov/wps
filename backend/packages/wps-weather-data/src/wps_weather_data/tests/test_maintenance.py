@@ -5,10 +5,9 @@ import pytest
 from wps_shared.weather_models import ModelEnum
 
 from wps_weather_data.by_time import ByTimeTable
-from wps_weather_data.grids.models import load_run
 from wps_weather_data.maintenance import maintain_all, maintain_grids
 from wps_weather_data.runs import RunsTable
-from wps_weather_data.tests.grid_helpers import MODEL, RUN, fake_datamart, store, stored_bytes
+from wps_weather_data.tests.grid_helpers import RUN, fake_datamart, load_run, store, stored_bytes
 
 RUN_TS = datetime(2026, 11, 12, 0, tzinfo=UTC)
 
@@ -93,7 +92,8 @@ def test_grid_stores_reclaim_deleted_runs_and_skip_missing_ones(monkeypatch, tmp
     fake_datamart(monkeypatch)
     recent, missing = store(tmp_path, "recent"), store(tmp_path, "history")
     for hours_ago in (12, 6, 0):
-        recent.write_run(load_run(MODEL, RUN - timedelta(hours=hours_ago), tmp_path))
+        crop, variables = load_run(tmp_path, RUN - timedelta(hours=hours_ago))
+        recent.write_run(RUN - timedelta(hours=hours_ago), crop, variables.values())
     recent.delete_runs_before(RUN)
     size = stored_bytes(tmp_path)
 

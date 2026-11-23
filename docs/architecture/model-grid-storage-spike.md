@@ -1,14 +1,16 @@
 # Model grid storage spike: weather model grids in Zarr on Icechunk
 
-Status: spike, run on local disk on 2026-11-19 for HRDPS, RDPS, GDPS, GFS and ECMWF, and in a small test against our object store (ECS). Full read times on ECS are not yet measured.
+Status: spike, run on 2026-11-19 on local disk for HRDPS, RDPS, GDPS, GFS and ECMWF, and against our object store (ECS) for HRDPS and RDPS. The design is now built for HRDPS and RDPS in `wps_weather_data.grids` (see [As built](#as-built)). Read times from inside the cluster are not measured.
+
+The decisions here and in the related documents are listed in [weather-data-decisions.md](weather-data-decisions.md).
 
 ## Summary
 
 - Every model we ingest publishes integer-packed GRIB2, and storing those integers with each field's scales keeps exactly what the provider publishes. Compressed with pcodec, it is the smallest lossless form for every model, 25 to 50 % smaller than float32.
 - Kept that way, with every hour of every run, BC crops of all five models come to about 200 GB a year. HRDPS is about 80 % of it (162 GB); RDPS is 27 GB and the other three under 6 GB each.
-- Open-Meteo style scaled int16 is about half the size again, but loses precision against the source, so it does not meet the requirement that every variable stays accurate.
+- Open-Meteo style scaled int16 is about half the size again for HRDPS, and 14 to 36 % smaller for the other models, but it rounds the published values a second time, to coarser steps, so it does not meet the requirement that every variable stays accurate. See [Accuracy and rounding](#accuracy-and-rounding).
 - The runs overlap: a 49-hour HRDPS run covers the same hours as the next seven. The chosen [retention](#retention) keeps every run for about a day and one run per model per day after that, which is about 52 GB a year for all five models, every value exact.
-- Icechunk works on ECS, garbage collection included, when it reaches ECS through the `object_store` crate (`icechunk.Storage.new_s3_object_store`). Through its default AWS SDK storage, garbage collection deletes nothing, because ECS rejects bulk deletes without `Content-MD5` and `object_store` is the client that still sends it. So `recent` can keep every run in one repository and reclaim old runs' space. Read times on ECS are the main thing left to measure.
+- Icechunk works on ECS, garbage collection included, when it reaches ECS through the `object_store` crate (`icechunk.Storage.new_s3_object_store`). Through its default AWS SDK storage, garbage collection deletes nothing, because ECS rejects bulk deletes without `Content-MD5` and `object_store` is the client that still sends it. So `recent` can keep every run in one repository and reclaim old runs' space. Read times from inside the cluster are the main thing left to measure.
 - Keeping the downloaded GRIB files instead would take about 1 TB a year under the same retention, about 20 times as much, because they cover each model's whole domain. [Cropped GRIB](#compared-with-keeping-the-grib-files) would be about Zarr's size but far slower for point reads.
 - NAM is no longer published on NOMADS.
 
@@ -83,7 +85,7 @@ What MSC packs each field at, from `grib_precision_check.py` on the 18Z run's ho
 - **Half a step** is exactly half the stored precision, as rounding gives: temperature 0.025, relative humidity 0.049, wind speed 0.05, wind direction 0.5, precipitation 0.05.
 - **Peak memory** was 1.17 GiB, because the script holds all five variables of a run at once.
 
-Only sizes, compression and errors carry over to ECS. Read and write times on ECS depend on request latency and have not been measured.
+Only sizes, compression and errors carry over to ECS. Read and write times there depend on request latency: see [Reads on ECS](#reads-on-ecs).
 
 ## Findings
 
@@ -91,9 +93,31 @@ Only sizes, compression and errors carry over to ECS. Read and write times on EC
 - **The scaled int16 variants are not accurate against the source.** They are 7.4x (82 GB a year), but MSC packs every field more finely than the scales chosen here (temperature to 0.001 K against 0.05). Their error, half a step, is far larger than anything in the source. Open-Meteo's scales were chosen for a forecast API, not to keep the source exactly.
 - **No one variable dominates the lossless size.** Temperature, stored to 0.001 K, is the largest at 25 MB a run, and the others are 16 to 23 MB. Keeping every variable exact leaves which runs and hours are kept as the remaining lever: each 49-hour run overlaps the next seven, so keeping only the first six hours of each run would store each hour once, roughly an eighth of the size. That has not been measured.
 - **pcodec beats zstd** by 15 to 20 % for float32 and for int16, with no slower reads.
-- **The point layout is the right default.** A point forecast is one chunk per variable. A map is about 110 chunks per variable, which was still fast here. The map layout makes maps ten times faster and point reads ten times slower. Which matters more on ECS, where each chunk is a ranged request, is the main thing left to measure.
+- **The point layout is the right default.** A point forecast is one chunk per variable. A map is about 110 chunks per variable, which was still fast here. The map layout makes maps ten times faster and point reads ten times slower. Which matters more on ECS, where each chunk is a ranged request, is measured from a laptop in [Reads on ECS](#reads-on-ecs) but not from inside the cluster.
 - **Writing is cheap.** A run encodes and commits in under a second once it is in memory. The cost of a job is the download, which the HRDPS job already does.
 - **The rough estimate held.** The evaluation's 475 GB a year for HRDPS before compression compares with 605 GB measured uncompressed (415 MB x 4 runs x 365 days).
+
+## Accuracy and rounding
+
+There are two separate roundings, and the stores have only the first:
+
+1. **The provider's, before publishing.** When MSC writes a GRIB file it rounds its model output to a step, such as 0.001 K, and packs it as integers with a scale. That precision is gone before we download the file. The `grib` variant keeps those integers and scales and adds no rounding of its own. So "lossless" here means the same as the published file, not the same as the model's internal values. The scales can change from hour to hour, so they are stored for every hour. GFS and ECMWF are kept the same way, with their own steps.
+2. **Open-Meteo's, after downloading.** It rounds the published values again, to a coarser step chosen for each variable, and the finer value cannot be recovered. This is the loss the `grib` variant avoids.
+
+For HRDPS:
+
+| Variable | MSC's published step (what is stored) | Open-Meteo style step (rejected) | Largest error from the second rounding |
+|---|---|---|---|
+| Temperature | 0.001 K | 0.05 K | 0.025 K |
+| Relative humidity | 0.025 % | 0.1 % | 0.049 % |
+| Wind speed | 0.01 m/s | 0.1 m/s | 0.05 m/s |
+| Wind direction | 0.1° | 1° | 0.5° |
+| Precipitation, since the run started | 0.00001 mm | 0.1 mm | 0.05 mm |
+
+- **The published steps** are from hour 24 of the 2026-11-19 18Z run and can differ at other hours. The errors were measured on the 12Z run against the published values. The `grib` variant's error against them is none.
+- **The rejected steps are Open-Meteo's**, except relative humidity. Open-Meteo rounds that to 1 %, an error of up to 0.5 %, which was not measured.
+- **Precipitation** is a total since the run started. With that rounding, a total under 0.05 mm becomes zero, and an hourly amount, the difference between two totals, can be off by up to 0.1 mm. This follows from the step and was not measured.
+- **What it would save.** Scaled from the measured runs, the daily `history` of all five models would be about 29 GB a year instead of 52. Per run, the saving is 49 % for HRDPS, 36 % for RDPS, 24 % for GDPS, 26 % for GFS and 14 % for ECMWF.
 
 ## The other models
 
@@ -134,8 +158,8 @@ Only sizes, compression and errors carry over to ECS. Read and write times on EC
 
 Decided on 2026-11-19: every run for the current day, and historically one fixed-hour run per model per day. Each model has two stores:
 
-- **`recent`: every run for about the last day.** One Icechunk repository, with each run its own group (for example `/2026-11-19T12/`), written in one commit. The job adds each new run and deletes the groups of runs older than about 24 to 48 hours; a scheduled job expires old snapshots and runs garbage collection, as `vacuum` does for the Delta tables. The repository must reach ECS through `object_store` (see [the cycle on ECS](#the-recent-cycle-on-ecs)): this whole cycle worked on ECS that way. Through Icechunk's default AWS SDK storage, garbage collection deletes nothing on ECS. A repository per run, deleted by prefix one object at a time, was the workaround considered before `object_store` was tried, and is no longer needed.
-- **`history`: one run per day, kept.** Appended along the `run` axis, as the spike writes it. The job writes the chosen run to both stores. Nothing is deleted from `history`.
+- **`recent`: every run for the last 48 hours.** One Icechunk repository, with each run its own group (for example `/2026-11-19T12/`), written in one commit. The job adds each new run and deletes the groups of runs older than 48 hours; a scheduled job expires old snapshots and runs garbage collection, as `vacuum` does for the Delta tables. The repository must reach ECS through `object_store` (see [the cycle on ECS](#the-recent-cycle-on-ecs)): this whole cycle worked on ECS that way. Through Icechunk's default AWS SDK storage, garbage collection deletes nothing on ECS. A repository per run, deleted by prefix one object at a time, was the workaround considered before `object_store` was tried, and is no longer needed.
+- **`history`: one run per day, kept.** Laid out as `recent` is, a group per run, so that one piece of code reads and writes both. (The spike appended along a `run` axis instead.) The job writes the chosen run to both stores from one download. Nothing is deleted from `history`.
 
 The run kept each day is each model's last full-length run:
 
@@ -158,8 +182,9 @@ Sizes, as GRIB integers, scaled from the measured runs in [Sizes](#sizes):
 | ECMWF | 1.8 | about 15 MB |
 | All five | about 52, or about 30 keeping April to October only | about 0.55 GB, up to about twice that before garbage collection |
 
-- **`history` needs little garbage collection.** Nothing is deleted from it. Each daily append rewrites only its small `run_time` and per-hour scale arrays, a few KB a day of unreferenced objects, which the same scheduled garbage collection removes. A retention window (two years, say) would also be possible: delete old runs' chunks and garbage collect. That was not tried.
-- **What the current day is** is still open. The last 24 to 48 hours is simpler than a calendar day and never leaves a gap after midnight.
+- **`history` needs little garbage collection.** Nothing is deleted from it, and adding a run adds a group without rewriting another run's arrays. The nightly maintenance job covers it as well as `recent`. A retention window (two years, say) would be the deletion `recent` already does, with a longer cutoff.
+- **`recent` at 48 hours** is about twice the table's figures, which are for about a day: roughly 1.1 GB for all five models and 1.0 GB for HRDPS and RDPS, plus deleted runs that maintenance has not reclaimed yet.
+- **The current day is the last 48 hours**, not a calendar day, so there is never a gap after midnight.
 
 ### The recent cycle on ECS
 
@@ -185,6 +210,8 @@ Why the SDK cannot be told to use MD5, and the ways around it. The first point a
 
 - **Others hit the same limit.** The ECS Community Edition issue [#584](https://github.com/EMCECS/ECS-CommunityEdition/issues/584) reports this exact error with current AWS SDKs; it was closed in 2025 with no comment. Elasticsearch ([#162197](https://github.com/elastic/elasticsearch/pull/162197)) and ClickHouse ([#125566](https://github.com/ClickHouse/ClickHouse/pull/125566)) added MD5 settings for it, and AWS's Java and C++ SDKs have MD5 fallbacks. ECS's release notes are behind Dell's sign-in and were not read; no public statement that any ECS or ObjectScale release accepts CRC32 here was found.
 
+The AWS SDK storage has a second problem on ECS. Its first commit failed, because ECS answers a conditional GET with a 304 that carries the object's checksum but no body, and the SDK rejects it ("expected body checksum to be 0c835fe8 but it was 00000000"). Setting `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` to `when_required` fixes that, and the `object_store` storage needs neither.
+
 So Icechunk on ECS should use the `object_store` storage. Its garbage collection then reclaims space, and `recent` can be one repository.
 
 ### Reads on ECS
@@ -204,6 +231,17 @@ The 2026-11-19 18Z HRDPS run was written to ECS through each storage and read ba
 - **`object_store` needs no checksum settings.** It wrote, committed and read with `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` unset.
 - **The times are mostly round trips from the laptop to ECS,** not the storage. A point forecast is a handful of requests (a chunk per variable, plus the per-hour scales for GRIB integers); a map in the point layout is about 110 chunk requests, and a point forecast in the map layout reads 49 whole fields per variable. Local disk took 16 ms and 30 ms for the GRIB integers. Read times from inside the cluster were not measured, and they decide whether these reads are fast enough for an API.
 - **Writing** is the laptop's upload, about 6 MB/s.
+
+## As built
+
+`wps_weather_data.grids`, described in the [package README](../../backend/packages/wps-weather-data/README.md#grids), implements this for HRDPS and RDPS, about 47 of the 52 GB a year:
+
+- **A separate job, hourly for each model**, not part of the station jobs, so that a failure in one cannot hold up the other. It downloads the files again for itself.
+- **A run is stored only once the datamart has all of it**, checked before anything is downloaded, and committed once. A file that disappears part way leaves nothing committed, and the run is tried again the next hour.
+- **One variable at a time.** Each is downloaded, cropped, converted to GRIB integers, written to every store that needs the run, and its files deleted. Cropping comes before the conversion. HRDPS peaked at 508 MiB, against 826 MiB holding the whole run, measured on a laptop writing to local disk. The cron job's limit is 1 GiB.
+- **Maintenance** is the nightly `station-weather-maintenance` job. It expires snapshots older than a day and garbage collects objects older than an hour, so a grid store cannot be read as it was more than about a day ago.
+
+It has not been checked in a cluster.
 
 ## Compared with keeping the GRIB files
 
@@ -230,11 +268,9 @@ Cropped GRIB would still be worse to use:
 ## Open questions
 
 - **Read times on ECS from inside the cluster.** From a laptop, a point forecast took about 1 s and a map about 4.5 s in the point layout (see [Reads on ECS](#reads-on-ecs)).
-- **Icechunk on ECS works, with one setting.** A small test (3 hours of one run, one variant) wrote, committed and read back from ECS on 2026-11-19, with conditional writes on. Without the setting, the first commit failed: ECS answers Icechunk's conditional GET with a 304 that carries the object's checksum but no body, and the AWS SDK inside Icechunk rejects it ("expected body checksum to be 0c835fe8 but it was 00000000"). Setting `AWS_RESPONSE_CHECKSUM_VALIDATION` and `AWS_REQUEST_CHECKSUM_CALCULATION` to `when_required` fixes it, as the same incompatibility needed for botocore. The script sets both when it writes to S3. Any job writing Icechunk to ECS through the default AWS SDK storage will need them. Garbage collection needs the `object_store` storage instead (see [the cycle on ECS](#the-recent-cycle-on-ecs)), which needs none of these settings.
-- **The other models on ECS.** Their sizes are in [Sizes](#sizes); their read times on ECS were not measured.
+- **More models on ECS.** GDPS, GFS and ECMWF have not been written to ECS; their sizes are in [Sizes](#sizes).
 - **More runs.** One run was written. Compression is per run, so it should hold, but the object count and Icechunk's metadata over months of commits are not measured.
 - **ECS quota and cost** for about 52 GB a year for all five models under the chosen [retention](#retention), and who approves it.
-- **Where the writes go.** Inside the existing model jobs (more memory and time in jobs with tight limits), or a separate job reading the same downloaded files, so that a failure there cannot hold up the station data.
 
 ## Next steps
 
@@ -248,11 +284,13 @@ Cropped GRIB would still be worse to use:
 2. Measure reads from inside the cluster, from a pod reading the `object_store` stores, to separate ECS's own latency from the laptop's network path.
 3. Ask the object storage team whether ECS will accept the AWS SDKs' CRC checksums, which would also let our own Python code drop the aiobotocore pin.
 4. Check whether NOMADS keeps NOAA's original scales for GFS, against a field from NOAA's full file.
-5. Decide on the layout and where the writes run, then design the job.
+5. Add GDPS, GFS and ECMWF to the job, and endpoints that read the grids.
 
 ## Open-Meteo's quantization
 
 From the source of [om-file-format](https://github.com/open-meteo/om-file-format) (`c/src/om_common.c`, `c/include/om_common.h`) and [open-meteo](https://github.com/open-meteo/open-meteo) (`Sources/App/Gfs/GfsVariable.swift`, `Sources/App/Gem/GemVariable.swift`), read on 2026-11-19:
+
+What this rounding loses against the published values is under [Accuracy and rounding](#accuracy-and-rounding).
 
 - Values are stored as int16: `round((value + add_offset) * scale_factor)`, clamped to the int16 range. Missing values are `INT16_MAX` (32767), so a real value that scales to 32767 also reads back as missing.
 - Neighbouring values are delta coded in two dimensions and compressed with FastPFOR. Other compression types are int32 for wider ranges, `log10(1 + x)` before scaling for skewed values, and FPX for lossless floats.

@@ -34,10 +34,10 @@ parameters:
     required: true
   - name: MEMORY_REQUEST
     description: Memory request
-    value: 1Gi
+    value: 512Mi
   - name: MEMORY_LIMIT
-    description: Memory limit. A whole HRDPS run over BC is held at once, about 1.2 GiB at peak.
-    value: 2Gi
+    description: Memory limit. A run is written a variable at a time; HRDPS peaked at about 510 MiB.
+    value: 1Gi
 objects:
   - kind: CronJob
     apiVersion: batch/v1

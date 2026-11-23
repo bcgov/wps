@@ -85,3 +85,22 @@ def test_other_download_errors_fail_the_job(monkeypatch, tmp_path, error):
     monkeypatch.setattr(models, "download", download)
     with pytest.raises(urllib.error.HTTPError):
         keep_grids(MODEL, store(tmp_path, "recent"), store(tmp_path, "history"), NOW)
+
+
+def test_a_run_whose_files_vanish_part_way_is_retried_next_time(monkeypatch, tmp_path):
+    fake_datamart(monkeypatch, vanished={"20261119T18"})
+    recent, history = store(tmp_path, "recent"), store(tmp_path, "history")
+
+    written = keep_grids(MODEL, recent, history, NOW)
+
+    assert at(19, 18) not in written
+    assert at(19, 18) not in recent.run_times()
+    assert history.run_times() == []
+
+
+def test_an_unpublished_run_is_not_downloaded(monkeypatch, tmp_path):
+    downloaded = fake_datamart(monkeypatch, unpublished={"20261119T18"})
+
+    keep_grids(MODEL, store(tmp_path, "recent"), store(tmp_path, "history"), NOW)
+
+    assert not any("20261119T18Z" in url for url in downloaded)
