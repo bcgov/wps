@@ -12,13 +12,11 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
 import { formatElevation, type ModelElevationRow } from '../modelElevation'
 import { estimatePreviousDayLapseRate, type PreviousDayWeather } from '../previousDayLapseRate'
-import { ORDERED_COLUMN_HEADERS } from './ColumnDefBuilder'
+import ElevationChart from './ElevationChart'
 
 type StationComparison = Pick<ModelElevationRow, 'stationCode' | 'stationName' | 'stationElevation' | 'modelElevations'>
 
@@ -27,142 +25,6 @@ interface ModelElevationComparisonPanelProps {
   referenceWeather: PreviousDayWeather
   onApply?: (model: string, adjustmentCelsius: number, overwriteExisting: boolean) => string
   onClose: () => void
-}
-
-const models = ORDERED_COLUMN_HEADERS.filter(
-  model => weatherModelsWithTooltips.some(candidate => candidate === model) && model !== WeatherDeterminate.NAM
-)
-const differenceFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0, signDisplay: 'exceptZero' })
-const tickFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0 })
-const plot = { left: 48, right: 392, top: 36, bottom: 176 }
-
-const ElevationChart = ({
-  station,
-  selected,
-  onSelect
-}: {
-  station: StationComparison
-  selected: string
-  onSelect: (model: string) => void
-}) => {
-  const theme = useTheme()
-  const stationElevation =
-    typeof station.stationElevation === 'number' && Number.isFinite(station.stationElevation)
-      ? station.stationElevation
-      : null
-  const points = models.map(model => {
-    const value = station.modelElevations[model]
-    const elevation = typeof value === 'number' && Number.isFinite(value) ? value : null
-    const difference = elevation !== null && stationElevation !== null ? elevation - stationElevation : null
-    return { model, elevation, difference }
-  })
-  const modelElevations = points.flatMap(point => (point.elevation === null ? [] : [point.elevation]))
-
-  const elevations = stationElevation === null ? modelElevations : [...modelElevations, stationElevation]
-  const minimum = elevations.length ? Math.min(...elevations) : 0
-  const maximum = elevations.length ? Math.max(...elevations) : 0
-  // leave room for labels and keep equal elevations on a useful scale
-  const span = Math.max(maximum - minimum, 100) * 1.2
-  const lowerBound = (minimum + maximum - span) / 2
-  const y = (elevation: number): number => plot.bottom - ((elevation - lowerBound) / span) * (plot.bottom - plot.top)
-  const ticks = Array.from({ length: 5 }, (_, index) => lowerBound + (span * index) / 4)
-
-  return (
-    <>
-      <Box sx={{ mt: 1 }}>
-        {modelElevations.length === 0 && <Typography>Model elevations are not available for this station.</Typography>}
-        <Box
-          component="svg"
-          viewBox="0 0 400 196"
-          role="img"
-          aria-labelledby="model-elevation-chart-title"
-          aria-describedby="model-elevation-chart-description"
-          sx={{ display: 'block', width: '100%', fontFamily: theme.typography.fontFamily, fontSize: 13 }}
-        >
-          <title id="model-elevation-chart-title">Model elevations compared with station elevation</title>
-          <desc id="model-elevation-chart-description">
-            Station elevation: {formatElevation(stationElevation)}.{' '}
-            {points
-              .map(
-                point =>
-                  `${point.model}: ${formatElevation(point.elevation)}${point.difference === null ? '' : `, ${differenceFormatter.format(point.difference)} m difference from station`}`
-              )
-              .join('. ')}
-          </desc>
-          <text x={0} y={16} fill={theme.palette.text.secondary}>
-            Elevation (m)
-          </text>
-          {ticks.map(tick => (
-            <g key={tick}>
-              <line x1={plot.left} x2={plot.right} y1={y(tick)} y2={y(tick)} stroke={theme.palette.divider} />
-              <text x={plot.left - 10} y={y(tick) + 4} textAnchor="end" fill={theme.palette.text.secondary}>
-                {tickFormatter.format(tick)}
-              </text>
-            </g>
-          ))}
-          {stationElevation !== null && (
-            <line
-              x1={plot.left}
-              x2={plot.right}
-              y1={y(stationElevation)}
-              y2={y(stationElevation)}
-              stroke={theme.palette.text.primary}
-              strokeWidth={2}
-              strokeDasharray="6 4"
-              aria-label={`Station elevation ${formatElevation(stationElevation)}`}
-            />
-          )}
-          {points.map((point, index) => {
-            const x = plot.left + ((index + 0.5) * (plot.right - plot.left)) / points.length
-            return (
-              <g key={point.model} data-model={point.model} textAnchor="middle">
-                {point.elevation !== null && (
-                  <>
-                    <circle
-                      cx={x}
-                      cy={y(point.elevation)}
-                      r={selected === point.model ? 8 : 5}
-                      fill={theme.palette.primary.main}
-                    />
-                    <text x={x} y={y(point.elevation) - 10} fill={theme.palette.text.primary}>
-                      {formatElevation(point.elevation)}
-                    </text>
-                  </>
-                )}
-              </g>
-            )
-          })}
-        </Box>
-      </Box>
-      <Box sx={{ display: 'grid', gridTemplateColumns: `repeat(${models.length}, 1fr)`, ml: '12%', mr: '2%' }}>
-        {points.map(point => (
-          <Box key={point.model} sx={{ textAlign: 'center' }}>
-            <Button
-              size="small"
-              sx={{ minWidth: 0, px: 0, fontSize: 11 }}
-              aria-pressed={selected === point.model}
-              variant={selected === point.model ? 'contained' : 'text'}
-              onClick={() => onSelect(point.model)}
-            >
-              {point.model}
-            </Button>
-            <Typography variant="caption" component="div">
-              {point.elevation === null
-                ? 'N/A'
-                : point.difference === null
-                  ? ''
-                  : `${differenceFormatter.format(point.difference)} m`}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
-      {stationElevation === null && (
-        <Typography variant="caption" color="text.secondary">
-          Station elevation unavailable. Differences cannot be calculated.
-        </Typography>
-      )}
-    </>
-  )
 }
 
 const ModelElevationComparisonPanel = ({

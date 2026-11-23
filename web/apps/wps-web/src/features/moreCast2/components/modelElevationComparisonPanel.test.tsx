@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import type { WeatherIndeterminate } from '@wps/api/moreCast2API'
+import { MORECAST_MODEL_COLORS } from '@wps/ui/theme'
 import { DateTime } from 'luxon'
 import { vi } from 'vitest'
 import type { ModelElevationRow } from '../modelElevation'
@@ -18,7 +19,9 @@ const station: ModelElevationRow = {
   modelElevations: { HRDPS: 850.4, RDPS: 1150, GDPS: 900, ECMWF: 0, GFS: -20, NAM: 600, HRDPS_BIAS: 700 }
 }
 
-const model = (name: string): SVGElement => screen.getByRole('img').querySelector<SVGElement>(`[data-model="${name}"]`)!
+const model = (name: string): SVGElement =>
+  document.querySelector<SVGElement>(`[data-model="${name}"]`) ??
+  document.createElementNS('http://www.w3.org/2000/svg', 'g')
 const modelLabels = (name: string) => [
   ...Array.from(model(name).querySelectorAll('text'), node => node.textContent),
   name,
@@ -279,15 +282,51 @@ describe('model elevation comparison panel', () => {
     render(<ModelElevationComparisonPanel referenceWeather={emptyWeather} station={station} onClose={vi.fn()} />)
     expect(screen.getByRole('region', { name: 'Model elevations for Alpha station' })).toBeInTheDocument()
     expect(screen.getByText('Station elevation: 900 m')).toBeInTheDocument()
-    expect(
-      [...screen.getByRole('img').querySelectorAll('[data-model]')].map(node => node.getAttribute('data-model'))
-    ).toEqual(['HRDPS', 'RDPS', 'GDPS', 'ECMWF', 'GFS'])
-    expect(modelLabels('HRDPS')).toEqual(['850 m', 'HRDPS', '-50 m'])
-    expect(modelLabels('RDPS')).toEqual(['1,150 m', 'RDPS', '+250 m'])
-    expect(modelLabels('GDPS')).toEqual(['900 m', 'GDPS', '0 m'])
-    expect(modelLabels('ECMWF')).toEqual(['0 m', 'ECMWF', '-900 m'])
-    expect(modelLabels('GFS')).toEqual(['-20 m', 'GFS', '-920 m'])
+    expect([...document.querySelectorAll('[data-model]')].map(node => node.getAttribute('data-model'))).toEqual([
+      'HRDPS',
+      'RDPS',
+      'GDPS',
+      'ECMWF',
+      'GFS'
+    ])
+    expect(modelLabels('HRDPS')).toEqual(['850', 'HRDPS', '-50'])
+    expect(modelLabels('RDPS')).toEqual(['1150', 'RDPS', '+250'])
+    expect(modelLabels('GDPS')).toEqual(['900', 'GDPS', '0'])
+    expect(modelLabels('ECMWF')).toEqual(['0', 'ECMWF', '-900'])
+    expect(modelLabels('GFS')).toEqual(['-20', 'GFS', '-920'])
     expect(screen.getByLabelText('Station elevation 900 m')).toBeInTheDocument()
+  })
+
+  it('keeps larger elevations and differences compact while retaining accessible units', () => {
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
+        station={{
+          ...station,
+          stationElevation: 2500,
+          modelElevations: { HRDPS: 1200, RDPS: 4500, GDPS: 1100, ECMWF: 1000, GFS: 1150 }
+        }}
+        onClose={vi.fn()}
+      />
+    )
+    expect(modelLabels('HRDPS')).toEqual(['1200', 'HRDPS', '-1300'])
+    expect(modelLabels('RDPS')).toEqual(['4500', 'RDPS', '+2000'])
+    expect(modelLabels('ECMWF')).toEqual(['1000', 'ECMWF', '-1500'])
+    expect(screen.getByLabelText('HRDPS elevation 1,200 m')).toBeInTheDocument()
+    expect(screen.getByLabelText('RDPS elevation difference +2000 m')).toHaveStyle({ whiteSpace: 'nowrap' })
+  })
+
+  it('uses grid colours and outlines the selected model', async () => {
+    render(<ModelElevationComparisonPanel referenceWeather={emptyWeather} station={station} onClose={vi.fn()} />)
+    expect(model('HRDPS').querySelector('circle')).toHaveAttribute('fill', MORECAST_MODEL_COLORS.hrdps.border)
+    const button = screen.getByRole('button', { name: 'HRDPS' })
+    expect(button).toHaveStyle({
+      color: MORECAST_MODEL_COLORS.hrdps.border,
+      backgroundColor: MORECAST_MODEL_COLORS.hrdps.bg
+    })
+    await userEvent.click(button)
+    expect(button).toHaveAttribute('aria-pressed', 'true')
+    expect(model('HRDPS').querySelector('circle')).toHaveAttribute('stroke-width', '3')
   })
 
   it('calculates differences before rounding displayed elevations', () => {
@@ -298,7 +337,7 @@ describe('model elevation comparison panel', () => {
         onClose={vi.fn()}
       />
     )
-    expect(modelLabels('HRDPS')).toEqual(['1,001 m', 'HRDPS', '0 m'])
+    expect(modelLabels('HRDPS')).toEqual(['1001', 'HRDPS', '0'])
   })
 
   it('leaves unavailable models unplotted and keeps zero as an elevation', () => {
@@ -314,7 +353,7 @@ describe('model elevation comparison panel', () => {
       />
     )
     expect(model('HRDPS').querySelector('circle')).toBeInTheDocument()
-    expect(modelLabels('HRDPS')).toEqual(['0 m', 'HRDPS', '0 m'])
+    expect(modelLabels('HRDPS')).toEqual(['0', 'HRDPS', '0'])
     for (const name of ['RDPS', 'GDPS', 'ECMWF', 'GFS']) {
       expect(modelLabels(name)).toEqual([name, 'N/A'])
       expect(model(name).querySelector('circle')).toBeNull()
@@ -329,12 +368,12 @@ describe('model elevation comparison panel', () => {
         onClose={vi.fn()}
       />
     )
-    const markers = [...screen.getByRole('img').querySelectorAll('circle')]
+    const markers = [...document.querySelectorAll('[data-model] circle')]
     expect(markers).toHaveLength(5)
     const positions = markers.map(marker => Number(marker.getAttribute('cy')))
     expect(new Set(positions).size).toBe(1)
     expect(positions.every(y => Number.isFinite(y) && y > 0 && y < 250)).toBe(true)
-    expect(screen.getByRole('img').querySelector('polyline, path')).toBeNull()
+    expect(document.querySelector('.MuiLineChart-line')).toBeNull()
   })
 
   it('shows model elevations without differences when station elevation is unavailable', () => {
@@ -345,9 +384,9 @@ describe('model elevation comparison panel', () => {
         onClose={vi.fn()}
       />
     )
-    expect(modelLabels('HRDPS')).toEqual(['850 m', 'HRDPS', ''])
+    expect(modelLabels('HRDPS')).toEqual(['850', 'HRDPS', ''])
     expect(screen.getByText('Station elevation unavailable. Differences cannot be calculated.')).toBeInTheDocument()
-    expect(screen.getByRole('img').querySelector('line[stroke-dasharray]')).toBeNull()
+    expect(screen.queryByLabelText(/^Station elevation .* m$/)).not.toBeInTheDocument()
   })
 
   it('shows an empty message when only bias or retired models have elevations', () => {
