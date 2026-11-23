@@ -16,7 +16,7 @@ Design: docs/architecture/model-grid-storage-spike.md
 
 import logging
 from collections.abc import Iterable
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from functools import cached_property
@@ -121,26 +121,29 @@ class GridStore:
         return root[name]
 
     def _read(self, group: zarr.Group, selections: dict[str, tuple]) -> dict[str, np.ndarray]:
-        """Read a selection of each of some variables, decoded. A selection is (hour, y, x).
+        """Read a selection of each of some variables, decoded. A selection is (hour, y, x) of one
+        cell, or (hour,) of every cell.
 
         The arrays are read at the same time. Each takes a few requests that wait for one another,
         and a point forecast reads 20 arrays, so one at a time it waits for over 40 in turn."""
-        reads: list[tuple[str, tuple]] = []
-        for name, selection in selections.items():
-            reads.append((name, selection))
-            reads.extend((f"{name}_{scale}", selection[:1]) for scale in SCALES)
         with ThreadPoolExecutor(READ_THREADS) as pool:
-            arrays = list(pool.map(lambda read: group[read[0]][read[1]], reads))
-        decoded = {}
-        step = 1 + len(SCALES)
-        for position, name in enumerate(selections):
-            values, *scales = arrays[position * step : (position + 1) * step]
-            if np.ndim(scales[0]):
-                # Line each hour's scales up with the hour axis of the values.
-                extra = (slice(None),) + (np.newaxis,) * (values.ndim - 1)
-                scales = [scale[extra] for scale in scales]
-            decoded[name] = decode(values, GribScales(*scales))
-        return decoded
+
+            def start(array: str, selection: tuple) -> Future:
+                return pool.submit(lambda: group[array][selection])
+
+            # A variable's integers, then its scales, which have only an hour.
+            reads = {
+                name: [
+                    start(name, selection),
+                    *(start(f"{name}_{scale}", selection[:1]) for scale in SCALES),
+                ]
+                for name, selection in selections.items()
+            }
+            decoded = {}
+            for name, started in reads.items():
+                values, *scales = [read.result() for read in started]
+                decoded[name] = decode(values, GribScales(*scales))
+            return decoded
 
     @cached_property
     def coordinates(self) -> tuple[np.ndarray, np.ndarray]:
