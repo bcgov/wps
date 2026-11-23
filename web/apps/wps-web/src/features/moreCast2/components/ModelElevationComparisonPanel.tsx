@@ -1,4 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import SyncAltIcon from '@mui/icons-material/SyncAlt'
 import {
   Box,
@@ -13,25 +14,17 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
+import { DateTime } from 'luxon'
 import { useState } from 'react'
 import { formatElevation, type ModelElevationRow } from '../modelElevation'
+import { estimatePreviousDayLapseRate, type PreviousDayWeather } from '../previousDayLapseRate'
 import { ORDERED_COLUMN_HEADERS } from './ColumnDefBuilder'
 
-type StationComparison = Pick<ModelElevationRow, 'stationName' | 'stationElevation' | 'modelElevations'>
-
-const LAPSE_RATE_STORAGE_KEY = 'morecastLastLapseRate'
-
-const getStoredLapseRate = (): string => {
-  try {
-    const stored = localStorage.getItem(LAPSE_RATE_STORAGE_KEY)
-    return stored?.trim() && Number.isFinite(Number(stored)) ? Number(stored).toFixed(1) : ''
-  } catch {
-    return ''
-  }
-}
+type StationComparison = Pick<ModelElevationRow, 'stationCode' | 'stationName' | 'stationElevation' | 'modelElevations'>
 
 interface ModelElevationComparisonPanelProps {
   station: StationComparison | null
+  referenceWeather: PreviousDayWeather
   onApply?: (model: string, adjustmentCelsius: number, overwriteExisting: boolean) => string
   onClose: () => void
 }
@@ -172,13 +165,26 @@ const ElevationChart = ({
   )
 }
 
-const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelElevationComparisonPanelProps) => {
+const ModelElevationComparisonPanel = ({
+  station,
+  referenceWeather,
+  onClose,
+  onApply
+}: ModelElevationComparisonPanelProps) => {
   const [selected, setSelected] = useState('')
   // keep the entered value as text so clearing and typing do not lose the controlling field
-  const [input, setInput] = useState<{ field: 'rate' | 'adjustment'; value: string }>(() => ({
-    field: 'rate',
-    value: getStoredLapseRate()
-  }))
+  const [manualInput, setInput] = useState<{ field: 'rate' | 'adjustment'; value: string } | null>(null)
+  const estimate =
+    station && selected
+      ? estimatePreviousDayLapseRate(
+          referenceWeather,
+          station.stationCode,
+          station.stationElevation,
+          selected,
+          DateTime.now().setZone('America/Vancouver').minus({ days: 1 })
+        )
+      : { rate: null, explanation: 'Select a model to estimate a lapse rate.' }
+  const input = manualInput ?? { field: 'rate', value: estimate.rate?.toFixed(1) ?? '' }
   const [message, setMessage] = useState('')
   const [overwriteExisting, setOverwriteExisting] = useState(false)
   const modelElevation = station?.modelElevations[selected as keyof typeof station.modelElevations]
@@ -255,8 +261,10 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
             selected={selected}
             onSelect={model => {
               if (model === selected) return
-              // model changes carry the lapse rate, including one derived from a direct adjustment
-              if (input.field === 'adjustment') {
+              // carry manual rates across models, but calculate a new estimate after clearing
+              if (input.value.trim() === '') {
+                setInput(null)
+              } else if (manualInput && input.field === 'adjustment') {
                 setInput({ field: 'rate', value: rate !== null && Number.isFinite(rate) ? rate.toFixed(1) : '' })
               }
               setSelected(model)
@@ -266,7 +274,17 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
           {onApply && (
             <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Divider sx={{ mb: 1 }} />
-              <Typography variant="subtitle2">Temperature adjustment</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="subtitle2">Temperature adjustment</Typography>
+                <Tooltip
+                  describeChild
+                  title="Initially calculated using yesterday’s observed noon temperature, the corresponding raw model temperature, and the elevation difference between the model and station"
+                >
+                  <IconButton size="small" aria-label="How the lapse rate is prefilled">
+                    <InfoOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <TextField
                   sx={{ flex: 1, minWidth: 0 }}
@@ -277,7 +295,7 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
                   disabled={!canConvert}
                   value={displayValue('rate', rate)}
                   onBlur={() => {
-                    if (input.field === 'rate' && rate !== null && Number.isFinite(rate)) {
+                    if (manualInput && input.field === 'rate' && rate !== null && Number.isFinite(rate)) {
                       setInput({ field: 'rate', value: rate.toFixed(1) })
                     }
                   }}
@@ -286,6 +304,7 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
                     setMessage('')
                   }}
                 />
+
                 <SyncAltIcon color="action" fontSize="small" />
                 <TextField
                   sx={{ flex: 1, minWidth: 0 }}
@@ -331,13 +350,6 @@ const ModelElevationComparisonPanel = ({ station, onClose, onApply }: ModelEleva
                     disabled={!valid}
                     onClick={() => {
                       setMessage(onApply(selected, adjustment!, overwriteExisting))
-                      if (rate !== null && Number.isFinite(rate)) {
-                        try {
-                          localStorage.setItem(LAPSE_RATE_STORAGE_KEY, rate.toFixed(1))
-                        } catch {
-                          // remembering a preference must not prevent filling forecasts
-                        }
-                      }
                     }}
                   >
                     Fill temperature forecasts

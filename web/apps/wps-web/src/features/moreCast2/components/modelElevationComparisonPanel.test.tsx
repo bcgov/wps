@@ -1,8 +1,13 @@
 import { render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import type { WeatherIndeterminate } from '@wps/api/moreCast2API'
+import { DateTime } from 'luxon'
 import { vi } from 'vitest'
 import type { ModelElevationRow } from '../modelElevation'
+import type { PreviousDayWeather } from '../previousDayLapseRate'
 import ModelElevationComparisonPanel from './ModelElevationComparisonPanel'
+
+const emptyWeather: PreviousDayWeather = { actuals: [], predictions: [] }
 
 const station: ModelElevationRow = {
   id: 'model-elevation-1',
@@ -24,54 +29,82 @@ describe('model elevation comparison panel', () => {
   beforeEach(() => localStorage.clear())
   afterEach(() => localStorage.clear())
 
-  it.each(['', ' ', 'invalid', 'NaN', 'Infinity'])('ignores invalid saved rate %s', saved => {
-    localStorage.setItem('morecastLastLapseRate', saved)
-    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={vi.fn()} />)
-    expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveValue(null)
-  })
-
-  it.each(['0.0', '-6.5', '9.8'])('prefills saved rate %s without selecting a model', saved => {
-    localStorage.setItem('morecastLastLapseRate', saved)
-    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={vi.fn()} />)
-    expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveDisplayValue(saved)
-    expect(screen.getByRole('button', { name: 'Fill temperature forecasts' })).toBeDisabled()
-    expect(screen.queryByText('Preset lapse rates')).not.toBeInTheDocument()
-  })
-
-  it('saves a derived rate only on Fill and restores it when reopened', async () => {
-    const props = { station, onClose: vi.fn(), onApply: vi.fn() }
-    const { unmount } = render(<ModelElevationComparisonPanel {...props} />)
-    await userEvent.click(screen.getByRole('button', { name: 'RDPS' }))
-    await userEvent.type(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' }), '-2')
-    expect(localStorage.getItem('morecastLastLapseRate')).toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
-    expect(localStorage.getItem('morecastLastLapseRate')).toBe('-8.0')
-    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
-    await userEvent.clear(rate)
-    await userEvent.type(rate, '5')
-    await userEvent.tab()
-    unmount()
-    render(<ModelElevationComparisonPanel {...props} />)
-    expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveDisplayValue('-8.0')
-  })
-
-  it('does not overwrite a saved rate when applying an adjustment without elevations', async () => {
+  it('leaves missing estimates blank even when a saved rate exists', async () => {
     localStorage.setItem('morecastLastLapseRate', '6.5')
     render(
       <ModelElevationComparisonPanel
-        station={{ ...station, stationElevation: null }}
+        referenceWeather={emptyWeather}
+        station={station}
         onClose={vi.fn()}
         onApply={vi.fn()}
       />
     )
     await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
-    await userEvent.type(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' }), '2')
-    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
-    expect(localStorage.getItem('morecastLastLapseRate')).toBe('6.5')
+    expect(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })).toHaveValue(null)
+  })
+
+  it('prefills per model, preserves edits, and resumes after clearing', async () => {
+    const utc_timestamp = `${DateTime.now().setZone('America/Vancouver').minus({ days: 1 }).toISODate()}T20:00:00Z`
+    const weather: PreviousDayWeather = {
+      actuals: [{ station_code: 1, utc_timestamp, determinate: 'Actual', temperature: 10 } as WeatherIndeterminate],
+      predictions: ['HRDPS', 'RDPS'].map(
+        (determinate, index) =>
+          ({
+            station_code: 1,
+            utc_timestamp,
+            determinate,
+            temperature: index ? 8 : 7,
+            model_elevation: 1400
+          }) as WeatherIndeterminate
+      )
+    }
+    const props = { station, onClose: vi.fn(), onApply: vi.fn() }
+    const { rerender } = render(<ModelElevationComparisonPanel {...props} referenceWeather={emptyWeather} />)
+    await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
+    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
+    await userEvent.type(rate, '9.8')
+    rerender(<ModelElevationComparisonPanel {...props} referenceWeather={weather} />)
+    expect(rate).toHaveValue(9.8)
+    await userEvent.click(screen.getByRole('button', { name: 'RDPS' }))
+    expect(rate).toHaveValue(9.8)
+    await userEvent.clear(rate)
+    expect(rate).toHaveValue(null)
+    await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
+    expect(rate).toHaveValue(6)
+    await userEvent.click(screen.getByRole('button', { name: 'RDPS' }))
+    expect(rate).toHaveValue(4)
+    await userEvent.hover(screen.getByRole('button', { name: 'How the lapse rate is prefilled' }))
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Initially calculated using yesterday’s observed noon temperature, the corresponding raw model temperature, and the elevation difference between the model and station'
+    )
+  })
+
+  it('allows manual entry without reference weather', async () => {
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
+        station={station}
+        onClose={vi.fn()}
+        onApply={vi.fn()}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
+    await userEvent.hover(screen.getByRole('button', { name: 'How the lapse rate is prefilled' }))
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Initially calculated')
+    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
+    await userEvent.type(rate, '6.5')
+    expect(rate).toHaveValue(6.5)
   })
 
   it('explains the date range in a tooltip even when Fill is disabled', async () => {
-    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={vi.fn()} />)
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
+        station={station}
+        onClose={vi.fn()}
+        onApply={vi.fn()}
+      />
+    )
     const fill = screen.getByRole('button', { name: 'Fill temperature forecasts' })
     await userEvent.hover(fill.parentElement!)
     expect(await screen.findByRole('tooltip')).toHaveTextContent(
@@ -81,7 +114,14 @@ describe('model elevation comparison panel', () => {
 
   it('rounds an entered adjustment on blur and applies the rounded value', async () => {
     const onApply = vi.fn()
-    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={onApply} />)
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
+        station={station}
+        onClose={vi.fn()}
+        onApply={onApply}
+      />
+    )
     await userEvent.click(screen.getByRole('button', { name: 'RDPS' }))
     const adjustment = screen.getByRole('spinbutton', { name: 'Adjustment (°C)' })
     await userEvent.type(adjustment, '-2.26')
@@ -94,7 +134,14 @@ describe('model elevation comparison panel', () => {
 
   it('rounds an entered lapse rate on blur and uses it for the adjustment', async () => {
     const onApply = vi.fn()
-    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={onApply} />)
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
+        station={station}
+        onClose={vi.fn()}
+        onApply={onApply}
+      />
+    )
     await userEvent.click(screen.getByRole('button', { name: 'RDPS' }))
     const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
     await userEvent.type(rate, '6.56')
@@ -109,6 +156,7 @@ describe('model elevation comparison panel', () => {
     const onApply = vi.fn()
     render(
       <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
         station={{ ...station, modelElevations: { HRDPS: 1200, RDPS: 1900 } }}
         onClose={vi.fn()}
         onApply={onApply}
@@ -131,6 +179,7 @@ describe('model elevation comparison panel', () => {
     const onApply = vi.fn()
     render(
       <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
         station={{ ...station, stationElevation: null, modelElevations: {} }}
         onClose={vi.fn()}
         onApply={onApply}
@@ -154,6 +203,7 @@ describe('model elevation comparison panel', () => {
     const onApply = vi.fn()
     render(
       <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
         station={{ ...station, modelElevations: { RDPS: 1150, GDPS: 900 } }}
         onClose={vi.fn()}
         onApply={onApply}
@@ -186,7 +236,14 @@ describe('model elevation comparison panel', () => {
 
   it('selects an axis label and applies only after an explicit click', async () => {
     const onApply = vi.fn().mockReturnValue('Filled temperature forecasts for 2 days.')
-    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} onApply={onApply} />)
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
+        station={station}
+        onClose={vi.fn()}
+        onApply={onApply}
+      />
+    )
     const apply = screen.getByRole('button', { name: 'Fill temperature forecasts' })
     expect(apply).toBeDisabled()
     const adjustment = screen.getByRole('spinbutton', { name: 'Adjustment (°C)' })
@@ -219,7 +276,7 @@ describe('model elevation comparison panel', () => {
   })
 
   it('shows raw models in grid order with elevations and signed differences', () => {
-    render(<ModelElevationComparisonPanel station={station} onClose={vi.fn()} />)
+    render(<ModelElevationComparisonPanel referenceWeather={emptyWeather} station={station} onClose={vi.fn()} />)
     expect(screen.getByRole('region', { name: 'Model elevations for Alpha station' })).toBeInTheDocument()
     expect(screen.getByText('Station elevation: 900 m')).toBeInTheDocument()
     expect(
@@ -236,6 +293,7 @@ describe('model elevation comparison panel', () => {
   it('calculates differences before rounding displayed elevations', () => {
     render(
       <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
         station={{ ...station, stationElevation: 1000.49, modelElevations: { HRDPS: 1000.51 } }}
         onClose={vi.fn()}
       />
@@ -246,6 +304,7 @@ describe('model elevation comparison panel', () => {
   it('leaves unavailable models unplotted and keeps zero as an elevation', () => {
     render(
       <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
         station={{
           ...station,
           stationElevation: 0,
@@ -265,6 +324,7 @@ describe('model elevation comparison panel', () => {
   it('uses a valid scale when every model has the station elevation', () => {
     render(
       <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
         station={{ ...station, modelElevations: { HRDPS: 900, RDPS: 900, GDPS: 900, ECMWF: 900, GFS: 900 } }}
         onClose={vi.fn()}
       />
@@ -278,7 +338,13 @@ describe('model elevation comparison panel', () => {
   })
 
   it('shows model elevations without differences when station elevation is unavailable', () => {
-    render(<ModelElevationComparisonPanel station={{ ...station, stationElevation: null }} onClose={vi.fn()} />)
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
+        station={{ ...station, stationElevation: null }}
+        onClose={vi.fn()}
+      />
+    )
     expect(modelLabels('HRDPS')).toEqual(['850 m', 'HRDPS', ''])
     expect(screen.getByText('Station elevation unavailable. Differences cannot be calculated.')).toBeInTheDocument()
     expect(screen.getByRole('img').querySelector('line[stroke-dasharray]')).toBeNull()
@@ -287,6 +353,7 @@ describe('model elevation comparison panel', () => {
   it('shows an empty message when only bias or retired models have elevations', () => {
     render(
       <ModelElevationComparisonPanel
+        referenceWeather={emptyWeather}
         station={{ ...station, modelElevations: { NAM: 600, HRDPS_BIAS: 700 } }}
         onClose={vi.fn()}
       />
@@ -297,13 +364,13 @@ describe('model elevation comparison panel', () => {
 
   it('requests dismissal with the Close button', async () => {
     const onClose = vi.fn()
-    render(<ModelElevationComparisonPanel station={station} onClose={onClose} />)
+    render(<ModelElevationComparisonPanel referenceWeather={emptyWeather} station={station} onClose={onClose} />)
     await userEvent.click(screen.getByRole('button', { name: 'Close elevation comparison' }))
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('does not mount the chart when closed', () => {
-    render(<ModelElevationComparisonPanel station={null} onClose={vi.fn()} />)
+    render(<ModelElevationComparisonPanel referenceWeather={emptyWeather} station={null} onClose={vi.fn()} />)
     expect(screen.queryByRole('region')).not.toBeInTheDocument()
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })

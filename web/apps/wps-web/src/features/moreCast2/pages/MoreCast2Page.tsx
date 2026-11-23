@@ -61,6 +61,7 @@ const MoreCast2Page = () => {
   const { idir } = useSelector(selectAuthentication)
   const selectedStations = useSelector(selectSelectedStations)
   const morecast2Rows = useSelector(selectAllMoreCast2Rows)
+  const actuals = useSelector((state: RootState) => state.weatherIndeterminates.actuals)
   const modelPredictions = useSelector((state: RootState) => state.weatherIndeterminates.predictions)
 
   const gridRef = useRef<ElevationAdjustmentHandle>(null)
@@ -136,6 +137,7 @@ const MoreCast2Page = () => {
             />
           </Box>
           <ModelElevationComparisonPanel
+            referenceWeather={{ actuals, predictions: modelPredictions }}
             key={comparisonStationCode ?? 'closed'}
             onApply={(model, adjustmentCelsius, overwriteExisting) =>
               gridRef.current?.applyElevationAdjustment(
@@ -148,6 +150,7 @@ const MoreCast2Page = () => {
             station={
               comparisonStation
                 ? {
+                    stationCode: comparisonStation.station_code,
                     stationName: comparisonStation.display_label,
                     stationElevation: comparisonStation.elevation ?? null,
                     modelElevations:
