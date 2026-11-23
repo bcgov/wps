@@ -85,8 +85,11 @@ GRIB file's own packed integers with its scales, so what is stored decodes to ex
 published.
 
 - `grib.py`: GRIB2 fields as their packed integers, and the crop covering BC.
-- `models.py`: the models kept (HRDPS, RDPS and GDPS so far). `run_published` checks the MSC datamart
-  has all of a run, `load_crop` finds the crop covering BC, and `load_variable` downloads one
+- `sources.py`: where each model is published (the MSC datamart, NOAA's GFS on AWS, ECMWF's open
+  data on Google), and fetching one field from there, retrying a busy or failing source. NOAA and
+  ECMWF fields are fetched as byte ranges, found in the index beside each file.
+- `models.py`: the models kept (HRDPS, RDPS, GDPS, GFS and ECMWF). `run_published` checks that all of
+  a run is published, `load_crop` finds the crop covering BC, and `load_variable` downloads one
   variable of a run and reads it, deleting each file once read.
 - `store.py`: `GridStore`, one of a model's two stores, `recent` (every run for about a day) or
   `history` (one run a day). `write_run` adds a run as a group in one commit, a variable at a
@@ -94,11 +97,10 @@ published.
   `read_point` and `read_map` read a run back decoded, `delete_runs_before` drops old runs, and
   `maintain` expires snapshots and garbage collects. It reaches the object store through the
   object_store crate, because Icechunk's default AWS SDK storage cannot delete on ECS.
-- `job.py`: run hourly per model by the `model-grids-hrdps`, `model-grids-rdps` and
-  `model-grids-gdps` cron jobs
+- `job.py`: run hourly per model by the `model-grids-{model}` cron jobs
   (`python -m wps_weather_data.grids.job --model HRDPS`). It writes the model's runs from the
-  last day that `recent` lacks, the daily run (18Z, or 12Z for GDPS) to `history` in the same pass, skips a run
-  the datamart has not finished publishing, and drops runs older than two days from `recent`.
+  last day that `recent` lacks, the daily run (18Z, or 12Z for GDPS and ECMWF) to `history` in the same pass, skips a run
+  not all published yet, and drops runs older than two days from `recent`.
   The nightly maintenance job garbage collects the grid stores.
 
 Their dependencies are the `grids` extra, which the jobs install and the API does not. See

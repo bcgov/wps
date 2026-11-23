@@ -23,7 +23,7 @@ parameters:
   - name: JOB_NAME
     required: true
   - name: MODEL
-    description: The model, as wps_weather_data.grids.models names it (HRDPS, RDPS, GDPS)
+    description: The model, as wps_weather_data.grids.models names it (HRDPS, RDPS, GDPS, GFS, ECMWF)
     required: true
   - name: IMAGE_REGISTRY
     required: true

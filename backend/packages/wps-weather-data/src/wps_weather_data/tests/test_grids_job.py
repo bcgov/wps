@@ -5,7 +5,7 @@ import pytest
 
 from wps_weather_data.grids import models
 from wps_weather_data.grids.job import keep_grids, run_times
-from wps_weather_data.tests.grid_helpers import MODEL, fake_datamart, refuse_writes, store
+from wps_weather_data.tests.grid_helpers import DATAMART, MODEL, fake_datamart, refuse_writes, store
 
 # 19:30 UTC on 19 November: the 18Z run is the latest.
 NOW = datetime(2026, 11, 19, 19, 30, tzinfo=UTC)
@@ -26,7 +26,7 @@ def test_gdps_runs_twice_a_day_at_three_hour_steps():
     assert run_times(gdps, NOW) == [at(19, 0), at(19, 12)]
     assert gdps.history_run_hour in gdps.run_hours
     assert (gdps.hours[0], gdps.hours[1], gdps.hours[-1]) == (0, 3, 240)
-    assert gdps.file_url(at(19, 12), 240, gdps.variables[0]) == (
+    assert gdps.source.url(at(19, 12), 240, gdps.variables[0].layer) == (
         "https://dd.weather.gc.ca/today/model_gdps/15km/12/240/"
         "20261119T12Z_MSC_GDPS_AirTemp_AGL-2m_LatLon0.15_PT240H.grib2"
     )
@@ -145,11 +145,11 @@ def test_runs_older_than_two_days_leave_recent(monkeypatch, tmp_path):
 
 @pytest.mark.parametrize("error", [500, 403])
 def test_other_download_errors_fail_the_job(monkeypatch, tmp_path, error):
-    def download(url, path):
-        raise urllib.error.HTTPError(url, error, "error", None, None)
+    def fetch(run_time, hour, layer, path):
+        raise urllib.error.HTTPError("https://datamart", error, "error", None, None)
 
     fake_datamart(monkeypatch)
-    monkeypatch.setattr(models, "download", download)
+    monkeypatch.setattr(DATAMART, "fetch", fetch)
     with pytest.raises(urllib.error.HTTPError):
         keep_grids(MODEL, store(tmp_path, "recent"), store(tmp_path, "history"), NOW)
 
