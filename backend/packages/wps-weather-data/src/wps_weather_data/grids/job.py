@@ -7,8 +7,10 @@ Run hourly for each model, so a run is stored soon after the datamart has all of
 Each time, it looks at the model's runs from the last day that `recent` (or, for the daily run,
 `history`) does not have yet. A run the datamart has not finished publishing is skipped until
 the next time. A run is downloaded and written a variable at a time, so only one variable's
-files and values are held at once, and committed when all are written. Then it drops runs older than two days from `recent`; the nightly maintenance job
-reclaims their space.
+files and values are held at once, and committed when all are written. Then it drops runs older
+than two days from `recent`; the nightly maintenance job reclaims their space.
+
+A store that cannot be written to does not hold up the other, and the job fails at the end.
 
 Design: docs/architecture/model-grid-storage-spike.md
 """
@@ -53,12 +55,23 @@ def run_times(model: GridModel, now: datetime) -> list[datetime]:
 
 
 def keep_grids(model: GridModel, recent: GridStore, history: GridStore, now: datetime) -> list:
-    """Write the model's new runs and drop old ones from `recent`. Returns the runs written."""
-    held = {recent: set(recent.run_times()), history: set(history.run_times())}
+    """Write the model's new runs and drop old ones from `recent`. Returns the runs written.
+
+    The stores are independent: one that fails is left alone for the rest of this time, the other
+    is still kept, and the errors are raised together at the end."""
+    failures: dict[GridStore, Exception] = {}
+    held: dict[GridStore, set[datetime]] = {}
+    # `history` first: it is the one that is kept, and runs are committed in this order.
+    for store in (history, recent):
+        try:
+            held[store] = set(store.run_times())
+        except Exception as error:
+            logger.exception("Failed to read the %s %s store", model.name, store.store)
+            failures[store] = error
     written = []
     for run_time in run_times(model, now):
-        stores = [recent, history] if run_time.hour == model.history_run_hour else [recent]
-        targets = [store for store in stores if run_time not in held[store]]
+        stores = [history, recent] if run_time.hour == model.history_run_hour else [recent]
+        targets = [s for s in stores if s not in failures and run_time not in held[s]]
         if not targets:
             continue
         if not run_published(model, run_time):
@@ -73,15 +86,28 @@ def keep_grids(model: GridModel, recent: GridStore, history: GridStore, now: dat
                     load_variable(model, run_time, variable, crop, folder)
                     for variable in model.variables
                 )
-                write_run(targets, run_time, crop, variables)
+                stored, failed = write_run(targets, run_time, crop, variables)
             except urllib.error.HTTPError as error:
                 # A file gone missing part way: nothing was committed, so try again next time.
                 if error.code != 404:
                     raise
                 logger.info("%s run %s is missing %s", model.name, run_time, error.url)
                 continue
-        written.append(run_time)
-    recent.delete_runs_before(now - RECENT_WINDOW)
+        failures.update(failed)
+        if stored:
+            written.append(run_time)
+    if recent not in failures:
+        try:
+            recent.delete_runs_before(now - RECENT_WINDOW)
+        except Exception as error:
+            logger.exception("Failed to delete old runs from the %s recent store", model.name)
+            failures[recent] = error
+    if failures:
+        names = " and ".join(store.store for store in failures)
+        raise ExceptionGroup(
+            f"Failed to keep {model.name} {names}; stored {len(written)} runs",
+            list(failures.values()),
+        )
     return written
 
 

@@ -6,7 +6,7 @@ import pytest
 
 from wps_weather_data.grids.grib import GribScales, decode, grib_integers
 from wps_weather_data.grids.models import load_crop, load_variable
-from wps_weather_data.grids.store import GridStore, write_run
+from wps_weather_data.grids.store import UPDATE_TRIES, GridStore, write_run
 from wps_weather_data.tests.grid_helpers import (
     HOURS,
     MODEL,
@@ -14,6 +14,7 @@ from wps_weather_data.tests.grid_helpers import (
     fake_datamart,
     field,
     load_run,
+    refuse_writes,
     store,
     stored_bytes,
 )
@@ -95,8 +96,38 @@ def test_a_run_goes_to_several_stores_in_one_pass(tmp_path, run):
     crop, variables = run
     recent, history = store(tmp_path, "recent"), store(tmp_path, "history")
 
-    assert write_run([recent, history], RUN, crop, variables.values()) == [recent, history]
+    written, failures = write_run([recent, history], RUN, crop, variables.values())
+
+    assert (written, failures) == ([recent, history], {})
     assert recent.run_times() == history.run_times() == [RUN]
+
+
+@pytest.mark.parametrize("step", ["add", "commit"])
+def test_a_store_that_fails_does_not_stop_the_others(monkeypatch, tmp_path, run, step):
+    crop, variables = run
+    recent, history = store(tmp_path, "recent"), store(tmp_path, "history")
+    refuse_writes(monkeypatch, recent, step)
+
+    written, failures = write_run([recent, history], RUN, crop, variables.values())
+
+    assert written == [history]
+    assert list(failures) == [recent]
+    assert (recent.run_times(), history.run_times()) == ([], [RUN])
+
+
+def test_writing_to_one_store_that_fails_raises(monkeypatch, tmp_path, run):
+    crop, variables = run
+    recent = store(tmp_path)
+    refuse_writes(monkeypatch, recent, "commit")
+
+    with pytest.raises(OSError, match="refused"):
+        recent.write_run(RUN, crop, variables.values())
+
+
+def test_a_refused_update_is_not_retried_for_long(tmp_path):
+    retries = store(tmp_path).repository.config.repo_update_retries.default
+
+    assert retries.max_tries == UPDATE_TRIES
 
 
 def test_a_run_already_stored_is_not_written_or_read_again(tmp_path, run):

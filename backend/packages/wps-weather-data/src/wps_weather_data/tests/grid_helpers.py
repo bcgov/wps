@@ -9,6 +9,7 @@ import icechunk
 import numpy as np
 
 from wps_weather_data.grids import models
+from wps_weather_data.grids import store as store_module
 from wps_weather_data.grids.grib import Crop
 from wps_weather_data.grids.models import (
     GridModel,
@@ -112,6 +113,18 @@ def load_run(folder: Path, run_time: datetime = RUN) -> tuple[Crop, dict[str, Va
 def store(tmp_path, name="recent") -> GridStore:
     storage = icechunk.local_filesystem_storage(str(tmp_path / "stores" / name))
     return GridStore("TEST", name, storage)
+
+
+def refuse_writes(monkeypatch, refused: GridStore, step: str):
+    """Make a store fail when a run is written to it, at `step`: "add" or "commit"."""
+    original = getattr(store_module._RunWriter, step)
+
+    def write(writer, *args):
+        if writer.store is refused:
+            raise OSError("refused")
+        return original(writer, *args)
+
+    monkeypatch.setattr(store_module._RunWriter, step, write)
 
 
 def stored_bytes(tmp_path) -> int:

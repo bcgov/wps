@@ -134,7 +134,8 @@ For HRDPS:
 - **NAM is gone.** NOMADS answers its NAM directory with "The model is no longer available on nomads.ncep.noaa.gov", and the NAM cron jobs are suspended in dev.
 - **Precision differs by model.** Lossless means keeping what each provider publishes: ECMWF's open data has temperature in 0.25 K steps and GFS has precipitation in 0.0625 mm steps. A field's step can change by hour, so R, E and D are stored per hour.
 - **What differs is the layout, not the encoding.** RDPS and HRDPS are rotated lat-lon and GDPS, GFS and ECMWF regular lat-lon, so each model needs its own store, crop and coordinates. GFS and ECMWF publish wind as u and v and ECMWF publishes dew point, not relative humidity: to stay lossless, store what is published and derive speed, direction and humidity when reading, as the station jobs do. GDPS is 3-hourly to 240 hours, RDPS hourly to 84 and GFS 3-hourly; the GFS job fetches only the hours around noon, so a grid store would fetch more than it does.
-- **NOMADS repacks.** Its filter crops and re-encodes GFS with simple packing. Whether it keeps NOAA's original scales was not checked.
+- **NOMADS repacks, and is almost but not exactly NOAA's file.** Its filter crops and re-encodes GFS with simple packing. Checked on 2026-11-23 against NOAA's full files on AWS (`noaa-gfs-bdp-pds`), for the 12Z run's hours 3, 9, 24, 27, 120, 123 and 240: the steps are the same for all 41 fields, and 37 fields are float32-equal over BC. The other 4 (three of temperature, one of v wind) differ by at most 2 x 10^-5 K and 6 x 10^-7 m/s, far under a step, which is what re-rounding the reference value to float32 would give. NOAA's own files can be read a field at a time by byte range, from the `.idx` file beside each.
+- **GFS precipitation** has a field since the run started at every hour checked from 3 on, with a bucket (3 or 6 hours) beside it at most hours. Hour 0 has none.
 
 ### Sizes
 
@@ -239,9 +240,10 @@ The 2026-11-19 18Z HRDPS run was written to ECS through each storage and read ba
 - **A separate job, hourly for each model**, not part of the station jobs, so that a failure in one cannot hold up the other. It downloads the files again for itself.
 - **A run is stored only once the datamart has all of it**, checked before anything is downloaded, and committed once. A file that disappears part way leaves nothing committed, and the run is tried again the next hour.
 - **One variable at a time.** Each is downloaded, cropped, converted to GRIB integers, written to every store that needs the run, and its files deleted. Cropping comes before the conversion. HRDPS peaked at 508 MiB, against 826 MiB holding the whole run, measured on a laptop writing to local disk. The cron job's limit is 1 GiB.
+- **The stores are independent.** `history` is committed first, and a store that fails is left alone for the rest of that hour's job while the other is kept. The job then fails, with the errors. Icechunk retries a refused update 15 times, about half a minute, instead of its default of 100 times, over an hour. The job is stopped after 30 minutes. On 2026-11-23 ECS refused every update of HRDPS `recent` for about 12 hours, with nothing else writing to it, and before these changes that blocked the whole HRDPS job. Deleting the store cleared it; the cause is not known.
 - **Maintenance** is the nightly `station-weather-maintenance` job. It expires snapshots older than a day and garbage collects objects older than an hour, so a grid store cannot be read as it was more than about a day ago.
 
-It has not been checked in a cluster.
+HRDPS and RDPS have run in dev since 2026-11-20, and `backend/scripts/model_grid_check.py` checks what is stored against the datamart. GDPS has been stored and checked on local disk.
 
 ## Compared with keeping the GRIB files
 
@@ -283,8 +285,7 @@ Cropped GRIB would still be worse to use:
    from `./backend`, with `OBJECT_STORE_SERVER`, `OBJECT_STORE_USER_ID`, `OBJECT_STORE_SECRET` and `OBJECT_STORE_BUCKET` set as the deployments have them. Stores go under `dev/zarr-spike/{model}/{variant}`. Delete `dev/zarr-spike` afterwards, one object at a time: ECS rejects boto3's bulk `DeleteObjects` without a `Content-MD5` header. The MSC datamart keeps about a day, so MSC runs must be recent.
 2. Measure reads from inside the cluster, from a pod reading the `object_store` stores, to separate ECS's own latency from the laptop's network path.
 3. Ask the object storage team whether ECS will accept the AWS SDKs' CRC checksums, which would also let our own Python code drop the aiobotocore pin.
-4. Check whether NOMADS keeps NOAA's original scales for GFS, against a field from NOAA's full file.
-5. Add GFS and ECMWF to the job, and endpoints that read the grids.
+4. Add GFS and ECMWF to the job, and endpoints that read the grids.
 
 ## Open-Meteo's quantization
 
