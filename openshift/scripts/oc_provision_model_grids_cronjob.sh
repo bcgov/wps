@@ -12,7 +12,7 @@ source "$(dirname ${0})/common/common"
 #%   oc_deploy_to_production.sh / deployment.yml for how this is combined with
 #%   other resources and applied together in one call.
 #%
-#%   MODEL is required: the model whose grids the job keeps (HRDPS, RDPS).
+#%   MODEL is required: the model whose grids the job keeps (HRDPS, RDPS, GDPS).
 #%
 #% Usage:
 #%

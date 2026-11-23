@@ -59,7 +59,7 @@ As of 2026-11-23. The station tables and the Station Weather API run in a dev de
 | One variable at a time, cropped before conversion, files deleted once read | Peak memory 508 MiB for HRDPS, down from 826 MiB. The limit is 1 GiB |
 | One download feeds both stores | The daily run is needed by both |
 | Nightly maintenance expires snapshots after a day, then garbage collects | Reclaims deleted runs' space. Grids cannot be read as they were further back than that |
-| HRDPS and RDPS first | Both come from the MSC datamart, and they are about 47 of the 52 GB a year |
+| HRDPS, RDPS and GDPS first | All three come from the MSC datamart, and they are about 49 of the 52 GB a year |
 
 ## Station Weather API
 
@@ -82,7 +82,7 @@ As of 2026-11-23. The station tables and the Station Weather API run in a dev de
 ## Still open
 
 - Read times for the grids inside the cluster. From a laptop, a point forecast took about 1 s and a map about 4.5 s.
-- Endpoints that read the grids, and grid jobs for GDPS, GFS and ECMWF.
+- Endpoints that read the grids, and grid jobs for GFS and ECMWF.
 - Whether NOMADS keeps NOAA's original GFS scales. NAM is no longer on NOMADS.
 - ECS quota and cost approval for the grids, and whether ECS will accept CRC checksums.
 - Merges into `by_time` by two jobs at once, or during compaction: untested on ECS, and the jobs do not retry.

@@ -65,6 +65,15 @@ def _variables(temperature: str, humidity: str, speed: str, direction: str, prec
     )
 
 
+# The layer names GDPS and RDPS share.
+_GDPS_RDPS_VARIABLES = _variables(
+    "AirTemp_AGL-2m",
+    "RelativeHumidity_AGL-2m",
+    "WindSpeed_AGL-10m",
+    "WindDir_AGL-10m",
+    "Precip-Accum_Sfc",
+)
+
 MODELS = {
     model.name: model
     for model in (
@@ -78,17 +87,20 @@ MODELS = {
         ),
         GridModel(
             "RDPS",
-            _variables(
-                "AirTemp_AGL-2m",
-                "RelativeHumidity_AGL-2m",
-                "WindSpeed_AGL-10m",
-                "WindDir_AGL-10m",
-                "Precip-Accum_Sfc",
-            ),
+            _GDPS_RDPS_VARIABLES,
             hours=tuple(range(85)),
             history_run_hour=18,
             folder="model_rdps/10km",
             grid="RLatLon0.09",
+        ),
+        GridModel(
+            "GDPS",
+            _GDPS_RDPS_VARIABLES,
+            hours=tuple(range(0, 241, 3)),
+            history_run_hour=12,
+            folder="model_gdps/15km",
+            grid="LatLon0.15",
+            run_hours=(0, 12),
         ),
     )
 }

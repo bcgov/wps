@@ -85,7 +85,7 @@ GRIB file's own packed integers with its scales, so what is stored decodes to ex
 published.
 
 - `grib.py`: GRIB2 fields as their packed integers, and the crop covering BC.
-- `models.py`: the models kept (HRDPS and RDPS so far). `run_published` checks the MSC datamart
+- `models.py`: the models kept (HRDPS, RDPS and GDPS so far). `run_published` checks the MSC datamart
   has all of a run, `load_crop` finds the crop covering BC, and `load_variable` downloads one
   variable of a run and reads it, deleting each file once read.
 - `store.py`: `GridStore`, one of a model's two stores, `recent` (every run for about a day) or
@@ -94,9 +94,10 @@ published.
   `read_point` and `read_map` read a run back decoded, `delete_runs_before` drops old runs, and
   `maintain` expires snapshots and garbage collects. It reaches the object store through the
   object_store crate, because Icechunk's default AWS SDK storage cannot delete on ECS.
-- `job.py`: run hourly per model by the `model-grids-hrdps` and `model-grids-rdps` cron jobs
+- `job.py`: run hourly per model by the `model-grids-hrdps`, `model-grids-rdps` and
+  `model-grids-gdps` cron jobs
   (`python -m wps_weather_data.grids.job --model HRDPS`). It writes the model's runs from the
-  last day that `recent` lacks, the daily run (18Z) to `history` in the same pass, skips a run
+  last day that `recent` lacks, the daily run (18Z, or 12Z for GDPS) to `history` in the same pass, skips a run
   the datamart has not finished publishing, and drops runs older than two days from `recent`.
   The nightly maintenance job garbage collects the grid stores.
 
