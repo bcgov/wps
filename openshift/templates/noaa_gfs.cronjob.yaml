@@ -82,6 +82,16 @@ objects:
                   env:
                     - name: UV_NO_CACHE
                       value: "1"
+                    # A pod sees all of its node's CPUs (48), and Arrow keeps memory for each thread
+                    # it uses: publishing a run took over twice the memory without these.
+                    - name: OMP_NUM_THREADS
+                      value: "2"
+                    - name: ARROW_IO_THREADS
+                      value: "2"
+                    - name: MALLOC_ARENA_MAX
+                      value: "2"
+                    - name: ARROW_DEFAULT_MEMORY_POOL
+                      value: system
                     - name: POSTGRES_READ_USER
                       valueFrom:
                         secretKeyRef:
