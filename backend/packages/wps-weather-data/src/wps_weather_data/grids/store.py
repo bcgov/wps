@@ -16,6 +16,7 @@ Design: docs/architecture/model-grid-storage-spike.md
 
 import logging
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from functools import cached_property
@@ -39,6 +40,8 @@ TILE = 64
 # default is 100 tries, over an hour. Updates only ever compete with the nightly maintenance, so a
 # store that refuses for longer is stuck, and the job should fail and say so.
 UPDATE_TRIES = 15
+# How many arrays are read at once. A point forecast reads 20.
+READ_THREADS = 20
 RUN_FORMAT = "%Y-%m-%dT%H"
 
 
@@ -117,13 +120,36 @@ class GridStore:
             raise KeyError(f"{self.store} has no {self.model.name} run {name}")
         return root[name]
 
-    def _decode(self, group: zarr.Group, name: str, values: np.ndarray, hour) -> np.ndarray:
-        scales = [group[f"{name}_{scale}"][hour] for scale in SCALES]
-        if np.ndim(scales[0]):
-            # Line each hour's scales up with the hour axis of the values.
-            extra = (slice(None),) + (np.newaxis,) * (values.ndim - 1)
-            scales = [scale[extra] for scale in scales]
-        return decode(values, GribScales(*scales))
+    def _read(self, group: zarr.Group, selections: dict[str, tuple]) -> dict[str, np.ndarray]:
+        """Read a selection of each of some variables, decoded. A selection is (hour, y, x).
+
+        The arrays are read at the same time. Each takes a few requests that wait for one another,
+        and a point forecast reads 20 arrays, so one at a time it waits for over 40 in turn."""
+        reads: list[tuple[str, tuple]] = []
+        for name, selection in selections.items():
+            reads.append((name, selection))
+            reads.extend((f"{name}_{scale}", selection[:1]) for scale in SCALES)
+        with ThreadPoolExecutor(READ_THREADS) as pool:
+            arrays = list(pool.map(lambda read: group[read[0]][read[1]], reads))
+        decoded = {}
+        step = 1 + len(SCALES)
+        for position, name in enumerate(selections):
+            values, *scales = arrays[position * step : (position + 1) * step]
+            if np.ndim(scales[0]):
+                # Line each hour's scales up with the hour axis of the values.
+                extra = (slice(None),) + (np.newaxis,) * (values.ndim - 1)
+                scales = [scale[extra] for scale in scales]
+            decoded[name] = decode(values, GribScales(*scales))
+        return decoded
+
+    @cached_property
+    def coordinates(self) -> tuple[np.ndarray, np.ndarray]:
+        """The grid's latitudes and longitudes, (y, x). Every run has the same ones, so they are
+        read once."""
+        root = self._root()
+        if root is None:
+            raise KeyError(f"{self.store} has no runs")
+        return root["latitude"][:], root["longitude"][:]
 
     def nearest_cell(self, latitude: float, longitude: float) -> tuple[int, int]:
         """The (y, x) of the grid cell nearest a location in BC."""
@@ -132,10 +158,7 @@ class GridStore:
             and BC_LONGITUDE[0] <= longitude <= BC_LONGITUDE[1]
         ):
             raise ValueError(f"{latitude}, {longitude} is outside BC")
-        root = self._root()
-        if root is None:
-            raise KeyError(f"{self.store} has no runs")
-        lat, lon = root["latitude"][:], root["longitude"][:]
+        lat, lon = self.coordinates
         distance = (lat - latitude) ** 2 + ((lon - longitude) * np.cos(np.radians(latitude))) ** 2
         y, x = np.unravel_index(np.argmin(distance), distance.shape)
         return int(y), int(x)
@@ -144,16 +167,14 @@ class GridStore:
         """A grid cell's forecast for a run: each variable by forecast hour, and the hours."""
         group = self._group(run_time)
         point = {"forecast_hour": np.array(group.attrs["forecast_hours"])}
-        for variable in self.model.variables:
-            values = group[variable.name][:, y, x]
-            point[variable.name] = self._decode(group, variable.name, values, slice(None))
-        return point
+        everything = {v.name: (slice(None), y, x) for v in self.model.variables}
+        return point | self._read(group, everything)
 
     def read_map(self, run_time: datetime, hour: int, variable: str) -> np.ndarray:
         """A variable over BC at a forecast hour of a run, (y, x)."""
         group = self._group(run_time)
         index = list(group.attrs["forecast_hours"]).index(hour)
-        return self._decode(group, variable, group[variable][index], index)
+        return self._read(group, {variable: (index,)})[variable]
 
     def delete_runs_before(self, cutoff: datetime) -> list[datetime]:
         """Delete the runs that started before `cutoff`, in one commit. `maintain` reclaims
