@@ -452,3 +452,34 @@ def test_process_model_run_is_not_complete_on_403_or_404_error(monkeypatch, stat
 
     assert noaa_instance.complete_runs == []
     assert noaa_instance.exception_count == 0
+
+
+@pytest.mark.parametrize("model", [ModelEnum.GFS, ModelEnum.NAM])
+def test_expected_runs_are_the_runs_and_files_the_job_downloads(
+    monkeypatch: pytest.MonkeyPatch, model
+):
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock())
+    job = noaa.NOAA(model)
+    stagers = []
+    monkeypatch.setattr(
+        job,
+        "process_model_run_urls",
+        lambda urls, stager: stagers.append((stager.run_ts, list(urls))),
+    )
+
+    job.process()
+
+    assert [(run_ts, list(urls)) for run_ts, urls in job.expected_runs()] == stagers
+
+
+def test_staged_runs_are_published_before_anything_is_downloaded(monkeypatch: pytest.MonkeyPatch):
+    calls = []
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock())
+    monkeypatch.setattr(noaa, "ModelValueProcessor", MagicMock())
+    monkeypatch.setattr(noaa, "publish_staged_runs", lambda *args: calls.append("publish"))
+    monkeypatch.setattr(noaa.NOAA, "process", lambda self: calls.append("download"))
+    monkeypatch.setattr(sys, "argv", ["argv", "GFS"])
+
+    noaa.process_models()
+
+    assert calls == ["publish", "download"]

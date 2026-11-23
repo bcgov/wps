@@ -317,3 +317,41 @@ def test_main_delegates_to_the_shared_runner(monkeypatch: pytest.MonkeyPatch):
     run_model_job.assert_called_once_with(
         env_canada.process_models, source="Env Canada", model="GDPS"
     )
+
+
+def test_staged_runs_are_published_before_anything_is_downloaded(
+    mock_get_stations_synchronously, monkeypatch: pytest.MonkeyPatch
+):
+    calls = []
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    monkeypatch.setattr(time_utils, "get_utc_now", lambda: datetime.now(timezone.utc))
+    canada = env_canada.EnvCanada(ModelEnum.GDPS)
+    run_ts, urls = next(iter(canada.expected_runs()))
+    canada.staging_table.append_files(run_ts, [StagedFile(url, run_ts) for url in urls])
+    publisher = MagicMock()
+    publisher.process.side_effect = lambda runs: calls.append(("publish", list(runs)))
+    monkeypatch.setattr(env_canada, "ModelValueProcessor", MagicMock(return_value=publisher))
+    monkeypatch.setattr(env_canada.EnvCanada, "process", lambda self: calls.append("download"))
+    sys.argv = ["argv", "GDPS"]
+
+    env_canada.process_models()
+
+    # Then whatever the downloads completed, here nothing.
+    assert calls == [("publish", [run_ts]), "download", ("publish", [])]
+
+
+def test_expected_runs_are_the_runs_and_files_the_job_downloads(
+    mock_get_stations_synchronously, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    canada = env_canada.EnvCanada(ModelEnum.GDPS)
+    stagers = []
+    monkeypatch.setattr(
+        canada,
+        "process_model_run_urls",
+        lambda urls, fetcher, stager: stagers.append((stager.run_ts, list(urls))),
+    )
+
+    canada.process()
+
+    assert [(run_ts, list(urls)) for run_ts, urls in canada.expected_runs()] == stagers

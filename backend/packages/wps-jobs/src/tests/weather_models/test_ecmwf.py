@@ -653,3 +653,36 @@ def test_process_model_run_future_model_datetime(mocker, staging, runs):
         "is in the future. Exiting model run." in str(call.args[0])
         for call in logger_spy.call_args_list
     )
+
+
+def test_expected_runs_are_the_runs_the_job_processes(mocker, staging, runs):
+    ecmwf = ECMWF("/mock/temp/dir", [], staging_table=staging, runs_table=runs)
+    process_model_run = mocker.patch.object(ecmwf, "process_model_run")
+
+    ecmwf.process()
+
+    processed = [
+        ecmwf._run_ts(c.args[0], c.kwargs["days_ago"]) for c in process_model_run.call_args_list
+    ]
+    expected = list(ecmwf.expected_runs())
+    assert [run_ts for run_ts, _ in expected] == processed
+    hours = list(get_ecmwf_forecast_hours())
+    assert all(sources == [f"fxx={hour:03d}" for hour in hours] for _, sources in expected)
+
+
+@pytest.mark.anyio
+async def test_staged_runs_are_published_before_anything_is_downloaded(mocker):
+    calls = []
+    station = WeatherStation(code=1, name="Station1", lat=50.0, long=-120.0)
+    mocker.patch("weather_model_jobs.ecmwf.get_stations_asynchronously", return_value=[station])
+    mocker.patch("weather_model_jobs.ecmwf.ECMWFPredictionProcessor")
+    mocker.patch(
+        "weather_model_jobs.ecmwf.publish_staged_runs",
+        side_effect=lambda *args: calls.append("publish"),
+    )
+    ecmwf = mocker.patch("weather_model_jobs.ecmwf.ECMWF")
+    ecmwf.return_value.process.side_effect = lambda: calls.append("download")
+
+    await weather_model_jobs.ecmwf.process_models()
+
+    assert calls == ["publish", "download"]

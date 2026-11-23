@@ -15,6 +15,7 @@ from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
     RunStager,
     model_run_timestamp,
+    publish_staged_runs,
     run_is_published,
 )
 from weather_model_jobs.model_job_runner import judge_run, run_model_job
@@ -302,6 +303,14 @@ class EnvCanada:
                 # as we can.
                 logger.exception("unexpected exception processing %s", url)
 
+    def expected_runs(self):
+        """The runs the job covers, each with the urls of all its files."""
+        for hour in get_env_canada_model_run_hours(self.model_type):
+            yield (
+                model_run_timestamp(self.now, hour),
+                get_model_run_urls(self.now, self.model_type, hour),
+            )
+
     def process_model_run(self, model_run_hour):
         """Process a particular model run"""
         logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
@@ -366,10 +375,16 @@ def process_models():
     start_time = datetime.datetime.now()
 
     env_canada = EnvCanada(model_type)
+    model_value_processor = ModelValueProcessor(model_type)
+    publish_staged_runs(
+        model_value_processor,
+        env_canada.staging_table,
+        env_canada.expected_runs(),
+        env_canada.now,
+    )
     env_canada.process()
 
-    # interpolate, machine learn and publish every run that is fully staged.
-    model_value_processor = ModelValueProcessor(model_type)
+    # interpolate, machine learn and publish every run that is now fully staged.
     model_value_processor.process(env_canada.complete_runs)
 
     # calculate the execution time.

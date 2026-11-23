@@ -12,7 +12,7 @@ Design: docs/architecture/station-weather-storage.md
 import logging
 from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
-from typing import List
+from typing import List, Protocol
 
 import numpy
 import numpy as np
@@ -50,6 +50,9 @@ SCALAR_MODEL_VALUE_KEYS_FOR_INTERPOLATION = ("tmp_tgl_2", "rh_tgl_2", "wind_tgl_
 # How many processed files to stage per commit. A job that dies loses the files it has not staged
 # yet, and fetches them again on its next run.
 FILES_PER_STAGING_COMMIT = 50
+
+# How long after a run was staged publishing it goes before downloading.
+PUBLISH_FIRST_WINDOW = timedelta(hours=3)
 
 
 def get_closest_index(coordinate: List, points: List):
@@ -102,6 +105,41 @@ def finish_interrupted_publish(
     by_time_table.merge_run_table(model, run_ts, runs_table.read(model, run_ts, run_ts))
     staging_table.delete_run(run_ts)
     return True
+
+
+class RunPublisher(Protocol):
+    """Publishes fully staged runs: ModelValueProcessor, or ECMWF's."""
+
+    def process(self, run_timestamps: Iterable[datetime]): ...
+
+
+def publish_staged_runs(
+    publisher: RunPublisher,
+    staging_table: StagingTable,
+    expected_runs: Iterable[tuple[datetime, Iterable[str]]],
+    now: datetime,
+):
+    """Publish the runs that earlier invocations finished staging, before this one downloads
+    anything, so a slow or unreachable source does not hold them up. `expected_runs` is the runs
+    the job covers, each with every file it should have.
+
+    Only runs staged within `PUBLISH_FIRST_WINDOW`: if publishing one keeps killing the job,
+    downloading goes first again after that, because the source does not keep its files for long.
+    An error is logged and not raised for the same reason. The run is still staged, so it is tried
+    again after the downloads, where an error fails the job.
+    """
+    for run_ts, sources in expected_runs:
+        try:
+            staged_at = staging_table.last_written_at(run_ts)
+            if staged_at is None or staged_at < now - PUBLISH_FIRST_WINDOW:
+                continue
+            sources = set(sources)
+            if sources and sources <= staging_table.processed_sources(run_ts):
+                publisher.process([run_ts])
+        except Exception:
+            logger.exception(
+                "Failed to publish the staged run %s, trying again after downloading", run_ts
+            )
 
 
 class RunStager:
