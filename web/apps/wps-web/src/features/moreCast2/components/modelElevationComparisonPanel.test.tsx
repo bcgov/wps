@@ -78,8 +78,92 @@ describe('model elevation comparison panel', () => {
     expect(rate).toHaveValue(4)
     await userEvent.hover(screen.getByRole('button', { name: 'How the lapse rate is prefilled' }))
     expect(await screen.findByRole('tooltip')).toHaveTextContent(
-      'Initially calculated using yesterday’s observed noon temperature, the corresponding raw model temperature, and the elevation difference between the model and station'
+      "Calculated using yesterday's observed noon temperature, the corresponding raw model temperature, and the elevation difference between the model and station."
     )
+  })
+
+  it.each([1, -1])('uses the capped automatic rate but allows manual overrides in direction %s', async sign => {
+    const utc_timestamp = `${DateTime.now().setZone('America/Vancouver').minus({ days: 1 }).toISODate()}T20:00:00Z`
+    const referenceWeather: PreviousDayWeather = {
+      actuals: [{ station_code: 1, utc_timestamp, temperature: 10 * sign } as WeatherIndeterminate],
+      predictions: [
+        {
+          station_code: 1,
+          utc_timestamp,
+          determinate: 'HRDPS',
+          temperature: 0,
+          model_elevation: 1400
+        } as WeatherIndeterminate
+      ]
+    }
+    const onApply = vi.fn()
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={referenceWeather}
+        station={{ ...station, modelElevations: { HRDPS: 1400 } }}
+        onClose={vi.fn()}
+        onApply={onApply}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
+    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
+    expect(rate).toHaveValue(sign * 9.8)
+    expect(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' })).toHaveValue(sign * 4.9)
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
+    expect(onApply).toHaveBeenLastCalledWith('HRDPS', sign * 4.9, false)
+    await userEvent.hover(screen.getByRole('button', { name: 'How the lapse rate is prefilled' }))
+    expect(
+      await screen.findByText(
+        'Automatic rates are limited to −9.8 to +9.8°C/km. You can enter either value manually without this limit.'
+      )
+    ).toBeVisible()
+    await userEvent.clear(rate)
+    await userEvent.type(rate, String(sign * 20))
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
+    expect(onApply).toHaveBeenLastCalledWith('HRDPS', sign * 10, false)
+  })
+
+  it('leaves small elevation estimates blank but allows manual rates and direct adjustments', async () => {
+    const utc_timestamp = `${DateTime.now().setZone('America/Vancouver').minus({ days: 1 }).toISODate()}T20:00:00Z`
+    const referenceWeather: PreviousDayWeather = {
+      actuals: [{ station_code: 1, utc_timestamp, temperature: 10 } as WeatherIndeterminate],
+      predictions: [
+        {
+          station_code: 1,
+          utc_timestamp,
+          determinate: 'HRDPS',
+          temperature: 8.8,
+          model_elevation: 960
+        } as WeatherIndeterminate
+      ]
+    }
+    const onApply = vi.fn()
+    render(
+      <ModelElevationComparisonPanel
+        referenceWeather={referenceWeather}
+        station={{ ...station, modelElevations: { HRDPS: 960 } }}
+        onClose={vi.fn()}
+        onApply={onApply}
+      />
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
+    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
+    const adjustment = screen.getByRole('spinbutton', { name: 'Adjustment (°C)' })
+    expect(rate).toHaveValue(null)
+    expect(adjustment).toHaveValue(null)
+    expect(rate).toBeEnabled()
+    await userEvent.hover(screen.getByRole('button', { name: 'How the lapse rate is prefilled' }))
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'Not prefilled when the elevation difference is less than 100 m.'
+    )
+    await userEvent.type(rate, '6.5')
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
+    expect(onApply).toHaveBeenLastCalledWith('HRDPS', 0.4, false)
+    await userEvent.clear(adjustment)
+    await userEvent.type(adjustment, '1.2')
+    expect(rate).toHaveValue(20)
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
+    expect(onApply).toHaveBeenLastCalledWith('HRDPS', 1.2, false)
   })
 
   it('allows manual entry without reference weather', async () => {
@@ -93,7 +177,7 @@ describe('model elevation comparison panel', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
     await userEvent.hover(screen.getByRole('button', { name: 'How the lapse rate is prefilled' }))
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Initially calculated')
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Initial lapse rate')
     const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
     await userEvent.type(rate, '6.5')
     expect(rate).toHaveValue(6.5)

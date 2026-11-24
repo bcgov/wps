@@ -8,6 +8,9 @@ export interface LapseRateEstimate {
   explanation: string
 }
 
+const MINIMUM_ELEVATION_DIFFERENCE_METRES = 100
+const MAXIMUM_AUTOMATIC_LAPSE_RATE = 9.8
+
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
 export const estimatePreviousDayLapseRate = (
@@ -33,11 +36,15 @@ export const estimatePreviousDayLapseRate = (
   if (!finite(elevation) || !finite(stationElevation)) {
     return { rate: null, explanation: "The station elevation or yesterday's model elevation is unavailable." }
   }
-  if (elevation === stationElevation) {
-    return { rate: null, explanation: 'Station and model elevations are equal, so a lapse rate cannot be calculated.' }
+  if (Math.abs(elevation - stationElevation) < MINIMUM_ELEVATION_DIFFERENCE_METRES) {
+    return { rate: null, explanation: 'The elevation difference is less than 100 m, so no lapse rate is prefilled.' }
   }
-  const rate = Number(((observed - predicted) / ((elevation - stationElevation) / 1000)).toFixed(1))
-  if (!Number.isFinite(rate)) return { rate: null, explanation: 'A finite lapse rate could not be calculated.' }
+  const estimatedRate = (observed - predicted) / ((elevation - stationElevation) / 1000)
+  if (!Number.isFinite(estimatedRate))
+    return { rate: null, explanation: 'A finite lapse rate could not be calculated.' }
+  const rate = Number(
+    Math.max(-MAXIMUM_AUTOMATIC_LAPSE_RATE, Math.min(MAXIMUM_AUTOMATIC_LAPSE_RATE, estimatedRate)).toFixed(1)
+  )
   return {
     rate,
     explanation: `${date.toISODate()} at 20:00 UTC. Observed: ${observed}°C; raw ${model}: ${predicted}°C. Station elevation: ${stationElevation} m; model elevation: ${elevation} m. Estimated rate: ${rate.toFixed(1)}°C/km. Model run: ${prediction?.prediction_run_timestamp ?? 'unavailable'}.`

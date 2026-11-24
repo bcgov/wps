@@ -140,7 +140,24 @@ const ModelElevationComparisonPanel = ({
                 <Typography variant="subtitle2">Temperature adjustment</Typography>
                 <Tooltip
                   describeChild
-                  title="Initially calculated using yesterday’s observed noon temperature, the corresponding raw model temperature, and the elevation difference between the model and station"
+                  title={
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography component="div" variant="subtitle2">
+                        Initial lapse rate
+                      </Typography>
+                      <Box component="p" sx={{ m: 0 }}>
+                        Calculated using yesterday's observed noon temperature, the corresponding raw model temperature,
+                        and the elevation difference between the model and station.
+                      </Box>
+                      <Box component="p" sx={{ m: 0 }}>
+                        Not prefilled when the elevation difference is less than 100 m.
+                      </Box>
+                      <Box component="p" sx={{ m: 0 }}>
+                        Automatic rates are limited to −9.8 to +9.8°C/km. You can enter either value manually without
+                        this limit.
+                      </Box>
+                    </Box>
+                  }
                 >
                   <IconButton size="small" aria-label="How the lapse rate is prefilled">
                     <InfoOutlinedIcon fontSize="small" />

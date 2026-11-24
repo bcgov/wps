@@ -21,10 +21,29 @@ describe('previous day lapse rate', () => {
   it.each([
     [900, 6],
     [1900, -6],
-    [1399, 3000],
+    [1300, 9.8],
+    [1500, -9.8],
+    [1299, 9.8],
+    [1501, -9.8],
     [0, 2.1]
   ])('calculates using station elevation %s', (elevation, rate) => {
     expect(estimatePreviousDayLapseRate(data, 1, elevation, 'HRDPS', date).rate).toBe(rate)
+  })
+  it.each([
+    [6.5, 6.5],
+    [-6.5, -6.5],
+    [9.8, 9.8],
+    [-9.8, -9.8],
+    [20.1, 9.8],
+    [-20.1, -9.8],
+    [9.74, 9.7],
+    [-9.74, -9.7]
+  ])('caps and rounds the automatic rate %s', (rawRate, expected) => {
+    const sample = { ...data, actuals: [{ ...data.actuals[0], temperature: prediction.temperature! + rawRate * 0.5 }] }
+    expect(estimatePreviousDayLapseRate(sample, 1, 900, 'HRDPS', date).rate).toBe(expected)
+  })
+  it.each([1340, 1460, 1300.01, 1499.99])('does not prefill below 100 m at elevation %s', elevation => {
+    expect(estimatePreviousDayLapseRate(data, 1, elevation, 'HRDPS', date).rate).toBeNull()
   })
   it('preserves zero temperatures and zero rates', () => {
     const zeros = {
