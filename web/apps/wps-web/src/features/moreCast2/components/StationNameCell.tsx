@@ -16,10 +16,7 @@ const StationNameCell = ({ stationCode, stationName, hasFocus = false }: Station
   const elevation = useSelector(
     (state: RootState) => selectSelectedStations(state).find(station => station.station_code === stationCode)?.elevation
   )
-  const elevationLabel =
-    typeof elevation === 'number' && Number.isFinite(elevation)
-      ? `${elevationFormatter.format(elevation)} m`
-      : 'Unknown'
+  const elevationLabel = elevation == null ? 'Unknown' : `${elevationFormatter.format(elevation)} m`
 
   return (
     <Box

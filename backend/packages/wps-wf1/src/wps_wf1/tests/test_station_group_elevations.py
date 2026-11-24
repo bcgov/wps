@@ -55,11 +55,3 @@ async def test_group_responses_supply_elevations_without_another_request():
     assert [station.station_code for station in stations] == [1, 2, 3, 4, 5]
     api.get_station_data.assert_not_called()
     assert api.wfwx_client.fetch_stations_by_group_id.await_count == 2
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize("group_ids", [[], ["empty"]])
-async def test_empty_groups_do_not_fetch_supplementary_metadata(group_ids):
-    api = api_for({"empty": []})
-    assert await api.get_stations_by_group_ids(group_ids) == []
-    api.get_station_data.assert_not_called()

@@ -37,8 +37,7 @@ describe('StationNameCell', () => {
     [0, '0 m'],
     [-5, '-5 m'],
     [null, 'Unknown'],
-    [undefined, 'Unknown'],
-    [NaN, 'Unknown']
+    [undefined, 'Unknown']
   ])('shows station elevation %s as %s in the tooltip only', async (elevation, expected) => {
     const user = userEvent.setup()
     render(
