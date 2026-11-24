@@ -18,7 +18,12 @@ TO_MM = {"mm since the run started": 1, "m since the run started": 1000}
 
 
 def relative_humidity(temperature: np.ndarray, dewpoint: np.ndarray) -> np.ndarray:
-    """Relative humidity, %, from °C. The formula the ECMWF station job uses."""
+    """Relative humidity, by the formula the ECMWF station job uses.
+
+    :param temperature: Air temperature, °C
+    :param dewpoint: Dew point, °C
+    :return: Relative humidity, %
+    """
 
     def vapour_pressure(celsius: np.ndarray) -> np.ndarray:
         return np.exp(17.625 * celsius / (celsius + 243.04))
@@ -27,14 +32,27 @@ def relative_humidity(temperature: np.ndarray, dewpoint: np.ndarray) -> np.ndarr
 
 
 def wind_from_components(u: np.ndarray, v: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Wind speed, and the direction it blows from in degrees, from its eastward and northward
-    components."""
+    """Wind speed and direction from its components.
+
+    :param u: The component towards the east
+    :param v: The component towards the north
+    :return: The speed, in the components' units, and the direction the wind blows from, in
+        degrees clockwise from north
+    """
     return np.hypot(u, v), np.degrees(np.arctan2(-u, -v)) % 360
 
 
 def read_point_forecast(store: GridStore, run_time: datetime, y: int, x: int) -> pa.Table:
-    """A grid cell's forecast for a run, a row per forecast hour. Precipitation is since the row
-    before."""
+    """A grid cell's forecast for a run, in the same units for every model.
+
+    :param store: The store to read the run from
+    :param run_time: UTC start of the run
+    :param y: The cell's row, as `GridStore.nearest_cell` gives it
+    :param x: The cell's column
+    :return: A row per forecast hour: temperature in °C, relative humidity in %, wind speed in
+        km/h and direction in degrees, and precipitation since the row before in mm
+    :raises KeyError: If the store does not have the run
+    """
     point = store.read_point(run_time, y, x)
     hours = point["forecast_hour"]
     temperature = point["temperature"] - KELVIN

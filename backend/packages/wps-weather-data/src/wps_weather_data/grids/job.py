@@ -46,7 +46,12 @@ RECENT_WINDOW = timedelta(hours=48)
 
 
 def run_times(model: GridModel, now: datetime) -> list[datetime]:
-    """The model's runs that started within `LOOKBACK` of `now`, oldest first."""
+    """The runs of a model to look for.
+
+    :param model: The model
+    :param now: The current time
+    :return: UTC starts of the runs that started within `LOOKBACK` of `now`, oldest first
+    """
     day = now.astimezone(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
     starts = [
         day + timedelta(days=offset, hours=hour) for offset in (-1, 0) for hour in model.run_hours
@@ -55,10 +60,18 @@ def run_times(model: GridModel, now: datetime) -> list[datetime]:
 
 
 def keep_grids(model: GridModel, recent: GridStore, history: GridStore, now: datetime) -> list:
-    """Write the model's new runs and drop old ones from `recent`. Returns the runs written.
+    """Write a model's new runs, and drop old ones from `recent`.
 
     The stores are independent: one that fails is left alone for the rest of this time, the other
-    is still kept, and the errors are raised together at the end."""
+    is still kept, and the errors are raised together at the end.
+
+    :param model: The model
+    :param recent: The model's `recent` store
+    :param history: The model's `history` store
+    :param now: The current time
+    :return: UTC starts of the runs written
+    :raises ExceptionGroup: If a store failed
+    """
     failures: dict[GridStore, Exception] = {}
     held: dict[GridStore, set[datetime]] = {}
     # `history` first: it is the one that is kept, and runs are committed in this order.
@@ -110,6 +123,10 @@ def keep_grids(model: GridModel, recent: GridStore, history: GridStore, now: dat
 
 
 def main() -> int:
+    """Keep the grids of the model given on the command line.
+
+    :return: The exit code
+    """
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--model", required=True, choices=sorted(MODELS))
     args = parser.parse_args()
