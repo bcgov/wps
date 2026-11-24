@@ -173,16 +173,24 @@ describe('GridComponentRenderer', () => {
     expect(renderedCell).toHaveStyle(`borderColor: ${theme.palette.error.main}`)
   })
 
-  it('should render the cell with the formatted value', () => {
+  it.each([1, 0])('renders actual %s with readable text while remaining disabled', value => {
     const field = 'tempForecast'
     const fieldActual = 'tempActual'
     const row = { [field]: NaN, [fieldActual]: 2, forDate: DateTime.now() }
-    const { getByRole } = render(gridComponentRenderer.renderCellWith({ formattedValue: 1, field: fieldActual, row }))
+    const { getByRole } = render(
+      gridComponentRenderer.renderCellWith({ formattedValue: value, field: fieldActual, row })
+    )
 
     const renderedCell = getByRole('textbox')
     expect(renderedCell).toBeInTheDocument()
-    expect(renderedCell).toHaveValue('1')
+    expect(renderedCell).toHaveValue(String(value))
     expect(renderedCell).toBeDisabled()
+    expect(renderedCell).toHaveStyle({
+      color: theme.palette.text.primary,
+      WebkitTextFillColor: theme.palette.text.primary,
+      opacity: '1',
+      fontWeight: '600'
+    })
   })
 
   it('should render the forecast cell as editable with no actual', () => {

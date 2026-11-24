@@ -1,5 +1,5 @@
 import { LinearProgress } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import { alpha, styled } from '@mui/material/styles'
 import {
   DataGridPro,
   type GridCallbackDetails,
@@ -78,6 +78,13 @@ const Root = styled('div')(({ theme }) => {
   styles[`& .forecastCell`] = {
     backgroundColor: 'rgba(238,238,238,1)'
   }
+  styles['& .actualCell'] = {
+    backgroundColor: alpha(theme.palette.primary.main, 0.06)
+  }
+  styles['& .MuiDataGrid-columnHeader[data-field$="Actual"]'] = {
+    backgroundColor: alpha(theme.palette.primary.main, 0.12)
+  }
+
   styles['& .modelElevationRow .MuiDataGrid-cell'] = {
     borderTop: `1px solid ${theme.palette.divider}`,
     backgroundColor: theme.palette.grey[100]
@@ -119,7 +126,8 @@ const isRowSelectable = ({ row }: GridRowParams<ForecastDisplayRow>) => !isModel
 // cell rules
 const getCellClassName = ({ row, field }: GridCellParams<ForecastDisplayRow>) => {
   if (isModelElevationRow(row)) return ''
-  return field.endsWith('Forecast') || field.endsWith('Actual') ? 'forecastCell' : ''
+  if (field.endsWith('Actual')) return 'actualCell'
+  return field.endsWith('Forecast') ? 'forecastCell' : ''
 }
 
 const isCellEditable = (params: GridCellParams<ForecastDisplayRow>) =>
