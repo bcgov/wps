@@ -8,9 +8,9 @@ from weather_model_jobs.machine_learning import HourOfDayRegression
 from weather_model_jobs.utils.wind_direction_utils import compute_u_v
 
 
-# with this code's u, v convention: 10 km/h from 180° is [10, 0], 15 km/h from 90° is [0, -15]
-PREDICTED_U_V = [10.0, 0.0]
-OBSERVED_U_V = [0.0, -15.0]
+# 10 km/h from 180° blows north, and 15 km/h from 90° blows west
+PREDICTED_U_V = [0.0, 10.0]
+OBSERVED_U_V = [-15.0, 0.0]
 
 
 @pytest.mark.parametrize(

@@ -17,7 +17,8 @@ def test_compute_u_v(wind_direction_deg, wind_speed):
     """
     u_v = compute_u_v(wind_speed, wind_direction_deg)
     recomputed_wind_direction = calculate_wind_dir_from_u_v(u_v[0], u_v[1])
-    assert math.isclose(recomputed_wind_direction, wind_direction_deg, abs_tol=0.00001)
+    difference = (recomputed_wind_direction - wind_direction_deg + 180) % 360 - 180
+    assert math.isclose(difference, 0, abs_tol=0.00001)  # 0 and 360 are both north
 
 
 @pytest.mark.parametrize(
@@ -37,10 +38,15 @@ def test_calculate_wind_speed_from_uv(u_float, v_float, expected_wind_speed):
 @pytest.mark.parametrize(
     "u_float, v_float, expected_wind_direction",
     [
-        (-3.711, -1.471, 22),
-        (2.93, 4.06, 234),
-        (-1.77, 1.95, 312),
-        (6.04, -0.31, 177),
+        (-3.711, -1.471, 68),
+        (2.93, 4.06, 216),
+        (-1.77, 1.95, 138),
+        (6.04, -0.31, 273),
+        # Blowing towards the south is from the north, and so on.
+        (0, -5, 360),
+        (-5, 0, 90),
+        (0, 5, 180),
+        (5, 0, 270),
     ],
 )
 def test_calculate_wind_direction_from_uv(u_float, v_float, expected_wind_direction):
