@@ -10,7 +10,6 @@ on:
       - main
     paths:
       - "backend/packages/wps-weather/**"
-      - ".github/workflows/deploy_wps_weather.yml"
 
 env:
   SUFFIX: pr-${{ github.event.number }}
@@ -33,33 +32,12 @@ jobs:
       attestations: write
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Build and push WPS Weather image
-        uses: bcgov/actions/builder@acc058abf85bb183dad21b839a92a40a4ff47af3 # v0.14.0
+        uses: bcgov/actions/builder@d209bb08aabe15e5e69aca53b24d338a7b2843d5 # v0.12.0
         with:
           package: wps-weather
-          context: .
-          file: backend/packages/wps-weather/Dockerfile
-          tags: ${{ env.SUFFIX }}
-
-  build-image-arm64:
-    name: Build Image (arm64)
-    if: >-
-      github.event.pull_request.state == 'open' &&
-      (github.event.action != 'labeled' || github.event.label.name == 'deploy-dev')
-    runs-on: ubuntu-24.04-arm
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-      attestations: write
-    steps:
-      - name: Build and push WPS Weather image (arm64)
-        uses: bcgov/actions/builder@acc058abf85bb183dad21b839a92a40a4ff47af3 # v0.14.0
-        with:
-          package: wps-weather
-          architecture: arm64
           context: .
           file: backend/packages/wps-weather/Dockerfile
           tags: ${{ env.SUFFIX }}
@@ -73,7 +51,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - uses: ./.github/actions/oc-setup
 
