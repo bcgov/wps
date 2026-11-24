@@ -50,7 +50,7 @@ The archive jobs existed only to manage the size of the database.
 1. Moved station weather out of Postgres into object storage, which is cheap enough to keep all of it
 2. Started keeping weather model grids over BC, not only the values at stations
 3. Arranged the data for the questions people ask, so a request reads only what it needs
-4. Put an API on the station data, and a library on the weather model grids
+4. Put an API on the station data and the weather model grids, and a library for reading a grid over all of BC
 
 ---
 
@@ -62,7 +62,7 @@ Forecasts entered in MoreCast stay in Postgres.
 
 <!--
 Our own apps are MoreCast, fire watch and the climatology page. They read the station data directly.
-The weather model grids are not in the API yet, and no app reads them yet.
+From the weather model grids, the API gives the forecast at one place. Reading all of BC needs the library. No app reads the grids yet.
 -->
 
 ---
@@ -106,7 +106,7 @@ An HRDPS forecast, read from storage. The marker is Kamloops.
 
 ![h:400](images/request_point.png)
 
-Three models at one point. It doesn't need a station, so it could be a fire.
+Three models at one point. It doesn't need a station, so it could be a fire. The API gives each model's forecast in one request.
 
 <!--
 Kamloops, 50.70, -120.44. Times are UTC.
@@ -185,9 +185,10 @@ This is the development address. It works from any language that can make a web 
 - The same address gives CSV or JSON
 - Long requests come in pages, and each page has the address of the next
 - Errors say what is wrong, such as `end is before start`
-- Model values come with bias-adjusted values and the run they are from
+- Station model values come with bias-adjusted values and the run they are from
+- Weather model grid forecasts come in the same units, whichever the model
 
-Stations, observations, forecasters' forecasts and model values all work the same way.
+Dates and pages are for station data. A request to the weather model grids gives one whole forecast, at one place.
 
 <!--
 60 requests a minute for each key.
@@ -195,7 +196,30 @@ Stations, observations, forecasters' forecasts and model values all work the sam
 
 ---
 
-## A model grid in a few lines
+## A forecast anywhere in one request
+
+```python
+response = requests.get(
+    f"{API}/grids/HRDPS/point",
+    params={"latitude": 50.70, "longitude": -120.44},   # Kamloops
+    headers={"X-API-Key": os.environ["WEATHER_API_KEY"]},
+)
+rows = response.json()["rows"]
+```
+
+The newest run, with a row for every forecast hour we keep. Temperature, humidity, wind and precipitation are the model's own values, with no bias adjustment.
+
+`/grids/HRDPS/runs` lists the runs that are kept, and `run_timestamp` asks for one of them. The other models are GDPS, RDPS, GFS and ECMWF.
+
+<!--
+Deployed to development on November 24. It has been tested locally, and not yet checked there.
+The values are from the nearest grid cell, and the response says where that is.
+A place outside BC is an error, and so is a run that isn't kept.
+-->
+
+---
+
+## All of BC in a few lines
 
 ```python
 from wps_weather_data.grids.store import GridStore
@@ -203,17 +227,13 @@ from wps_weather_data.grids.store import GridStore
 store = GridStore("HRDPS", "recent")
 run = store.run_times()[-1]                     # the newest run
 
-y, x = store.nearest_cell(50.70, -120.44)       # Kamloops
-point = store.read_point(run, y, x)             # one place, every hour
-
 field = store.read_map(run, 24, "temperature")  # all of BC, one hour
 ```
 
-The same calls work for all five models. There is no API for the grids yet.
+The same calls work for all five models. The API gives one place at a time, so a whole grid needs the library and access to our storage.
 
 <!--
 Set SUFFIX first. Without it the library uses production's location.
-Check store.exists(), because opening a store that isn't there creates it.
 -->
 
 ---
@@ -239,7 +259,7 @@ The ideas are not planned work.
 
 - The weather model grids hold exactly what the forecast centre published
 - Compared with the old database, 6,936 model values for 320 stations had no differences
-- HRDPS at Afton from the grid and from the API was 0.0 °C apart over 49 hours
+- HRDPS at Afton from the grid and from the API's station values was 0.0 °C apart over 49 hours
 - When an observation or forecast is corrected, we keep both versions
 - A job that stops part way is continued by the next one
 
@@ -305,12 +325,12 @@ This is for the weather model grids only. It does not include the station data.
 
 ## Where we are, and what is next
 
-In development, as of November 23: station data, observations to 1987, climatology page, API, and weather model grids from all five models (GDPS, GFS and ECMWF were added that day)
+In development, as of November 24: station data, observations to 1987, climatology page, weather model grids from all five models, and an API for the station data and the grids
 
 Next:
 
 - Copy production's history over and switch production
-- An API for the weather model grids, and a way to view them
+- A way to view the weather model grids
 - Measure read times inside the cluster
 - Find out why the HRDPS 48-hour store stopped accepting data for about 12 hours on November 23. It can no longer hold up the permanent one
 
@@ -328,6 +348,8 @@ MoreCast and fire watch should work as before. The old database tables stay unti
 | `/observations/daily`, `/observations/hourly` | Observations, back to 1987, with FWI indices |
 | `/forecasts/daily` | Forecasters' noon forecasts |
 | `/models/HRDPS/daily`, `/models/HRDPS/hourly` | Model values at the station. Also GDPS, RDPS, GFS, ECMWF |
+| `/grids/HRDPS/point` | The forecast at a latitude and longitude in BC. Same five models |
+| `/grids/HRDPS/runs` | The runs that are kept |
 
 Daily means the noon record (20:00 UTC).
 
@@ -341,6 +363,8 @@ Daily means the noon record (20:00 UTC).
 | Wind | speed and direction | u and v | u and v |
 | Humidity | relative humidity | relative humidity | dew point |
 | Precipitation since the run started | mm | mm | metres |
+
+This is how they are stored, and what the library gives. The API gives °C, relative humidity, km/h and direction, and mm since the row before, for every model.
 
 ---
 
