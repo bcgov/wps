@@ -28,7 +28,8 @@ const row: ClimatologyRow = {
   p90: 28,
   maximum: 35,
   value: 20,
-  valueStationCount: 1
+  valueStationCount: 1,
+  compared: {}
 }
 
 describe('ClimatologyChart pointer', () => {
@@ -40,6 +41,8 @@ describe('ClimatologyChart pointer', () => {
         year={2026}
         dateWindow={{ start: row.time, end: row.time + 1 }}
         onDateWindowChange={vi.fn()}
+        comparedYears={[]}
+        highlightedYear={null}
         today={null}
         title="AFTON"
       />

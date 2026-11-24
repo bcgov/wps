@@ -74,6 +74,47 @@ class TestOneStation:
         assert (series.days[0].minimum, series.days[0].maximum) == (10.0, 30.0)
         assert (series.first_reference_year, series.last_reference_year) == (2024, 2026)
 
+    def test_compared_years_are_returned_in_the_order_asked_for(self):
+        table = rows(
+            [
+                (322, date(2024, 7, 2), 11.0),
+                (322, date(2024, 7, 1), 10.0),
+                (322, date(2025, 7, 1), 20.0),
+                (322, date(2026, 7, 1), 30.0),
+            ]
+        )
+
+        (series,) = daily_climatology(
+            table, [322], TEMPERATURE, 2026, compare_years=[2025, 2024, 2025, 2026]
+        ).series
+
+        # Asked for twice counts once, and the selected year is not compared with itself.
+        assert [
+            (each.year, [(o.date, o.value) for o in each.observations])
+            for each in series.compared_years
+        ] == [
+            (2025, [(date(2025, 7, 1), 20.0)]),
+            (2024, [(date(2024, 7, 1), 10.0), (date(2024, 7, 2), 11.0)]),
+        ]
+        assert [o.value for o in series.observations] == [30.0]
+
+    def test_comparing_years_does_not_change_the_distribution(self):
+        table = rows(july_first(322, {2024: 10.0, 2025: 20.0, 2026: 30.0}))
+
+        (compared,) = daily_climatology(
+            table, [322], TEMPERATURE, 2026, compare_years=[2025]
+        ).series
+
+        assert compared.days == single(table).days
+        assert (compared.first_reference_year, compared.last_reference_year) == (2024, 2025)
+
+    def test_a_compared_year_with_no_values_is_empty(self):
+        (series,) = daily_climatology(
+            rows(july_first(322, {2025: 20.0})), [322], TEMPERATURE, 2026, compare_years=[1987]
+        ).series
+
+        assert [(each.year, each.observations) for each in series.compared_years] == [(1987, [])]
+
     def test_days_are_in_calendar_order(self):
         table = rows(
             [
@@ -145,6 +186,22 @@ class TestGroups:
         assert (day.minimum, day.maximum, day.count, day.station_count) == (10.0, 30.0, 4, 2)
         assert day.median == pytest.approx(16.0)
         assert [o.value for o in series.observations] == [20.0]
+
+    @pytest.mark.parametrize("method", [ClimatologyMethod.AVERAGE, ClimatologyMethod.POOLED])
+    def test_a_compared_year_is_the_mean_of_the_stations(self, method):
+        (series,) = daily_climatology(GROUP, [1, 2], TEMPERATURE, 2026, method, [2025]).series
+
+        (compared,) = series.compared_years
+        assert [(o.value, o.station_count) for o in compared.observations] == [(21.0, 2)]
+
+    def test_each_station_has_its_own_compared_years(self):
+        response = daily_climatology(
+            GROUP, [1, 2], TEMPERATURE, 2026, ClimatologyMethod.EACH, [2025]
+        )
+
+        assert [
+            [o.value for o in series.compared_years[0].observations] for series in response.series
+        ] == [[30.0], [12.0]]
 
     def test_each_station_has_its_own_series_in_the_order_asked_for(self):
         response = daily_climatology(GROUP, [2, 1, 999], TEMPERATURE, 2026, ClimatologyMethod.EACH)

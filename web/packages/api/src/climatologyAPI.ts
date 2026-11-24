@@ -41,6 +41,12 @@ export interface ClimatologyObservation {
   station_count: number
 }
 
+// The stations' daily values in a year the selected year is compared with.
+export interface ClimatologyYear {
+  year: number
+  observations: ClimatologyObservation[]
+}
+
 // A daily climatology for some stations, and their values in the selected year.
 export interface ClimatologySeries {
   station_codes: number[]
@@ -50,6 +56,8 @@ export interface ClimatologySeries {
   last_reference_year: number | null
   days: ClimatologyDay[]
   observations: ClimatologyObservation[]
+  // The years asked for to compare with. The distribution includes them.
+  compared_years: ClimatologyYear[]
 }
 
 // One series when the stations are combined, or one per station.
@@ -77,10 +85,11 @@ export async function getDailyClimatology(
   stationCodes: number[],
   variable: ClimatologyVariable,
   year: number,
-  method: ClimatologyMethod
+  method: ClimatologyMethod,
+  compareYears: number[]
 ): Promise<DailyClimatology> {
   const { data } = await axios.get<DailyClimatology>('/climatology/daily', {
-    params: { station_codes: stationCodes, variable, year, method },
+    params: { station_codes: stationCodes, variable, year, method, compare_years: compareYears },
     // The API reads a list as a repeated parameter: station_codes=1&station_codes=2
     paramsSerializer: { indexes: null }
   })

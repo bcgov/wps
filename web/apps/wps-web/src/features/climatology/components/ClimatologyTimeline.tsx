@@ -14,7 +14,12 @@ import {
   widenWindow,
   windowTicks
 } from '@/features/climatology/climatologyRows'
-import { BAND_COLOURS, MEDIAN_COLOUR, YEAR_COLOUR } from '@/features/climatology/components/ClimatologyChart'
+import {
+  BAND_COLOURS,
+  MEDIAN_COLOUR,
+  SELECTION_COLOUR,
+  YEAR_COLOUR
+} from '@/features/climatology/components/ClimatologyChart'
 
 export interface ClimatologyTimelineProps {
   rows: ClimatologyRow[]
@@ -31,7 +36,7 @@ export const climatologyTimelineDefinition = ({ rows, dateWindow, onDateWindowCh
   const range = snapToRows(dateWindow, rows)
   return defineChart({
     marks: [
-      decorative(areaY(rows, { x: 'time', y1: 'p25', y2: 'p75', fill: BAND_COLOURS.normal, fillOpacity: 0.6 })),
+      decorative(areaY(rows, { x: 'time', y1: 'p25', y2: 'p75', fill: BAND_COLOURS.middle, fillOpacity: 1 })),
       decorative(lineY(rows, { x: 'time', y: 'median', stroke: MEDIAN_COLOUR, strokeWidth: 1 })),
       lineY(rows, { x: 'time', y: 'value', stroke: YEAR_COLOUR, strokeWidth: 1.5 })
     ],
@@ -59,7 +64,7 @@ export const climatologyTimelineDefinition = ({ rows, dateWindow, onDateWindowCh
         // Slim neutral bars mark the start and end, and a light wash the dates between them.
         handleSize: 8,
         handleStyle: { fill: MEDIAN_COLOUR, stroke: MEDIAN_COLOUR },
-        selectionStyle: { fill: BAND_COLOURS.belowNormal, fillOpacity: 0.12, stroke: BAND_COLOURS.belowNormal }
+        selectionStyle: { fill: SELECTION_COLOUR, fillOpacity: 0.12, stroke: SELECTION_COLOUR }
       })
     ]
   })

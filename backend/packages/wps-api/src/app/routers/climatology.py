@@ -27,6 +27,10 @@ logger = logging.getLogger(__name__)
 # The most stations one request can combine. A fire centre has fewer than this.
 MAX_STATIONS = 150
 
+# The most years one request can compare the selected year with. The page cannot tell more lines
+# than this apart.
+MAX_COMPARE_YEARS = 5
+
 router = APIRouter(
     prefix="/climatology",
     dependencies=[Depends(authentication_required), Depends(audit)],
@@ -44,9 +48,10 @@ def _daily_climatology(
     variable: ClimatologyVariable,
     year: int,
     method: ClimatologyMethod,
+    compare_years: list[int],
 ) -> DailyClimatologyResponse:
     rows = by_station_table.read_stations(DAILY, station_codes, [ACTUALS])
-    return daily_climatology(rows, station_codes, variable, year, method)
+    return daily_climatology(rows, station_codes, variable, year, method, compare_years)
 
 
 @router.get("/daily", response_model=DailyClimatologyResponse)
@@ -55,17 +60,19 @@ async def get_daily_climatology(
     variable: ClimatologyVariable = ClimatologyVariable.TEMPERATURE,
     year: int | None = None,
     method: ClimatologyMethod = ClimatologyMethod.AVERAGE,
+    compare_years: Annotated[list[int], Query(max_length=MAX_COMPARE_YEARS)] = [],
     by_station_table: ByStationTable = Depends(get_by_station_table),
 ):
     """Returns how the stations' daily observations of a variable have been distributed on each
     day of the year, and their observations in `year` to compare: combined by `method`, or for
-    each station. `year` is left out of the distribution and defaults to the current year.
+    each station. `year` is left out of the distribution and defaults to the current year. The
+    observations in `compare_years` are returned too, and stay in the distribution.
     """
     logger.info("/climatology/daily for %d stations", len(station_codes))
     year = year or get_utc_now().year
     # The read blocks on the network, so it runs in a thread to keep the event loop free.
     return await asyncio.to_thread(
-        _daily_climatology, by_station_table, station_codes, variable, year, method
+        _daily_climatology, by_station_table, station_codes, variable, year, method, compare_years
     )
 
 

@@ -11,7 +11,7 @@ from wps_weather_data.by_time import DAILY, ByTimeTable
 from wps_weather_data.wf1 import daily_actuals_table
 
 import app.main
-from app.routers.climatology import MAX_STATIONS, get_by_station_table
+from app.routers.climatology import MAX_COMPARE_YEARS, MAX_STATIONS, get_by_station_table
 
 URL = "/api/climatology/daily"
 HEADERS = {"Content-Type": "application/json", "Authorization": "Bearer token"}
@@ -92,6 +92,7 @@ def test_daily_climatology_of_one_station(client, by_station_table):
                     }
                 ],
                 "observations": [{"date": "2026-07-01", "value": 30.0, "station_count": 1}],
+                "compared_years": [],
             }
         ],
     }
@@ -115,6 +116,29 @@ def test_daily_climatology_of_several_stations(
     series = response.json()["series"]
     assert len(series) == series_count
     assert series[0]["days"][0]["minimum"] == minimum
+
+
+@pytest.mark.usefixtures("mock_jwt_decode")
+def test_daily_climatology_compares_years(client, by_station_table):
+    response = client.get(
+        URL,
+        params={"station_codes": 322, "year": 2026, "compare_years": [2025, 2024]},
+        headers=HEADERS,
+    )
+
+    (series,) = response.json()["series"]
+    assert series["compared_years"] == [
+        {
+            "year": 2025,
+            "observations": [{"date": "2025-07-01", "value": 20.0, "station_count": 1}],
+        },
+        {
+            "year": 2024,
+            "observations": [{"date": "2024-07-01", "value": 10.0, "station_count": 1}],
+        },
+    ]
+    # They are still part of what the year is compared with.
+    assert series["days"][0]["count"] == 2
 
 
 @pytest.mark.usefixtures("mock_jwt_decode")
@@ -151,6 +175,8 @@ def test_daily_climatology_defaults_to_the_current_year(client, by_station_table
         {"station_codes": 322, "variable": "dew_point"},
         {"station_codes": 322, "method": "median"},
         {"station_codes": list(range(MAX_STATIONS + 1))},
+        {"station_codes": 322, "compare_years": list(range(2000, 2001 + MAX_COMPARE_YEARS))},
+        {"station_codes": 322, "compare_years": "last"},
     ],
 )
 def test_daily_climatology_rejects_a_bad_request(client, by_station_table, params):
