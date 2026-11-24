@@ -388,6 +388,8 @@ def test_docs_are_served_under_weather(client):
         "/weather/v1/observations/{resolution}",
         "/weather/v1/forecasts/daily",
         "/weather/v1/models/{model}/{resolution}",
+        "/weather/v1/grids/{model}/runs",
+        "/weather/v1/grids/{model}/point",
     ]
 
 

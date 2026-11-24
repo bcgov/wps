@@ -167,8 +167,9 @@ curl -X DELETE "${BASE}/products/${PRODUCT_APP_ID}" -H "Authorization: Bearer ${
 
 The Station Weather API provides historical and current BC Wildfire Service weather station
 data: hourly and daily observations (back to 1987 from the BCWS data mart), forecasters' noon
-forecasts, FWI System indices, and weather model values interpolated to stations. It reads only
-from object storage (Delta tables).
+forecasts, FWI System indices, and weather model values interpolated to stations. It also provides
+weather model forecasts at any location in BC, from the models' grids. It reads only from object
+storage (Delta tables, and Icechunk for the grids).
 The dedicated `wps-weather-api-${SUFFIX}` service is reachable through the APS gateway, which
 requires an API key and applies rate limits. The service has no public OpenShift route.
 Its network policy is in `openshift/templates/allow_gateway_to_wps_weather_api.yaml`.

@@ -4213,7 +4213,7 @@ dependencies = [
     { name = "uvicorn" },
     { name = "wps-sfms" },
     { name = "wps-shared" },
-    { name = "wps-weather-data" },
+    { name = "wps-weather-data", extra = ["grids"] },
     { name = "wps-wf1" },
 ]
 
@@ -4284,7 +4284,7 @@ requires-dist = [
     { name = "uvicorn", specifier = ">=0,<1" },
     { name = "wps-sfms", editable = "packages/wps-sfms" },
     { name = "wps-shared", editable = "packages/wps-shared" },
-    { name = "wps-weather-data", editable = "packages/wps-weather-data" },
+    { name = "wps-weather-data", extras = ["grids"], editable = "packages/wps-weather-data" },
     { name = "wps-wf1", editable = "packages/wps-wf1" },
 ]
 provides-extras = ["dev"]

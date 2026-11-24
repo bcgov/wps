@@ -10,6 +10,9 @@ notes: |
   and weather model values interpolated to stations. Supported weather models are GDPS,
   RDPS, HRDPS, GFS, NAM, and ECMWF.
 
+  Weather model forecasts are also available at any location in BC, from the grids of
+  HRDPS, RDPS, GDPS, GFS, and ECMWF.
+
   Documentation and background:
 
   - [Station Weather API specification](https://${DOCS_HOST}/api/weather/docs) for endpoint details.

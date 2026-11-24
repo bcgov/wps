@@ -71,12 +71,17 @@ As of 2026-11-23. The station tables and the Station Weather API run in a dev de
 | Public only through the APS gateway, with an API key | The gateway checks the key and limits requests to 60 a minute per consumer |
 | One worker per pod, two pods, 2 GiB limit | Each worker holds its own open tables, about 1 GiB. Requests are async, so one worker serves several |
 | `by_station` for dates before the last 2 UTC days, `by_time` after | `by_station` is rebuilt nightly, and `by_time` is written as data arrives |
-| Resources by kind: `stations`, `observations`, `forecasts`, `models` | Each returns only the fields it has |
+| Resources by kind: `stations`, `observations`, `forecasts`, `models`, `grids` | Each returns only the fields it has |
 | Dates and station codes are query parameters | They narrow a collection. Dates are optional, and paging only moves `start` |
 | Default dates: the last 7 days of observations, the next 10 of forecasts and models | A request needs only station codes |
 | Long requests are paged, not refused | Whole days, about 50,000 rows a page, with `next` in the body and a `Link` header |
 | `next` is a relative URL that names `end` | The app sees only its internal host name, and a default `end` would otherwise move |
 | CSV through `Accept: text/csv` | The same URL serves both formats |
+| Grids are read a location at a time: `/grids/{model}/point`, from any run `/grids/{model}/runs` lists | That is what they are laid out for. A whole field over BC would need a format (the HRDPS grid is rotated) and reads every chunk |
+| A grid forecast is in the units of the station model values, not those published | They differ by model: kelvin, wind components, dew point, metres of precipitation |
+| A caller does not say whether a run comes from `recent` or `history` | It is how we store them, and a run in both is the same |
+| At most 4 grid reads at once in a process | Each reads its arrays in 20 threads, and the pod is limited to 2 GiB |
+| Reading a grid store never creates it | The API only reads |
 | Errors use FastAPI's shape, not RFC 9457 | FastAPI supports it and documents it. RFC 9457 would be our own code |
 | No ETags or cache headers for now | Stale data was the worry. ETags built from table versions with `no-cache` would avoid it, if caching is needed |
 | Stays in Python | Delta Lake's reader is already Rust, and holds most of the memory |
@@ -84,7 +89,7 @@ As of 2026-11-23. The station tables and the Station Weather API run in a dev de
 ## Still open
 
 - Read times for the grids inside the cluster. From a laptop, a point forecast took about 1 s and a map about 4.5 s.
-- Endpoints that read the grids.
+- Endpoints that read a whole field over BC. `/grids/{model}/point` reads one location.
 - ECS quota and cost approval for the grids, and whether ECS will accept CRC checksums.
 - Merges into `by_time` by two jobs at once, or during compaction: untested on ECS, and the jobs do not retry.
 - `hourly_profile` and `leads`: designed, not built.

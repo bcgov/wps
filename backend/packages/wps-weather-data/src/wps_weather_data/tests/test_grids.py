@@ -165,6 +165,24 @@ def test_runs_of_different_lengths_are_kept_in_one_store(tmp_path, monkeypatch):
     assert recent.read_point(RUN, 0, 0)["temperature"].size == len(HOURS)
 
 
+def test_reading_a_store_that_does_not_exist_does_not_create_it(tmp_path):
+    recent = store(tmp_path)
+
+    assert recent.run_times() == []
+    with pytest.raises(KeyError):
+        recent.read_point(RUN, 0, 0)
+    assert not recent.exists()
+
+
+def test_a_store_created_after_it_was_first_read_is_found(tmp_path, run):
+    reader = store(tmp_path)
+    assert reader.run_times() == []
+
+    store(tmp_path).write_run(RUN, run[0], run[1].values())
+
+    assert reader.run_times() == [RUN]
+
+
 def test_a_location_outside_bc_is_refused(tmp_path, run):
     recent = store(tmp_path)
     recent.write_run(RUN, run[0], run[1].values())

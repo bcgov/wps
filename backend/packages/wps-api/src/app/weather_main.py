@@ -14,9 +14,11 @@ from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.wps_logging import configure_logging
 from wps_weather_data.by_station import ByStationTable
 from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.grids.models import MODELS
+from wps_weather_data.grids.store import GridStore
 from wps_weather_data.stations import StationsTable
 
-from app.routers import station_weather
+from app.routers import station_weather, weather_grids
 
 configure_logging()
 
@@ -25,7 +27,8 @@ logger = logging.getLogger(__name__)
 API_INFO = dedent("""
     Description: weather at BC Wildfire Service weather stations: hourly and daily
     observations back to 1987, forecasters' noon forecasts, FWI System indices, and
-    weather model values at each station.
+    weather model values at each station. Also weather model forecasts at any location in BC,
+    from the models' grids.
 
     Request access to the Station Weather API through the
     [API Services Portal](https://api.gov.bc.ca). Once approved, send your API key in the
@@ -97,6 +100,7 @@ api = FastAPI(
         {"name": "Observations", "description": "What the stations observed, back to 1987"},
         {"name": "Forecasts", "description": "BC Wildfire Service forecasters' noon forecasts"},
         {"name": "Models", "description": "Weather model values at the stations"},
+        {"name": "Grids", "description": "Weather model forecasts at any location in BC"},
     ],
     docs_url="/weather/docs",
     redoc_url="/weather/redoc",
@@ -108,11 +112,16 @@ api = FastAPI(
 async def lifespan(_: Starlette):
     """Open each Delta table once per process: opening one costs most of a second.
 
+    The grid stores are opened when first read, and only once then too.
+
     The state goes on the api, which is the app its routes see as `request.app`.
     """
     api.state.by_station_table = ByStationTable()
     api.state.by_time_table = ByTimeTable()
     api.state.stations_table = StationsTable()
+    api.state.grid_stores = {
+        model: (GridStore(model, "recent"), GridStore(model, "history")) for model in MODELS
+    }
     yield
 
 
@@ -142,15 +151,18 @@ gateway_api_key = APIKeyHeader(
     auto_error=False,
 )
 
-api.include_router(
-    station_weather.router,
-    prefix="/weather/v1",
-    dependencies=[Depends(gateway_api_key)],
-    responses={
-        401: {"description": "Gateway authentication failed: API key is missing or invalid"},
-        429: {"description": "Gateway rate limit exceeded: 60 requests per minute per consumer"},
-    },
-)
+for router in (station_weather.router, weather_grids.router):
+    api.include_router(
+        router,
+        prefix="/weather/v1",
+        dependencies=[Depends(gateway_api_key)],
+        responses={
+            401: {"description": "Gateway authentication failed: API key is missing or invalid"},
+            429: {
+                "description": "Gateway rate limit exceeded: 60 requests per minute per consumer"
+            },
+        },
+    )
 
 
 @api.get("/ready", include_in_schema=False)

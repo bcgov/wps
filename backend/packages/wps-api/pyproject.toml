@@ -49,7 +49,7 @@ dependencies = [
     "shapely>=2.0.5,<3",
     "gdal==3.13.3",
     "wps-wf1",
-    "wps-weather-data",
+    "wps-weather-data[grids]",
     "earthaccess>=0.15.1",
     "firebase-admin>=7.3.0",
 ]

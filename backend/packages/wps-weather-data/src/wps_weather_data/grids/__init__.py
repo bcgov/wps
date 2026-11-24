@@ -5,6 +5,7 @@ can be read at any location and a station added later can be given the model's h
 - `sources`: where each model is published, and fetching one field from there.
 - `models`: the models kept, and loading a run of one.
 - `store`: `GridStore`, a model's `recent` or `history` store.
+- `point`: one location's forecast, in the same units for every model.
 - `job`: the hourly job that writes a model's new runs (`python -m wps_weather_data.grids.job`).
 
 Design: docs/architecture/model-grid-storage-spike.md
