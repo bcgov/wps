@@ -18,6 +18,8 @@ export interface ClimatologyRow {
   value: number | null
   // How many stations the value is the mean of, or null with no value.
   valueStationCount: number | null
+  // The value in each compared year that has one for the day, by year.
+  compared: Record<number, number>
 }
 
 export interface ClimatologyVariableInfo {
@@ -64,16 +66,23 @@ export const FULL_YEAR: MonthRange = { firstMonth: 1, lastMonth: 12 }
 const utcDay = (year: number, month: number, day: number) => Date.UTC(year, month - 1, day)
 
 /**
- * Lines up a series' historical days with its observations in `year`, one row per day of the
- * year that has history, within the months asked for. Rows are in calendar order.
+ * Lines up a series' historical days with its observations in `year` and the years it is compared
+ * with, one row per day of the year that has history, within the months asked for. Rows are in
+ * calendar order.
  */
 export const buildClimatologyRows = (series: ClimatologySeries, year: number, range: MonthRange): ClimatologyRow[] => {
   const observed = new Map(series.observations.map(observation => [observation.date, observation]))
+  const compared = series.compared_years.map(({ year: comparedYear, observations }) => ({
+    year: comparedYear,
+    // By month and day, such as 07-01, which is what the years have in common.
+    byDay: new Map(observations.map(({ date, value }) => [date.slice(5), value]))
+  }))
   return series.days
     .filter(day => day.month >= range.firstMonth && day.month <= range.lastMonth)
     .map(day => {
       const time = utcDay(year, day.month, day.day)
-      const observation = observed.get(new Date(time).toISOString().slice(0, 10))
+      const date = new Date(time).toISOString().slice(0, 10)
+      const observation = observed.get(date)
       return {
         time,
         count: day.count,
@@ -85,7 +94,13 @@ export const buildClimatologyRows = (series: ClimatologySeries, year: number, ra
         p90: day.p90,
         maximum: day.maximum,
         value: observation?.value ?? null,
-        valueStationCount: observation?.station_count ?? null
+        valueStationCount: observation?.station_count ?? null,
+        compared: Object.fromEntries(
+          compared.flatMap(({ year: comparedYear, byDay }) => {
+            const value = byDay.get(date.slice(5))
+            return value === undefined ? [] : [[comparedYear, value]]
+          })
+        )
       }
     })
 }

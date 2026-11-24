@@ -61,6 +61,13 @@ class ClimatologyObservation(BaseModel):
     station_count: int
 
 
+class ClimatologyYear(BaseModel):
+    """The stations' daily values in a year the selected year is compared with."""
+
+    year: int
+    observations: List[ClimatologyObservation]
+
+
 class ClimatologySeries(BaseModel):
     """A daily climatology for some stations, and their values in the selected year."""
 
@@ -71,6 +78,8 @@ class ClimatologySeries(BaseModel):
     last_reference_year: Optional[int] = None
     days: List[ClimatologyDay]
     observations: List[ClimatologyObservation]
+    # The years asked for to compare with, in that order. The distribution includes them.
+    compared_years: List[ClimatologyYear] = []
 
 
 class DailyClimatologyResponse(BaseModel):

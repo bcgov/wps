@@ -37,7 +37,17 @@ const isoWindow = ({ start, end }: { start: number; end: number }) =>
 
 vi.mock('@/features/climatology/components/ClimatologyChart', async importOriginal => ({
   ...(await importOriginal<typeof import('@/features/climatology/components/ClimatologyChart')>()),
-  default: ({ rows, variable, year, dateWindow, onDateWindowChange, title, yDomain }: ClimatologyChartProps) => (
+  default: ({
+    rows,
+    variable,
+    year,
+    dateWindow,
+    onDateWindowChange,
+    title,
+    yDomain,
+    comparedYears,
+    highlightedYear
+  }: ClimatologyChartProps) => (
     <div
       data-testid="climatology-chart"
       data-rows={rows.length}
@@ -45,6 +55,8 @@ vi.mock('@/features/climatology/components/ClimatologyChart', async importOrigin
       data-year={year}
       data-window={isoWindow(dateWindow)}
       data-title={title}
+      data-compared={comparedYears.map(each => each.year).join('/')}
+      data-highlighted={highlightedYear ?? 'none'}
       data-y-domain={yDomain ? yDomain.join('/') : 'own'}
     >
       <button type="button" onClick={() => onDateWindowChange({ start: JULY_1, end: JULY_2 })}>
@@ -90,6 +102,7 @@ const series = (codes: number[], overrides: Partial<ClimatologySeries> = {}): Cl
   last_reference_year: currentYear - 1,
   days: [day(1, 15, -20, 9), day(7, 1), day(7, 2), day(10, 31, 0, 20)],
   observations: [{ date: `${currentYear}-07-01`, value: 29, station_count: codes.length }],
+  compared_years: [],
   ...overrides
 })
 
@@ -177,7 +190,7 @@ describe('ClimatologyPage', () => {
     await chooseStation('AFTON (322)')
 
     const chart = await screen.findByTestId('climatology-chart')
-    expect(getDailyClimatology).toHaveBeenCalledWith([322], 'temperature', currentYear, 'average')
+    expect(getDailyClimatology).toHaveBeenCalledWith([322], 'temperature', currentYear, 'average', [])
     expect(chart).toHaveAttribute('data-title', 'AFTON')
     // The January day is outside the fire season months.
     expect(chart).toHaveAttribute('data-rows', '3')
@@ -197,7 +210,7 @@ describe('ClimatologyPage', () => {
     await chooseGroup('Kamloops Fire Centre')
 
     const chart = await screen.findByTestId('climatology-chart')
-    expect(getDailyClimatology).toHaveBeenCalledWith([322, 209], 'temperature', currentYear, 'average')
+    expect(getDailyClimatology).toHaveBeenCalledWith([322, 209], 'temperature', currentYear, 'average', [])
     expect(chart).toHaveAttribute('data-title', 'Kamloops Fire Centre')
     expect(screen.getByText(`Kamloops Fire Centre: daily temperature, ${currentYear}`)).toBeInTheDocument()
     expect(screen.getByText(/Each day is the mean of the stations/)).toBeInTheDocument()
@@ -210,7 +223,9 @@ describe('ClimatologyPage', () => {
 
     await chooseGroup('K2, Kamloops Fire Centre')
 
-    await waitFor(() => expect(getDailyClimatology).toHaveBeenCalledWith([322], 'temperature', currentYear, 'average'))
+    await waitFor(() =>
+      expect(getDailyClimatology).toHaveBeenCalledWith([322], 'temperature', currentYear, 'average', [])
+    )
   })
 
   it('fetches the stations of a saved group when it is chosen', async () => {
@@ -219,7 +234,9 @@ describe('ClimatologyPage', () => {
     await chooseGroup('My valleys')
 
     await waitFor(() => expect(getStationGroupsMembers).toHaveBeenCalledWith(['g1']))
-    await waitFor(() => expect(getDailyClimatology).toHaveBeenCalledWith([209], 'temperature', currentYear, 'average'))
+    await waitFor(() =>
+      expect(getDailyClimatology).toHaveBeenCalledWith([209], 'temperature', currentYear, 'average', [])
+    )
   })
 
   it('pools the stations when asked', async () => {
@@ -230,7 +247,7 @@ describe('ClimatologyPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Pooled' }))
 
     await waitFor(() =>
-      expect(getDailyClimatology).toHaveBeenLastCalledWith([322, 209], 'temperature', currentYear, 'pooled')
+      expect(getDailyClimatology).toHaveBeenLastCalledWith([322, 209], 'temperature', currentYear, 'pooled', [])
     )
     expect(screen.getByText(/spread of every station’s values/)).toBeInTheDocument()
   })
@@ -249,7 +266,7 @@ describe('ClimatologyPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Each station' }))
 
     await waitFor(() => expect(screen.getAllByTestId('climatology-chart')).toHaveLength(2))
-    expect(getDailyClimatology).toHaveBeenLastCalledWith([322, 209], 'temperature', currentYear, 'each')
+    expect(getDailyClimatology).toHaveBeenLastCalledWith([322, 209], 'temperature', currentYear, 'each', [])
     const [afton, alexis] = screen.getAllByTestId('climatology-chart')
     expect(afton).toHaveAttribute('data-title', 'AFTON')
     expect(alexis).toHaveAttribute('data-title', 'ALEXIS CREEK')
@@ -271,7 +288,7 @@ describe('ClimatologyPage', () => {
     fireEvent.click(within(screen.getByRole('button', { name: 'AFTON (322)' })).getByTestId('CancelIcon'))
 
     await waitFor(() =>
-      expect(getDailyClimatology).toHaveBeenLastCalledWith([209], 'temperature', currentYear, 'average')
+      expect(getDailyClimatology).toHaveBeenLastCalledWith([209], 'temperature', currentYear, 'average', [])
     )
     expect(screen.getByLabelText('Station group')).toHaveValue('')
   })
@@ -325,13 +342,99 @@ describe('ClimatologyPage', () => {
 
     await chooseOption('Variable', 'Relative humidity')
     await waitFor(() =>
-      expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'relative_humidity', currentYear, 'average')
+      expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'relative_humidity', currentYear, 'average', [])
     )
 
     await chooseOption('Year', `${currentYear - 1}`)
     await waitFor(() =>
-      expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'relative_humidity', currentYear - 1, 'average')
+      expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'relative_humidity', currentYear - 1, 'average', [])
     )
+  })
+
+  describe('comparing years', () => {
+    const openYears = async () => {
+      const input = screen.getByLabelText(/^Compare with/)
+      fireEvent.mouseDown(input)
+      return within(await screen.findByRole('listbox'))
+    }
+
+    it('loads the year chosen, and draws and names it', async () => {
+      renderPage()
+      await chooseStation('AFTON (322)')
+      await screen.findByTestId('climatology-chart')
+
+      fireEvent.click((await openYears()).getByText('2017'))
+
+      await waitFor(() =>
+        expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'temperature', currentYear, 'average', [2017])
+      )
+      expect(await screen.findByTestId('climatology-chart')).toHaveAttribute('data-compared', '2017')
+      expect(screen.getByTestId('climatology-legend')).toHaveTextContent(`${currentYear}2017Historical median`)
+      expect(screen.getByText(/2017 is part of that history/)).toBeInTheDocument()
+    })
+
+    it('chooses the last five years at once, and offers no more', async () => {
+      renderPage()
+      await chooseStation('AFTON (322)')
+
+      fireEvent.click(screen.getByRole('button', { name: 'Last 5 years' }))
+
+      const lastFive = [1, 2, 3, 4, 5].map(ago => currentYear - ago)
+      await waitFor(() =>
+        expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'temperature', currentYear, 'average', lastFive)
+      )
+      const options = await openYears()
+      expect(options.getByText('1990')).toHaveAttribute('aria-disabled', 'true')
+      // The selected year is not compared with itself.
+      expect(options.queryByText(`${currentYear}`)).not.toBeInTheDocument()
+    })
+
+    it('does not compare a year with itself when it becomes the selected one', async () => {
+      renderPage()
+      await chooseStation('AFTON (322)')
+      fireEvent.click(screen.getByRole('button', { name: 'Last year' }))
+      await waitFor(() =>
+        expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'temperature', currentYear, 'average', [
+          currentYear - 1
+        ])
+      )
+
+      await chooseOption('Year', `${currentYear - 1}`)
+
+      await waitFor(() =>
+        expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'temperature', currentYear - 1, 'average', [])
+      )
+    })
+
+    it('highlights a year from the legend until it is no longer compared', async () => {
+      renderPage()
+      await chooseStation('AFTON (322)')
+      fireEvent.click(screen.getByRole('button', { name: 'Last year' }))
+      const legend = within(await screen.findByTestId('climatology-legend'))
+
+      fireEvent.click(await legend.findByRole('button', { name: `${currentYear - 1}` }))
+
+      expect(screen.getByTestId('climatology-chart')).toHaveAttribute('data-highlighted', `${currentYear - 1}`)
+
+      // Backspace in the empty box removes the last year chosen.
+      fireEvent.keyDown(screen.getByLabelText(/^Compare with/), { key: 'Backspace' })
+
+      await waitFor(() => expect(screen.getByTestId('climatology-chart')).toHaveAttribute('data-highlighted', 'none'))
+    })
+
+    it('compares one year on charts of each station', async () => {
+      renderPage()
+      await chooseGroup('Kamloops Fire Centre')
+      fireEvent.click(screen.getByRole('button', { name: 'Last 5 years' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Each station' }))
+
+      await waitFor(() =>
+        expect(getDailyClimatology).toHaveBeenLastCalledWith([322, 209], 'temperature', currentYear, 'each', [
+          currentYear - 1
+        ])
+      )
+      expect(screen.queryByRole('button', { name: 'Last 5 years' })).not.toBeInTheDocument()
+    })
   })
 
   it('shares the dates chosen on the chart with the timeline, and shows every day again on reset', async () => {

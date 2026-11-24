@@ -32,9 +32,16 @@ import {
   variableInSentence,
   visibleWindow
 } from '@/features/climatology/climatologyRows'
+import {
+  type ComparedYear,
+  chooseComparedYears,
+  MAX_COMPARED_YEARS,
+  MAX_COMPARED_YEARS_EACH
+} from '@/features/climatology/comparedYears'
 import ClimatologyChart from '@/features/climatology/components/ClimatologyChart'
 import ClimatologyLegend from '@/features/climatology/components/ClimatologyLegend'
 import ClimatologyTimeline from '@/features/climatology/components/ClimatologyTimeline'
+import ComparedYearsPicker from '@/features/climatology/components/ComparedYearsPicker'
 import type { StationOption } from '@/features/climatology/stationGroups'
 
 // The data mart's first year of station observations.
@@ -67,6 +74,9 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
   const [year, setYear] = useState(currentYear)
   const [season, setSeason] = useState<Season>('fire-season')
   const [method, setMethod] = useState<ClimatologyMethod>('average')
+  // The years chosen to compare with, of which charts of each station show the newest.
+  const [chosenYears, setChosenYears] = useState<ComparedYear[]>([])
+  const [highlighted, setHighlighted] = useState<number | null>(null)
   const [climatology, setClimatology] = useState<DailyClimatology | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -79,6 +89,19 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
   // One station is the same whichever way it is combined.
   const effectiveMethod: ClimatologyMethod = stationCodes.length > 1 ? method : 'average'
 
+  const compareLimit = effectiveMethod === 'each' ? MAX_COMPARED_YEARS_EACH : MAX_COMPARED_YEARS
+  const comparedYears = useMemo(
+    () => chosenYears.filter(each => each.year !== year).slice(0, compareLimit),
+    [chosenYears, year, compareLimit]
+  )
+  const compareYears = useMemo(() => comparedYears.map(each => each.year), [comparedYears])
+  // A year that is no longer compared does not stay highlighted.
+  const highlightedYear = compareYears.find(each => each === highlighted) ?? null
+  const onCompareYears = useCallback(
+    (chosen: number[]) => setChosenYears(current => chooseComparedYears(current, chosen)),
+    []
+  )
+
   useEffect(() => {
     if (stationCodes.length === 0 || tooManyStations) {
       setClimatology(null)
@@ -88,7 +111,7 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
     let current = true
     setLoading(true)
     setError(null)
-    getDailyClimatology(stationCodes, variable, year, effectiveMethod)
+    getDailyClimatology(stationCodes, variable, year, effectiveMethod, compareYears)
       .then(result => {
         if (current) {
           setClimatology(result)
@@ -108,7 +131,7 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
     return () => {
       current = false
     }
-  }, [stationCodes, tooManyStations, variable, year, effectiveMethod])
+  }, [stationCodes, tooManyStations, variable, year, effectiveMethod, compareYears])
 
   const monthRange = season === 'fire-season' ? FIRE_SEASON : FULL_YEAR
   const charts = useMemo(
@@ -178,6 +201,13 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
             ))}
           </Select>
         </FormControl>
+        <ComparedYearsPicker
+          year={year}
+          years={years}
+          compared={compareYears}
+          limit={compareLimit}
+          onChange={onCompareYears}
+        />
         <ToggleButtonGroup
           size="small"
           exclusive
@@ -223,9 +253,18 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Noon observations, compared with {referenceYears} excluding {climatology.year}.
+            {compareYears.length > 0 &&
+              (compareYears.length === 1
+                ? ` ${compareYears[0]} is part of that history.`
+                : ' The years chosen to compare with are part of that history.')}
             {stationCodes.length > 1 && ` ${METHOD_DESCRIPTIONS[effectiveMethod]}`}
           </Typography>
-          <ClimatologyLegend yearLabel={combined ? `${climatology.year} (mean of stations)` : `${climatology.year}`} />
+          <ClimatologyLegend
+            yearLabel={combined ? `${climatology.year} (mean of stations)` : `${climatology.year}`}
+            comparedYears={comparedYears}
+            highlightedYear={highlightedYear}
+            onHighlight={setHighlighted}
+          />
           {effectiveMethod === 'each' ? (
             charts.map(({ series, rows }) => {
               const name = stationNames.get(series.station_codes[0]) ?? `${series.station_codes[0]}`
@@ -245,6 +284,8 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
                       year={climatology.year}
                       dateWindow={dateWindow}
                       onDateWindowChange={onDateWindowChange}
+                      comparedYears={comparedYears}
+                      highlightedYear={highlightedYear}
                       today={today}
                       yDomain={yDomain}
                       // A plain wheel scrolls past the stack of charts; Control or Command zooms.
@@ -263,6 +304,8 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
               year={climatology.year}
               dateWindow={dateWindow}
               onDateWindowChange={onDateWindowChange}
+              comparedYears={comparedYears}
+              highlightedYear={highlightedYear}
               today={today}
               title={subject}
             />

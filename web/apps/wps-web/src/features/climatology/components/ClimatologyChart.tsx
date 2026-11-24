@@ -6,6 +6,7 @@ import { decorative } from '@tanstack/charts/mark/decorative'
 import { Chart } from '@tanstack/charts/react'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import type { ClimatologyVariable } from '@wps/api/climatologyAPI'
+import { sortBy } from 'lodash'
 import { type PointerEvent, useCallback, useMemo, useRef, useState } from 'react'
 import {
   axisLabel,
@@ -19,19 +20,27 @@ import {
   valueExtent,
   windowTicks
 } from '@/features/climatology/climatologyRows'
+import type { ComparedYear } from '@/features/climatology/comparedYears'
 import ClimatologyReadout from '@/features/climatology/components/ClimatologyReadout'
 
-// The bands run from cool through a neutral grey to warm, so the order reads without the
-// legend, and adjacent bands stay apart for colour-blind readers.
+// The bands are light shades of one grey, darkest in the middle half, so that the lines of the
+// years stand out from them. They do not say which end is dangerous: that is high for
+// temperature and low for relative humidity.
 export const BAND_COLOURS = {
-  belowNormal: '#3987e5',
-  normal: '#a9a89e',
-  aboveNormal: '#eda100',
-  extreme: '#e34948'
+  lowest: '#eeece7',
+  middle: '#dedcd4',
+  high: '#e9e7e1',
+  highest: '#f5f4f1'
 }
-export const MEDIAN_COLOUR = '#52514e'
+export const MEDIAN_COLOUR = '#6b6a64'
+// The wash over the dates the timeline has selected.
+export const SELECTION_COLOUR = '#3987e5'
 export const YEAR_COLOUR = '#0b0b0b'
 const TODAY_COLOUR = '#898781'
+// The percentiles the bands run between.
+type BandEdge = 'minimum' | 'p25' | 'p75' | 'p90' | 'maximum'
+// How much of a compared year's line shows while another is highlighted.
+export const DIMMED_OPACITY = 0.2
 
 export interface ClimatologyChartInput {
   rows: ClimatologyRow[]
@@ -41,6 +50,10 @@ export interface ClimatologyChartInput {
   // rows' first to last day.
   dateWindow: DateWindow
   onDateWindowChange: (dateWindow: DateWindow) => void
+  // The years drawn beside the selected one.
+  comparedYears: ComparedYear[]
+  // The compared year to make stand out, or null to draw them all alike.
+  highlightedYear: number | null
   // Today as a time on the chart, or null to leave the marker out.
   today: number | null
   // The y axis' lowest and highest value, so that charts of several stations share one. By
@@ -63,6 +76,8 @@ export const climatologyChartDefinition = ({
   variable,
   dateWindow,
   onDateWindowChange,
+  comparedYears,
+  highlightedYear,
   today,
   yDomain,
   wheelZoom = 'always'
@@ -70,27 +85,41 @@ export const climatologyChartDefinition = ({
   const shown = rowsInWindow(rows, dateWindow)
   const extent = rowsExtent(rows) ?? dateWindow
   const ticks = windowTicks(dateWindow)
-  const band = (lower: keyof ClimatologyRow, upper: keyof ClimatologyRow, fill: string) =>
+  const band = (lower: BandEdge, upper: BandEdge, fill: string) =>
     decorative(
       areaY(shown, {
         x: 'time',
         y1: row => row[lower],
         y2: row => row[upper],
         fill,
-        fillOpacity: 0.85
+        // The shades are light already, and an area is mostly transparent by default.
+        fillOpacity: 1
       })
     )
   const todayShown = today !== null && today >= dateWindow.start && today <= dateWindow.end
   return defineChart({
     marks: [
-      band('minimum', 'p25', BAND_COLOURS.belowNormal),
-      band('p25', 'p75', BAND_COLOURS.normal),
-      band('p75', 'p90', BAND_COLOURS.aboveNormal),
-      band('p90', 'maximum', BAND_COLOURS.extreme),
+      band('minimum', 'p25', BAND_COLOURS.lowest),
+      band('p25', 'p75', BAND_COLOURS.middle),
+      band('p75', 'p90', BAND_COLOURS.high),
+      band('p90', 'maximum', BAND_COLOURS.highest),
       ...(todayShown
         ? [decorative(ruleX([today], { x: time => time, stroke: TODAY_COLOUR, strokeDasharray: '4 3' }))]
         : []),
       lineY(shown, { x: 'time', y: 'median', stroke: MEDIAN_COLOUR, strokeWidth: 1.5 }),
+      // Pointing at a day finds its median, which every day has, so these need no points. The
+      // highlighted year is last, on top of the others.
+      ...sortBy(comparedYears, each => each.year === highlightedYear).map(({ year, colour }) =>
+        decorative(
+          lineY(shown, {
+            x: 'time',
+            y: row => row.compared[year] ?? null,
+            stroke: colour,
+            strokeWidth: year === highlightedYear ? 2.5 : 1.5,
+            strokeOpacity: highlightedYear === null || year === highlightedYear ? 1 : DIMMED_OPACITY
+          })
+        )
+      ),
       lineY(shown, { x: 'time', y: 'value', stroke: YEAR_COLOUR, strokeWidth: 2.5 }),
       crosshair({ x: true, y: false })
     ],
@@ -136,6 +165,8 @@ const ClimatologyChart = ({
   year,
   dateWindow,
   onDateWindowChange,
+  comparedYears,
+  highlightedYear,
   today,
   yDomain,
   wheelZoom,
@@ -144,8 +175,19 @@ const ClimatologyChart = ({
 }: ClimatologyChartProps) => {
   const definition = useMemo(
     () =>
-      climatologyChartDefinition({ rows, variable, year, dateWindow, onDateWindowChange, today, yDomain, wheelZoom }),
-    [rows, variable, year, dateWindow, onDateWindowChange, today, yDomain, wheelZoom]
+      climatologyChartDefinition({
+        rows,
+        variable,
+        year,
+        dateWindow,
+        onDateWindowChange,
+        comparedYears,
+        highlightedYear,
+        today,
+        yDomain,
+        wheelZoom
+      }),
+    [rows, variable, year, dateWindow, onDateWindowChange, comparedYears, highlightedYear, today, yDomain, wheelZoom]
   )
   const [focused, setFocused] = useState<ClimatologyRow | null>(null)
   // The zoom control lies over the plot to catch drags and the wheel, so the chart under it
@@ -159,13 +201,13 @@ const ClimatologyChart = ({
   const { label } = CLIMATOLOGY_VARIABLES[variable]
   return (
     <div>
-      <ClimatologyReadout row={focused} variable={variable} year={year} />
+      <ClimatologyReadout row={focused} variable={variable} year={year} comparedYears={comparedYears} />
       <div data-testid="climatology-chart-host" onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
         <Chart
           definition={definition}
           height={height}
           ariaLabel={`${label} climatology for ${title}, ${year}`}
-          ariaDescription={`Daily ${label.toLowerCase()} in ${year} against the range, median and percentiles of other years for each day of the year.`}
+          ariaDescription={`Daily ${label.toLowerCase()} in ${[year, ...comparedYears.map(each => each.year)].join(', ')} against the range, median and percentiles of other years for each day of the year.`}
           onRender={context => {
             interaction.current = context.interaction as ChartInteractionController
           }}

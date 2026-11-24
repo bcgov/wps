@@ -1,7 +1,8 @@
 import { createChartScene } from '@tanstack/charts'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ClimatologyRow, DateWindow } from '@/features/climatology/climatologyRows'
-import ClimatologyChart, { climatologyChartDefinition } from './ClimatologyChart'
+import { chooseComparedYears } from '@/features/climatology/comparedYears'
+import ClimatologyChart, { climatologyChartDefinition, DIMMED_OPACITY } from './ClimatologyChart'
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -16,7 +17,8 @@ const row = (day: number, value: number | null): ClimatologyRow => ({
   maximum: 35,
   value,
   stationCount: 1,
-  valueStationCount: value === null ? null : 1
+  valueStationCount: value === null ? null : 1,
+  compared: {}
 })
 
 const rows = [row(1, 20), row(2, 21), row(3, null), row(4, null)]
@@ -27,6 +29,8 @@ const input = {
   year: 2026,
   dateWindow: everyDay,
   onDateWindowChange: vi.fn(),
+  comparedYears: [],
+  highlightedYear: null,
   today: null
 }
 
@@ -70,6 +74,34 @@ describe('climatologyChartDefinition', () => {
     expect(points).toHaveLength(4)
   })
 
+  describe('with compared years', () => {
+    const comparedYears = chooseComparedYears([], [2023, 2017])
+    const compared = rows.map(each => ({ ...each, compared: { 2023: 30, 2017: 10 } }))
+    const lineOf = (highlightedYear: number | null, year: number) => {
+      const { colour } = comparedYears.find(each => each.year === year) ?? { colour: '' }
+      const lines: { stroke?: string; strokeOpacity?: number; strokeWidth?: number }[] = []
+      JSON.stringify(scene({ rows: compared, comparedYears, highlightedYear }), (_, value) => {
+        if (value?.stroke === colour) {
+          lines.push(value)
+        }
+        return value
+      })
+      return lines[0]
+    }
+
+    it('draws a line for each in its colour, behind the points of the selected year', () => {
+      expect(lineOf(null, 2023)).toBeDefined()
+      expect(lineOf(null, 2017)).toBeDefined()
+      // The lines are not pointed at: pointing at the day reads them out.
+      expect(scene({ rows: compared, comparedYears }).points).toHaveLength(6)
+    })
+
+    it('dims the others while one is highlighted', () => {
+      expect(JSON.stringify(lineOf(2023, 2017))).toContain(`${DIMMED_OPACITY}`)
+      expect(JSON.stringify(lineOf(2023, 2023))).not.toContain(`${DIMMED_OPACITY}`)
+    })
+  })
+
   it('accepts a marker for today', () => {
     expect(() => scene({ today: Date.UTC(2026, 6, 2) })).not.toThrow()
   })
@@ -94,7 +126,7 @@ describe('ClimatologyChart', () => {
     await waitFor(() => expect(readout).toHaveTextContent('Jul 1'))
     expect(readout).toHaveTextContent('2026 20.0°C')
     expect(readout).toHaveTextContent('Median 18.0°C')
-    expect(readout).toHaveTextContent('Normal 12.0°C to 24.0°C')
+    expect(readout).toHaveTextContent('Middle half 12.0°C to 24.0°C')
     expect(readout).toHaveTextContent('90th percentile 28.0°C')
     expect(readout).toHaveTextContent('Lowest to highest 5.0°C to 35.0°C')
     expect(readout).toHaveTextContent('Years of record 30')

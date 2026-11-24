@@ -20,6 +20,7 @@ from wps_shared.schemas.climatology import (
     ClimatologyObservation,
     ClimatologySeries,
     ClimatologyVariable,
+    ClimatologyYear,
     DailyClimatologyResponse,
 )
 
@@ -57,22 +58,30 @@ def _merge(values: Sequence[_ValuesByDate]) -> _ValuesByDate:
 
 
 def _series(
-    by_date: _ValuesByDate, station_codes: list[int], year: int, pooled: bool
+    by_date: _ValuesByDate,
+    station_codes: list[int],
+    year: int,
+    compare_years: list[int],
+    pooled: bool,
 ) -> ClimatologySeries:
-    """Summarize values by date into a climatology, holding out `year`."""
+    """Summarize values by date into a climatology, holding out `year` but not `compare_years`."""
     values_by_day: dict[tuple[int, int], list[float]] = defaultdict(list)
     stations_by_day: dict[tuple[int, int], set[int]] = defaultdict(set)
-    observations: list[ClimatologyObservation] = []
+    # The daily values of the year held out, and of the years it is compared with.
+    observations: dict[int, list[ClimatologyObservation]] = {
+        each: [] for each in (year, *compare_years)
+    }
     reference_years: set[int] = set()
     for day, by_station in by_date.items():
         if not by_station:
             continue
-        if day.year == year:
-            observations.append(
+        if day.year in observations:
+            observations[day.year].append(
                 ClimatologyObservation(
                     date=day, value=fmean(by_station.values()), station_count=len(by_station)
                 )
             )
+        if day.year == year:
             continue
         key = (day.month, day.day)
         if key == _LEAP_DAY:
@@ -103,12 +112,17 @@ def _series(
                 maximum=maximum,
             )
         )
+    for each in observations.values():
+        each.sort(key=lambda observation: observation.date)
     return ClimatologySeries(
         station_codes=station_codes,
         first_reference_year=min(reference_years, default=None),
         last_reference_year=max(reference_years, default=None),
         days=days,
-        observations=sorted(observations, key=lambda observation: observation.date),
+        observations=observations[year],
+        compared_years=[
+            ClimatologyYear(year=each, observations=observations[each]) for each in compare_years
+        ],
     )
 
 
@@ -118,18 +132,25 @@ def daily_climatology(
     variable: ClimatologyVariable,
     year: int,
     method: ClimatologyMethod = ClimatologyMethod.AVERAGE,
+    compare_years: Sequence[int] = (),
 ) -> DailyClimatologyResponse:
     """Summarize the stations' daily rows, as `ByStationTable.read_stations` returns them.
 
     `year` is compared against every other year: its values are returned as they are, and each
-    day's distribution is drawn from the rest. Days and observations are in calendar order, and
-    series in the order of `station_codes`.
+    day's distribution is drawn from the rest. The values of each of `compare_years` are returned
+    too, but stay in the distribution, so that it does not change with the years compared. Days
+    and observations are in calendar order, and series in the order of `station_codes`.
     """
     codes = list(dict.fromkeys(station_codes))
+    compared = [each for each in dict.fromkeys(compare_years) if each != year]
     by_station = _values_by_station(rows, variable)
     if method == ClimatologyMethod.EACH:
-        series = [_series(by_station.get(code, {}), [code], year, pooled=False) for code in codes]
+        series = [
+            _series(by_station.get(code, {}), [code], year, compared, pooled=False)
+            for code in codes
+        ]
     else:
         merged = _merge([by_station[code] for code in codes if code in by_station])
-        series = [_series(merged, codes, year, pooled=method == ClimatologyMethod.POOLED)]
+        pooled = method == ClimatologyMethod.POOLED
+        series = [_series(merged, codes, year, compared, pooled=pooled)]
     return DailyClimatologyResponse(variable=variable, year=year, method=method, series=series)

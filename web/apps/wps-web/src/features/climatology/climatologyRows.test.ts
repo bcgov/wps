@@ -44,6 +44,7 @@ const series = (overrides: Partial<ClimatologySeries> = {}): ClimatologySeries =
     { date: '2026-04-01', value: 8.5, station_count: 1 },
     { date: '2026-11-01', value: 3, station_count: 1 }
   ],
+  compared_years: [],
   ...overrides
 })
 
@@ -81,6 +82,23 @@ describe('buildClimatologyRows', () => {
 
     expect(rows[1].value).toBeNull()
     expect(rows[1].valueStationCount).toBeNull()
+  })
+
+  it('carries the values of the compared years that have one for the day', () => {
+    const compared_years = [
+      { year: 2023, observations: [{ date: '2023-07-01', value: 31, station_count: 1 }] },
+      {
+        year: 2017,
+        observations: [
+          { date: '2017-04-01', value: 5, station_count: 1 },
+          { date: '2017-07-01', value: 28, station_count: 1 }
+        ]
+      }
+    ]
+
+    const rows = buildClimatologyRows(series({ compared_years }), 2026, FIRE_SEASON)
+
+    expect(rows.map(row => row.compared)).toEqual([{ 2017: 5 }, { 2023: 31, 2017: 28 }, {}])
   })
 
   it('shows every month for the full year', () => {
@@ -163,7 +181,8 @@ const dayRows = (days: number[]): ClimatologyRow[] =>
     maximum: 5,
     value: null,
     stationCount: 1,
-    valueStationCount: null
+    valueStationCount: null,
+    compared: {}
   }))
 
 describe('date windows', () => {
