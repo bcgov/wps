@@ -98,6 +98,7 @@ with patch.dict("sys.modules", _patches):
         main,
         parse_args,
     )
+
     _wx4panel_charts_module = sys.modules["wps_weather.wx_4panel_charts.wx_4panel_charts"]
 
 # Re-insert the module into sys.modules and bind it as a package attribute so
@@ -386,14 +387,14 @@ class TestMake4PanelCharts:
         runner._make_4panel_chart.assert_not_called()
 
     @pytest.mark.anyio
-    async def test_continues_to_next_hour_when_make_4panel_chart_raises_type_error(self):
+    async def test_continues_to_next_hour_but_returns_false_when_a_chart_fails(self):
         runner, _ = self._make_runner(object_exists=False, all_objects_exist=True)
-        # First hour raises TypeError (e.g. _dataset returned a non-Dataset); second succeeds.
-        runner._make_4panel_chart = AsyncMock(side_effect=[TypeError("bad dataset"), None])
+        # First hour fails; second succeeds.
+        runner._make_4panel_chart = AsyncMock(side_effect=[Exception("chart failed"), None])
 
         result = await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 3, 6, 3)
 
-        assert result is True
+        assert result is False  # run is not marked complete, so the failed chart is retried
         assert runner._make_4panel_chart.call_count == 2
 
 
@@ -467,7 +468,9 @@ class TestRun:
         ):
             await runner.run("20260318", ["00"], 0, 84, 3, ECCCModel.GDPS)
 
-        runner._make_4panel_charts.assert_called_once_with(ECCCModel.GDPS, "20260318", "00", 0, 84, 3)
+        runner._make_4panel_charts.assert_called_once_with(
+            ECCCModel.GDPS, "20260318", "00", 0, 84, 3
+        )
 
     @pytest.mark.anyio
     async def test_sets_chart_status_to_complete_on_success(self):
@@ -505,7 +508,9 @@ class TestRun:
                 "wps_weather.wx_4panel_charts.wx_4panel_charts.get_or_create_processed_four_panel_chart",
                 new=AsyncMock(return_value=chart),
             ),
-            patch("wps_weather.wx_4panel_charts.wx_4panel_charts.save_four_panel_chart") as mock_save,
+            patch(
+                "wps_weather.wx_4panel_charts.wx_4panel_charts.save_four_panel_chart"
+            ) as mock_save,
         ):
             await runner.run("20260318", ["00"], 0, 84, 3, ECCCModel.GDPS)
 
@@ -621,7 +626,17 @@ class TestParseArgs:
     def test_explicit_start_hour_end_hour_step(self):
         with patch(
             "sys.argv",
-            ["prog", "--init_ymd", "20260318", "--start_hour", "6", "--end_hour", "48", "--step", "6"],
+            [
+                "prog",
+                "--init_ymd",
+                "20260318",
+                "--start_hour",
+                "6",
+                "--end_hour",
+                "48",
+                "--step",
+                "6",
+            ],
         ):
             args = parse_args()
         assert args.start_hour == 6
@@ -637,7 +652,6 @@ class TestParseArgs:
         with patch("sys.argv", ["prog", "--init_ymd", "20260318"]):
             args = parse_args()
         assert args.init_ymd == "20260318"
-
 
     def test_invalid_model_runs_rejected(self):
         with patch("sys.argv", ["prog", "--init_ymd", "20260318", "--model_runs", "06"]):
@@ -862,7 +876,9 @@ def _make_main_patches(now, start_datetime):
             new=AsyncMock(return_value=start_datetime),
         ),
         patch("wps_weather.wx_4panel_charts.wx_4panel_charts.S3Client", mock_s3_cls),
-        patch("wps_weather.wx_4panel_charts.wx_4panel_charts.FourPanelChartRunner", mock_runner_cls),
+        patch(
+            "wps_weather.wx_4panel_charts.wx_4panel_charts.FourPanelChartRunner", mock_runner_cls
+        ),
         patch("wps_weather.wx_4panel_charts.wx_4panel_charts.sys.exit"),
     )
     return patches, mock_runner

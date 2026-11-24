@@ -205,10 +205,6 @@ class FourPanelChartRunner:
                     else "NO PCPN AT 00H",
                     loc="bl",
                 )
-            except Exception as e:
-                logger.error(f"Unable to generate 4-panel chart for: {output_key}")
-                logger.error(e)
-                return
             finally:
                 if ds_p is not None:
                     ds_p.close()
@@ -262,6 +258,7 @@ class FourPanelChartRunner:
             model=model,
         )
         plotter_factory = PlotterFactory(model=model)
+        all_charts_made = True
         for fh in range(start_hour, end_hour + 1, step):
             logger.info(
                 f"Start {model} 4 panel chart generation for hour {fh} of model run {init_ymd}T{init_hh}Z."
@@ -309,14 +306,17 @@ class FourPanelChartRunner:
                     output_key,
                     plotter_factory,
                 )
-            except TypeError:
-                # Error was logged when thrown. Continue processing of remaining 4panel charts.
+            except Exception:
+                # Skip this chart and carry on with the remaining hours, but don't report the
+                # run as complete, so the missing chart is retried on a later run.
+                logger.exception(f"Unable to create 4 panel chart {output_name}.")
+                all_charts_made = False
                 continue
             logger.info(
                 f"End {model} 4 panel chart generation for hour {fh} of model run {init_ymd}T{init_hh}Z."
             )
-        # The specified end hour has been reached and the processing is complete.
-        return True
+        # The end hour has been reached. The run is complete only if no chart failed.
+        return all_charts_made
 
     async def run(
         self,
