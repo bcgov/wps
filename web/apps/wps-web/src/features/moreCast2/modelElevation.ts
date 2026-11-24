@@ -86,7 +86,7 @@ export const getForecastDisplayRows = (
     if (!stationCodes.has(row.stationCode)) {
       stationCodes.add(row.stationCode)
       const elevations = stationElevations.get(row.stationCode)
-      // keep an explicit parent for every station while forecast data refreshes
+      // keep a header for every station while forecast data refreshes
       displayRows.push({
         id: `model-elevation-${row.stationCode}`,
         kind: 'modelElevation',
@@ -100,9 +100,6 @@ export const getForecastDisplayRows = (
   }
   return displayRows
 }
-
-export const getForecastTreePath = (row: ForecastDisplayRow): string[] =>
-  isModelElevationRow(row) ? [String(row.stationCode)] : [String(row.stationCode), row.id]
 
 const elevationFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0 })
 

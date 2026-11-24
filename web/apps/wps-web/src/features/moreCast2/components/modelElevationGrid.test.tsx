@@ -11,7 +11,6 @@ import { MorecastDraftForecast } from '../forecastDraft'
 import * as modelElevation from '../modelElevation'
 import { getWeatherIndeterminatesSuccess, selectAllMoreCast2Rows } from '../slices/dataSlice'
 import { selectedStationsChanged, selectSelectedStations } from '../slices/selectedStationsSlice'
-import { DataGridColumns } from './DataGridColumns'
 import TabbedDataGrid from './TabbedDataGrid'
 
 vi.mock('@mui/x-data-grid-pro', async importOriginal => {
@@ -130,12 +129,6 @@ const weatherRow = (stationCode: number): HTMLElement | undefined => {
 const weatherCell = (stationCode: number, field = 'tempHRDPS'): HTMLElement =>
   weatherRow(stationCode)!.querySelector<HTMLElement>(`[data-field="${field}"]`)!
 
-const toggleStation = async (stationName: string) => {
-  const header = stationHeader(stationName)
-  const toggle = within(header).getByRole('button', { name: /hide children|see children/ })
-  await userEvent.click(toggle)
-}
-
 describe('station sections', () => {
   beforeEach(() => localStorage.clear())
   afterEach(() => {
@@ -160,15 +153,15 @@ describe('station sections', () => {
     }
   })
 
-  it('starts expanded with one header per station and centred model values', async () => {
+  it('shows one header per station and centred model values', async () => {
     const { container } = renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
     const row = stationHeader('Alpha station')
     expect(container.querySelector('.MuiDataGrid-pinnedRows--top')).toBeNull()
     expect(container.querySelectorAll('.modelElevationRow')).toHaveLength(2)
     expect(screen.getAllByText('Alpha station')).toHaveLength(1)
-    expect(row).toHaveAttribute('aria-expanded', 'true')
-    expect(stationHeader('Beta station')).toHaveAttribute('aria-expanded', 'true')
+    expect(row).not.toHaveAttribute('aria-expanded')
+    expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded')
     expect(row).toHaveTextContent('Elevation: 900 m')
     expect(row.querySelector('[data-field="forDate"]')).toHaveTextContent(/^$/)
     expect(within(row).getByText('850 m')).toHaveStyle({ textAlign: 'center', justifyContent: 'center' })
@@ -183,27 +176,12 @@ describe('station sections', () => {
     expect(within(weatherCell(2)).getByRole('textbox')).toHaveValue('20')
   })
 
-  it('collapses stations independently by mouse and keyboard while keeping their metadata visible', async () => {
+  it('keeps every station visible without expansion controls', async () => {
     renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
-    const metadata = vi.spyOn(modelElevation, 'getModelElevationData')
-    const columns = vi.spyOn(DataGridColumns, 'getTabColumns')
-    await toggleStation('Alpha station')
-    expect(stationHeader('Alpha station')).toHaveAttribute('aria-expanded', 'false')
-    expect(weatherRow(1)).toBeUndefined()
-    expect(within(weatherCell(2)).getByRole('textbox')).toHaveValue('20')
-    expect(stationHeader('Alpha station')).toHaveTextContent('850 m')
-    await userEvent.click(stationHeader('Beta station').querySelector('[role="gridcell"]')!)
-    await userEvent.keyboard('{Enter}')
-    expect(stationHeader('Beta station')).toHaveAttribute('aria-expanded', 'false')
-    expect(weatherRow(2)).toBeUndefined()
-    await userEvent.keyboard(' ')
-    expect(stationHeader('Beta station')).toHaveAttribute('aria-expanded', 'true')
-    expect(within(weatherCell(2)).getByRole('textbox')).toHaveValue('20')
-    await toggleStation('Alpha station')
-    expect(within(weatherCell(1)).getByRole('textbox')).toHaveValue('20')
-    expect(metadata).not.toHaveBeenCalled()
-    expect(columns).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: /hide children|see children/ })).not.toBeInTheDocument()
+    expect(weatherRow(1)).toBeDefined()
+    expect(weatherRow(2)).toBeDefined()
   })
 
   it('keeps station headers read only', async () => {
@@ -219,7 +197,7 @@ describe('station sections', () => {
     expect(store.getState().weatherIndeterminates).toBe(before)
   })
 
-  it('keeps edits and drafts when a station collapses, and still copies model weather values', async () => {
+  it('keeps edits and drafts while copying model weather values', async () => {
     renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
     const metadata = vi.spyOn(modelElevation, 'getModelElevationData')
@@ -232,8 +210,6 @@ describe('station sections', () => {
     const draft = new MorecastDraftForecast(localStorage)
     const savedDraft = draft.getStoredDraftForecasts()
     expect(savedDraft?.rows.find(row => row.stationCode === 1)?.tempForecast?.value).toBe(25)
-    await toggleStation('Alpha station')
-    await toggleStation('Alpha station')
     expect(within(weatherCell(1, 'tempForecast')).getByRole('textbox')).toHaveValue('25')
     expect(draft.getStoredDraftForecasts()).toEqual(savedDraft)
     await userEvent.dblClick(weatherCell(2))
@@ -241,14 +217,12 @@ describe('station sections', () => {
     expect(metadata).not.toHaveBeenCalled()
   })
 
-  it('applies a model column to collapsed stations as well as expanded stations', async () => {
+  it('applies a model column to all stations', async () => {
     renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
-    await toggleStation('Beta station')
     await userEvent.click(screen.getByTestId('tempForecast-column-header'))
     await userEvent.click(screen.getByTestId('apply-model-to-column-button'))
     await userEvent.keyboard('{Escape}')
-    await toggleStation('Beta station')
     expect(within(weatherCell(1, 'tempForecast')).getByRole('textbox')).toHaveValue('20')
     expect(within(weatherCell(2, 'tempForecast')).getByRole('textbox')).toHaveValue('20')
     expect(new MorecastDraftForecast(localStorage).getStoredDraftForecasts()?.rows.map(row => row.stationCode)).toEqual(
@@ -256,24 +230,22 @@ describe('station sections', () => {
     )
   })
 
-  it('keeps expansion when switching parameters and returning from Forecast Summary', async () => {
+  it('keeps station sections when switching parameters and returning from Forecast Summary', async () => {
     renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
-    await toggleStation('Beta station')
     await userEvent.click(screen.getByTestId('rh-tab-button-unselected'))
-    expect(stationHeader('Beta station')).toHaveAttribute('aria-expanded', 'false')
+    expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded')
     await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
     expect(document.querySelector('.modelElevationRow')).toBeNull()
     await userEvent.click(screen.getByTestId('temp-tab-button-unselected'))
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
-    expect(stationHeader('Beta station')).toHaveAttribute('aria-expanded', 'false')
-    expect(stationHeader('Alpha station')).toHaveAttribute('aria-expanded', 'true')
+    expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded')
+    expect(stationHeader('Alpha station')).not.toHaveAttribute('aria-expanded')
   })
 
-  it('starts newly selected stations expanded and removes headers for empty data', async () => {
+  it('shows newly selected stations and removes headers for empty data', async () => {
     const { store } = renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
-    await toggleStation('Beta station')
     act(() => {
       store.dispatch(selectedStationsChanged([stations[0]]))
     })
@@ -281,17 +253,16 @@ describe('station sections', () => {
     act(() => {
       store.dispatch(selectedStationsChanged(stations))
     })
-    await waitFor(() => expect(stationHeader('Beta station')).toHaveAttribute('aria-expanded', 'true'))
+    await waitFor(() => expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded'))
     act(() => {
       store.dispatch(selectedStationsChanged([]))
     })
     await waitFor(() => expect(document.querySelector('.modelElevationRow')).toBeNull())
   })
 
-  it('refreshes elevations without expanding collapsed stations or changing the header run', async () => {
+  it('refreshes elevations for all station headers', async () => {
     const { store } = renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
-    await toggleStation('Beta station')
     act(() => {
       store.dispatch(
         getWeatherIndeterminatesSuccess({
@@ -308,7 +279,7 @@ describe('station sections', () => {
       )
     })
     await waitFor(() => expect(stationHeader('Beta station')).toHaveTextContent('1,120 m'))
-    expect(stationHeader('Beta station')).toHaveAttribute('aria-expanded', 'false')
+    expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded')
     expect(stationHeader('Alpha station')).toHaveTextContent('1,120 m')
   })
 })

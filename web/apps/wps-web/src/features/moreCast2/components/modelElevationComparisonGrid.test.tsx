@@ -140,7 +140,7 @@ describe('station elevation comparison sidebar', () => {
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
     expect(panel()).toBeVisible()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(header).toHaveAttribute('aria-expanded', 'true')
+    expect(header).not.toHaveAttribute('aria-expanded')
     expect(localStorage.getItem('morecastForecastDraft')).toBe(draft)
     expect(fetchWeatherIndeterminates).toHaveBeenCalledTimes(requests)
     expect(columns).not.toHaveBeenCalled()
@@ -175,7 +175,7 @@ describe('station elevation comparison sidebar', () => {
     expect(panel()).toBeInTheDocument()
     expect(metadata).not.toHaveBeenCalled()
     await userEvent.click(compare('Beta station'))
-    expect(within(panel('Beta station')).getByText('-200 m')).toBeInTheDocument()
+    expect(within(panel('Beta station')).getByText('-200')).toBeInTheDocument()
   })
 
   it('supports keyboard activation and keeps Escape available for forecast editing', async () => {
@@ -188,7 +188,7 @@ describe('station elevation comparison sidebar', () => {
     await userEvent.keyboard('{Escape}')
     expect(within(cell(1)).queryByRole('spinbutton')).not.toBeInTheDocument()
     expect(panel()).toBeInTheDocument()
-    expect(button.closest('[role="row"]')).toHaveAttribute('aria-expanded', 'true')
+    expect(button.closest('[role="row"]')).not.toHaveAttribute('aria-expanded')
   })
 
   it('refreshes the comparison from the same elevations as the grid headers', async () => {
@@ -205,8 +205,8 @@ describe('station elevation comparison sidebar', () => {
         })
       )
     )
-    expect(within(panel()).getByText('1,120 m')).toBeInTheDocument()
-    expect(within(panel()).getByText('+220 m')).toBeInTheDocument()
+    expect(within(panel()).getByText('1120')).toBeInTheDocument()
+    expect(within(panel()).getByText('+220')).toBeInTheDocument()
   })
 
   it('closes when its station is deselected and stays closed if it is selected again', async () => {

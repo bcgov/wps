@@ -410,19 +410,12 @@ const TabbedDataGrid = ({
     useState<Record<string, ColumnVis[]>>(initShowHideColumnsModel)
 
   // refs
-  // the grid owns expansion, this only remembers it when switching views
-  const collapsedStationCodes = useRef(new Set<number>())
   const showHideColumnsModelRef = useRef(showHideColumnsModel)
   showHideColumnsModelRef.current = showHideColumnsModel
   const tabVisRef = useRef({ tempVisible, rhVisible, precipVisible, windDirectionVisible, windSpeedVisible })
   tabVisRef.current = { tempVisible, rhVisible, precipVisible, windDirectionVisible, windSpeedVisible }
 
   // callbacks
-  const handleStationExpansionChange = useCallback((stationCode: number, expanded: boolean) => {
-    if (expanded) collapsedStationCodes.current.delete(stationCode)
-    else collapsedStationCodes.current.add(stationCode)
-  }, [])
-
   const handleColumnHeaderClick: GridEventListener<'columnHeaderClick'> = useCallback((params, event) => {
     if (
       !isEqual(params.colDef.field, 'stationName') &&
@@ -559,12 +552,6 @@ const TabbedDataGrid = ({
   useEffect(() => {
     setAllRows(morecast2Rows)
   }, [morecast2Rows])
-
-  useEffect(() => {
-    for (const code of collapsedStationCodes.current) {
-      if (!selectedStations.some(station => station.station_code === code)) collapsedStationCodes.current.delete(code)
-    }
-  }, [selectedStations])
 
   useEffect(() => {
     tempVisible && setForecastSummaryVisible(false)
@@ -750,8 +737,6 @@ const TabbedDataGrid = ({
             handleColumnHeaderClick={handleColumnHeaderClick}
             columnGroupingModel={columnGroupingModel}
             allMoreCast2Rows={visibleRows}
-            collapsedStationCodes={collapsedStationCodes.current}
-            onStationExpansionChange={handleStationExpansionChange}
             modelElevationData={modelElevationData}
             onCompareElevations={onCompareElevations}
             processRowUpdate={processRowUpdate}

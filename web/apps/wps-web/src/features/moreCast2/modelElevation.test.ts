@@ -4,7 +4,6 @@ import type { MoreCast2Row } from './interfaces'
 import {
   formatElevation,
   getForecastDisplayRows,
-  getForecastTreePath,
   getLatestModelRunTimestamp,
   getModelElevationCellValue,
   getModelElevationData,
@@ -96,8 +95,6 @@ describe('model elevation rows', () => {
       rows[2].id
     ])
     expect(displayRows.filter(row => !isModelElevationRow(row))).toEqual(rows)
-    expect(getForecastTreePath(displayRows[0])).toEqual(['1'])
-    expect(getForecastTreePath(rows[0])).toEqual(['1', rows[0].id])
     expect(getModelElevationRow(rows, [], stations, 1)).toMatchObject({
       id: 'model-elevation-1',
       stationCode: 1,
