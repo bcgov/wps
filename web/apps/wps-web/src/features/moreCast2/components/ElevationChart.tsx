@@ -2,54 +2,124 @@ import { Box, Button, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { ChartsReferenceLine } from '@mui/x-charts/ChartsReferenceLine'
 import { LineChart, type MarkElementProps } from '@mui/x-charts/LineChart'
+import type { MarkPropsOverrides } from '@mui/x-charts/models'
 import { WeatherDeterminate, weatherModelsWithTooltips } from '@wps/api/moreCast2API'
 import { MORECAST_MODEL_COLORS } from '@wps/ui/theme'
+import { isNull, isNumber, isUndefined } from 'lodash'
 import { formatElevation, type ModelElevationRow } from '../modelElevation'
 import { ORDERED_COLUMN_HEADERS } from './ColumnDefBuilder'
 
+// types
 type StationComparison = Pick<ModelElevationRow, 'stationName' | 'stationElevation' | 'modelElevations'>
 
+interface ElevationChartProps {
+  station: StationComparison
+  selected: string
+  onSelect: (model: string) => void
+}
+
+interface ElevationPoint {
+  model: string
+  elevation: number | null
+}
+
+// mui needs this extension to accept our marker data through slotProps
+declare module '@mui/x-charts/models' {
+  interface MarkPropsOverrides {
+    elevationPoints?: readonly ElevationPoint[]
+    selectedModel?: string
+  }
+}
+
+// configuration
 const models = ORDERED_COLUMN_HEADERS.filter(
-  model => weatherModelsWithTooltips.some(candidate => candidate === model) && model !== WeatherDeterminate.NAM
+  model => (weatherModelsWithTooltips as readonly string[]).includes(model) && model !== WeatherDeterminate.NAM
 )
+
 const elevationFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0, useGrouping: false })
 const differenceFormatter = new Intl.NumberFormat('en-CA', {
   maximumFractionDigits: 0,
   useGrouping: false,
   signDisplay: 'exceptZero'
 })
+
 const yAxisWidth = 72
 const margin = { left: 8, right: 8, top: 28, bottom: 8 }
 
-const ElevationChart = ({
-  station,
-  selected,
-  onSelect
-}: {
-  station: StationComparison
-  selected: string
-  onSelect: (model: string) => void
-}) => {
+// label formatting
+const getDifferenceLabel = (elevation: number | null, difference: number | null): string => {
+  if (isNull(elevation)) return 'N/A'
+  if (isNull(difference)) return ''
+
+  return differenceFormatter.format(difference)
+}
+
+// marker rendering
+const EmptyChartElement = () => null
+
+const ElevationMark = (props: MarkElementProps & MarkPropsOverrides) => {
+  const theme = useTheme()
+
+  const point = props.elevationPoints?.find(point => point.model === props.seriesId)
+  if (isUndefined(point) || isNull(point.elevation)) return null
+
+  const isSelected = props.selectedModel === point.model
+
+  return (
+    <g data-model={point.model} aria-label={`${point.model} elevation ${formatElevation(point.elevation)}`}>
+      <circle
+        cx={props.x}
+        cy={props.y}
+        r={isSelected ? 7 : 5}
+        fill={props.color}
+        stroke={props.color}
+        strokeWidth={isSelected ? 3 : 0}
+      />
+      <text x={props.x} y={Number(props.y) - 12} textAnchor="middle" fill={theme.palette.text.primary} fontSize={12}>
+        {elevationFormatter.format(point.elevation)}
+      </text>
+    </g>
+  )
+}
+
+const ElevationChart = ({ station, selected, onSelect }: ElevationChartProps) => {
+  // derived data
   const theme = useTheme()
   const stationElevation =
-    typeof station.stationElevation === 'number' && Number.isFinite(station.stationElevation)
-      ? station.stationElevation
-      : null
+    isNumber(station.stationElevation) && Number.isFinite(station.stationElevation) ? station.stationElevation : null
+
   const points = models.map(model => {
     const value = station.modelElevations[model]
-    const elevation = typeof value === 'number' && Number.isFinite(value) ? value : null
-    const difference = elevation !== null && stationElevation !== null ? elevation - stationElevation : null
-    return { model, elevation, difference }
+    const elevation = isNumber(value) && Number.isFinite(value) ? value : null
+
+    const difference = !isNull(elevation) && !isNull(stationElevation) ? elevation - stationElevation : null
+    const differenceLabel = getDifferenceLabel(elevation, difference)
+    const colors = MORECAST_MODEL_COLORS[model.toLowerCase()]
+
+    return { model, elevation, difference, differenceLabel, colors }
   })
-  const modelElevations = points.flatMap(point => (point.elevation === null ? [] : [point.elevation]))
 
-  const elevations = stationElevation === null ? modelElevations : [...modelElevations, stationElevation]
-  const minimum = elevations.length ? Math.min(...elevations) : 0
-  const maximum = elevations.length ? Math.max(...elevations) : 0
+  const series = points.map((point, index) => ({
+    id: point.model,
+    data: points.map((_, dataIndex) => (dataIndex === index ? point.elevation : null)),
+    color: point.colors.border,
+    showMark: true,
+    disableHighlight: true
+  }))
+
+  const modelDescription = points.map(point => `${point.model}: ${formatElevation(point.elevation)}`).join('. ')
+  const modelElevations = points.flatMap(point => (isNull(point.elevation) ? [] : [point.elevation]))
+
+  const elevations = isNull(stationElevation) ? modelElevations : [...modelElevations, stationElevation]
+  const minimumElevation = elevations.length ? Math.min(...elevations) : 0
+  const maximumElevation = elevations.length ? Math.max(...elevations) : 0
+
   // leave room for labels and keep equal elevations on a useful scale
-  const span = Math.max(maximum - minimum, 100) * 1.2
-  const lowerBound = (minimum + maximum - span) / 2
+  const elevationSpan = Math.max(maximumElevation - minimumElevation, 100) * 1.2
+  const axisMinimum = (minimumElevation + maximumElevation - elevationSpan) / 2
+  const axisMaximum = axisMinimum + elevationSpan
 
+  // render
   return (
     <>
       <Box sx={{ mt: 1 }}>
@@ -63,52 +133,20 @@ const ElevationChart = ({
           xAxis={[{ scaleType: 'band', data: models, position: 'none' }]}
           yAxis={[
             {
-              min: lowerBound,
-              max: lowerBound + span,
+              min: axisMinimum,
+              max: axisMaximum,
               width: yAxisWidth,
               label: 'Elevation (m)',
               tickNumber: 5,
               valueFormatter: (value: number) => elevationFormatter.format(value)
             }
           ]}
-          series={points.map((point, index) => ({
-            id: point.model,
-            data: points.map((_, dataIndex) => (dataIndex === index ? point.elevation : null)),
-            color: MORECAST_MODEL_COLORS[point.model.toLowerCase()].border,
-            showMark: true,
-            disableHighlight: true
-          }))}
-          slots={{
-            tooltip: () => null,
-            line: () => null,
-            mark: (props: MarkElementProps) => {
-              const point = points.find(point => point.model === props.seriesId)!
-              return (
-                <g data-model={point.model} aria-label={`${point.model} elevation ${formatElevation(point.elevation)}`}>
-                  <circle
-                    cx={props.x}
-                    cy={props.y}
-                    r={selected === point.model ? 7 : 5}
-                    fill={props.color}
-                    stroke={props.color}
-                    strokeWidth={selected === point.model ? 3 : 0}
-                  />
-                  <text
-                    x={props.x}
-                    y={Number(props.y) - 12}
-                    textAnchor="middle"
-                    fill={theme.palette.text.primary}
-                    fontSize={12}
-                  >
-                    {point.elevation === null ? 'N/A' : elevationFormatter.format(point.elevation)}
-                  </text>
-                </g>
-              )
-            }
-          }}
-          aria-label={`Model elevations compared with station elevation. Station: ${formatElevation(stationElevation)}. ${points.map(point => `${point.model}: ${formatElevation(point.elevation)}`).join('. ')}`}
+          series={series}
+          slots={{ tooltip: EmptyChartElement, line: EmptyChartElement, mark: ElevationMark }}
+          slotProps={{ mark: { elevationPoints: points, selectedModel: selected } }}
+          aria-label={`Model elevations compared with station elevation. Station: ${formatElevation(stationElevation)}. ${modelDescription}`}
         >
-          {stationElevation !== null && (
+          {!isNull(stationElevation) && (
             <g aria-label={`Station elevation ${formatElevation(stationElevation)}`}>
               <ChartsReferenceLine
                 y={stationElevation}
@@ -136,9 +174,9 @@ const ElevationChart = ({
                 height: 28,
                 px: 0,
                 fontSize: 11,
-                color: MORECAST_MODEL_COLORS[point.model.toLowerCase()].border,
-                bgcolor: MORECAST_MODEL_COLORS[point.model.toLowerCase()].bg,
-                borderColor: MORECAST_MODEL_COLORS[point.model.toLowerCase()].border,
+                color: point.colors.border,
+                bgcolor: point.colors.bg,
+                borderColor: point.colors.border,
                 borderWidth: selected === point.model ? 2 : 1
               }}
               aria-pressed={selected === point.model}
@@ -152,21 +190,17 @@ const ElevationChart = ({
               component="div"
               sx={{ whiteSpace: 'nowrap' }}
               aria-label={
-                point.difference === null
+                isNull(point.difference)
                   ? undefined
                   : `${point.model} elevation difference ${differenceFormatter.format(point.difference)} m`
               }
             >
-              {point.elevation === null
-                ? 'N/A'
-                : point.difference === null
-                  ? ''
-                  : differenceFormatter.format(point.difference)}
+              {point.differenceLabel}
             </Typography>
           </Box>
         ))}
       </Box>
-      {stationElevation === null && (
+      {isNull(stationElevation) && (
         <Typography variant="caption" color="text.secondary">
           Station elevation unavailable. Differences cannot be calculated.
         </Typography>

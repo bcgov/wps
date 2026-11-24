@@ -64,6 +64,7 @@ const MoreCast2Page = () => {
   const actuals = useSelector((state: RootState) => state.weatherIndeterminates.actuals)
   const modelPredictions = useSelector((state: RootState) => state.weatherIndeterminates.predictions)
 
+  // refs
   const gridRef = useRef<ElevationAdjustmentHandle>(null)
 
   // state
@@ -81,6 +82,15 @@ const MoreCast2Page = () => {
   }, [morecast2Rows, modelPredictions, selectedStations])
   const comparisonStation = selectedStations.find(station => station.station_code === comparisonStationCode)
 
+  const comparisonStationData = comparisonStation
+    ? {
+        stationCode: comparisonStation.station_code,
+        stationName: comparisonStation.display_label,
+        stationElevation: comparisonStation.elevation ?? null,
+        modelElevations: modelElevationData.stationElevations.get(comparisonStation.station_code)?.modelElevations ?? {}
+      }
+    : null
+
   // callbacks
   const fetchWeatherIndeterminates = useCallback(() => {
     if (fromTo?.startDate && fromTo?.endDate) {
@@ -89,6 +99,12 @@ const MoreCast2Page = () => {
       )
     }
   }, [dispatch, members, fromTo.startDate, fromTo.endDate])
+
+  const handleApplyElevationAdjustment = (model: string, adjustmentCelsius: number, overwriteExisting: boolean) =>
+    gridRef.current?.applyElevationAdjustment(comparisonStationCode!, model, adjustmentCelsius, overwriteExisting) ??
+    'Forecast data is unavailable.'
+
+  const handleCloseComparison = () => setComparisonStationCode(null)
 
   // effects
   useEffect(() => {
@@ -139,26 +155,9 @@ const MoreCast2Page = () => {
           <ModelElevationComparisonPanel
             referenceWeather={{ actuals, predictions: modelPredictions }}
             key={comparisonStationCode ?? 'closed'}
-            onApply={(model, adjustmentCelsius, overwriteExisting) =>
-              gridRef.current?.applyElevationAdjustment(
-                comparisonStationCode!,
-                model,
-                adjustmentCelsius,
-                overwriteExisting
-              ) ?? 'Forecast data is unavailable.'
-            }
-            station={
-              comparisonStation
-                ? {
-                    stationCode: comparisonStation.station_code,
-                    stationName: comparisonStation.display_label,
-                    stationElevation: comparisonStation.elevation ?? null,
-                    modelElevations:
-                      modelElevationData.stationElevations.get(comparisonStation.station_code)?.modelElevations ?? {}
-                  }
-                : null
-            }
-            onClose={() => setComparisonStationCode(null)}
+            onApply={handleApplyElevationAdjustment}
+            station={comparisonStationData}
+            onClose={handleCloseComparison}
           />
         </SidePanel>
         <Observations>

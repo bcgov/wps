@@ -106,16 +106,22 @@ export interface ForecastDataGridProps {
 
 const LoadingOverlay = () => <LinearProgress />
 
+// grid configuration
 const gridSlots = { loadingOverlay: LoadingOverlay }
 const gridInitialState = { pinnedColumns: { left: ['stationName', 'forDate'] } }
+
+// row rules
 const getRowHeight = ({ model }: GridRowHeightParams) => (isModelElevationRow(model) ? 44 : null)
 const getRowClassName = ({ row }: GridRowParams<ForecastDisplayRow>) =>
   isModelElevationRow(row) ? 'modelElevationRow' : ''
 const isRowSelectable = ({ row }: GridRowParams<ForecastDisplayRow>) => !isModelElevationRow(row)
+
+// cell rules
 const getCellClassName = ({ row, field }: GridCellParams<ForecastDisplayRow>) => {
   if (isModelElevationRow(row)) return ''
   return field.endsWith('Forecast') || field.endsWith('Actual') ? 'forecastCell' : ''
 }
+
 const isCellEditable = (params: GridCellParams<ForecastDisplayRow>) =>
   params.colDef.editable === true &&
   !isModelElevationRow(params.row) &&
@@ -139,11 +145,13 @@ const ForecastDataGrid = ({
     () => getForecastDisplayRows(allMoreCast2Rows, modelElevationData.stationElevations),
     [allMoreCast2Rows, modelElevationData.stationElevations]
   )
+
   // keep metadata handling at the grid boundary so forecast renderers only see weather rows
   const columns = useMemo<GridColDef<ForecastDisplayRow>[]>(
     () =>
       DataGridColumns.getTabColumns(columnClickHandlerProps).map(column => {
         const model = weatherModelsWithTooltips.find(model => model === column.headerName)
+
         return {
           ...column,
           ...(column.field === 'stationName' ? { width: 200, minWidth: 200 } : {}),
@@ -152,10 +160,12 @@ const ForecastDataGrid = ({
             : column.renderHeader,
           valueGetter: (value, row, colDef, apiRef) => {
             if (isModelElevationRow(row)) return getModelElevationCellValue(row, column.field, column.headerName)
+
             return column.valueGetter ? column.valueGetter(value, row, colDef, apiRef) : value
           },
           valueFormatter: (value, row, colDef, apiRef) => {
             if (isModelElevationRow(row)) return value
+
             return column.valueFormatter ? column.valueFormatter(value, row, colDef, apiRef) : value
           },
           renderCell: params => {
@@ -171,6 +181,7 @@ const ForecastDataGrid = ({
                 />
               )
             }
+
             if (column.field === 'stationName') return null
             return column.renderCell ? column.renderCell(params) : params.formattedValue
           }

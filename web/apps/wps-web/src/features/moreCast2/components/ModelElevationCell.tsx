@@ -61,6 +61,7 @@ const ModelElevationCell = ({
                 }}
                 onDoubleClick={event => event.stopPropagation()}
                 onKeyDown={event => {
+                  // keep grid keyboard handling from stealing the comparison button action
                   if (event.key === 'Enter' || event.key === ' ') event.stopPropagation()
                 }}
               >
@@ -72,6 +73,7 @@ const ModelElevationCell = ({
       </Box>
     )
   }
+
   const elevation = (
     <Typography
       component="span"
@@ -90,6 +92,7 @@ const ModelElevationCell = ({
       {value}
     </Typography>
   )
+
   return model ? (
     <Tooltip title={`${model} Elevation`} describeChild>
       {elevation}

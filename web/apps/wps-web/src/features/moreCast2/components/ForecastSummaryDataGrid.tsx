@@ -64,8 +64,11 @@ const initialState: DataGridProProps<MoreCast2Row>['initialState'] = {
   sorting: { sortModel: [{ field: 'stationName', sort: 'asc' }] },
   pinnedColumns: { left: PINNED_COLUMNS }
 }
+
+// cell rules
 const getCellClassName = ({ field }: GridCellParams) =>
   field.endsWith('Forecast') || field.endsWith('Actual') ? 'forecastCell' : ''
+
 const isCellEditable = (params: GridCellParams) => {
   // actual fields and calculated indices are not editable
   return params.row[params.field] !== ModelChoice.ACTUAL && !params.field.includes('Calc')

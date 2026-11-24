@@ -222,10 +222,8 @@ const TabbedDataGrid = ({
     return allRows.filter(row => stationCodes.has(row.stationCode))
   }, [allRows, selectedStations])
 
-  // Checks if the displayed rows includes non-Actual rows
-  const hasForecastRow = () => {
-    return visibleRows.filter(isForecastRowPredicate).length > 0
-  }
+  const hasForecastRow = visibleRows.some(isForecastRowPredicate)
+  const lastSavedDraftDateTime = storedDraftForecast.getLastSavedDraftDateTime()
 
   // forecast callbacks
   const updateColumnHelper = useCallback(
@@ -246,25 +244,26 @@ const TabbedDataGrid = ({
     [allRows]
   )
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      applyElevationAdjustment: (stationCode, model, adjustmentCelsius, overwriteExisting = false) => {
-        const result = adjustStationTemperatures(visibleRows, stationCode, model, adjustmentCelsius, overwriteExisting)
-        if (result.rows.length) {
-          // include observations and subsequent days so indices keep their starting values
-          const changed = new Map(result.rows.map(row => [row.id, row]))
-          const stationRows = visibleRows.filter(row => row.stationCode === stationCode)
-          updateColumnHelper(cloneDeep(stationRows.map(row => changed.get(row.id) ?? row)))
-        }
-        return result.message
+  // elevation adjustment
+  const applyElevationAdjustment: ElevationAdjustmentHandle['applyElevationAdjustment'] = useCallback(
+    (stationCode, model, adjustmentCelsius, overwriteExisting = false) => {
+      const result = adjustStationTemperatures(visibleRows, stationCode, model, adjustmentCelsius, overwriteExisting)
+      if (result.rows.length) {
+        // include observations and subsequent days so indices keep their starting values
+        const changedRows = new Map(result.rows.map(row => [row.id, row]))
+        const stationRows = visibleRows.filter(row => row.stationCode === stationCode)
+        updateColumnHelper(cloneDeep(stationRows.map(row => changedRows.get(row.id) ?? row)))
       }
-    }),
+
+      return result.message
+    },
     [visibleRows, updateColumnHelper]
   )
 
-  // Persistence forecasting. Get the most recent actual and persist it through the rest of the
-  // days in this forecast period.
+  useImperativeHandle(ref, () => ({ applyElevationAdjustment }), [applyElevationAdjustment])
+
+  // forecast editing
+  // persistence carries the latest observation through the remaining forecast days
   const updateColumnFromLastActual = useCallback(
     (forecastField: keyof MoreCast2Row, actualField: keyof MoreCast2Row) => {
       const newVisibleRows = cloneDeep(visibleRows)
@@ -485,6 +484,7 @@ const TabbedDataGrid = ({
     setSnackbarOpen(true)
   }
 
+  // publishing
   const handleSaveClick = async () => {
     const rowsToSave: MoreCast2ForecastRow[] = getRowsToSave(visibleRows)
 
@@ -699,7 +699,7 @@ const TabbedDataGrid = ({
               enabled={
                 isAuthenticated &&
                 roles.includes(ROLES.MORECAST_2.WRITE_FORECAST) &&
-                hasForecastRow() &&
+                hasForecastRow &&
                 forecastSummaryVisible
               }
               label={'Publish to WF1'}
@@ -708,9 +708,9 @@ const TabbedDataGrid = ({
           </Stack>
         </Stack>
         <Stack direction="row" sx={{ justifyContent: 'flex-end', px: 1, pb: 0.5, gap: 2, minHeight: '1.5rem' }}>
-          {storedDraftForecast.getLastSavedDraftDateTime() && (
+          {lastSavedDraftDateTime && (
             <Typography data-testid="morecast-draft-status" variant="caption" color="text.secondary">
-              Draft saved {storedDraftForecast.getLastSavedDraftDateTime()}
+              Draft saved {lastSavedDraftDateTime}
             </Typography>
           )}
           <AboutDataPopover content={MorecastAboutDataContent} maxWidth={600} testId={'morecast-about-data-popover'} />

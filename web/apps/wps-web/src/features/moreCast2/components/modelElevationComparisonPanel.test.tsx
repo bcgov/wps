@@ -400,6 +400,23 @@ describe('model elevation comparison panel', () => {
     expect(screen.getByLabelText('RDPS elevation difference +2000 m')).toHaveStyle({ whiteSpace: 'nowrap' })
   })
 
+  it('updates existing markers when the selection changes', async () => {
+    const props = { referenceWeather: emptyWeather, station, onClose: vi.fn() }
+    const { rerender } = render(<ModelElevationComparisonPanel {...props} />)
+    const marker = model('HRDPS')
+    await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
+    expect(model('HRDPS')).toBe(marker)
+    expect(marker.querySelector('circle')).toHaveAttribute('stroke-width', '3')
+    rerender(
+      <ModelElevationComparisonPanel
+        {...props}
+        station={{ ...station, modelElevations: { ...station.modelElevations, HRDPS: 1100 } }}
+      />
+    )
+    expect(model('HRDPS')).toBe(marker)
+    expect(marker).toHaveTextContent('1100')
+  })
+
   it('uses grid colours and outlines the selected model', async () => {
     render(<ModelElevationComparisonPanel referenceWeather={emptyWeather} station={station} onClose={vi.fn()} />)
     expect(model('HRDPS').querySelector('circle')).toHaveAttribute('fill', MORECAST_MODEL_COLORS.hrdps.border)

@@ -4,6 +4,7 @@ import {
   weatherModelsWithTooltips
 } from '@wps/api/moreCast2API'
 import type { StationGroupMember } from '@wps/api/stationAPI'
+import { isNumber, isString } from 'lodash'
 import { DateTime } from 'luxon'
 import type { MoreCast2Row } from './interfaces'
 
@@ -21,18 +22,21 @@ export type ForecastDisplayRow = MoreCast2Row | ModelElevationRow
 export const isModelElevationRow = (row: object): row is ModelElevationRow =>
   'kind' in row && row.kind === 'modelElevation'
 
+// latest model runs
 export const getLatestModelRunTimestamp = (
   rows: MoreCast2Row[] = [],
   model?: WeatherDeterminateType
 ): DateTime | null => {
   let latest: DateTime | null = null
   const field = `predictionRunTimestamp${model}` as keyof MoreCast2Row
+
   for (const row of rows) {
     const value = row[field]
-    if (typeof value !== 'string') continue
+    if (!isString(value)) continue
     const timestamp = DateTime.fromISO(value)
     if (timestamp.isValid && (!latest || timestamp.toMillis() > latest.toMillis())) latest = timestamp
   }
+
   return latest
 }
 
@@ -41,6 +45,7 @@ export interface ModelElevationData {
   stationElevations: Map<number, Pick<ModelElevationRow, 'stationElevation' | 'modelElevations'>>
 }
 
+// station elevations
 export const getModelElevationData = (
   rows: MoreCast2Row[],
   predictions: WeatherIndeterminate[],
@@ -49,8 +54,10 @@ export const getModelElevationData = (
   const latestRuns = Object.fromEntries(
     weatherModelsWithTooltips.map(model => [model, getLatestModelRunTimestamp(rows, model)])
   )
+
   const stationCodes = new Set([...rows.map(row => row.stationCode), ...stations.map(station => station.station_code)])
   const stationElevations: ModelElevationData['stationElevations'] = new Map()
+
   for (const stationCode of stationCodes) {
     stationElevations.set(stationCode, {
       stationElevation: stations.find(station => station.station_code === stationCode)?.elevation ?? null,
@@ -64,7 +71,9 @@ export const getModelElevationData = (
     const latest = latestRuns[model]
     const timestamp = prediction.prediction_run_timestamp
     if (!station || !latest || !timestamp) continue
+    // match the run shown in the model header
     if (Date.parse(timestamp) !== latest.toMillis()) continue
+
     // keep the first matching value, including null
     if (Object.hasOwn(station.modelElevations, model)) continue
     station.modelElevations[model] = prediction.model_elevation ?? null
@@ -73,14 +82,17 @@ export const getModelElevationData = (
   for (const station of stationElevations.values()) {
     for (const model of weatherModelsWithTooltips) station.modelElevations[model] ??= null
   }
+
   return { latestRuns, stationElevations }
 }
 
+// display rows
 export const getForecastDisplayRows = (
   rows: MoreCast2Row[],
   stationElevations: ModelElevationData['stationElevations']
 ): ForecastDisplayRow[] => {
   const displayRows: ForecastDisplayRow[] = []
+
   const stationCodes = new Set<number>()
   for (const row of rows) {
     if (!stationCodes.has(row.stationCode)) {
@@ -96,19 +108,22 @@ export const getForecastDisplayRows = (
         modelElevations: elevations?.modelElevations ?? {}
       })
     }
+
     displayRows.push(row)
   }
+
   return displayRows
 }
 
+// formatting
 const elevationFormatter = new Intl.NumberFormat('en-CA', { maximumFractionDigits: 0 })
 
 export const formatElevation = (elevation?: number | null): string =>
-  typeof elevation === 'number' && Number.isFinite(elevation) ? `${elevationFormatter.format(elevation)} m` : 'N/A'
+  isNumber(elevation) && Number.isFinite(elevation) ? `${elevationFormatter.format(elevation)} m` : 'N/A'
 
 export const getModelElevationCellValue = (row: ModelElevationRow, field: string, headerName?: string): string => {
   if (field === 'stationName') return row.stationName
-  // if (field === 'forDate') return 'Model elevation'
+
   const model = weatherModelsWithTooltips.find(model => model === headerName)
   return model ? formatElevation(row.modelElevations[model]) : ''
 }
