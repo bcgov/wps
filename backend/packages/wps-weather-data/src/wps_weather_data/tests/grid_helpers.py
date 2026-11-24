@@ -114,6 +114,27 @@ def load_run(folder: Path, run_time: datetime = RUN) -> tuple[Crop, dict[str, Va
     return crop, variables
 
 
+def small_crop() -> Crop:
+    """Four cells around Kamloops, for writing a run of a real model without its files."""
+    latitude, longitude = np.meshgrid([51.0, 50.5], [-120.5, -120.0], indexing="ij")
+    return Crop(slice(0, 2), slice(0, 2), latitude.astype(np.float32), longitude.astype(np.float32))
+
+
+def variable_run(variable: Variable, by_hour: np.ndarray) -> VariableRun:
+    """A variable with the same value at each of `small_crop`'s cells, packed to 0.0001."""
+    integers = np.rint(by_hour * 10_000).astype(np.int32)
+    hours = len(by_hour)
+    return VariableRun(
+        variable,
+        np.broadcast_to(integers[:, np.newaxis, np.newaxis], (hours, 2, 2)),
+        {
+            "reference": np.zeros(hours),
+            "binary_scale": np.zeros(hours),
+            "decimal_scale": np.full(hours, 4.0),
+        },
+    )
+
+
 def store(tmp_path, name="recent") -> GridStore:
     storage = icechunk.local_filesystem_storage(str(tmp_path / "stores" / name))
     return GridStore("TEST", name, storage)

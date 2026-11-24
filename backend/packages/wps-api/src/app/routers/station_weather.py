@@ -10,7 +10,6 @@ stations come from `stations`, which the hourly actuals job copies from WF1.
 """
 
 import asyncio
-import io
 import logging
 from datetime import UTC, date, datetime, time, timedelta
 from enum import StrEnum
@@ -18,7 +17,6 @@ from typing import Annotated
 
 import pyarrow as pa
 import pyarrow.compute as pc
-import pyarrow.csv
 from fastapi import APIRouter, Depends, Path, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field
@@ -27,6 +25,8 @@ from wps_shared.weather_models import ModelEnum
 from wps_weather_data.by_station import ByStationTable
 from wps_weather_data.by_time import ACTUALS, DAILY, FORECAST, HOURLY, ByTimeTable
 from wps_weather_data.stations import StationsTable
+
+from app.weather_rows import CSV_RESPONSE, csv_response, rounded, wants_csv
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +42,6 @@ RECENT_DAYS = 2
 # ten days of forecasts and model values.
 DEFAULT_PAST_DAYS = 7
 DEFAULT_FUTURE_DAYS = 10
-
-CSV = "text/csv"
 
 
 class Resolution(StrEnum):
@@ -216,16 +214,6 @@ Start = Annotated[date | None, Query(description="First UTC date", examples=["20
 End = Annotated[date | None, Query(description="Last UTC date", examples=["2026-07-31"])]
 
 
-def _rounded(rows: pa.Table) -> pa.Table:
-    """Values are stored as float32, which as float64 reads 21.299999237 for 21.3."""
-    for index, field in enumerate(rows.schema):
-        if field.type == pa.float32():
-            rows = rows.set_column(
-                index, field.name, pc.round(rows[field.name].cast(pa.float64()), 3)
-            )
-    return rows
-
-
 def read_station_weather(
     by_station: ByStationTable,
     by_time: ByTimeTable,
@@ -267,7 +255,7 @@ def read_station_weather(
         parts.append(rows.select(stored))
     rows = pa.concat_tables(parts, promote_options="permissive")
     rows = rows.sort_by([("station_code", "ascending"), ("timestamp", "ascending")])
-    return _rounded(rows).rename_columns(columns)
+    return rounded(rows).rename_columns(columns)
 
 
 def _dates(start: date | None, end: date | None, today: date, ahead: bool) -> tuple[date, date]:
@@ -300,26 +288,6 @@ def _next_url(request: Request, page_end: date, end: date) -> str | None:
     url = request.url.include_query_params(start=page_end + timedelta(days=1), end=end)
     return f"{url.path}?{url.query}"
 
-
-def _wants_csv(request: Request) -> bool:
-    return CSV in request.headers.get("accept", "")
-
-
-def _csv(rows: pa.Table, headers: dict[str, str]) -> Response:
-    """The rows as CSV, with times as ISO 8601 UTC like the JSON."""
-    for index, field in enumerate(rows.schema):
-        if pa.types.is_timestamp(field.type):
-            # Arrow's %S has the fraction of a second too, unless the time is in seconds.
-            seconds = rows[field.name].cast(pa.timestamp("s", tz="UTC"), safe=False)
-            rows = rows.set_column(
-                index, field.name, pc.strftime(seconds, format="%Y-%m-%dT%H:%M:%SZ")
-            )
-    buffer = io.BytesIO()
-    pyarrow.csv.write_csv(rows, buffer)
-    return Response(content=buffer.getvalue(), media_type=CSV, headers=headers)
-
-
-_CSV_RESPONSE = {200: {"content": {CSV: {}}}}
 
 _SIZE_NOTE = f"""
 A long request comes back in pages of whole days, up to {PAGE_ROWS:,} rows each, counted as
@@ -370,8 +338,8 @@ async def _rows_response(
         now,
         list(row_model.model_fields),
     )
-    if _wants_csv(request):
-        return _csv(rows, headers)
+    if wants_csv(request):
+        return csv_response(rows, headers)
     response.headers.update(headers)
     # Each response model keeps the fields it has: a forecast has no resolution.
     return {
@@ -392,15 +360,15 @@ async def _rows_response(
     summary="List the weather stations",
     description="WF1's active, test and project weather stations, updated hourly. A station "
     "that has been decommissioned is not listed, but its history can still be requested.",
-    responses=_CSV_RESPONSE,
+    responses=CSV_RESPONSE,
 )
 async def get_stations(
     request: Request, stations: Annotated[StationsTable, Depends(get_stations_table)]
 ):
     rows = await asyncio.to_thread(stations.read)
     rows = rows.select(list(Station.model_fields))
-    if _wants_csv(request):
-        return _csv(rows, {})
+    if wants_csv(request):
+        return csv_response(rows, {})
     return {"stations": rows.to_pylist()}
 
 
@@ -416,7 +384,7 @@ Hourly or daily observations at weather stations, back to 1987, for UTC dates fr
 Daily rows are WF1's daily record at 20:00 UTC (noon PST), with the 24 hour precipitation and
 the FWI System indices.
 {_SIZE_NOTE}""",
-    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
+    responses={**CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
 )
 async def get_observations(
     request: Request,
@@ -453,7 +421,7 @@ BC Wildfire Service forecasters' noon forecasts at weather stations, for UTC dat
 to `end` inclusive. Without dates, the {DEFAULT_FUTURE_DAYS} days from today. Each day holds its
 latest forecast.
 {_SIZE_NOTE}""",
-    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
+    responses={**CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
 )
 async def get_forecasts(
     request: Request,
@@ -489,7 +457,7 @@ A weather model's values at weather stations, for UTC dates from `start` to `end
 Without dates, the {DEFAULT_FUTURE_DAYS} days from today. Each time holds the newest prediction
 made for it, and `run_timestamp` says which run that was.
 {_SIZE_NOTE}""",
-    responses={**_CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
+    responses={**CSV_RESPONSE, 422: {"description": "Invalid parameters"}},
 )
 async def get_model_values(
     request: Request,

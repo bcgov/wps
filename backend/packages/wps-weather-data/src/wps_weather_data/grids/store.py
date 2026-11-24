@@ -93,7 +93,10 @@ class GridStore:
         return icechunk.Repository.exists(self.storage)
 
     def _root(self) -> zarr.Group | None:
-        """The latest snapshot's root group, or None while nothing has been written."""
+        """The latest snapshot's root group, or None while nothing has been written. Reading does
+        not create the repository, so a store asked for before its first run is left alone."""
+        if "repository" not in vars(self) and not self.exists():
+            return None
         try:
             return zarr.open_group(self.repository.readonly_session("main").store, mode="r")
         except zarr.errors.GroupNotFoundError:

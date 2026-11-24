@@ -11,8 +11,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Model grids in Icechunk (grids.py). Only the jobs that write grids need them, so the API image
-# does without until it reads grids.
+# Model grids in Icechunk (wps_weather_data.grids), for the jobs that write them and the API that
+# reads them.
 grids = [
     "eccodes>=2.45,<3",
     "icechunk>=2.3.1,<3",

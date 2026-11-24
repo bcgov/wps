@@ -286,7 +286,7 @@ Cropped GRIB would still be worse to use:
    from `./backend`, with `OBJECT_STORE_SERVER`, `OBJECT_STORE_USER_ID`, `OBJECT_STORE_SECRET` and `OBJECT_STORE_BUCKET` set as the deployments have them. Stores go under `dev/zarr-spike/{model}/{variant}`. Delete `dev/zarr-spike` afterwards, one object at a time: ECS rejects boto3's bulk `DeleteObjects` without a `Content-MD5` header. The MSC datamart keeps about a day, so MSC runs must be recent.
 2. Measure reads from inside the cluster, from a pod reading the `object_store` stores, to separate ECS's own latency from the laptop's network path.
 3. Ask the object storage team whether ECS will accept the AWS SDKs' CRC checksums, which would also let our own Python code drop the aiobotocore pin.
-4. Add endpoints that read the grids.
+4. Add endpoints that read a whole field. The Station Weather API reads one location's forecast (`/grids/{model}/point`).
 
 ## Open-Meteo's quantization
 
