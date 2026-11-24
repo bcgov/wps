@@ -127,6 +127,49 @@ const isCellEditable = (params: GridCellParams<ForecastDisplayRow>) =>
   !isModelElevationRow(params.row) &&
   params.row[params.field as keyof MoreCast2Row] !== ModelChoice.ACTUAL
 
+// elevation rows bypass weather getters and formatters because they contain station metadata
+const addElevationRowSupport = (
+  column: GridColDef,
+  latestRuns: ModelElevationData['latestRuns'],
+  onCompareElevations: ForecastDataGridProps['onCompareElevations']
+): GridColDef<ForecastDisplayRow> => {
+  const model = weatherModelsWithTooltips.find(model => model === column.headerName)
+
+  return {
+    ...column,
+    renderHeader: model
+      ? params => <ModelHeader params={params} modelRunTimestamp={latestRuns[model] ?? null} />
+      : column.renderHeader,
+    valueGetter: (value, row, colDef, apiRef) => {
+      if (isModelElevationRow(row)) return getModelElevationCellValue(row, column.field, column.headerName)
+
+      return column.valueGetter ? column.valueGetter(value, row, colDef, apiRef) : value
+    },
+    valueFormatter: (value, row, colDef, apiRef) => {
+      if (isModelElevationRow(row)) return value
+
+      return column.valueFormatter ? column.valueFormatter(value, row, colDef, apiRef) : value
+    },
+    renderCell: params => {
+      if (isModelElevationRow(params.row)) {
+        return (
+          <ModelElevationCell
+            row={params.row}
+            field={params.field}
+            value={String(params.formattedValue ?? '')}
+            model={model}
+            hasFocus={params.hasFocus}
+            onCompareElevations={column.field === 'stationName' ? onCompareElevations : undefined}
+          />
+        )
+      }
+
+      if (column.field === 'stationName') return null
+      return column.renderCell ? column.renderCell(params) : params.formattedValue
+    }
+  }
+}
+
 const ForecastDataGrid = ({
   loading,
   columnClickHandlerProps,
@@ -146,47 +189,11 @@ const ForecastDataGrid = ({
     [allMoreCast2Rows, modelElevationData.stationElevations]
   )
 
-  // keep metadata handling at the grid boundary so forecast renderers only see weather rows
-  const columns = useMemo<GridColDef<ForecastDisplayRow>[]>(
+  const columns = useMemo(
     () =>
-      DataGridColumns.getTabColumns(columnClickHandlerProps).map(column => {
-        const model = weatherModelsWithTooltips.find(model => model === column.headerName)
-
-        return {
-          ...column,
-          ...(column.field === 'stationName' ? { width: 200, minWidth: 200 } : {}),
-          renderHeader: model
-            ? params => <ModelHeader params={params} modelRunTimestamp={modelElevationData.latestRuns[model] ?? null} />
-            : column.renderHeader,
-          valueGetter: (value, row, colDef, apiRef) => {
-            if (isModelElevationRow(row)) return getModelElevationCellValue(row, column.field, column.headerName)
-
-            return column.valueGetter ? column.valueGetter(value, row, colDef, apiRef) : value
-          },
-          valueFormatter: (value, row, colDef, apiRef) => {
-            if (isModelElevationRow(row)) return value
-
-            return column.valueFormatter ? column.valueFormatter(value, row, colDef, apiRef) : value
-          },
-          renderCell: params => {
-            if (isModelElevationRow(params.row)) {
-              return (
-                <ModelElevationCell
-                  row={params.row}
-                  field={params.field}
-                  value={String(params.formattedValue ?? '')}
-                  model={model}
-                  hasFocus={params.hasFocus}
-                  onCompareElevations={column.field === 'stationName' ? onCompareElevations : undefined}
-                />
-              )
-            }
-
-            if (column.field === 'stationName') return null
-            return column.renderCell ? column.renderCell(params) : params.formattedValue
-          }
-        }
-      }),
+      DataGridColumns.getTabColumns(columnClickHandlerProps).map(column =>
+        addElevationRowSupport(column, modelElevationData.latestRuns, onCompareElevations)
+      ),
     [columnClickHandlerProps, modelElevationData.latestRuns, onCompareElevations]
   )
 
