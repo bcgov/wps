@@ -24,6 +24,10 @@ from the one before it. Postgres never held WF1's daily actuals, so `ACTUALS` co
 hourly rows only; station_actuals_data_mart_backfill.py copies the daily ones.
 Exits 0 when everything was copied or already there, 1 otherwise.
 
+GFS and NAM wind directions are corrected as they are copied. See
+wps_weather_data/noaa_wind_direction.py. That assumes everything in Postgres was written by the old
+station job: if the fix is ever deployed while the job still writes there, it needs a cutoff.
+
 Design: docs/architecture/station-weather-storage.md
 """
 
@@ -37,6 +41,7 @@ from sqlalchemy import text
 from wps_shared.utils.time import get_utc_now
 from wps_shared.weather_models import ModelEnum, ProjectionEnum
 from wps_weather_data.by_time import ACTUALS, FORECAST, ByTimeTable
+from wps_weather_data.noaa_wind_direction import corrected_rows
 from wps_weather_data.runs import RunsTable
 from wps_weather_data.wf1 import Wf1Table, actuals_table, forecasts_table
 
@@ -135,7 +140,7 @@ def backfill_model(session, model: ModelEnum, since, dry_run: bool) -> int:
             print(f"[would copy] {model.value} {run_ts}")
             continue
         try:
-            rows = station_rows(session, run_id)
+            rows = corrected_rows(model, station_rows(session, run_id))
             written = runs.append_run(model, run_ts, rows)
             by_time.merge_run(model, run_ts, rows)
             copied += 1
