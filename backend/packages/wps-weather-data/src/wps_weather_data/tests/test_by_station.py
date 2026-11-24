@@ -5,10 +5,10 @@ from types import SimpleNamespace
 import pytest
 from wps_shared.weather_models import ModelEnum
 
-from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.by_station import STATION_ROWS_SCHEMA, ByStationTable, build
 from wps_weather_data.by_time import ACTUALS, DAILY, HOURLY, ByTimeTable
 from wps_weather_data.table import TABLE_CONFIGURATION
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 from wps_weather_data.wf1 import actuals_table, daily_actuals_table
 
 FETCHED = datetime(2026, 11, 17, 21, tzinfo=UTC)
@@ -214,9 +214,7 @@ def test_a_year_that_fails_does_not_stop_the_others(by_time, by_station, monkeyp
 def test_dev_deployments_keep_their_own_table(monkeypatch):
     monkeypatch.setenv("SUFFIX", "pr-123")
 
-    assert (
-        StationWeatherAddresser().get_by_station_key() == "dev/pr-123/weather/stations/by_station"
-    )
+    assert WeatherDataAddresser().get_by_station_key() == "dev/pr-123/weather/stations/by_station"
 
 
 def test_several_stations_are_read_together(by_time, by_station):

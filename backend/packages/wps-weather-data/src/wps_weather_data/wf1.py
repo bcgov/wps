@@ -28,7 +28,6 @@ import pyarrow.compute as pc
 from deltalake import WriterProperties, write_deltalake
 from wps_shared.sfms.raster_addresser import S3Key
 
-from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.by_time import (
     ACTUALS,
     BY_TIME_SCHEMA,
@@ -39,6 +38,7 @@ from wps_weather_data.by_time import (
     VALUE_COLUMNS,
 )
 from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +150,7 @@ def forecasts_table(noon_forecasts: Iterable, ingested_at: datetime | None = Non
 class Wf1Table(DeltaWeatherTable):
     """The `wf1` Delta table."""
 
-    def get_key(self, addresser: StationWeatherAddresser) -> S3Key:
+    def get_key(self, addresser: WeatherDataAddresser) -> S3Key:
         return addresser.get_wf1_key()
 
     def _newest_stored(self, rows: pa.Table) -> dict[tuple, tuple]:

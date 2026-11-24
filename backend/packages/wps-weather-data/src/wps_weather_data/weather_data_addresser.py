@@ -7,7 +7,7 @@ from wps_shared.sfms.raster_addresser import S3Key
 PRODUCTION_SUFFIX = "prod"
 
 
-class StationWeatherAddresser:
+class WeatherDataAddresser:
     """
     Key addresser for the station weather datasets and the weather model grids.
 
@@ -21,7 +21,7 @@ class StationWeatherAddresser:
         self.bucket = config.get("OBJECT_STORE_BUCKET")
         suffix = config.get("SUFFIX")
         weather = f"dev/{suffix}/weather" if suffix and suffix != PRODUCTION_SUFFIX else "weather"
-        self.root = f"{weather}/stations"
+        self.stations_root = f"{weather}/stations"
         self.grids_root = f"{weather}/grids"
 
     def delta_uri(self, key: S3Key) -> str:
@@ -30,27 +30,27 @@ class StationWeatherAddresser:
 
     def get_runs_key(self) -> S3Key:
         """S3 key of the `runs` Delta table: station values from every model run."""
-        return S3Key(f"{self.root}/runs")
+        return S3Key(f"{self.stations_root}/runs")
 
     def get_by_time_key(self) -> S3Key:
         """S3 key of the `by_time` Delta table: the newest value per station, time and source."""
-        return S3Key(f"{self.root}/by_time")
+        return S3Key(f"{self.stations_root}/by_time")
 
     def get_wf1_key(self) -> S3Key:
         """S3 key of the `wf1` Delta table: every observation and noon forecast fetched from WF1."""
-        return S3Key(f"{self.root}/wf1")
+        return S3Key(f"{self.stations_root}/wf1")
 
     def get_staging_key(self, model: str) -> S3Key:
         """S3 key of a model's `staging` Delta table: the runs it is still downloading."""
-        return S3Key(f"{self.root}/staging/{model.lower()}")
+        return S3Key(f"{self.stations_root}/staging/{model.lower()}")
 
     def get_by_station_key(self) -> S3Key:
         """S3 key of the `by_station` Delta table: the `by_time` rows, laid out by station."""
-        return S3Key(f"{self.root}/by_station")
+        return S3Key(f"{self.stations_root}/by_station")
 
     def get_stations_key(self) -> S3Key:
         """S3 key of the `stations` Delta table: WF1's list of weather stations."""
-        return S3Key(f"{self.root}/stations")
+        return S3Key(f"{self.stations_root}/stations")
 
     def get_grid_key(self, model: str, store: str) -> S3Key:
         """S3 key of a model's Icechunk grid store: `recent` or `history`."""

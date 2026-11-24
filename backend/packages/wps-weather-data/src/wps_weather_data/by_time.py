@@ -21,9 +21,9 @@ from deltalake import DeltaTable, WriterProperties
 from wps_shared.sfms.raster_addresser import S3Key
 from wps_shared.weather_models import ModelEnum
 
-from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.runs import build_run_table
 from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -172,7 +172,7 @@ def _months(start: datetime, end: datetime) -> list[str]:
 class ByTimeTable(DeltaWeatherTable):
     """The `by_time` Delta table."""
 
-    def get_key(self, addresser: StationWeatherAddresser) -> S3Key:
+    def get_key(self, addresser: WeatherDataAddresser) -> S3Key:
         return addresser.get_by_time_key()
 
     def merge_run(

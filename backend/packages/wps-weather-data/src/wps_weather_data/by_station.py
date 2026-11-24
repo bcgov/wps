@@ -31,9 +31,9 @@ from wps_shared.sfms.raster_addresser import S3Key
 from wps_shared.utils.time import get_utc_now
 from wps_shared.wps_logging import configure_logging
 
-from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.by_time import BY_TIME_SCHEMA, DAILY, HOURLY, ByTimeTable
 from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ STATION_ROWS_SCHEMA = pa.schema(
 class ByStationTable(DeltaWeatherTable):
     """The `by_station` Delta table."""
 
-    def get_key(self, addresser: StationWeatherAddresser) -> S3Key:
+    def get_key(self, addresser: WeatherDataAddresser) -> S3Key:
         return addresser.get_by_station_key()
 
     def build_year(self, by_time: ByTimeTable, resolution: str, year: int) -> int:

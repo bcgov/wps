@@ -18,8 +18,8 @@ from deltalake import WriterProperties, write_deltalake
 from wps_shared.sfms.raster_addresser import S3Key
 from wps_shared.weather_models import ModelEnum
 
-from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ def build_run_table(
 class RunsTable(DeltaWeatherTable):
     """The `runs` Delta table."""
 
-    def get_key(self, addresser: StationWeatherAddresser) -> S3Key:
+    def get_key(self, addresser: WeatherDataAddresser) -> S3Key:
         return addresser.get_runs_key()
 
     def append_run(

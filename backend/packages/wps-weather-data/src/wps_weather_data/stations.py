@@ -16,8 +16,8 @@ import pyarrow as pa
 from deltalake import write_deltalake
 from wps_shared.sfms.raster_addresser import S3Key
 
-from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def stations_table(raw_stations: Iterable[dict], fetched_at: datetime) -> pa.Tab
 class StationsTable(DeltaWeatherTable):
     """The `stations` Delta table."""
 
-    def get_key(self, addresser: StationWeatherAddresser) -> S3Key:
+    def get_key(self, addresser: WeatherDataAddresser) -> S3Key:
         return addresser.get_stations_key()
 
     def replace(self, rows: pa.Table) -> bool:

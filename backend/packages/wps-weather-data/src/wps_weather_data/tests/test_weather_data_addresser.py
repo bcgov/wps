@@ -1,13 +1,13 @@
 import pytest
 
-from wps_weather_data import addresser as addresser_module
-from wps_weather_data.addresser import StationWeatherAddresser
+from wps_weather_data import weather_data_addresser as addresser_module
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 
 def addresser_for(monkeypatch, suffix):
     settings = {"OBJECT_STORE_BUCKET": "some-bucket", "SUFFIX": suffix}
     monkeypatch.setattr(addresser_module.config, "get", settings.get)
-    return StationWeatherAddresser()
+    return WeatherDataAddresser()
 
 
 @pytest.mark.parametrize("suffix", ["prod", None, ""])
