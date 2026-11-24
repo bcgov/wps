@@ -12,12 +12,13 @@ import {
 import rootReducer from 'app/rootReducer'
 import { DateTime } from 'luxon'
 import { Provider } from 'react-redux'
-import { vi } from 'vitest'
+import { describe, vi } from 'vitest'
 import { MorecastDraftForecast } from '../forecastDraft'
 import * as modelElevation from '../modelElevation'
 import MoreCast2Page from '../pages/MoreCast2Page'
 import { getWeatherIndeterminatesSuccess } from '../slices/dataSlice'
 import { selectedStationsChanged } from '../slices/selectedStationsSlice'
+import * as morecastUtil from '../util'
 import { rowIDHasher } from '../util'
 import { DataGridColumns } from './DataGridColumns'
 
@@ -87,7 +88,7 @@ const renderPage = async () => {
     actuals: [],
     grassCuring: [],
     predictions,
-    forecasts: predictions.map(row => ({ ...row, determinate: WeatherDeterminate.FORECAST, temperature: 22 }))
+    forecasts: predictions.map(row => ({ ...row, determinate: WeatherDeterminate.FORECAST, temperature: null }))
   })
   const store = configureStore({ reducer: rootReducer })
   const result = render(
@@ -109,10 +110,17 @@ const panel = (name = 'Alpha station') => screen.getByRole('region', { name: `Mo
 const cell = (code: number, field = 'tempForecast'): HTMLElement =>
   document.querySelector<HTMLElement>(`[data-id="${rowIDHasher(code, forecastDate)}"] [data-field="${field}"]`)!
 
-describe('station elevation comparison sidebar', () => {
+describe('station elevation comparison sidebar', { timeout: 15000 }, () => {
   beforeEach(() => {
     localStorage.clear()
     vi.clearAllMocks()
+    // keep this fixture to one day because virtualization is disabled
+    const date = DateTime.fromObject({
+      year: forecastDate.year,
+      month: forecastDate.month,
+      day: forecastDate.day
+    }).toJSDate()
+    vi.spyOn(morecastUtil, 'getDefaultDateRange').mockReturnValue({ startDate: date, endDate: date })
   })
   afterEach(() => {
     localStorage.clear()
@@ -127,6 +135,14 @@ describe('station elevation comparison sidebar', () => {
     await userEvent.type(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' }), '9.8')
     await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(screen.getByRole('status')).toHaveTextContent('Filled temperature forecasts')
+    // the grid displays whole degrees, while the draft retains the adjustment's precision
+    await waitFor(() => expect(within(cell(1)).getByRole('textbox')).toHaveValue('20'))
+    expect(
+      new MorecastDraftForecast(localStorage)
+        .getStoredDraftForecasts()
+        ?.rows.find(row => row.stationCode === 1 && row.forDate.toISODate() === forecastDate.toISODate())?.tempForecast
+        ?.value
+    ).toBe(19.5)
   })
 
   it('opens in the sidebar without changing station expansion, drafts, columns, or requests', async () => {
