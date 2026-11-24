@@ -43,7 +43,10 @@ RUN WKHTMLTOX_ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" && \
     esac && \
     curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/wkhtmltox.deb \
       "${WKHTMLTOX_URL}/wkhtmltox_0.12.6.1-2.jammy_${WKHTMLTOX_ARCH}.deb" && \
-    dpkg -i /tmp/wkhtmltox.deb
+    dpkg -i /tmp/wkhtmltox.deb && \
+    ln -sfn "/usr/lib/jvm/java-17-openjdk-$(dpkg --print-architecture)" /usr/lib/jvm/default-java
+
+ENV JAVA_HOME=/usr/lib/jvm/default-java
 
 USER $USERNAME
 ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"

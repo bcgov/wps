@@ -1,43 +1,137 @@
 name: Publish Base Docker Images to GHCR
 
-permissions:
-  contents: read
-  packages: write
+permissions: {}
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "openshift/wps-api-base/**"
+      - "openshift/wps-jobs-base/**"
+      - ".github/workflows/publish_docker_base.yml"
 
 jobs:
-  build-and-publish:
-    name: Build and Publish Docker Image
+  tags:
+    name: Compute Image Tags
     runs-on: ubuntu-26.04
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v7
-      - name: Login to GitHub Container Registry
-        # this step requires a GH_TOKEN with read:packages write:packages and delete:packages
-        # tested with a classic token with the above permissions
-        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+      - name: Compute tags
+        id: meta
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "tags=pr-${{ github.event.number }}" >> "$GITHUB_OUTPUT"
+          else
+            DATE_TAG="$(date +%m-%d-%Y)"
+            {
+              echo "tags<<EOF"
+              echo "${DATE_TAG}"
+              echo "latest"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+  build-amd64:
+    name: Build ${{ matrix.package }} (amd64)
+    needs: [tags]
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: wps-api-base
+            context: openshift/wps-api-base/docker
+            file: openshift/wps-api-base/docker/Dockerfile
+          - package: wps-jobs-base
+            context: openshift/wps-jobs-base/docker
+            file: openshift/wps-jobs-base/docker/Dockerfile
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Build and push ${{ matrix.package }} (amd64)
+        uses: bcgov/actions/builder@acc058abf85bb183dad21b839a92a40a4ff47af3 # v0.14.0
+        with:
+          package: ${{ matrix.package }}
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          tags: ${{ needs.tags.outputs.tags }}
+
+  build-arm64:
+    name: Build ${{ matrix.package }} (arm64)
+    needs: [tags]
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: wps-api-base
+            context: openshift/wps-api-base/docker
+            file: openshift/wps-api-base/docker/Dockerfile
+          - package: wps-jobs-base
+            context: openshift/wps-jobs-base/docker
+            file: openshift/wps-jobs-base/docker/Dockerfile
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Build and push ${{ matrix.package }} (arm64)
+        uses: bcgov/actions/builder@acc058abf85bb183dad21b839a92a40a4ff47af3 # v0.14.0
+        with:
+          package: ${{ matrix.package }}
+          architecture: arm64
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          tags: ${{ needs.tags.outputs.tags }}
+
+  publish-manifest:
+    name: Publish ${{ matrix.package }} multi-arch manifest
+    needs: [tags, build-amd64, build-arm64]
+    if: >-
+      needs.build-amd64.result == 'success' &&
+      needs.build-arm64.result == 'success'
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [wps-api-base, wps-jobs-base]
+    permissions:
+      packages: write
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
-          username: ${{github.actor}}
-          password: ${{secrets.GITHUB_TOKEN}}
-      - name: Build and Publish Base Image
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create multi-arch manifest index
+        shell: bash
+        env:
+          TAGS: ${{ needs.tags.outputs.tags }}
+          PKG: ${{ matrix.package }}
+          REPO: ${{ github.repository }}
         run: |
-          cd openshift/wps-api-base/docker
-          DATE_TAG=$(date +%m-%d-%Y)
-          docker build . --tag ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG}
-          docker tag ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG} ghcr.io/bcgov/wps/wps-api-base:latest
-          docker push ghcr.io/bcgov/wps/wps-api-base:${DATE_TAG}
-          docker push ghcr.io/bcgov/wps/wps-api-base:latest
-      - name: Build and Publish Jobs Base Image
-        run: |
-          cd openshift/wps-jobs-base/docker
-          DATE_TAG=$(date +%m-%d-%Y)
-          docker build . --tag ghcr.io/bcgov/wps/wps-jobs-base:${DATE_TAG}
-          docker tag ghcr.io/bcgov/wps/wps-jobs-base:${DATE_TAG} ghcr.io/bcgov/wps/wps-jobs-base:latest
-          docker push ghcr.io/bcgov/wps/wps-jobs-base:${DATE_TAG}
-          docker push ghcr.io/bcgov/wps/wps-jobs-base:latest
+          set -euo pipefail
+          repo_lower="${REPO,,}"
+          while IFS= read -r tag || [ -n "$tag" ]; do
+            [ -z "$tag" ] && continue
+            docker buildx imagetools create \
+              -t "ghcr.io/${repo_lower}/${PKG}:${tag}" \
+              "ghcr.io/${repo_lower}/${PKG}:${tag}" \
+              "ghcr.io/${repo_lower}/${PKG}-arm64:${tag}"
+          done <<< "$TAGS"
