@@ -8,7 +8,7 @@ from deltalake import DeltaTable
 from wps_shared import config
 from wps_shared.sfms.raster_addresser import S3Key
 
-from wps_weather_data.addresser import StationWeatherAddresser
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 # Delta table properties every table is created with. Each table checkpoints itself every 10
 # commits as part of the write, so opening it reads a checkpoint and at most 9 JSON commits. An
@@ -56,7 +56,7 @@ class DeltaWeatherTable:
 
     def __init__(self, table_uri: str | None = None, storage_options: dict[str, str] | None = None):
         if table_uri is None:
-            addresser = StationWeatherAddresser()
+            addresser = WeatherDataAddresser()
             table_uri = addresser.delta_uri(self.get_key(addresser))
             storage_options = object_store_options()
         self.table_uri = table_uri
@@ -64,7 +64,7 @@ class DeltaWeatherTable:
         self._table: DeltaTable | None = None
         self._lock = threading.Lock()
 
-    def get_key(self, addresser: StationWeatherAddresser) -> S3Key:
+    def get_key(self, addresser: WeatherDataAddresser) -> S3Key:
         """The table's S3 key."""
         raise NotImplementedError
 

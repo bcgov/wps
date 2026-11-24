@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 import wps_shared.db.database
 import wps_weather_data.table
-from wps_weather_data.addresser import StationWeatherAddresser
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 from wps_shared.tests.conftest import (
     anyio_backend,
     mock_env,
@@ -32,6 +32,6 @@ def local_station_weather_tables(monkeypatch, tmp_path):
     """Keep the station weather Delta tables (`staging`, `runs`, `by_time`) in a temporary
     directory instead of the object store, so tests read and write real, empty tables."""
     monkeypatch.setattr(
-        StationWeatherAddresser, "delta_uri", lambda self, key: str(tmp_path / "tables" / key)
+        WeatherDataAddresser, "delta_uri", lambda self, key: str(tmp_path / "tables" / key)
     )
     monkeypatch.setattr(wps_weather_data.table, "object_store_options", lambda: None)

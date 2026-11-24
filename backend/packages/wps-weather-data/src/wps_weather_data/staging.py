@@ -27,8 +27,8 @@ from deltalake import WriterProperties, write_deltalake
 from wps_shared.sfms.raster_addresser import S3Key
 from wps_shared.weather_models import ModelEnum
 
-from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.table import TABLE_CONFIGURATION, DeltaWeatherTable
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ class StagingTable(DeltaWeatherTable):
         self.model = model
         super().__init__(table_uri, storage_options)
 
-    def get_key(self, addresser: StationWeatherAddresser) -> S3Key:
+    def get_key(self, addresser: WeatherDataAddresser) -> S3Key:
         return addresser.get_staging_key(self.model.value)
 
     def append_files(self, run_ts: datetime, files: Iterable[StagedFile]) -> int:

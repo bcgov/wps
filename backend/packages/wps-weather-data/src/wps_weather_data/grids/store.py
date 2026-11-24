@@ -29,9 +29,9 @@ from wps_shared import config
 from zarr.codecs import ZstdCodec
 from zarr.codecs.numcodecs import PCodec
 
-from wps_weather_data.addresser import StationWeatherAddresser
 from wps_weather_data.grids.grib import BC_LATITUDE, BC_LONGITUDE, Crop, GribScales, decode
 from wps_weather_data.grids.models import MODELS, SCALES, VariableRun
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ class GridStore:
     def storage(self) -> icechunk.Storage:
         """Where the repository is."""
         return self._storage or object_store_storage(
-            StationWeatherAddresser().get_grid_key(self.model.name, self.store)
+            WeatherDataAddresser().get_grid_key(self.model.name, self.store)
         )
 
     @cached_property

@@ -120,9 +120,9 @@ Runs `maintain()` on every table. Run by the `station-weather-maintenance` cron 
 python -m wps_weather_data.maintenance
 ```
 
-## addresser.py
+## weather_data_addresser.py
 
-`StationWeatherAddresser` builds the object store keys, in the style of `BaseRasterAddresser`.
+`WeatherDataAddresser` builds the object store keys, in the style of `BaseRasterAddresser`.
 Production tables live under `weather/stations/`. Dev deployments share one bucket, so each
 writes under `dev/{suffix}/weather/stations/`, using the `SUFFIX` setting (for example
 `pr-123`). With no `SUFFIX`, as when running locally, the production root is used.
