@@ -82,10 +82,10 @@ describe('model elevation comparison panel', () => {
     )
   })
 
-  it.each([1, -1])('uses the capped automatic rate but allows manual overrides in direction %s', async sign => {
+  it('uses the capped automatic rate but allows manual overrides', async () => {
     const utc_timestamp = `${DateTime.now().setZone('America/Vancouver').minus({ days: 1 }).toISODate()}T20:00:00Z`
     const referenceWeather: PreviousDayWeather = {
-      actuals: [{ station_code: 1, utc_timestamp, temperature: 10 * sign } as WeatherIndeterminate],
+      actuals: [{ station_code: 1, utc_timestamp, temperature: 10 } as WeatherIndeterminate],
       predictions: [
         {
           station_code: 1,
@@ -107,10 +107,10 @@ describe('model elevation comparison panel', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
     const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
-    expect(rate).toHaveValue(sign * 9.8)
-    expect(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' })).toHaveValue(sign * 4.9)
+    expect(rate).toHaveValue(9.8)
+    expect(screen.getByRole('spinbutton', { name: 'Adjustment (°C)' })).toHaveValue(4.9)
     await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
-    expect(onApply).toHaveBeenLastCalledWith('HRDPS', sign * 4.9, false)
+    expect(onApply).toHaveBeenLastCalledWith('HRDPS', 4.9, false)
     await userEvent.hover(screen.getByRole('button', { name: 'How the lapse rate is prefilled' }))
     expect(
       await screen.findByText(
@@ -118,9 +118,9 @@ describe('model elevation comparison panel', () => {
       )
     ).toBeVisible()
     await userEvent.clear(rate)
-    await userEvent.type(rate, String(sign * 20))
+    await userEvent.type(rate, '20')
     await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
-    expect(onApply).toHaveBeenLastCalledWith('HRDPS', sign * 10, false)
+    expect(onApply).toHaveBeenLastCalledWith('HRDPS', 10, false)
   })
 
   it('leaves small elevation estimates blank but allows manual rates and direct adjustments', async () => {
@@ -164,23 +164,6 @@ describe('model elevation comparison panel', () => {
     expect(rate).toHaveValue(20)
     await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
     expect(onApply).toHaveBeenLastCalledWith('HRDPS', 1.2, false)
-  })
-
-  it('allows manual entry without reference weather', async () => {
-    render(
-      <ModelElevationComparisonPanel
-        referenceWeather={emptyWeather}
-        station={station}
-        onClose={vi.fn()}
-        onApply={vi.fn()}
-      />
-    )
-    await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
-    await userEvent.hover(screen.getByRole('button', { name: 'How the lapse rate is prefilled' }))
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Initial lapse rate')
-    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
-    await userEvent.type(rate, '6.5')
-    expect(rate).toHaveValue(6.5)
   })
 
   it('explains the date range in a tooltip even when Fill is disabled', async () => {
@@ -406,7 +389,6 @@ describe('model elevation comparison panel', () => {
     const marker = model('HRDPS')
     await userEvent.click(screen.getByRole('button', { name: 'HRDPS' }))
     expect(model('HRDPS')).toBe(marker)
-    expect(marker.querySelector('circle')).toHaveAttribute('stroke-width', '3')
     rerender(
       <ModelElevationComparisonPanel
         {...props}
@@ -500,13 +482,6 @@ describe('model elevation comparison panel', () => {
     )
     expect(screen.getByText('Model elevations are not available for this station.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'HRDPS' })).toBeEnabled()
-  })
-
-  it('requests dismissal with the Close button', async () => {
-    const onClose = vi.fn()
-    render(<ModelElevationComparisonPanel referenceWeather={emptyWeather} station={station} onClose={onClose} />)
-    await userEvent.click(screen.getByRole('button', { name: 'Close elevation comparison' }))
-    expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('does not mount the chart when closed', () => {

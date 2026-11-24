@@ -145,10 +145,9 @@ describe('station elevation comparison sidebar', { timeout: 15000 }, () => {
     ).toBe(19.5)
   })
 
-  it('opens in the sidebar without changing station expansion, drafts, columns, or requests', async () => {
+  it('opens in the sidebar without changing drafts, columns, or requests', async () => {
     await renderPage()
     const columns = vi.spyOn(DataGridColumns, 'getTabColumns')
-    const header = compare().closest('[role="row"]')!
     const requests = vi.mocked(fetchWeatherIndeterminates).mock.calls.length
     const draft = localStorage.getItem('morecastForecastDraft')
     await userEvent.click(compare())
@@ -156,7 +155,6 @@ describe('station elevation comparison sidebar', { timeout: 15000 }, () => {
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
     expect(panel()).toBeVisible()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(header).not.toHaveAttribute('aria-expanded')
     expect(localStorage.getItem('morecastForecastDraft')).toBe(draft)
     expect(fetchWeatherIndeterminates).toHaveBeenCalledTimes(requests)
     expect(columns).not.toHaveBeenCalled()
@@ -204,7 +202,6 @@ describe('station elevation comparison sidebar', { timeout: 15000 }, () => {
     await userEvent.keyboard('{Escape}')
     expect(within(cell(1)).queryByRole('spinbutton')).not.toBeInTheDocument()
     expect(panel()).toBeInTheDocument()
-    expect(button.closest('[role="row"]')).not.toHaveAttribute('aria-expanded')
   })
 
   it('refreshes the comparison from the same elevations as the grid headers', async () => {

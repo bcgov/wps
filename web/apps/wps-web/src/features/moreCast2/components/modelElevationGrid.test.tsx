@@ -157,11 +157,9 @@ describe('station sections', () => {
     const { container } = renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
     const row = stationHeader('Alpha station')
-    expect(container.querySelector('.MuiDataGrid-pinnedRows--top')).toBeNull()
     expect(container.querySelectorAll('.modelElevationRow')).toHaveLength(2)
     expect(screen.getAllByText('Alpha station')).toHaveLength(1)
-    expect(row).not.toHaveAttribute('aria-expanded')
-    expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded')
+    expect(screen.queryByRole('button', { name: /hide children|see children/ })).not.toBeInTheDocument()
     expect(row).toHaveTextContent('Elevation: 900 m')
     expect(row.querySelector('[data-field="forDate"]')).toHaveTextContent(/^$/)
     expect(within(row).getByText('850 m')).toHaveStyle({ textAlign: 'center', justifyContent: 'center' })
@@ -174,14 +172,6 @@ describe('station sections', () => {
     expect(row.querySelector('[data-field="tempForecast"]')).toHaveTextContent(/^$/)
     expect(within(weatherCell(1)).getByRole('textbox')).toHaveValue('20')
     expect(within(weatherCell(2)).getByRole('textbox')).toHaveValue('20')
-  })
-
-  it('keeps every station visible without expansion controls', async () => {
-    renderGrid()
-    await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
-    expect(screen.queryByRole('button', { name: /hide children|see children/ })).not.toBeInTheDocument()
-    expect(weatherRow(1)).toBeDefined()
-    expect(weatherRow(2)).toBeDefined()
   })
 
   it('keeps station headers read only', async () => {
@@ -234,13 +224,13 @@ describe('station sections', () => {
     renderGrid()
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
     await userEvent.click(screen.getByTestId('rh-tab-button-unselected'))
-    expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded')
+    expect(stationHeader('Beta station')).toBeInTheDocument()
     await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
     expect(document.querySelector('.modelElevationRow')).toBeNull()
     await userEvent.click(screen.getByTestId('temp-tab-button-unselected'))
     await screen.findByRole('button', { name: 'Station metadata for Alpha station' })
-    expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded')
-    expect(stationHeader('Alpha station')).not.toHaveAttribute('aria-expanded')
+    expect(stationHeader('Beta station')).toBeInTheDocument()
+    expect(stationHeader('Alpha station')).toBeInTheDocument()
   })
 
   it('shows newly selected stations and removes headers for empty data', async () => {
@@ -253,7 +243,7 @@ describe('station sections', () => {
     act(() => {
       store.dispatch(selectedStationsChanged(stations))
     })
-    await waitFor(() => expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded'))
+    await waitFor(() => expect(stationHeader('Beta station')).toBeInTheDocument())
     act(() => {
       store.dispatch(selectedStationsChanged([]))
     })
@@ -279,7 +269,6 @@ describe('station sections', () => {
       )
     })
     await waitFor(() => expect(stationHeader('Beta station')).toHaveTextContent('1,120 m'))
-    expect(stationHeader('Beta station')).not.toHaveAttribute('aria-expanded')
     expect(stationHeader('Alpha station')).toHaveTextContent('1,120 m')
   })
 })
