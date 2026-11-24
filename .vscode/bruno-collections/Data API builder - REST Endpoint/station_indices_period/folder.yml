@@ -1,0 +1,6 @@
+info:
+  name: station_indices_period
+  type: folder
+
+request:
+  auth: inherit

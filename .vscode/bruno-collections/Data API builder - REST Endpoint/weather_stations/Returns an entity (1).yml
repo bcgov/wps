@@ -1,0 +1,345 @@
+info:
+  name: Returns an entity (1)
+  type: http
+  seq: 1
+  tags:
+    - weather_stations
+
+http:
+  method: GET
+  url: "{{baseUrl}}/weather_stations/WEATHER_STATION_GUID/:WEATHER_STATION_GUID"
+  headers:
+    - name: X-MS-API-ROLE
+      value: ""
+      disabled: true
+    - name: Authorization
+      value: ""
+      disabled: true
+  params:
+    - name: WEATHER_STATION_GUID
+      value: ""
+      type: path
+    - name: $select
+      value: ""
+      type: query
+      description: A comma separated list of fields to return in the response.
+      disabled: true
+    - name: $filter
+      value: ""
+      type: query
+      description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+      disabled: true
+    - name: $orderby
+      value: ""
+      type: query
+      description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+      disabled: true
+    - name: $first
+      value: ""
+      type: query
+      description: An integer value that specifies the number of items to return. Default is 100.
+      disabled: true
+    - name: $after
+      value: ""
+      type: query
+      description: An opaque string that specifies the cursor position after which results should be returned.
+      disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+examples:
+  - name: 200 Response
+    description: OK
+    request:
+      url: "{{baseUrl}}/weather_stations/WEATHER_STATION_GUID/:WEATHER_STATION_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: WEATHER_STATION_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "value": [
+              {
+                "WEATHER_STATION_GUID": "",
+                "STATION_STATUS_CODE": "",
+                "STATION_STATUS_DESC": "",
+                "STATION_CODE": 0,
+                "SITE_TYPE_CODE": "",
+                "SITE_TYPE_DESC": "",
+                "INFLUENCING_ASPECT_CODE": "",
+                "INFLUENCING_ASPECT_DESC": "",
+                "WEATHER_STATION_OWNER_GUID": "",
+                "OWNER_NAME": "",
+                "OWNER_DISPLAY_NAME": "",
+                "OWNER_COMMENT": "",
+                "DATA_LOGGER_TYPE_CODE": "",
+                "DATA_LOGGER_TYPE_DESC": "",
+                "WEATHER_ZONE": 0,
+                "WEATHER_ZONE_DESC": "",
+                "DANGER_REGION": 0,
+                "STATION_ACRONYM": "",
+                "STATION_NAME": "",
+                "STATION_COMMENT": "",
+                "CRD_STATION_NAME": "",
+                "FIRE_CENTRE_ORG_UNIT_IDENT": 0,
+                "FIRE_CENTRE": "",
+                "ZONE_ORG_UNIT_IDENTIFIER": 0,
+                "FIRE_ZONE": "",
+                "DATA_SOURCE": "",
+                "INSTALLATION_TIMESTAMP_MSEC": 0,
+                "DECOMMISSION_TIMESTAMP_MSEC": 0,
+                "HOURLY_IND": "",
+                "OVER_WINTER_PRECIP_ADJ_IND": "",
+                "LATITUDE": 0,
+                "LONGITUDE": 0,
+                "ELEVATION_M": 0,
+                "INFLUENCING_SLOPE": 0,
+                "WINDSPEED_ADJUSTMENT_HEIGHT": "",
+                "WINDSPEED_ADJUSTMENT_ROUGHNESS": 0,
+                "ECCC_FILE_BASE_URL_TEMPLATE": "",
+                "LAST_PROCESSED_SOURCE_TIME": "",
+                "LAST_UPDATED_TIMESTAMP_MSEC": 0,
+                "CREATE_USER": "",
+                "CREATE_DATE": "",
+                "UPDATE_USER": "",
+                "UPDATE_DATE": ""
+              }
+            ]
+          }
+  - name: 400 Response
+    description: BadRequest
+    request:
+      url: "{{baseUrl}}/weather_stations/WEATHER_STATION_GUID/:WEATHER_STATION_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: WEATHER_STATION_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Unauthorized
+    request:
+      url: "{{baseUrl}}/weather_stations/WEATHER_STATION_GUID/:WEATHER_STATION_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: WEATHER_STATION_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 403 Response
+    description: Forbidden
+    request:
+      url: "{{baseUrl}}/weather_stations/WEATHER_STATION_GUID/:WEATHER_STATION_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: WEATHER_STATION_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 403
+      statusText: Forbidden
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: NotFound
+    request:
+      url: "{{baseUrl}}/weather_stations/WEATHER_STATION_GUID/:WEATHER_STATION_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: WEATHER_STATION_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+
+docs: Returns an entity.

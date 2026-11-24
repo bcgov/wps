@@ -1,0 +1,313 @@
+info:
+  name: Returns an entity (3)
+  type: http
+  seq: 1
+  tags:
+    - daily_measurement_type_codes
+
+http:
+  method: GET
+  url: "{{baseUrl}}/daily_measurement_type_codes/DAILY_MEASUREMENT_TYPE_CODE/:DAILY_MEASUREMENT_TYPE_CODE"
+  headers:
+    - name: X-MS-API-ROLE
+      value: ""
+      disabled: true
+    - name: Authorization
+      value: ""
+      disabled: true
+    - name: Content-Type
+      value: application/json
+  params:
+    - name: $select
+      value: ""
+      type: query
+      description: A comma separated list of fields to return in the response.
+      disabled: true
+    - name: $filter
+      value: ""
+      type: query
+      description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+      disabled: true
+    - name: $orderby
+      value: ""
+      type: query
+      description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+      disabled: true
+    - name: $first
+      value: ""
+      type: query
+      description: An integer value that specifies the number of items to return. Default is 100.
+      disabled: true
+    - name: $after
+      value: ""
+      type: query
+      description: An opaque string that specifies the cursor position after which results should be returned.
+      disabled: true
+    - name: DAILY_MEASUREMENT_TYPE_CODE
+      value: ""
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+examples:
+  - name: 200 Response
+    description: OK
+    request:
+      url: "{{baseUrl}}/daily_measurement_type_codes/DAILY_MEASUREMENT_TYPE_CODE/:DAILY_MEASUREMENT_TYPE_CODE"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: DAILY_MEASUREMENT_TYPE_CODE
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "value": [
+              {
+                "DAILY_MEASUREMENT_TYPE_CODE": "",
+                "DESCRIPTION": "",
+                "DISPLAY_ORDER": 0,
+                "EFFECTIVE_DATE": "",
+                "EXPIRY_DATE": "",
+                "CREATE_USER": "",
+                "CREATE_DATE": "",
+                "UPDATE_USER": "",
+                "UPDATE_DATE": ""
+              }
+            ]
+          }
+  - name: 400 Response
+    description: BadRequest
+    request:
+      url: "{{baseUrl}}/daily_measurement_type_codes/DAILY_MEASUREMENT_TYPE_CODE/:DAILY_MEASUREMENT_TYPE_CODE"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: DAILY_MEASUREMENT_TYPE_CODE
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Unauthorized
+    request:
+      url: "{{baseUrl}}/daily_measurement_type_codes/DAILY_MEASUREMENT_TYPE_CODE/:DAILY_MEASUREMENT_TYPE_CODE"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: DAILY_MEASUREMENT_TYPE_CODE
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 403 Response
+    description: Forbidden
+    request:
+      url: "{{baseUrl}}/daily_measurement_type_codes/DAILY_MEASUREMENT_TYPE_CODE/:DAILY_MEASUREMENT_TYPE_CODE"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: DAILY_MEASUREMENT_TYPE_CODE
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 403
+      statusText: Forbidden
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: NotFound
+    request:
+      url: "{{baseUrl}}/daily_measurement_type_codes/DAILY_MEASUREMENT_TYPE_CODE/:DAILY_MEASUREMENT_TYPE_CODE"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: DAILY_MEASUREMENT_TYPE_CODE
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+
+docs: Returns an entity.

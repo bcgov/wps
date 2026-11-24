@@ -1,0 +1,6 @@
+info:
+  name: hourly_weather
+  type: folder
+
+request:
+  auth: inherit

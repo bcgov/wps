@@ -1,0 +1,6 @@
+info:
+  name: daily_measurement_type_codes
+  type: folder
+
+request:
+  auth: inherit

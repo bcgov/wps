@@ -1,0 +1,4 @@
+name: DataMart Test
+variables:
+  - name: baseUrl
+    value: https://wildfiredatamart-tst.nrs.gov.bc.ca/

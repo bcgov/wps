@@ -1,0 +1,6 @@
+info:
+  name: daily_weather
+  type: folder
+
+request:
+  auth: inherit

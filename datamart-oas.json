@@ -1,0 +1,1902 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Data API builder - REST Endpoint",
+    "version": "2.0.12"
+  },
+  "servers": [
+    {
+      "url": "/api"
+    }
+  ],
+  "paths": {
+    "/daily_weather/DAILY_WEATHER_MEAS_GUID/{DAILY_WEATHER_MEAS_GUID}": {
+      "get": {
+        "tags": [
+          "daily_weather"
+        ],
+        "description": "Returns an entity.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/daily_weather"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "DAILY_WEATHER_MEAS_GUID",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/daily_weather": {
+      "get": {
+        "tags": [
+          "daily_weather"
+        ],
+        "description": "Returns entities.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/daily_weather"
+                      }
+                    },
+                    "nextLink": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/hourly_weather/HOURLY_WEATHER_MEAS_GUID/{HOURLY_WEATHER_MEAS_GUID}": {
+      "get": {
+        "tags": [
+          "hourly_weather"
+        ],
+        "description": "Returns an entity.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/hourly_weather"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "HOURLY_WEATHER_MEAS_GUID",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/hourly_weather": {
+      "get": {
+        "tags": [
+          "hourly_weather"
+        ],
+        "description": "Returns entities.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/hourly_weather"
+                      }
+                    },
+                    "nextLink": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weather_stations/WEATHER_STATION_GUID/{WEATHER_STATION_GUID}": {
+      "get": {
+        "tags": [
+          "weather_stations"
+        ],
+        "description": "Returns an entity.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/weather_stations"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "WEATHER_STATION_GUID",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/weather_stations": {
+      "get": {
+        "tags": [
+          "weather_stations"
+        ],
+        "description": "Returns entities.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/weather_stations"
+                      }
+                    },
+                    "nextLink": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/station_indices_period/STATION_INDICES_PERIOD_GUID/{STATION_INDICES_PERIOD_GUID}": {
+      "get": {
+        "tags": [
+          "station_indices_period"
+        ],
+        "description": "Returns an entity.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/station_indices_period"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "STATION_INDICES_PERIOD_GUID",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/station_indices_period": {
+      "get": {
+        "tags": [
+          "station_indices_period"
+        ],
+        "description": "Returns entities.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/station_indices_period"
+                      }
+                    },
+                    "nextLink": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/daily_measurement_type_codes/DAILY_MEASUREMENT_TYPE_CODE/{DAILY_MEASUREMENT_TYPE_CODE}": {
+      "get": {
+        "tags": [
+          "daily_measurement_type_codes"
+        ],
+        "description": "Returns an entity.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/daily_measurement_type_codes"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "DAILY_MEASUREMENT_TYPE_CODE",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/daily_measurement_type_codes": {
+      "get": {
+        "tags": [
+          "daily_measurement_type_codes"
+        ],
+        "description": "Returns entities.",
+        "parameters": [
+          {
+            "name": "X-MS-API-ROLE",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$select",
+            "in": "query",
+            "description": "A comma separated list of fields to return in the response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$filter",
+            "in": "query",
+            "description": "An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$orderby",
+            "in": "query",
+            "description": "Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "$first",
+            "in": "query",
+            "description": "An integer value that specifies the number of items to return. Default is 100.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "$after",
+            "in": "query",
+            "description": "An opaque string that specifies the cursor position after which results should be returned.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "BadRequest"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "NotFound"
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/daily_measurement_type_codes"
+                      }
+                    },
+                    "nextLink": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "daily_weather": {
+        "type": "object",
+        "properties": {
+          "DAILY_WEATHER_MEAS_GUID": {
+            "type": "string",
+            "description": "DAILY_WEATHER_MEAS_GUID is a unique identifier for the record.",
+            "format": ""
+          },
+          "WEATHER_STATION_GUID": {
+            "type": "string",
+            "description": "WEATHER_STATION_GUID: Is a foreign key to WEATHER_STATION: Weather Station is a list of weather stations setup and maintained across the province of BC. The weather stations contain multiple instruments for measuring varying aspects of meteorology used to produce weather forecasts.",
+            "format": ""
+          },
+          "WEATHER_TIMESTAMP_MSEC": {
+            "type": "number",
+            "description": "Weather Timestamp MSec is the date and time a weather measurement is collected as measured by milliseconds since epoch.",
+            "format": ""
+          },
+          "WEATHER_TIMESTAMP": {
+            "type": "string",
+            "description": "Weather Timestamp is the UTC timestamp of when the weather measurement was taken. The Weather Timestamp MSec column is the source of truth for the Weather Timestamp column. The UTC Timestamp is needed for compatibility with Jaspersoft reporting and GeoServer which cannot handle milliseconds past epoch.",
+            "format": ""
+          },
+          "DAILY_MEASUREMENT_TYPE_CODE": {
+            "type": "string",
+            "description": "DAILY_MEASUREMENT_TYPE_CODE: Is a foreign key to DAILY_MEASUREMENT_TYPE_CODE: Measurement Type Code describes the types of measurements that can be collected. It correlates to the original Data Status Code in the old system. Values are: - Actual - Forecast - Estimate - Edited Actual - Test - Startup - Deleted - Manual - Substitution - missing - Substitution - invalid - Substitution - partial",
+            "format": ""
+          },
+          "TEMPERATURE": {
+            "type": "number",
+            "description": "Temperature is the temperature measured in degrees Celsius by the weather station.",
+            "format": ""
+          },
+          "TEMPERATURE_MIN": {
+            "type": "number",
+            "description": "Temperature Min is the daily low (minimum) temperature for the day measured in degrees Celsius. This is based on a roll up values from the last 24 hours of hourly measurements. A daily record comes from the 12-noon hourly observation. The max/min values come from a roll up of data in the last 24 hours.",
+            "format": ""
+          },
+          "TEMPERATURE_MAX": {
+            "type": "number",
+            "description": "Temperature Min is the daily high (maximum) temperature for the day measured in degrees Celsius. This is based on a roll up values from the last 24 hours of hourly measurements. A daily record comes from the 12-noon hourly observation. The max/min values come from a roll up of data in the last 24 hours.",
+            "format": ""
+          },
+          "RELATIVE_HUMIDITY": {
+            "type": "number",
+            "description": "Relative Humidity is a measure of the relative humidity by the weather station.",
+            "format": ""
+          },
+          "RELATIVE_HUMIDITY_MIN": {
+            "type": "number",
+            "description": "Relative Humidity is the daily low (minimum) Humidity measurement for the day. This is based on a roll up values from the last 24 hours of hourly measurements. A daily record comes from the 12-noon hourly observation. The max/min values come from a roll up of data in the last 24 hours.",
+            "format": ""
+          },
+          "RELATIVE_HUMIDITY_MAX": {
+            "type": "number",
+            "description": "Relative Humidity is the daily high (maximum) Humidity measurement for the day. This is based on a roll up values from the last 24 hours of hourly measurements. A daily record comes from the 12-noon hourly observation. The max/min values come from a roll up of data in the last 24 hours.",
+            "format": ""
+          },
+          "PRECIPITATION": {
+            "type": "number",
+            "description": "Precipitation is a measure of precipitation by the weather station. In meteorology, precipitation is any product of the condensation of atmospheric water vapour that falls under gravity. The main forms of precipitation include drizzle, rain, sleet, snow, graupel and hail.",
+            "format": ""
+          },
+          "WIND_SPEED": {
+            "type": "number",
+            "description": "Wind Speed is a measure of wind speed in kilometres/hour by the weather station.",
+            "format": ""
+          },
+          "WIND_DIRECTION_DEGREES": {
+            "type": "number",
+            "description": "Wind Direction Degrees is the direction the wind measured in degrees as measured by the weather station. Values fall within the range 0.0 - 359.0",
+            "format": ""
+          },
+          "ADJUSTED_WIND_SPEED": {
+            "type": "number",
+            "description": "Adjusted Wind Speed is an adjusted measure of wind speed in kilometres/hour by the weather station. The measurement is adjusted by the mast height of the wind measuring sensor on the weather station.",
+            "format": ""
+          },
+          "DAILY_SEVERITY_RATING": {
+            "type": "number",
+            "description": "Daily Severity Rating is a numeric rating describing the difficulty of controlling fires. It is calculated from the Initial Spread Index and Build Up Index.",
+            "format": ""
+          },
+          "DROUGHT_CODE": {
+            "type": "number",
+            "description": "Drought Code is a numerical rating of the moisture content of deep, compact, organic layers. It is a useful indicator of seasonal drought and shows the likelihood of fire involving the deep duff layers and large logs. A long period of dry weather (the system uses 52 days) is needed to dry out these fuels and affect the Drought Code. A DC rating of 200 is high, and 300 or more is extreme indicating that fire will involve deep sub-surface and heavy fuels. Burning off should not be permitted when the DC rating is above 300. Note: Drought Code is a meteorological business term and is not a true code that is looked up in a code table.",
+            "format": ""
+          },
+          "DUFF_MOISTURE_CODE": {
+            "type": "number",
+            "description": "Duff Moisture Code is a numerical rating of the average moisture content of loosely compacted organic layers of moderate depth. The code indicates the depth that fire will burn in moderate duff layers and medium size woody material. Duff layers take longer than surface fuels to dry out but weather conditions over the past couple of weeks will significantly affect the DMC. The system applies a time lag of 12 days to calculate the DMC. A DMC rating of more than 30 is dry, and above 40 indicates that intensive burning will occur in the duff and medium fuels. Burning off operations should not be carried out when the DMC rating is above 40. Note: Duff Moisture Code is a meteorological business term and is not a true code that is looked up in a code table.",
+            "format": ""
+          },
+          "FINE_FUEL_MOISTURE_CODE": {
+            "type": "number",
+            "description": "Fine Fuel Moisture Code (FFMC) is a measure of the moisture content (dryness) of the smallest forest fuels (surface litter, leaves, needles, small twigs, etc). It shows the relative ease of ignition and flammability of fine fuels. The moisture content of the fine fuels is very sensitive to the weather. Even a day of rain, or of fine and windy weather, will significantly affect the FFMC rating. Measured values translate as: 0-76 : Low 77-84: Moderate 85-88: High 89-91: Very High 92+: Extreme",
+            "format": ""
+          },
+          "GRASSLAND_CURING": {
+            "type": "number",
+            "description": "Grassland Curing is a numeric rating of the state of the grassland moisture levels.",
+            "format": ""
+          },
+          "BUILD_UP_INDEX": {
+            "type": "number",
+            "description": "Build Up Index shows the amount of fuel available for combustion, indicating how the fire will develope after initial spread. It is calculated from the Duff Moisture Code and Drought Code. The BUI Scale starts at 0 and is open-ended. A rating above 40 is high, and above 60 is extreme.",
+            "format": ""
+          },
+          "DANGER_FOREST_INDEX": {
+            "type": "integer",
+            "description": "Danger Forest Index is an index calculation specific to BC that is based on location Build Up Index and Fire Weather Index. Values fall in the range of 1-5.",
+            "format": ""
+          },
+          "DANGER_GRASSLAND_INDEX": {
+            "type": "integer",
+            "description": "Danger Grassland Index is an index calculation specific to BC that is based on location Initial Spread Index and Grass Curing. Values fall in the range of 1-5.",
+            "format": ""
+          },
+          "DANGER_SCRUB_INDEX": {
+            "type": "integer",
+            "description": "Danger Scrub Index is an index calculation specific to BC that is based on location Initial Spread Index and Fine Fuel Moisture Code. Values fall in the range of 1-5.",
+            "format": ""
+          },
+          "FIRE_WEATHER_INDEX": {
+            "type": "number",
+            "description": "Fire Weather Index is calculated from the Initial Spread Index and a measure called BUI (Build-Up Index), and provides a numerical rating of the likely intensity of a fire. Values are: 0-4.5 : Low 4.5-10.5: Moderate 10.5-18.5: High 18.5-29.5: Very High 29.5+: Extreme",
+            "format": ""
+          },
+          "INITIAL_SPREAD_INDEX": {
+            "type": "number",
+            "description": "Initial Spread Index indicates the rate fire will spread in its early stages. It is calculated from the FFMC rating and the wind factor. A high rating indicates a high rate of spread. Measured values translate as: 0-1.5 : Low 2-4: Moderate 5-8: High 9-15: Very High 16+: Extreme",
+            "format": ""
+          },
+          "MISSING_HOURLY_DATA_IND": {
+            "type": "string",
+            "description": "Missing Hourly Data Ind indicates whether the measurements collected by this record are missing hourly data (Y) or not (N). This field references whether the roll up values (Precipitation, Temperature_max/min, RH max/min) might be based on incomplete data. IE if hourly data is missing from 4am to 7am then the precipitation measurement may be missing some precipitation that occurred during that window.",
+            "format": ""
+          },
+          "OBSERVATION_VALID_IND": {
+            "type": "string",
+            "description": "Observation Valid Ind indicates whether one or more weather observations is within an acceptable range of values (Y) or is outside of a valid range (N). Observations outside of an acceptable range indicate that one or more sensors are not working properly.",
+            "format": ""
+          },
+          "OBSERVATION_VALID_COMMENT": {
+            "type": "string",
+            "description": "Observation Valid Comment are comments provided that describe issues with one or more sensors that are affecting observations.",
+            "format": ""
+          },
+          "ARCHIVED_IND": {
+            "type": "string",
+            "description": "Archived Ind indicates whether the measurement is archived (Y) or not (N). Archived records are not to be used for any operational purpose after the fact. It allows for external model data to be added that the forecasters can utilize or dismiss as needed.",
+            "format": ""
+          },
+          "LAST_UPDATED_TIMESTAMP_MSEC": {
+            "type": "number",
+            "description": "Last Updated Timestamp MSec is the last date and time the record was updated as measured by milliseconds since epoch.",
+            "format": ""
+          },
+          "LAST_UPDATED_TIMESTAMP": {
+            "type": "string",
+            "description": "Last Updated Timestamp is the UTC timestamp of when the record was last updated. The Last Updated Timestamp MSec column is the source of truth for the Last Updated Timestamp column. The UTC Timestamp is needed for compatibility with Jaspersoft reporting and GeoServer which cannot handle milliseconds past epoch.",
+            "format": ""
+          },
+          "CREATE_USER": {
+            "type": "string",
+            "description": "CREATE_USER is an audit column that indicates the user that created the record.",
+            "format": ""
+          },
+          "CREATE_DATE": {
+            "type": "string",
+            "description": "CREATE_DATE is the date and time the row of data was created.",
+            "format": ""
+          },
+          "UPDATE_USER": {
+            "type": "string",
+            "description": "UPDATE_USER is an audit column that indicates the user that updated the record.",
+            "format": ""
+          },
+          "UPDATE_DATE": {
+            "type": "string",
+            "description": "UPDATE_DATE is the date and time the row of data was updated.",
+            "format": ""
+          }
+        }
+      },
+      "hourly_weather": {
+        "type": "object",
+        "properties": {
+          "HOURLY_WEATHER_MEAS_GUID": {
+            "type": "string",
+            "description": "HOURLY_WEATHER_MEAS_GUID is a unique identifier for the record.",
+            "format": ""
+          },
+          "WEATHER_STATION_GUID": {
+            "type": "string",
+            "description": "WEATHER_STATION_GUID: Is a foreign key to WEATHER_STATION: Weather Station is a list of weather stations setup and maintained across the province of BC. The weather stations contain multiple instruments for measuring varying aspects of meteorology used to produce weather forecasts.",
+            "format": ""
+          },
+          "WEATHER_TIMESTAMP_MSEC": {
+            "type": "number",
+            "description": "Weather Timestamp MSec is the date and time a weather measurement is collected as measured by milliseconds since epoch.",
+            "format": ""
+          },
+          "WEATHER_TIMESTAMP": {
+            "type": "string",
+            "description": "Weather Timestamp is the UTC timestamp of when the weather measurement was taken. The Weather Timestamp MSec column is the source of truth for the Weather Timestamp column. The UTC Timestamp is needed for compatibility with Jaspersoft reporting and GeoServer which cannot handle milliseconds past epoch.",
+            "format": ""
+          },
+          "HOURLY_MEASUREMENT_TYPE_CODE": {
+            "type": "string",
+            "description": "HOURLY_MEASUREMENT_TYPE_CODE: Is a foreign key to HOURLY_MEASUREMENT_TYPE_CODE: Measurement Type Code describes the types of measurements that can be collected. It correlates to the original Data Status Code in the old system. Values are: - Actual - Forecast - Estimate - Edited Actual - Test - Startup - Deleted - Manual - Substitution - missing - Substitution - invalid - Substitution - partial",
+            "format": ""
+          },
+          "HOURLY_MEASUREMENT_TYPE_DESC": {
+            "type": "string",
+            "description": "HOURLY_MEASUREMENT_TYPE_DESC is the display quality description of the code value.",
+            "format": ""
+          },
+          "TEMPERATURE": {
+            "type": "number",
+            "description": "Temperature is the temperature measured in degrees Celsius by the weather station.",
+            "format": ""
+          },
+          "BAROMETRIC_PRESSURE": {
+            "type": "number",
+            "description": "Barometric Pressure is a measure of barometric pressure by the weather station. Atmospheric pressure, sometimes also called barometric pressure (after the sensor), is the pressure within the atmosphere of Earth (or that of another planet). The standard atmosphere (symbol: atm) is a unit of pressure defined as 1013.25 mbar (101325 Pa), equivalent to 760 mm Hg (torr), 29.9212 inches Hg, or 14.696 psi.[1] The atm unit is roughly equivalent to the mean sea-level atmospheric pressure on Earth, that is, the Earth's atmospheric pressure at sea level is approximately 1 atm. In most circumstances atmospheric pressure is closely approximated by the hydrostatic pressure caused by the weight of air above the measurement point. As elevation increases, there is less overlying atmospheric mass, so that atmospheric pressure decreases with increasing elevation. Pressure measures force per unit area, with SI units of Pascals (1 pascal = 1 newton per square metre, 1 N/m2).",
+            "format": ""
+          },
+          "RELATIVE_HUMIDITY": {
+            "type": "number",
+            "description": "Relative Humidity is a measure of the relative humidity by the weather station.",
+            "format": ""
+          },
+          "PRECIPITATION": {
+            "type": "number",
+            "description": "Precipitation is a measure of precipitation by the weather station. In meteorology, precipitation is any product of the condensation of atmospheric water vapour that falls under gravity. The main forms of precipitation include drizzle, rain, sleet, snow, graupel and hail.",
+            "format": ""
+          },
+          "WIND_SPEED": {
+            "type": "number",
+            "description": "Wind Speed is a measure of wind speed in kilometres/hour by the weather station.",
+            "format": ""
+          },
+          "WIND_DIRECTION_DEGREES": {
+            "type": "number",
+            "description": "Wind Direction Degrees is the direction the wind measured in degrees as measured by the weather station. Values fall within the range 0.0 - 359.0",
+            "format": ""
+          },
+          "FINE_FUEL_MOISTURE_CODE": {
+            "type": "number",
+            "description": "Fine Fuel Moisture Code (FFMC) is a measure of the moisture content (dryness) of the smallest forest fuels (surface litter, leaves, needles, small twigs, etc). It shows the relative ease of ignition and flammability of fine fuels. The moisture content of the fine fuels is very sensitive to the weather. Even a day of rain, or of fine and windy weather, will significantly affect the FFMC rating. Measured values translate as: 0-76 : Low 77-84: Moderate 85-88: High 89-91: Very High 92+: Extreme",
+            "format": ""
+          },
+          "FIRE_WEATHER_INDEX": {
+            "type": "number",
+            "description": "Fire Weather Index is calculated from the Initial Spread Index and a measure called BUI (Build-Up Index), and provides a numerical rating of the likely intensity of a fire. Values are: 0-4.5 : Low 4.5-10.5: Moderate 10.5-18.5: High 18.5-29.5: Very High 29.5+: Extreme",
+            "format": ""
+          },
+          "INITIAL_SPREAD_INDEX": {
+            "type": "number",
+            "description": "Initial Spread Index indicates the rate fire will spread in its early stages. It is calculated from the FFMC rating and the wind factor. A high rating indicates a high rate of spread. Measured values translate as: 0-1.5 : Low 2-4: Moderate 5-8: High 9-15: Very High 16+: Extreme",
+            "format": ""
+          },
+          "OBSERVATION_VALID_IND": {
+            "type": "string",
+            "description": "Observation Valid Ind indicates whether one or more weather observations is within an acceptable range of values (Y) or is outside of a valid range (N). Observations outside of an acceptable range indicate that one or more sensors are not working properly.",
+            "format": ""
+          },
+          "OBSERVATION_VALID_COMMENT": {
+            "type": "string",
+            "description": "Observation Valid Comment are comments provided that describe issues with one or more sensors that are affecting observations.",
+            "format": ""
+          },
+          "ADJUSTED_WIND_SPEED": {
+            "type": "number",
+            "description": "Adjusted Wind Speed is an adjusted measure of wind speed in kilometres/hour by the weather station. The measurement is adjusted by the mast height of the wind measuring sensor on the weather station.",
+            "format": ""
+          },
+          "BATTERY_SUPPLY_CURRENT": {
+            "type": "number",
+            "description": "Battery Supply Current (lbat) is a measure of the supply current for the weather station battery.",
+            "format": ""
+          },
+          "BATTERY_SUPPLY_VOLTAGE": {
+            "type": "number",
+            "description": "Battery Supply Voltage (Vbat) is a measure of the supply voltage for the weather station battery.",
+            "format": ""
+          },
+          "FUEL_STICK_MOISTURE": {
+            "type": "number",
+            "description": "Fuel Stick Moisture is a measure of the amount of water in a fuel available.",
+            "format": ""
+          },
+          "FUEL_STICK_TEMPERATURE": {
+            "type": "number",
+            "description": "Fuel Stick Temperature is a measure of the temperature of available fuel sources.",
+            "format": ""
+          },
+          "PRECIP_PLUVIO_1_STATUS": {
+            "type": "number",
+            "description": "Precip Pluvio 1 Status measurement",
+            "format": ""
+          },
+          "PRECIP_PLUVIO_1_TOTAL": {
+            "type": "number",
+            "description": "Precip Pluvio 1 Total measurement",
+            "format": ""
+          },
+          "PRECIP_PLUVIO_2_STATUS": {
+            "type": "number",
+            "description": "Precip Pluvio 2 Status measurement",
+            "format": ""
+          },
+          "PRECIP_PLUVIO_2_TOTAL": {
+            "type": "number",
+            "description": "Precip Pluvio 2 Total measurement",
+            "format": ""
+          },
+          "PRECIP_RIT_STATUS": {
+            "type": "number",
+            "description": "Precip RIT Status Measurement",
+            "format": ""
+          },
+          "PRECIP_RIT_TOTAL": {
+            "type": "number",
+            "description": "Precip RIT Total Measurement",
+            "format": ""
+          },
+          "PRECIP_RGT": {
+            "type": "number",
+            "description": "Precip RGT measurement",
+            "format": ""
+          },
+          "PRECIP_PC2_STATUS": {
+            "type": "number",
+            "description": "Precip PC2 Status is the status of the PC2 (Campbell Scientific) weather sensor.",
+            "format": ""
+          },
+          "PRECIP_PC2_TOTAL": {
+            "type": "number",
+            "description": "Precip PC2 Total is a precipitation sensor made by Campbell Scientific. The new sensor will replace existing RIT (Ritmeyer) precipitation sensors in weather stations.",
+            "format": ""
+          },
+          "RELATIVE_HUMIDITY_HOURLY_AVG": {
+            "type": "number",
+            "description": "Relative Humidity Hourly Average is the average of measured humidity over the hour.",
+            "format": ""
+          },
+          "RN_1_PLUVIO_1": {
+            "type": "number",
+            "description": "RN 1 Pluvio 1 measurement",
+            "format": ""
+          },
+          "RN_1_PLUVIO_2": {
+            "type": "number",
+            "description": "RN 1 Pluvio 2 Measurement",
+            "format": ""
+          },
+          "RN_1_RIT": {
+            "type": "number",
+            "description": "RN 1 RIT measurement",
+            "format": ""
+          },
+          "RN_1_PC2": {
+            "type": "number",
+            "description": "RN 1 PC2 is a Rainfall Now sensor made by Campbell Scientific. The new sensor will replace existing RIT (Ritmeyer) RN sensors in weather stations.",
+            "format": ""
+          },
+          "SNOW_DEPTH": {
+            "type": "number",
+            "description": "Snow Depth is a measurement of the depth of the snow.",
+            "format": ""
+          },
+          "SNOW_DEPTH_QUALITY": {
+            "type": "number",
+            "description": "Snow Depth Quality is a measurement of the snow depth quality.",
+            "format": ""
+          },
+          "SOLAR_RADIATION_CM3": {
+            "type": "number",
+            "description": "Solar Radiation CM3 is a CM3 measure of solar radiation measured",
+            "format": ""
+          },
+          "SOLAR_RADIATION_LICOR": {
+            "type": "number",
+            "description": "Solar Radiation LICOR is a LICOR measure of solar radiation measured",
+            "format": ""
+          },
+          "SOLAR_SUPPLY_CURRENT": {
+            "type": "number",
+            "description": "Solar Supply Current (Vslr) is a measure of the supply current for the weather station solar panel.",
+            "format": ""
+          },
+          "SOLAR_SUPPLY_VOLTAGE": {
+            "type": "number",
+            "description": "Solar Supply Voltage (Vslr) is a measure of the supply voltage for the weather station solar panel.",
+            "format": ""
+          },
+          "TEMPERATURE_HOURLY_AVERAGE": {
+            "type": "number",
+            "description": "Temperature Hourly Average is the average of temperatures measured over the hour.",
+            "format": ""
+          },
+          "WIND_SPEED_HOURLY_AVERAGE": {
+            "type": "number",
+            "description": "Wind Speed Hourly Average is the average of measured wind speed over the hour.",
+            "format": ""
+          },
+          "WIND_DIRECTION_HOURLY_AVERAGE": {
+            "type": "number",
+            "description": "Wind Direction Hourly Average is the average of measured wind directions over the hour.",
+            "format": ""
+          },
+          "WIND_SPEED_MAX_10_MINUTE": {
+            "type": "number",
+            "description": "Wind Speed Max 10 Minute is the maximum measure wind speed over a 10 minute period for the hour.",
+            "format": ""
+          },
+          "WIND_GUST": {
+            "type": "number",
+            "description": "Wind Gust is a measurement of wind gusts.",
+            "format": ""
+          },
+          "SOIL_MOISTURE_PROBE_1": {
+            "type": "number",
+            "description": "Soil Moisture Probe 1 is a probe sensor inserted into the soil that measures moisture.",
+            "format": ""
+          },
+          "SOIL_MOISTURE_PROBE_2": {
+            "type": "number",
+            "description": "Soil Moisture Probe 2 is a probe sensor inserted into the soil that measures moisture.",
+            "format": ""
+          },
+          "SOIL_MOISTURE_PROBE_3": {
+            "type": "number",
+            "description": "Soil Moisture Probe 3 is a probe sensor inserted into the soil that measures moisture.",
+            "format": ""
+          },
+          "SOIL_TEMPERATURE_PROBE_1": {
+            "type": "number",
+            "description": "Soil Temperature Probe 1 is a probe sensor inserted into the soil that measures the temperature of the soil at a predetermined depth.",
+            "format": ""
+          },
+          "SOIL_TEMPERATURE_PROBE_2": {
+            "type": "number",
+            "description": "Soil Temperature Probe 2 is a probe sensor inserted into the soil that measures the temperature of the soil at a predetermined depth.",
+            "format": ""
+          },
+          "SOIL_TEMPERATURE_PROBE_3": {
+            "type": "number",
+            "description": "Soil Temperature Probe 3 is a probe sensor inserted into the soil that measures the temperature of the soil at a predetermined depth.",
+            "format": ""
+          },
+          "ARCHIVED_IND": {
+            "type": "string",
+            "description": "Archived Ind indicates whether the measurement is archived (Y) or not (N). Archived records are not to be used for any operational purpose after the fact. It allows for external model data to be added that the forecasters can utilize or dismiss as needed.",
+            "format": ""
+          },
+          "LAST_UPDATED_TIMESTAMP_MSEC": {
+            "type": "number",
+            "description": "Last Updated Timestamp MSec is the last date and time the record was updated as measured by milliseconds since epoch.",
+            "format": ""
+          },
+          "LAST_UPDATED_TIMESTAMP": {
+            "type": "string",
+            "description": "Last Updated Timestamp is the UTC timestamp of when the record was last updated. The Last Updated Timestamp MSec column is the source of truth for the Last Updated Timestamp column. The UTC Timestamp is needed for compatibility with Jaspersoft reporting and GeoServer which cannot handle milliseconds past epoch.",
+            "format": ""
+          },
+          "CREATE_USER": {
+            "type": "string",
+            "description": "CREATE_USER is an audit column that indicates the user that created the record.",
+            "format": ""
+          },
+          "CREATE_DATE": {
+            "type": "string",
+            "description": "CREATE_DATE is the date and time the row of data was created.",
+            "format": ""
+          },
+          "UPDATE_USER": {
+            "type": "string",
+            "description": "UPDATE_USER is an audit column that indicates the user that updated the record.",
+            "format": ""
+          },
+          "UPDATE_DATE": {
+            "type": "string",
+            "description": "UPDATE_DATE is the date and time the row of data was updated.",
+            "format": ""
+          }
+        }
+      },
+      "weather_stations": {
+        "type": "object",
+        "properties": {
+          "WEATHER_STATION_GUID": {
+            "type": "string",
+            "description": "WEATHER_STATION_GUID is a unique identifier for the record.",
+            "format": ""
+          },
+          "STATION_STATUS_CODE": {
+            "type": "string",
+            "description": "STATION_STATUS_CODE: Is a foreign key to STATION_STATUS_CODE: Station Status Code describes the status of a weather station. Values are: - Active - Disabled - Archived - Test - Project",
+            "format": ""
+          },
+          "STATION_STATUS_DESC": {
+            "type": "string",
+            "description": "STATION_STATUS_DESC is the display quality description of the code value.",
+            "format": ""
+          },
+          "STATION_CODE": {
+            "type": "integer",
+            "description": "Station Code is a unique number that has been assigned to the station as a means of identifying the station.",
+            "format": ""
+          },
+          "SITE_TYPE_CODE": {
+            "type": "string",
+            "description": "SITE_TYPE_CODE: Is a foreign key to SITE_TYPE_CODE: Site Type Code describes the type of weather station site. This in turn determines how the weather measurements are accessed for transmission. This list is maintained by administrators Values are: - Download - this is cell connected to a radio but no station - External - Used for ECCC/CRD stations - Hub Station – connected to radio and cell but has a station - Store Forward – radio modem only - wx stn (GOES) - wx stn (cell) - wx stn (UHF) – Weather station with a radio modem - Manual (retired) - Undetermined (retired) - wx stn (MB) (retired) - wx stn (telephone) (retired)",
+            "format": ""
+          },
+          "SITE_TYPE_DESC": {
+            "type": "string",
+            "description": "SITE_TYPE_DESC is the display quality description of the code value.",
+            "format": ""
+          },
+          "INFLUENCING_ASPECT_CODE": {
+            "type": "string",
+            "description": "INFLUENCING_ASPECT_CODE: Is a foreign key to INFLUENCING_ASPECT_CODE: Influencing Aspect refers to the influencing cardinal direction the weather station is exposed to. Values are: - N - NE - E - SE - S - SW - W - NW - Varies - Flat Flat refers to equal influence from all cardinal directions. Varies means the influence by cardinal direction may vary based on other factors.",
+            "format": ""
+          },
+          "INFLUENCING_ASPECT_DESC": {
+            "type": "string",
+            "description": "INFLUENCING_ASPECT_DESC is the display quality description of the code value.",
+            "format": ""
+          },
+          "WEATHER_STATION_OWNER_GUID": {
+            "type": "string",
+            "description": "WEATHER_STATION_OWNER_GUID: Is a foreign key to WEATHER_STATION_OWNER: Weather Station Owner is the name of the agency or organization that owns one or more weather stations. A weather station owner can be an outside agency. This table stores very basic details about the owner. Values are - BCWF - BC Wildfire - Environment Canada - GVWD - Greater Vancouver Water District - CRD - Capital Region District - UBC - University of BC - Yukon FS - Yukon Forest Service - MOT - Ministry of Transportation",
+            "format": ""
+          },
+          "OWNER_NAME": {
+            "type": "string",
+            "description": "",
+            "format": ""
+          },
+          "OWNER_DISPLAY_NAME": {
+            "type": "string",
+            "description": "",
+            "format": ""
+          },
+          "OWNER_COMMENT": {
+            "type": "string",
+            "description": "",
+            "format": ""
+          },
+          "DATA_LOGGER_TYPE_CODE": {
+            "type": "string",
+            "description": "DATA_LOGGER_TYPE_CODE: Is a foreign key to DATA_LOGGER_TYPE_CODE: Data Logger Type Code describes the types of data loggers that can be used by a weather station. This is a list maintained by administrators Values are: - None - Undetermined - CR10 - FWS11 - FWS12S - MCC550C - WR62 - WR62A",
+            "format": ""
+          },
+          "DATA_LOGGER_TYPE_DESC": {
+            "type": "string",
+            "description": "DATA_LOGGER_TYPE_DESC is the display quality description of the code value.",
+            "format": ""
+          },
+          "WEATHER_ZONE": {
+            "type": "integer",
+            "description": "WEATHER_ZONEis a foreign key to WEATHER_ZONE. Weather_zone is a geographic area that is assigned by the weather technicians. Weather zone is a value from 1 - 30.",
+            "format": ""
+          },
+          "WEATHER_ZONE_DESC": {
+            "type": "string",
+            "description": "WEATHER_ZONE_DESC is the display quality description for the zone.",
+            "format": ""
+          },
+          "DANGER_REGION": {
+            "type": "integer",
+            "description": "",
+            "format": ""
+          },
+          "STATION_ACRONYM": {
+            "type": "string",
+            "description": "Station Acronym is a set of characters that have been assigned to a station. The acronym uniquely identifies the weather station and is analogous to a radio call sign.",
+            "format": ""
+          },
+          "STATION_NAME": {
+            "type": "string",
+            "description": "Station Name is the name assigned to a weather station, and may be descriptive of the geographical area it is located in. IE Sechelt Orchard, or Goldstream Park",
+            "format": ""
+          },
+          "STATION_COMMENT": {
+            "type": "string",
+            "description": "Station Comment contains comments regarding the weather station.",
+            "format": ""
+          },
+          "CRD_STATION_NAME": {
+            "type": "string",
+            "description": "",
+            "format": ""
+          },
+          "FIRE_CENTRE_ORG_UNIT_IDENT": {
+            "type": "integer",
+            "description": "Fire Centre Org Unit Identifier describes the fire centre the weather station is located in. Fire Centre Org Unit Identifier is a unique number assigned to the org unit that remains consistent across temporal periods. The geographic boundary of the org unit may change a bit over time, and the name of the org unit may change over time, but the business are still recognizes the org unit as being the same regardless of these minor changes. Thus the Org Unit Key is used to create a consistent key to reference the org unit across temporal periods, that does not change over time.",
+            "format": ""
+          },
+          "FIRE_CENTRE": {
+            "type": "string",
+            "description": "",
+            "format": ""
+          },
+          "ZONE_ORG_UNIT_IDENTIFIER": {
+            "type": "integer",
+            "description": "Zone Org Unit Identifier describes the zone the weather station is located in. Zone Org Unit Identifier is a unique number assigned to the org unit that remains consistent across temporal periods. The geographic boundary of the org unit may change a bit over time, and the name of the org unit may change over time, but the business are still recognizes the org unit as being the same regardless of these minor changes. Thus the Org Unit Key is used to create a consistent key to reference the org unit across temporal periods, that does not change over time.",
+            "format": ""
+          },
+          "FIRE_ZONE": {
+            "type": "string",
+            "description": "",
+            "format": ""
+          },
+          "DATA_SOURCE": {
+            "type": "string",
+            "description": "",
+            "format": ""
+          },
+          "INSTALLATION_TIMESTAMP_MSEC": {
+            "type": "number",
+            "description": "Installation Timestamp MSec is the date and time the weather station was installed at it's geographical location as measured by milliseconds since epoch.",
+            "format": ""
+          },
+          "DECOMMISSION_TIMESTAMP_MSEC": {
+            "type": "number",
+            "description": "Decommission Timestamp MSec is the date and time the weather station was decommissioned and is no longer providing weather measurements as measured by milliseconds since epoch.",
+            "format": ""
+          },
+          "HOURLY_IND": {
+            "type": "string",
+            "description": "Hourly Ind indicates whether the station reports hourly (Y) or not (N).",
+            "format": ""
+          },
+          "OVER_WINTER_PRECIP_ADJ_IND": {
+            "type": "string",
+            "description": "Over Winter Precipitation Adjustment Ind indicates whether an adjustment is made to measurements to account for precipitation over winter (Y) or not (N).",
+            "format": ""
+          },
+          "LATITUDE": {
+            "type": "number",
+            "description": "Latitude is the latitudinal position of the weather station.",
+            "format": ""
+          },
+          "LONGITUDE": {
+            "type": "number",
+            "description": "Longitude is the longitudinal position of the weather station.",
+            "format": ""
+          },
+          "ELEVATION_M": {
+            "type": "integer",
+            "description": "Elevation is the elevation of the station above sea level as measured in metres.",
+            "format": ""
+          },
+          "INFLUENCING_SLOPE": {
+            "type": "integer",
+            "description": "Influencing Slope is an approximate measurement of the grade of a slope that may influence the weather. The grade of a physical feature, landform or constructed line refers to the tangent of the angle of that surface to the horizontal. It is a special case of the slope, where zero indicates horizontality. A larger number indicates higher or steeper degree of \"tilt\"",
+            "format": ""
+          },
+          "WINDSPEED_ADJUSTMENT_HEIGHT": {
+            "type": "string",
+            "description": "",
+            "format": ""
+          },
+          "WINDSPEED_ADJUSTMENT_ROUGHNESS": {
+            "type": "number",
+            "description": "",
+            "format": ""
+          },
+          "ECCC_FILE_BASE_URL_TEMPLATE": {
+            "type": "string",
+            "description": "ECCC File Base URL Template is a template of a URL used to access files from the Environment Canada Climate Change data mart.",
+            "format": ""
+          },
+          "LAST_PROCESSED_SOURCE_TIME": {
+            "type": "string",
+            "description": "ECCC File Last Processed Time is the date and time a file stored in the Environment Canada Climate Change (ECCC) data mart was last processed by the system. It is a local time field.",
+            "format": ""
+          },
+          "LAST_UPDATED_TIMESTAMP_MSEC": {
+            "type": "number",
+            "description": "Last Updated Timestamp MSec is the last date and time the record was updated as measured by milliseconds since epoch.",
+            "format": ""
+          },
+          "CREATE_USER": {
+            "type": "string",
+            "description": "CREATE_USER is an audit column that indicates the user that created the record.",
+            "format": ""
+          },
+          "CREATE_DATE": {
+            "type": "string",
+            "description": "CREATE_DATE is the date and time the row of data was created.",
+            "format": ""
+          },
+          "UPDATE_USER": {
+            "type": "string",
+            "description": "UPDATE_USER is an audit column that indicates the user that updated the record.",
+            "format": ""
+          },
+          "UPDATE_DATE": {
+            "type": "string",
+            "description": "UPDATE_DATE is the date and time the row of data was updated.",
+            "format": ""
+          }
+        }
+      },
+      "station_indices_period": {
+        "type": "object",
+        "properties": {
+          "STATION_INDICES_PERIOD_GUID": {
+            "type": "string",
+            "description": "STATION_INDICES_PERIOD_GUID is a unique identifier for the record.",
+            "format": ""
+          },
+          "WEATHER_STATION_GUID": {
+            "type": "string",
+            "description": "WEATHER_STATION_GUID: Is a foreign key to WEATHER_STATION: Weather Station is a list of weather stations setup and maintained across the province of BC. The weather stations contain multiple instruments for measuring varying aspects of meteorology used to produce weather forecasts.",
+            "format": ""
+          },
+          "PERIOD_START_DATE": {
+            "type": "string",
+            "description": "Period Start Date is the date that the period start on.",
+            "format": ""
+          },
+          "PERIOD_END_DATE": {
+            "type": "string",
+            "description": "Period End Date is the date the period ends on. Typically the period end date will be October 31st for the given year.",
+            "format": ""
+          },
+          "ACTIVE_IND": {
+            "type": "string",
+            "description": "Active Ind indicates whether the defined station indices period is active (Y) or not (N). This allows a period to be disabled or allows for future period to be planned.",
+            "format": ""
+          },
+          "OVER_WINTER_PRECIPITATION": {
+            "type": "number",
+            "description": "",
+            "format": ""
+          },
+          "FINE_FUEL_MOISTURE_CODE": {
+            "type": "number",
+            "description": "Fine Fuel Moisture Code (FFMC) is a measure of the moisture content (dryness) of the smallest forest fuels (surface litter, leaves, needles, small twigs, etc). It shows the relative ease of ignition and flammability of fine fuels. The moisture content of the fine fuels is very sensitive to the weather. Even a day of rain, or of fine and windy weather, will significantly affect the FFMC rating. Measured values translate as: 0-76 : Low 77-84: Moderate 85-88: High 89-91: Very High 92+: Extreme",
+            "format": ""
+          },
+          "DROUGHT_CODE": {
+            "type": "number",
+            "description": "Drought Code is a numerical rating of the moisture content of deep, compact, organic layers. It is a useful indicator of seasonal drought and shows the likelihood of fire involving the deep duff layers and large logs. A long period of dry weather (the system uses 52 days) is needed to dry out these fuels and affect the Drought Code. A DC rating of 200 is high, and 300 or more is extreme indicating that fire will involve deep sub-surface and heavy fuels. Burning off should not be permitted when the DC rating is above 300. Note: Drought Code is a meteorological business term and is not a true code that is looked up in a code table.",
+            "format": ""
+          },
+          "DUFF_MOISTURE_CODE": {
+            "type": "number",
+            "description": "Duff Moisture Code is a numerical rating of the average moisture content of loosely compacted organic layers of moderate depth. The code indicates the depth that fire will burn in moderate duff layers and medium size woody material. Duff layers take longer than surface fuels to dry out but weather conditions over the past couple of weeks will significantly affect the DMC. The system applies a time lag of 12 days to calculate the DMC. A DMC rating of more than 30 is dry, and above 40 indicates that intensive burning will occur in the duff and medium fuels. Burning off operations should not be carried out when the DMC rating is above 40. Note: Duff Moisture Code is a meteorological business term and is not a true code that is looked up in a code table.",
+            "format": ""
+          },
+          "CREATE_USER": {
+            "type": "string",
+            "description": "CREATE_USER is an audit column that indicates the user that created the record.",
+            "format": ""
+          },
+          "CREATE_DATE": {
+            "type": "string",
+            "description": "CREATE_DATE is the date and time the row of data was created.",
+            "format": ""
+          },
+          "UPDATE_USER": {
+            "type": "string",
+            "description": "UPDATE_USER is an audit column that indicates the user that updated the record.",
+            "format": ""
+          },
+          "UPDATE_DATE": {
+            "type": "string",
+            "description": "UPDATE_DATE is the date and time the row of data was updated.",
+            "format": ""
+          }
+        }
+      },
+      "daily_measurement_type_codes": {
+        "type": "object",
+        "properties": {
+          "DAILY_MEASUREMENT_TYPE_CODE": {
+            "type": "string",
+            "description": "DAILY_MEASUREMENT_TYPE_CODE: Measurement Type Code describes the types of measurements that can be collected. It correlates to the original Data Status Code in the old system. Values are: - Actual - Forecast - Estimate - Edited Actual - Test - Startup - Deleted - Manual - Substitution - missing - Substitution - invalid - Substitution - partial",
+            "format": ""
+          },
+          "DESCRIPTION": {
+            "type": "string",
+            "description": "DESCRIPTION is the display quality description of the code value.",
+            "format": ""
+          },
+          "DISPLAY_ORDER": {
+            "type": "integer",
+            "description": "DISPLAY ORDER is to allow non alphabetic sorting e.g. M T W Th F S S.",
+            "format": ""
+          },
+          "EFFECTIVE_DATE": {
+            "type": "string",
+            "description": "EFFECTIVE_DATE is the date code value becomes effective.",
+            "format": ""
+          },
+          "EXPIRY_DATE": {
+            "type": "string",
+            "description": "EXPIRY_DATE is the date code value expires.",
+            "format": ""
+          },
+          "CREATE_USER": {
+            "type": "string",
+            "description": "CREATE_USER is an audit column that indicates the user that created the record.",
+            "format": ""
+          },
+          "CREATE_DATE": {
+            "type": "string",
+            "description": "CREATE_DATE is the date and time the row of data was created.",
+            "format": ""
+          },
+          "UPDATE_USER": {
+            "type": "string",
+            "description": "UPDATE_USER is an audit column that indicates the user that updated the record.",
+            "format": ""
+          },
+          "UPDATE_DATE": {
+            "type": "string",
+            "description": "UPDATE_DATE is the date and time the row of data was updated.",
+            "format": ""
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "daily_weather"
+    },
+    {
+      "name": "hourly_weather"
+    },
+    {
+      "name": "weather_stations"
+    },
+    {
+      "name": "station_indices_period"
+    },
+    {
+      "name": "daily_measurement_type_codes"
+    },
+    {
+      "name": "fire_centres"
+    },
+    {
+      "name": "fire_zones"
+    },
+    {
+      "name": "org_units"
+    },
+    {
+      "name": "wildfire_org_units"
+    }
+  ]
+}

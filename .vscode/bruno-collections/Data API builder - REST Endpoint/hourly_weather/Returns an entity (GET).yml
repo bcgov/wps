@@ -1,0 +1,362 @@
+info:
+  name: Returns an entity (GET)
+  type: http
+  seq: 1
+  tags:
+    - hourly_weather
+
+http:
+  method: GET
+  url: "{{baseUrl}}/hourly_weather/HOURLY_WEATHER_MEAS_GUID/:HOURLY_WEATHER_MEAS_GUID"
+  headers:
+    - name: X-MS-API-ROLE
+      value: ""
+      disabled: true
+    - name: Authorization
+      value: ""
+      disabled: true
+  params:
+    - name: HOURLY_WEATHER_MEAS_GUID
+      value: ""
+      type: path
+    - name: $select
+      value: ""
+      type: query
+      description: A comma separated list of fields to return in the response.
+      disabled: true
+    - name: $filter
+      value: ""
+      type: query
+      description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+      disabled: true
+    - name: $orderby
+      value: ""
+      type: query
+      description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+      disabled: true
+    - name: $first
+      value: ""
+      type: query
+      description: An integer value that specifies the number of items to return. Default is 100.
+      disabled: true
+    - name: $after
+      value: ""
+      type: query
+      description: An opaque string that specifies the cursor position after which results should be returned.
+      disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
+
+examples:
+  - name: 200 Response
+    description: OK
+    request:
+      url: "{{baseUrl}}/hourly_weather/HOURLY_WEATHER_MEAS_GUID/:HOURLY_WEATHER_MEAS_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: HOURLY_WEATHER_MEAS_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "value": [
+              {
+                "HOURLY_WEATHER_MEAS_GUID": "",
+                "WEATHER_STATION_GUID": "",
+                "WEATHER_TIMESTAMP_MSEC": 0,
+                "WEATHER_TIMESTAMP": "",
+                "HOURLY_MEASUREMENT_TYPE_CODE": "",
+                "HOURLY_MEASUREMENT_TYPE_DESC": "",
+                "TEMPERATURE": 0,
+                "BAROMETRIC_PRESSURE": 0,
+                "RELATIVE_HUMIDITY": 0,
+                "PRECIPITATION": 0,
+                "WIND_SPEED": 0,
+                "WIND_DIRECTION_DEGREES": 0,
+                "FINE_FUEL_MOISTURE_CODE": 0,
+                "FIRE_WEATHER_INDEX": 0,
+                "INITIAL_SPREAD_INDEX": 0,
+                "OBSERVATION_VALID_IND": "",
+                "OBSERVATION_VALID_COMMENT": "",
+                "ADJUSTED_WIND_SPEED": 0,
+                "BATTERY_SUPPLY_CURRENT": 0,
+                "BATTERY_SUPPLY_VOLTAGE": 0,
+                "FUEL_STICK_MOISTURE": 0,
+                "FUEL_STICK_TEMPERATURE": 0,
+                "PRECIP_PLUVIO_1_STATUS": 0,
+                "PRECIP_PLUVIO_1_TOTAL": 0,
+                "PRECIP_PLUVIO_2_STATUS": 0,
+                "PRECIP_PLUVIO_2_TOTAL": 0,
+                "PRECIP_RIT_STATUS": 0,
+                "PRECIP_RIT_TOTAL": 0,
+                "PRECIP_RGT": 0,
+                "PRECIP_PC2_STATUS": 0,
+                "PRECIP_PC2_TOTAL": 0,
+                "RELATIVE_HUMIDITY_HOURLY_AVG": 0,
+                "RN_1_PLUVIO_1": 0,
+                "RN_1_PLUVIO_2": 0,
+                "RN_1_RIT": 0,
+                "RN_1_PC2": 0,
+                "SNOW_DEPTH": 0,
+                "SNOW_DEPTH_QUALITY": 0,
+                "SOLAR_RADIATION_CM3": 0,
+                "SOLAR_RADIATION_LICOR": 0,
+                "SOLAR_SUPPLY_CURRENT": 0,
+                "SOLAR_SUPPLY_VOLTAGE": 0,
+                "TEMPERATURE_HOURLY_AVERAGE": 0,
+                "WIND_SPEED_HOURLY_AVERAGE": 0,
+                "WIND_DIRECTION_HOURLY_AVERAGE": 0,
+                "WIND_SPEED_MAX_10_MINUTE": 0,
+                "WIND_GUST": 0,
+                "SOIL_MOISTURE_PROBE_1": 0,
+                "SOIL_MOISTURE_PROBE_2": 0,
+                "SOIL_MOISTURE_PROBE_3": 0,
+                "SOIL_TEMPERATURE_PROBE_1": 0,
+                "SOIL_TEMPERATURE_PROBE_2": 0,
+                "SOIL_TEMPERATURE_PROBE_3": 0,
+                "ARCHIVED_IND": "",
+                "LAST_UPDATED_TIMESTAMP_MSEC": 0,
+                "LAST_UPDATED_TIMESTAMP": "",
+                "CREATE_USER": "",
+                "CREATE_DATE": "",
+                "UPDATE_USER": "",
+                "UPDATE_DATE": ""
+              }
+            ]
+          }
+  - name: 400 Response
+    description: BadRequest
+    request:
+      url: "{{baseUrl}}/hourly_weather/HOURLY_WEATHER_MEAS_GUID/:HOURLY_WEATHER_MEAS_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: HOURLY_WEATHER_MEAS_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 401 Response
+    description: Unauthorized
+    request:
+      url: "{{baseUrl}}/hourly_weather/HOURLY_WEATHER_MEAS_GUID/:HOURLY_WEATHER_MEAS_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: HOURLY_WEATHER_MEAS_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 401
+      statusText: Unauthorized
+      body:
+        type: text
+        data: ""
+  - name: 403 Response
+    description: Forbidden
+    request:
+      url: "{{baseUrl}}/hourly_weather/HOURLY_WEATHER_MEAS_GUID/:HOURLY_WEATHER_MEAS_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: HOURLY_WEATHER_MEAS_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 403
+      statusText: Forbidden
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: NotFound
+    request:
+      url: "{{baseUrl}}/hourly_weather/HOURLY_WEATHER_MEAS_GUID/:HOURLY_WEATHER_MEAS_GUID"
+      method: GET
+      headers:
+        - name: X-MS-API-ROLE
+          value: ""
+          disabled: true
+        - name: Authorization
+          value: ""
+          disabled: true
+      params:
+        - name: HOURLY_WEATHER_MEAS_GUID
+          value: ""
+          type: path
+        - name: $select
+          value: ""
+          type: query
+          description: A comma separated list of fields to return in the response.
+          disabled: true
+        - name: $filter
+          value: ""
+          type: query
+          description: An OData expression (an expression that returns a boolean value) using the entity's fields to retrieve a subset of the results.
+          disabled: true
+        - name: $orderby
+          value: ""
+          type: query
+          description: Uses a comma-separated list of expressions to sort response items. Add 'desc' for descending order, otherwise it's ascending by default.
+          disabled: true
+        - name: $first
+          value: ""
+          type: query
+          description: An integer value that specifies the number of items to return. Default is 100.
+          disabled: true
+        - name: $after
+          value: ""
+          type: query
+          description: An opaque string that specifies the cursor position after which results should be returned.
+          disabled: true
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+
+docs: Returns an entity.

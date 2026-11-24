@@ -1,0 +1,6 @@
+info:
+  name: weather_stations
+  type: folder
+
+request:
+  auth: inherit
