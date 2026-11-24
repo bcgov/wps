@@ -17,12 +17,26 @@ BC_LONGITUDE = (-139.2, -114.0)
 
 
 class GribScales(NamedTuple):
+    """What turns a field's packed integers into its values. `decode` takes one of each, or an
+    array of each with a value for every forecast hour.
+
+    :param reference: R, roughly the field's lowest value, before dividing by 10**D
+    :param binary_scale: E
+    :param decimal_scale: D
+    """
+
     reference: float
     binary_scale: int
     decimal_scale: int
 
 
 def decode(integers: np.ndarray, scales: GribScales) -> np.ndarray:
+    """The values of packed integers, (R + X * 2**E) / 10**D.
+
+    :param integers: The packed integers, X
+    :param scales: Their scales, of a shape that broadcasts to the integers'
+    :return: The values, as float64, in the field's units
+    """
     return (scales.reference + integers * 2.0**scales.binary_scale) / 10.0**scales.decimal_scale
 
 
@@ -30,8 +44,13 @@ def grib_integers(values: np.ndarray, scales: GribScales) -> np.ndarray:
     """The integers a field stored for its decoded `values`.
 
     Every value sits on the field's grid of steps, to within float64 rounding, so rounding
-    recovers the integer exactly. Raises if a value does not, or does not decode back to the same
-    float32, rather than store something other than what was published.
+    recovers the integer exactly.
+
+    :param values: The field's decoded values
+    :param scales: The field's scales
+    :return: The integers, as int32
+    :raises ValueError: If a value is off the field's steps, or does not decode back to the same
+        float32, rather than store something other than what was published
     """
     unrounded = (values * 10.0**scales.decimal_scale - scales.reference) / 2.0**scales.binary_scale
     integers = np.rint(unrounded)
@@ -43,7 +62,11 @@ def grib_integers(values: np.ndarray, scales: GribScales) -> np.ndarray:
 
 
 def read_field(path: Path) -> tuple[np.ndarray, GribScales]:
-    """The file's field as (rows, columns) float64, and its scales."""
+    """Read a GRIB file's field.
+
+    :param path: A GRIB file of one message
+    :return: The field's values, as (rows, columns) float64, and its scales
+    """
     with open(path, "rb") as grib:
         handle = eccodes.codes_grib_new_from_file(grib)
     try:
@@ -60,6 +83,14 @@ def read_field(path: Path) -> tuple[np.ndarray, GribScales]:
 
 
 class Crop(NamedTuple):
+    """The part of a model's grid that covers BC.
+
+    :param y: The grid's rows
+    :param x: The grid's columns
+    :param latitude: The cells' latitudes, (y, x)
+    :param longitude: The cells' longitudes, (y, x), from -180 to 180
+    """
+
     y: slice
     x: slice
     latitude: np.ndarray
@@ -67,7 +98,12 @@ class Crop(NamedTuple):
 
 
 def bc_crop(path: Path) -> Crop:
-    """The rows and columns of the file's grid covering BC, and their latitudes and longitudes."""
+    """The part of a file's grid that covers BC.
+
+    :param path: A GRIB file of one message
+    :return: The rows and columns covering BC, and their latitudes and longitudes
+    :raises ValueError: If the grid has no cells in BC
+    """
     with open(path, "rb") as grib:
         handle = eccodes.codes_grib_new_from_file(grib)
     try:

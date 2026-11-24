@@ -25,27 +25,50 @@ SCALES = GribScales._fields
 
 @dataclass(frozen=True)
 class Variable:
+    """A weather variable of a model, as published.
+
+    :param name: What we call it, and the name of its array in a store
+    :param units: The units it is published in
+    :param layer: What the model's source calls it
+    :param accumulated: Whether it is accumulated since the run started: no field at hour 0, where
+        it is zero
+    """
+
     name: str
     units: str
-    layer: str  # as the model's source names it
-    # Accumulated since the run started: no field at hour 0, where it is zero.
+    layer: str
     accumulated: bool = False
 
 
 @dataclass(frozen=True)
 class GridModel:
+    """A weather model whose grids are kept.
+
+    :param name: The model's name, as in `MODELS`
+    :param variables: The variables kept
+    :param hours: The forecast hours kept
+    :param history_run_hour: The UTC hour of the run kept in `history` each day: the model's last
+        full-length run
+    :param source: Where its fields are published
+    :param run_hours: The UTC hours the model runs at
+    :param other_hours: The forecast hours of runs that do not have them all, by the UTC hour they
+        run at
+    """
+
     name: str
     variables: tuple[Variable, ...]
-    hours: tuple[int, ...]  # forecast hours kept
-    # The UTC hour of the run kept in `history` each day: the model's last full-length run.
+    hours: tuple[int, ...]
     history_run_hour: int
     source: Source
-    run_hours: tuple[int, ...] = (0, 6, 12, 18)  # UTC hours the model runs at
-    # The forecast hours of runs that do not have them all, by the UTC hour they run at.
+    run_hours: tuple[int, ...] = (0, 6, 12, 18)
     other_hours: dict[int, tuple[int, ...]] = field(default_factory=dict)
 
     def forecast_hours(self, run_time: datetime) -> tuple[int, ...]:
-        """The forecast hours of a run."""
+        """The forecast hours kept of a run.
+
+        :param run_time: UTC start of the run
+        :return: Hours since the run started, ascending
+        """
         return self.other_hours.get(run_time.hour, self.hours)
 
 
@@ -132,21 +155,34 @@ MODELS = {
 
 @dataclass
 class VariableRun:
-    """One variable of a run over BC, as GRIB integers with each hour's scales."""
+    """One variable of a run over BC, as GRIB integers with each hour's scales.
+
+    :param variable: The variable
+    :param integers: The packed integers, (hours, y, x) int32
+    :param scales: Each of `SCALES`, (hours,)
+    """
 
     variable: Variable
-    integers: np.ndarray  # (hours, y, x) int32
-    scales: dict[str, np.ndarray]  # {"reference": (hours,), ...}
+    integers: np.ndarray
+    scales: dict[str, np.ndarray]
 
     def values(self) -> np.ndarray:
-        """The decoded values, (hours, y, x)."""
+        """The decoded values.
+
+        :return: The values, (hours, y, x), in the variable's units
+        """
         scales = (self.scales[s][:, np.newaxis, np.newaxis] for s in SCALES)
         return decode(self.integers, GribScales(*scales))
 
 
 def run_published(model: GridModel, run_time: datetime) -> bool:
     """Whether all of a run is published. A run is published hour by hour, so it is complete once
-    every variable's last hour is there."""
+    every variable's last hour is there.
+
+    :param model: The model
+    :param run_time: UTC start of the run
+    :return: True if the run can be loaded
+    """
     last = model.forecast_hours(run_time)[-1]
     return all(model.source.exists(run_time, last, v.layer) for v in model.variables)
 
@@ -158,7 +194,14 @@ def _fetch(model: GridModel, run_time: datetime, hour: int, variable: Variable, 
 
 
 def load_crop(model: GridModel, run_time: datetime, folder: Path) -> Crop:
-    """The rows and columns of the model's grid covering BC, from one of the run's fields."""
+    """The part of the model's grid that covers BC, from one of the run's fields.
+
+    :param model: The model
+    :param run_time: UTC start of the run
+    :param folder: Where the field is put while it is read
+    :return: The rows and columns covering BC, and their latitudes and longitudes
+    :raises NotPublishedError: If the field is not published
+    """
     last = model.forecast_hours(run_time)[-1]
     path = _fetch(model, run_time, last, model.variables[0], folder)
     crop = bc_crop(path)
@@ -169,9 +212,18 @@ def load_crop(model: GridModel, run_time: datetime, folder: Path) -> Crop:
 def load_variable(
     model: GridModel, run_time: datetime, variable: Variable, crop: Crop, folder: Path
 ) -> VariableRun:
-    """Download one variable of a run into `folder` and read it, cropped to BC. Each file is
-    deleted once read, so a run's files never all take disk at once. Raises NotPublishedError if
-    a field is not published."""
+    """Download one variable of a run and read it, cropped to BC. Each file is deleted once read,
+    so a run's files never all take disk at once.
+
+    :param model: The model
+    :param run_time: UTC start of the run
+    :param variable: The variable to load
+    :param crop: The part of the model's grid that covers BC
+    :param folder: Where the files are put while they are read. A file's name does not have the
+        run, so two runs cannot share a folder
+    :return: The variable's integers and scales, with an hour for each of the run's forecast hours
+    :raises NotPublishedError: If a field is not published
+    """
     run_hours = model.forecast_hours(run_time)
     # Hour 0 of an accumulated variable has no field and stays zero, which zero scales decode to.
     hours = [h for h in run_hours if not (variable.accumulated and h == 0)]

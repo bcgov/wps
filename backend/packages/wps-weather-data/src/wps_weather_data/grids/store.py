@@ -1,4 +1,4 @@
-"""A model's grid store: `recent`, every run for about the last day, or `history`, one run a day.
+"""A model's grid store: `recent`, every run for the last two days, or `history`, one run a day.
 
 Each is an Icechunk repository with a group per run, named by its start time (`2026-11-19T18`).
 A group has an array per variable of GRIB integers, laid out for reading one location's
@@ -46,6 +46,11 @@ RUN_FORMAT = "%Y-%m-%dT%H"
 
 
 def object_store_storage(prefix: str) -> icechunk.Storage:
+    """Icechunk storage in our object store, from the backend's S3 settings.
+
+    :param prefix: The key the repository is under
+    :return: The storage
+    """
     return icechunk.Storage.new_s3_object_store(
         icechunk.S3Options(
             region="us-east-1",
@@ -62,12 +67,22 @@ def object_store_storage(prefix: str) -> icechunk.Storage:
 
 
 def run_name(run_time: datetime) -> str:
+    """The name of a run's group in a store.
+
+    :param run_time: Start of the run
+    :return: The start in UTC, to the hour, such as `2026-11-19T18`
+    """
     return f"{run_time.astimezone(UTC):{RUN_FORMAT}}"
 
 
 class GridStore:
     """A model's `recent` or `history` store. Creating one does not contact the object store.
-    With no `storage`, it is the one the addresser names, in our object store."""
+
+    :param model: The model's name, as in `MODELS`
+    :param store: `recent` or `history`
+    :param storage: Where the repository is. By default, where the addresser names, in our object
+        store
+    """
 
     def __init__(self, model: str, store: str, storage: icechunk.Storage | None = None):
         self.model = MODELS[model]
@@ -76,6 +91,7 @@ class GridStore:
 
     @cached_property
     def storage(self) -> icechunk.Storage:
+        """Where the repository is."""
         return self._storage or object_store_storage(
             StationWeatherAddresser().get_grid_key(self.model.name, self.store)
         )
@@ -103,14 +119,23 @@ class GridStore:
             return None
 
     def run_times(self) -> list[datetime]:
-        """The runs the store holds, oldest first."""
+        """The runs the store holds.
+
+        :return: UTC starts of the runs, oldest first. Empty if the store does not exist
+        """
         root = self._root()
         names = root.group_keys() if root is not None else []
         return sorted(datetime.strptime(n, RUN_FORMAT).replace(tzinfo=UTC) for n in names)
 
     def write_run(self, run_time: datetime, crop: Crop, variables: Iterable[VariableRun]) -> bool:
-        """Add a run in one commit, a variable at a time. Returns False if the store already
-        has it."""
+        """Add a run in one commit, a variable at a time.
+
+        :param run_time: UTC start of the run
+        :param crop: The part of the model's grid that covers BC
+        :param variables: The run's variables, in the model's order
+        :return: False if the store already has the run
+        :raises ValueError: If the variables or the grid are not the store's
+        """
         written, failures = write_run([self], run_time, crop, variables)
         if failures:
             raise failures[self]
@@ -150,15 +175,25 @@ class GridStore:
 
     @cached_property
     def coordinates(self) -> tuple[np.ndarray, np.ndarray]:
-        """The grid's latitudes and longitudes, (y, x). Every run has the same ones, so they are
-        read once."""
+        """The grid's latitudes and longitudes. Every run has the same ones, so they are read once.
+
+        :return: The cells' latitudes and longitudes, each (y, x)
+        :raises KeyError: If the store has no runs
+        """
         root = self._root()
         if root is None:
             raise KeyError(f"{self.store} has no runs")
         return root["latitude"][:], root["longitude"][:]
 
     def nearest_cell(self, latitude: float, longitude: float) -> tuple[int, int]:
-        """The (y, x) of the grid cell nearest a location in BC."""
+        """The grid cell nearest a location.
+
+        :param latitude: Degrees north
+        :param longitude: Degrees east, so negative in BC
+        :return: The cell's row and column, (y, x)
+        :raises ValueError: If the location is outside BC
+        :raises KeyError: If the store has no runs
+        """
         if not (
             BC_LATITUDE[0] <= latitude <= BC_LATITUDE[1]
             and BC_LONGITUDE[0] <= longitude <= BC_LONGITUDE[1]
@@ -170,21 +205,39 @@ class GridStore:
         return int(y), int(x)
 
     def read_point(self, run_time: datetime, y: int, x: int) -> dict[str, np.ndarray]:
-        """A grid cell's forecast for a run: each variable by forecast hour, and the hours."""
+        """A grid cell's forecast for a run, as published: the units differ by model.
+
+        :param run_time: UTC start of the run
+        :param y: The cell's row, as `nearest_cell` gives it
+        :param x: The cell's column
+        :return: Each variable's values by name, (hours,), and the hours as `forecast_hour`
+        :raises KeyError: If the store does not have the run
+        """
         group = self._group(run_time)
         point = {"forecast_hour": np.array(group.attrs["forecast_hours"])}
         everything = {v.name: (slice(None), y, x) for v in self.model.variables}
         return point | self._read(group, everything)
 
     def read_map(self, run_time: datetime, hour: int, variable: str) -> np.ndarray:
-        """A variable over BC at a forecast hour of a run, (y, x)."""
+        """A variable over BC at a forecast hour of a run, as published: the units differ by model.
+
+        :param run_time: UTC start of the run
+        :param hour: Hours since the run started
+        :param variable: The variable's name
+        :return: The values, (y, x)
+        :raises KeyError: If the store does not have the run
+        :raises ValueError: If the run does not have the hour
+        """
         group = self._group(run_time)
         index = list(group.attrs["forecast_hours"]).index(hour)
         return self._read(group, {variable: (index,)})[variable]
 
     def delete_runs_before(self, cutoff: datetime) -> list[datetime]:
-        """Delete the runs that started before `cutoff`, in one commit. `maintain` reclaims
-        their space. Returns the runs deleted."""
+        """Delete old runs, in one commit. `maintain` reclaims their space.
+
+        :param cutoff: The runs that started before this are deleted
+        :return: UTC starts of the runs deleted
+        """
         old = [run_time for run_time in self.run_times() if run_time < cutoff]
         if old:
             session = self.repository.writable_session("main")
@@ -201,9 +254,14 @@ class GridStore:
         snapshot_retention: timedelta = timedelta(days=1),
         object_grace: timedelta = timedelta(hours=1),
     ) -> dict:
-        """Expire snapshots older than `snapshot_retention` and delete the objects nothing left
-        refers to. Objects written within `object_grace` are kept, so a run being written is not
-        collected. Returns what garbage collection did."""
+        """Expire old snapshots, and delete the objects nothing left refers to.
+
+        :param now: The current time
+        :param snapshot_retention: How long snapshots are kept
+        :param object_grace: Objects written this recently are kept, so a run being written is not
+            collected
+        :return: How many snapshots were expired, and what garbage collection did
+        """
         expired = self.repository.expire_snapshots(older_than=now - snapshot_retention)
         summary = self.repository.garbage_collect(delete_object_older_than=now - object_grace)
         if summary.objects_failed_to_delete:
@@ -276,10 +334,19 @@ def write_run(
 ) -> tuple[list[GridStore], dict[GridStore, Exception]]:
     """Add a run to each store that lacks it, a variable at a time: each variable is written to
     every store as it arrives, so only one is held at once, and each store commits once all are
-    written. `variables` is only consumed if a store lacks the run.
+    written.
 
-    A store that fails does not stop the others. Returns the stores written, and the error of
-    each that failed. An error reading `variables` is raised, with nothing committed."""
+    A store that fails does not stop the others. An error reading `variables` is raised, with
+    nothing committed.
+
+    :param stores: Stores of one model
+    :param run_time: UTC start of the run
+    :param crop: The part of the model's grid that covers BC
+    :param variables: The run's variables, in the model's order. Only consumed if a store lacks
+        the run
+    :return: The stores written, and the error of each that failed
+    :raises ValueError: If the stores are not of one model, or the variables are not the model's
+    """
     for store in stores[1:]:
         if store.model != stores[0].model:
             raise ValueError("a run can only be written to stores of one model")

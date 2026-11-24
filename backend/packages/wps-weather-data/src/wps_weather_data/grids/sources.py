@@ -29,12 +29,26 @@ class NotPublishedError(Exception):
 
 
 class Source(Protocol):
+    """Where a model's fields are published."""
+
     def exists(self, run_time: datetime, hour: int, layer: str) -> bool:
-        """Whether the source has the field."""
+        """Whether the source has a field.
+
+        :param run_time: UTC start of the run
+        :param hour: Hours since the run started
+        :param layer: The field's variable, as the source names it
+        :return: True if the field can be fetched
+        """
 
     def fetch(self, run_time: datetime, hour: int, layer: str, path: Path):
-        """Write the field to `path` as a GRIB file of one message. Raises NotPublishedError if
-        the source does not have it."""
+        """Write a field to a file, as GRIB of one message.
+
+        :param run_time: UTC start of the run
+        :param hour: Hours since the run started
+        :param layer: The field's variable, as the source names it
+        :param path: The file to write
+        :raises NotPublishedError: If the source does not have the field
+        """
 
 
 def _retrying(request):
@@ -56,8 +70,15 @@ def _retrying(request):
 
 
 def download(url: str, path: Path, byte_range: tuple[int, int | None] | None = None):
-    """Write `url` to `path`, or only the bytes from a start to an end (None for the last).
-    Raises NotPublishedError if it is not there."""
+    """Write a URL's content to a file, retrying if the source is busy or the connection fails.
+
+    :param url: The URL
+    :param path: The file to write
+    :param byte_range: The first and last bytes to write, or None for all of them. A last byte of
+        None is the end
+    :raises NotPublishedError: If it is not there
+    :raises ValueError: If the source does not answer with the bytes asked for
+    """
 
     def request():
         headers = {}
@@ -80,6 +101,12 @@ def download(url: str, path: Path, byte_range: tuple[int, int | None] | None = N
 
 
 def url_exists(url: str) -> bool:
+    """Whether a URL is there, retrying if the source is busy or the connection fails.
+
+    :param url: The URL
+    :return: False if the source answers that it is not there
+    """
+
     def request():
         head = urllib.request.Request(url, method="HEAD")
         urllib.request.urlopen(head, timeout=TIMEOUT_SECONDS).close()
@@ -93,7 +120,12 @@ def url_exists(url: str) -> bool:
 
 @lru_cache(maxsize=1024)
 def read_text(url: str) -> str:
-    """The text at `url`, read once: every variable of a forecast hour is in the same index."""
+    """The text at a URL, read once: every variable of a forecast hour is in the same index.
+
+    :param url: The URL
+    :return: The text
+    :raises NotPublishedError: If it is not there
+    """
 
     def request():
         with urllib.request.urlopen(url, timeout=TIMEOUT_SECONDS) as response:
@@ -104,13 +136,25 @@ def read_text(url: str) -> str:
 
 @dataclass(frozen=True)
 class MscDatamart:
-    """The MSC datamart, which keeps about a day. A layer is as in its file names."""
+    """The MSC datamart, which keeps about a day. A layer is as in its file names.
+
+    :param model: The model, as in the file names
+    :param folder: The model's folder
+    :param grid: The model's grid, as in the file names
+    """
 
     model: str
     folder: str
     grid: str
 
     def url(self, run_time: datetime, hour: int, layer: str) -> str:
+        """A field's file.
+
+        :param run_time: UTC start of the run
+        :param hour: Hours since the run started
+        :param layer: The field's variable, as in the file names
+        :return: The file's URL
+        """
         name = f"{run_time:%Y%m%dT%H}Z_MSC_{self.model}_{layer}_{self.grid}_PT{hour:03d}H.grib2"
         return f"https://dd.weather.gc.ca/today/{self.folder}/{run_time:%H}/{hour:03d}/{name}"
 
@@ -125,11 +169,22 @@ class _IndexedSource:
     """A source with an index beside each GRIB file."""
 
     def urls(self, run_time: datetime, hour: int) -> tuple[str, str]:
-        """A forecast hour's GRIB file, and its index."""
+        """A forecast hour's GRIB file, and its index.
+
+        :param run_time: UTC start of the run
+        :param hour: Hours since the run started
+        :return: The URLs of the GRIB file and the index
+        """
         raise NotImplementedError
 
     def find(self, index: str, layer: str) -> tuple[int, int | None] | None:
-        """The first and last bytes of a field, or None if the index does not have it."""
+        """Find a field in an index.
+
+        :param index: The index's text
+        :param layer: The field's variable, as the source names it
+        :return: The field's first and last bytes, or None if the index does not have it. A last
+            byte of None is the end of the file
+        """
         raise NotImplementedError
 
     def _byte_range(self, run_time: datetime, hour: int, layer: str) -> tuple[int, int | None]:
