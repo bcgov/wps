@@ -39,7 +39,6 @@ import {
   MAX_COMPARED_YEARS_EACH
 } from '@/features/climatology/comparedYears'
 import ClimatologyChart from '@/features/climatology/components/ClimatologyChart'
-import ClimatologyLegend from '@/features/climatology/components/ClimatologyLegend'
 import ClimatologyTimeline from '@/features/climatology/components/ClimatologyTimeline'
 import ComparedYearsPicker from '@/features/climatology/components/ComparedYearsPicker'
 import type { StationOption } from '@/features/climatology/stationGroups'
@@ -160,7 +159,6 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
   const years = useMemo(() => range(currentYear, FIRST_YEAR - 1, -1), [currentYear])
 
   const variableLabel = variableInSentence(variable)
-  const combined = effectiveMethod !== 'each' && stationCodes.length > 1
   const subject = groupLabel ?? (stations.length === 1 ? stations[0].name : `${stations.length} stations`)
   const referenceYears = (() => {
     const firsts = charts.flatMap(chart => chart.series.first_reference_year ?? [])
@@ -259,12 +257,6 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
                 : ' The years chosen to compare with are part of that history.')}
             {stationCodes.length > 1 && ` ${METHOD_DESCRIPTIONS[effectiveMethod]}`}
           </Typography>
-          <ClimatologyLegend
-            yearLabel={combined ? `${climatology.year} (mean of stations)` : `${climatology.year}`}
-            comparedYears={comparedYears}
-            highlightedYear={highlightedYear}
-            onHighlight={setHighlighted}
-          />
           {effectiveMethod === 'each' ? (
             charts.map(({ series, rows }) => {
               const name = stationNames.get(series.station_codes[0]) ?? `${series.station_codes[0]}`
@@ -286,6 +278,7 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
                       onDateWindowChange={onDateWindowChange}
                       comparedYears={comparedYears}
                       highlightedYear={highlightedYear}
+                      onHighlight={setHighlighted}
                       today={today}
                       yDomain={yDomain}
                       // A plain wheel scrolls past the stack of charts; Control or Command zooms.
@@ -306,6 +299,7 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
               onDateWindowChange={onDateWindowChange}
               comparedYears={comparedYears}
               highlightedYear={highlightedYear}
+              onHighlight={setHighlighted}
               today={today}
               title={subject}
             />
@@ -325,9 +319,9 @@ const ClimatologyView = ({ stations, groupLabel, emptyMessage }: ClimatologyView
             </Button>
           </Box>
           <Typography variant="caption" color="text.secondary">
-            Drag the timeline&apos;s handles to choose the dates shown. On the chart,{' '}
-            {effectiveMethod === 'each' ? 'hold Control or Command and scroll' : 'scroll'} to zoom and drag to pan; with
-            the chart focused, + and − zoom, the arrow keys pan and Home shows every day.
+            Point at a day on the chart to see its values. Drag the timeline&apos;s handles to choose the dates shown.
+            On the chart, {effectiveMethod === 'each' ? 'hold Control or Command and scroll' : 'scroll'} to zoom and
+            drag to pan; with the chart focused, + and − zoom, the arrow keys pan and Home shows every day.
           </Typography>
         </Box>
       )}

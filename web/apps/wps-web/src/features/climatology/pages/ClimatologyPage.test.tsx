@@ -46,7 +46,8 @@ vi.mock('@/features/climatology/components/ClimatologyChart', async importOrigin
     title,
     yDomain,
     comparedYears,
-    highlightedYear
+    highlightedYear,
+    onHighlight
   }: ClimatologyChartProps) => (
     <div
       data-testid="climatology-chart"
@@ -62,6 +63,11 @@ vi.mock('@/features/climatology/components/ClimatologyChart', async importOrigin
       <button type="button" onClick={() => onDateWindowChange({ start: JULY_1, end: JULY_2 })}>
         Zoom to July 1 and 2
       </button>
+      {comparedYears.map(each => (
+        <button key={each.year} type="button" onClick={() => onHighlight(each.year)}>
+          Highlight {each.year}
+        </button>
+      ))}
     </div>
   )
 }))
@@ -198,7 +204,6 @@ describe('ClimatologyPage', () => {
     expect(chart).toHaveAttribute('data-y-domain', 'own')
     expect(screen.getByText(`AFTON: daily temperature, ${currentYear}`)).toBeInTheDocument()
     expect(screen.getByText(new RegExp(`compared with 1990 to ${currentYear - 1}`))).toBeInTheDocument()
-    expect(screen.getByTestId('climatology-legend')).toHaveTextContent(`${currentYear}Historical median`)
     // One station is not combined, so there is nothing to choose.
     expect(screen.queryByRole('button', { name: 'Pooled' })).not.toBeInTheDocument()
   })
@@ -214,7 +219,6 @@ describe('ClimatologyPage', () => {
     expect(chart).toHaveAttribute('data-title', 'Kamloops Fire Centre')
     expect(screen.getByText(`Kamloops Fire Centre: daily temperature, ${currentYear}`)).toBeInTheDocument()
     expect(screen.getByText(/Each day is the mean of the stations/)).toBeInTheDocument()
-    expect(screen.getByTestId('climatology-legend')).toHaveTextContent(`${currentYear} (mean of stations)`)
     expect(screen.getByRole('button', { name: 'Average' })).toHaveAttribute('aria-pressed', 'true')
   })
 
@@ -277,7 +281,6 @@ describe('ClimatologyPage', () => {
       'AFTON (322)',
       'ALEXIS CREEK (209)'
     ])
-    expect(screen.getByTestId('climatology-legend')).toHaveTextContent(`${currentYear}Historical median`)
   })
 
   it('forgets the group when its stations are edited', async () => {
@@ -358,7 +361,7 @@ describe('ClimatologyPage', () => {
       return within(await screen.findByRole('listbox'))
     }
 
-    it('loads the year chosen, and draws and names it', async () => {
+    it('loads the year chosen, and draws it', async () => {
       renderPage()
       await chooseStation('AFTON (322)')
       await screen.findByTestId('climatology-chart')
@@ -369,7 +372,6 @@ describe('ClimatologyPage', () => {
         expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'temperature', currentYear, 'average', [2017])
       )
       expect(await screen.findByTestId('climatology-chart')).toHaveAttribute('data-compared', '2017')
-      expect(screen.getByTestId('climatology-legend')).toHaveTextContent(`${currentYear}2017Historical median`)
       expect(screen.getByText(/2017 is part of that history/)).toBeInTheDocument()
     })
 
@@ -406,13 +408,15 @@ describe('ClimatologyPage', () => {
       )
     })
 
-    it('highlights a year from the legend until it is no longer compared', async () => {
+    it('highlights a year until it is no longer compared', async () => {
       renderPage()
       await chooseStation('AFTON (322)')
       fireEvent.click(screen.getByRole('button', { name: 'Last year' }))
-      const legend = within(await screen.findByTestId('climatology-legend'))
+      await waitFor(() =>
+        expect(screen.getByTestId('climatology-chart')).toHaveAttribute('data-compared', `${currentYear - 1}`)
+      )
 
-      fireEvent.click(await legend.findByRole('button', { name: `${currentYear - 1}` }))
+      fireEvent.click(screen.getByRole('button', { name: `Highlight ${currentYear - 1}` }))
 
       expect(screen.getByTestId('climatology-chart')).toHaveAttribute('data-highlighted', `${currentYear - 1}`)
 

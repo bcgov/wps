@@ -33,7 +33,7 @@ const row: ClimatologyRow = {
 }
 
 describe('ClimatologyChart pointer', () => {
-  it('passes the pointer through the zoom control to the chart, so its tooltip follows', () => {
+  it('passes the pointer through the zoom control to the chart, so the readout follows', () => {
     render(
       <ClimatologyChart
         rows={[row]}
@@ -45,6 +45,7 @@ describe('ClimatologyChart pointer', () => {
         highlightedYear={null}
         today={null}
         title="AFTON"
+        onHighlight={vi.fn()}
       />
     )
     const host = screen.getByTestId('climatology-chart-host')

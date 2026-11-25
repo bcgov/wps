@@ -19,7 +19,7 @@ import {
   MEDIAN_COLOUR,
   SELECTION_COLOUR,
   YEAR_COLOUR
-} from '@/features/climatology/components/ClimatologyChart'
+} from '@/features/climatology/components/climatologyColours'
 
 export interface ClimatologyTimelineProps {
   rows: ClimatologyRow[]
