@@ -48,7 +48,7 @@ const Root = styled('div')(({ theme }) => ({
     flexDirection: 'column',
     flex: 1,
     minHeight: 0,
-    minWidth: '375px',
+    minWidth: 0,
     marginTop: theme.spacing(2),
     width: '100%'
   },
