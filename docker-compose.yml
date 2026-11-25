@@ -25,7 +25,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        DOCKER_IMAGE: ${WPS_API_BASE_IMAGE:-ghcr.io/bcgov/wps/wps-api-base:latest}
+        DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-api-base:${tag:-latest}
     ports:
       - "8080:8080"
     depends_on:
@@ -97,7 +97,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        DOCKER_IMAGE: ${WPS_API_BASE_IMAGE:-ghcr.io/bcgov/wps/wps-api-base:latest}
+        DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-api-base:${tag:-latest}
     depends_on:
       - db
       - redis
@@ -112,7 +112,7 @@ services:
       context: .
       dockerfile: Dockerfile.jobs
       args:
-        DOCKER_IMAGE: ${WPS_JOBS_BASE_IMAGE:-ghcr.io/bcgov/wps/wps-jobs-base:latest}
+        DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-jobs-base:${tag:-latest}
     depends_on:
       - db
       - redis
