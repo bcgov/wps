@@ -16,7 +16,7 @@ from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 
-from wps_sfms.non_fuel_cog import generate_non_fuel_cog
+from wps_sfms.non_fuel_cog import generate_fuel_aware_cog
 from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ async def publish_dataset(
 
         if cog_key is not None:
             if cog_non_fuel_mask is not None:
-                generate_non_fuel_cog(dataset, cog_key, cog_non_fuel_mask, cog_resample_alg)
+                generate_fuel_aware_cog(dataset, cog_key, cog_non_fuel_mask, cog_resample_alg)
             else:
                 generate_web_optimized_cog(
                     input_path=tmp_path, output_path=cog_key, resample_alg=cog_resample_alg

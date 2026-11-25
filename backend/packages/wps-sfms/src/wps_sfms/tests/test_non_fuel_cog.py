@@ -8,7 +8,7 @@ from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 
 from wps_sfms.interpolation.common import SFMS_NO_DATA
-from wps_sfms.non_fuel_cog import generate_non_fuel_cog
+from wps_sfms.non_fuel_cog import generate_fuel_aware_cog
 from wps_sfms.tests.raster_test_utils import create_test_wps_dataset
 
 # Large enough that the COG driver builds overviews.
@@ -37,7 +37,7 @@ def test_non_fuel_values_are_restored_without_blending_into_fuel(
     output_path = str(tmp_path / "output.tif")
 
     with create_test_wps_dataset("source.tif", values) as source:
-        generate_non_fuel_cog(source, output_path, non_fuel)
+        generate_fuel_aware_cog(source, output_path, non_fuel)
         # The source dataset is not modified.
         np.testing.assert_array_equal(source.read_array(), values)
 
@@ -53,7 +53,7 @@ def test_non_fuel_outside_source_footprint_stays_nodata(tmp_path):
     output_path = str(tmp_path / "output.tif")
 
     with create_test_wps_dataset("source.tif", values, nodata=-9999.0) as source:
-        generate_non_fuel_cog(source, output_path, np.ones(values.shape, dtype=bool))
+        generate_fuel_aware_cog(source, output_path, np.ones(values.shape, dtype=bool))
 
     with gdal.Open(output_path) as output:
         actual = output.GetRasterBand(1).ReadAsMaskedArray()
@@ -78,7 +78,7 @@ def test_float32_nodata_does_not_blend_into_neighbouring_fuel(tmp_path):
         dataset = source.as_gdal_ds()
         dataset.SetProjection(srs.ExportToWkt())
         dataset.SetGeoTransform((-758000, 2000, 0, 1290000, 0, -2000))
-        generate_non_fuel_cog(source, output_path, non_fuel)
+        generate_fuel_aware_cog(source, output_path, non_fuel)
         generate_and_store_cog(
             dataset, nearest_path, resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR
         )
@@ -98,7 +98,7 @@ def test_value_and_fuel_cogs_share_a_grid(tmp_path):
     fuel_path = str(tmp_path / "fuel.tif")
 
     with create_test_wps_dataset("source.tif", values) as source:
-        generate_non_fuel_cog(source, value_path, np.zeros(values.shape, dtype=bool))
+        generate_fuel_aware_cog(source, value_path, np.zeros(values.shape, dtype=bool))
     with create_test_wps_dataset("fuel.tif", values) as fuel:
         generate_and_store_cog(
             fuel.as_gdal_ds(), fuel_path, resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR
@@ -127,7 +127,7 @@ def test_invalid_classification_is_rejected(tmp_path, mask, message):
     """Reject masks that are the wrong shape or not boolean."""
     with create_test_wps_dataset("source.tif", np.zeros((2, 2))) as source:
         with pytest.raises(ValueError, match=message):
-            generate_non_fuel_cog(source, str(tmp_path / "output.tif"), mask)
+            generate_fuel_aware_cog(source, str(tmp_path / "output.tif"), mask)
 
 
 @pytest.mark.parametrize(
@@ -144,6 +144,6 @@ def test_unsupported_source_is_rejected(tmp_path, band_count, nodata, message):
 
     with WPSDataset(ds_path=None, ds=source_ds) as source:
         with pytest.raises(ValueError, match=message):
-            generate_non_fuel_cog(
+            generate_fuel_aware_cog(
                 source, str(tmp_path / "output.tif"), np.zeros((2, 2), dtype=bool)
             )
