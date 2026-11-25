@@ -326,9 +326,16 @@ class FourPanelChartRunner:
         end_hour: int,
         step: int,
         model: ECCCModel,
-    ):
+    ) -> bool:
+        """
+        Make the 4-panel charts for each model run on init_ymd.
+
+        :return: True if every model run's charts are complete, False if any are still in
+            progress (missing input files or a failed chart) and will be retried later.
+        """
         if model not in ModelNames:
             raise ValueError(f"Model must be one of {list(ModelNames)}, received {model}")
+        all_runs_complete = True
         for init_hh in model_runs:
             model_run_time = time(int(init_hh))
             init_datetime = datetime.strptime(init_ymd, "%Y%m%d")
@@ -352,9 +359,11 @@ class FourPanelChartRunner:
                             f"Successfully generated {model} 4 panel charts for {init_ymd}Z{model_run_time}."
                         )
                     else:
+                        all_runs_complete = False
                         logger.info(
                             f"Could not generate all {model} 4 panel charts for {init_ymd}Z{model_run_time}."
                         )
+        return all_runs_complete
 
 
 async def get_init_datetime(model):
@@ -446,6 +455,7 @@ async def main():
     async with S3Client(user_id=user_id, secret_key=secret_key, bucket=bucket) as s3_client:
         try:
             current_datetime = start_datetime
+            all_days_complete = True
             while current_datetime <= end_datetime:
                 init_ymd = current_datetime.strftime("%Y%m%d")
                 logger.info(f"Creating {args.model} 4 panel chart for model run {init_ymd}.")
@@ -455,13 +465,21 @@ async def main():
                 )
 
                 runner = FourPanelChartRunner(s3_client)
-                await runner.run(
+                if not await runner.run(
                     init_ymd, args.model_runs, args.start_hour, args.end_hour, args.step, args.model
-                )
+                ):
+                    all_days_complete = False
                 current_datetime = current_datetime + timedelta(days=1)
 
-            # Exit with 0 - success.
-            logger.info("4-Panel Chart creation is up to date.")
+            if all_days_complete:
+                logger.info("4-Panel Chart creation is up to date.")
+            else:
+                logger.info(
+                    "4-Panel Chart creation finished, but some charts are not done yet "
+                    "(missing input files or failed charts). They will be retried on a later run."
+                )
+            # Exit with 0 - success. Incomplete charts are expected while input files are still
+            # arriving, so they are retried later rather than reported as a job failure.
             sys.exit(os.EX_OK)
         except Exception as e:
             logger.error(f"Fatal error: {e}", exc_info=True)
