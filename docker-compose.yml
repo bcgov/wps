@@ -1,12 +1,12 @@
-x-backend-env: &backend-env
+x-backend-common: &backend-common
   env_file:
     - path: .env
       required: false
   environment:
     POSTGRES_WRITE_HOST: db
     POSTGRES_READ_HOST: db
-    POSTGRES_WRITE_USER: ${POSTGRES_WRITE_USER:-wps}
-    POSTGRES_READ_USER: ${POSTGRES_READ_USER:-wps}
+    POSTGRES_WRITE_USER: ${POSTGRES_USER:-wps}
+    POSTGRES_READ_USER: ${POSTGRES_USER:-wps}
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wps}
     POSTGRES_DATABASE: ${POSTGRES_DATABASE:-wps}
     POSTGRES_PORT: "5432"
@@ -17,21 +17,23 @@ x-backend-env: &backend-env
     SFMS_SECRET: ${SFMS_SECRET:-secret}
     PYTHONPYCACHEPREFIX: /tmp/python_cache
     UV_NO_CACHE: "1"
+  depends_on:
+    - db
+    - redis
+    - nats
+
+x-api-build: &api-build
+  context: .
+  dockerfile: Dockerfile
+  args:
+    DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-api-base:${tag:-latest}
 
 services:
   api:
-    <<: *backend-env
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-api-base:${tag:-latest}
+    <<: *backend-common
+    build: *api-build
     ports:
       - "8080:8080"
-    depends_on:
-      - db
-      - redis
-      - nats
     command: >
       bash -c "
       until python3 -c \"import socket; socket.create_connection(('db', 5432), 1).close()\" 2>/dev/null; do
@@ -39,15 +41,11 @@ services:
       done &&
       ./start.sh
       "
-    networks:
-      - wps_network
 
   redis:
     image: docker.io/library/redis:alpine
     ports:
       - "6379:6379"
-    networks:
-      - wps_network
 
   nats:
     image: docker.io/library/nats:alpine
@@ -55,27 +53,16 @@ services:
     command: -js
     ports:
       - "4222:4222"
-    networks:
-      - wps_network
 
   # Multi-arch PostGIS container (official postgis/postgis is amd64-only)
   db:
     image: ghcr.io/baosystems/postgis:16-3.5
-    hostname: db
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: wps
-      POSTGRES_PASSWORD: wps
-      POSTGRES_DB: wps
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U wps -d wps"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 15s
-    networks:
-      - wps_network
+      POSTGRES_USER: ${POSTGRES_USER:-wps}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wps}
+      POSTGRES_DB: ${POSTGRES_DATABASE:-wps}
 
   web:
     build:
@@ -83,56 +70,28 @@ services:
       dockerfile: Dockerfile.web
     ports:
       - "3000:3000"
-    networks:
-      - wps_network
 
   # On-demand cronjob runners using the production images:
   #   docker compose run --rm cronjob-jobs uv run --no-sync python -m weather_model_jobs.env_canada GDPS
   #   docker compose run --rm cronjob-api uv run --package wps-api --no-sync python -m app.jobs.sfms_daily_actuals
   #   docker compose run --rm cronjob-weather uv run --package wps-weather --no-sync python -m wps_weather.wx_4panel_charts.wx_4panel_charts --end_hour 48 --step 6 --model GDPS
   cronjob-api:
-    <<: *backend-env
+    <<: *backend-common
     profiles: ["cronjobs"]
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-api-base:${tag:-latest}
-    depends_on:
-      - db
-      - redis
-      - nats
-    networks:
-      - wps_network
+    build: *api-build
 
   cronjob-jobs:
-    <<: *backend-env
+    <<: *backend-common
     profiles: ["cronjobs"]
     build:
       context: .
       dockerfile: Dockerfile.jobs
       args:
         DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-jobs-base:${tag:-latest}
-    depends_on:
-      - db
-      - redis
-      - nats
-    networks:
-      - wps_network
 
   cronjob-weather:
-    <<: *backend-env
+    <<: *backend-common
     profiles: ["cronjobs"]
     build:
       context: .
       dockerfile: backend/packages/wps-weather/Dockerfile
-    depends_on:
-      - db
-      - redis
-      - nats
-    networks:
-      - wps_network
-
-networks:
-  wps_network:
-    driver: bridge
