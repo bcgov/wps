@@ -24,9 +24,9 @@ describe('getRasterTooltipData', () => {
   )
 
   it.each([
-    [101, 'Non-fuel'],
+    [99, 'Non-fuel'],
     [102, 'Water']
-  ])('should label national fuel %s only when the pixel is visible', (fuel, label) => {
+  ])('should label BC fuel %s only when the pixel is visible', (fuel, label) => {
     for (const rasterType of (Object.keys(RASTER_CONFIG) as RasterType[]).filter(
       type => RASTER_CONFIG[type].group === 'fbp'
     )) {

@@ -7,7 +7,7 @@ import {
   type ColourBreak,
   FUEL_TYPE_COLOURS,
   getAlphaBand,
-  NATIONAL_NON_FUEL_TYPES,
+  NON_FUEL_TYPES,
   pairsWithFuel,
   RASTER_CONFIG,
   type SFMSNGRasterType
@@ -80,7 +80,7 @@ export const getSFMSNGRasterColourExpression = (rasterType: SFMSNGRasterType) =>
   ]
 
   if (isFbp) {
-    NATIONAL_NON_FUEL_TYPES.forEach(({ value, rgb }) => {
+    NON_FUEL_TYPES.forEach(({ value, rgb }) => {
       const [r, g, b] = rgb
       expression.push(['==', ['band', FBP_FUEL_BAND], value], [r, g, b, 1])
     })

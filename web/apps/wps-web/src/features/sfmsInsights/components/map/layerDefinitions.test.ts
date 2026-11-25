@@ -80,7 +80,7 @@ vi.mock('ol-pmtiles', () => ({
 }))
 
 describe('layerDefinitions', () => {
-  it.each([RunType.ACTUAL, RunType.FORECAST])('should pair every FBP output with the %s run fuel COG', runType => {
+  it.each([RunType.ACTUAL, RunType.FORECAST])('should pair every %s FBP output with the static fuel COG', runType => {
     const date = DateTime.fromISO('2025-11-02')
     for (const rasterType of Object.keys(RASTER_CONFIG) as RasterType[]) {
       if (rasterType === 'fuel' || RASTER_CONFIG[rasterType].group !== 'fbp') continue
@@ -93,7 +93,7 @@ describe('layerDefinitions', () => {
         expect.objectContaining({
           sources: [
             { url: expect.stringContaining(valuePath), nodata: Number.NaN },
-            { url: expect.stringContaining(`sfms_ng/${runType}/2025/11/02/fuel_20251102_cog.tif`) }
+            { url: expect.stringContaining('sfms_ng/fuel/fbp2025_v2_3857_cog.tif') }
           ],
           sourceOptions: { headers: { Authorization: 'Bearer test-token' } },
           interpolate: false,

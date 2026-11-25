@@ -2,7 +2,7 @@ import type WebGLTileLayer from 'ol/layer/WebGLTile'
 import {
   FUEL_TYPE_COLOURS,
   getAlphaBand,
-  NATIONAL_NON_FUEL_TYPES,
+  NON_FUEL_TYPES,
   pairsWithFuel,
   RASTER_CONFIG,
   type RasterType
@@ -39,7 +39,7 @@ export const getRasterTooltipData = (data: RasterData, rasterType: RasterType | 
   }
 
   if (rasterType && pairsWithFuel(rasterType)) {
-    const nonFuel = NATIONAL_NON_FUEL_TYPES.find(({ value }) => value === data[1])
+    const nonFuel = NON_FUEL_TYPES.find(({ value }) => value === data[1])
     if (nonFuel) {
       return { value: nonFuel.fuelCode, label: '' }
     }

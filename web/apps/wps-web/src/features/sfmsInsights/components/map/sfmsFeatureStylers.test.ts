@@ -8,7 +8,7 @@ import {
   FUEL_COLOUR_BREAKS,
   FUEL_TYPE_COLOURS,
   HFI_COLOUR_BREAKS,
-  NATIONAL_NON_FUEL_TYPES,
+  NON_FUEL_TYPES,
   RASTER_CONFIG,
   SFC_COLOUR_BREAKS,
   TFC_COLOUR_BREAKS
@@ -96,12 +96,12 @@ describe('fuelCOGColourExpression', () => {
 })
 
 describe('getSFMSNGRasterColourExpression', () => {
-  it('should reuse Fuel colours and labels for national Non-fuel/Water classes', () => {
-    expect(NATIONAL_NON_FUEL_TYPES).toEqual([
-      { value: 101, fuelCode: 'Non-fuel', rgb: [130, 130, 130] },
+  it('should reuse Fuel colours and labels for BC Non-fuel/Water classes', () => {
+    expect(NON_FUEL_TYPES).toEqual([
+      { value: 99, fuelCode: 'Non-fuel', rgb: [130, 130, 130] },
       { value: 102, fuelCode: 'Water', rgb: [115, 223, 255] }
     ])
-    for (const fuel of NATIONAL_NON_FUEL_TYPES) {
+    for (const fuel of NON_FUEL_TYPES) {
       expect(fuel.rgb).toBe(FUEL_TYPE_COLOURS.find(({ fuelCode }) => fuelCode === fuel.fuelCode)?.rgb)
     }
   })
@@ -159,7 +159,7 @@ describe('getSFMSNGRasterColourExpression', () => {
         'case',
         ['==', ['band', 3], 0],
         [0, 0, 0, 0],
-        ['==', ['band', 2], 101],
+        ['==', ['band', 2], 99],
         [130, 130, 130, 1],
         ['==', ['band', 2], 102],
         [115, 223, 255, 1]
