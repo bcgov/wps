@@ -385,9 +385,13 @@ describe('ClimatologyPage', () => {
       fireEvent.click(options.getByText('2003'))
 
       await waitFor(() =>
-        expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'temperature', currentYear, 'average', [
-          2023, 2017, 2003
-        ])
+        expect(getDailyClimatology).toHaveBeenLastCalledWith(
+          [322],
+          'temperature',
+          currentYear,
+          'average',
+          [2023, 2017, 2003]
+        )
       )
     })
 
