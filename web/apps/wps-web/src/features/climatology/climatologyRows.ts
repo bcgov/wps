@@ -238,6 +238,19 @@ export const formatValue = (value: number, variable: ClimatologyVariable) => {
   return `${value.toFixed(decimals)}${separator}${unit}`
 }
 
+/** A range of the variable's values, with the unit once. */
+export const formatRange = (low: number, high: number, variable: ClimatologyVariable) =>
+  `${low.toFixed(CLIMATOLOGY_VARIABLES[variable].decimals)} to ${formatValue(high, variable)}`
+
+/**
+ * The latest day in the window that the selected year has a value for, which is shown until a day
+ * is pointed at. The window's last day if the year has none, or null with no days in the window.
+ */
+export const latestRow = (rows: ClimatologyRow[], window: DateWindow): ClimatologyRow | null => {
+  const shown = rows.filter(row => row.time >= window.start && row.time <= window.end)
+  return shown.findLast(row => row.value !== null) ?? shown[shown.length - 1] ?? null
+}
+
 /** Today as a time on the chart, if it is in the selected year and within the rows shown. */
 export const todayOnChart = (rows: ClimatologyRow[], year: number, now: Date = new Date()): number | null => {
   if (rows.length === 0 || now.getFullYear() !== year) {

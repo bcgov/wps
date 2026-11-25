@@ -1,3 +1,4 @@
+import { Box } from '@mui/material'
 import { areaY, type ChartInteractionController, defineChart, lineY, ruleX } from '@tanstack/charts'
 import { crosshair } from '@tanstack/charts/crosshair'
 import { controlledSignal } from '@tanstack/charts/interaction/signal'
@@ -14,6 +15,7 @@ import {
   type ClimatologyRow,
   type DateWindow,
   formatDay,
+  latestRow,
   maxZoom,
   rowsExtent,
   rowsInWindow,
@@ -22,20 +24,8 @@ import {
 } from '@/features/climatology/climatologyRows'
 import type { ComparedYear } from '@/features/climatology/comparedYears'
 import ClimatologyReadout from '@/features/climatology/components/ClimatologyReadout'
+import { BAND_COLOURS, MEDIAN_COLOUR, YEAR_COLOUR } from '@/features/climatology/components/climatologyColours'
 
-// The bands are light shades of one grey, darkest in the middle half, so that the lines of the
-// years stand out from them. They do not say which end is dangerous: that is high for
-// temperature and low for relative humidity.
-export const BAND_COLOURS = {
-  lowest: '#eeece7',
-  middle: '#dedcd4',
-  high: '#e9e7e1',
-  highest: '#f5f4f1'
-}
-export const MEDIAN_COLOUR = '#6b6a64'
-// The wash over the dates the timeline has selected.
-export const SELECTION_COLOUR = '#3987e5'
-export const YEAR_COLOUR = '#0b0b0b'
 const TODAY_COLOUR = '#898781'
 // The percentiles the bands run between.
 type BandEdge = 'minimum' | 'p25' | 'p75' | 'p90' | 'maximum'
@@ -67,6 +57,7 @@ export interface ClimatologyChartInput {
 export interface ClimatologyChartProps extends ClimatologyChartInput {
   // What the chart is of: a station's name, or a description of a group.
   title: string
+  onHighlight: (year: number | null) => void
   height?: number
 }
 
@@ -153,7 +144,7 @@ export const climatologyChartDefinition = ({
       })
     ],
     // The pointer finds the day, wherever it is vertically. Its values are shown in a readout
-    // above the chart, not a tooltip beside the pointer, which would cover the lines.
+    // beside the chart, not a tooltip beside the pointer, which would cover the lines.
     focus: 'nearest-x',
     maxFocusDistance: Number.POSITIVE_INFINITY
   })
@@ -171,6 +162,7 @@ const ClimatologyChart = ({
   yDomain,
   wheelZoom,
   title,
+  onHighlight,
   height = 460
 }: ClimatologyChartProps) => {
   const definition = useMemo(
@@ -199,10 +191,16 @@ const ClimatologyChart = ({
   }, [])
   const onPointerLeave = useCallback(() => interaction.current?.setControlledFocus(null), [])
   const { label } = CLIMATOLOGY_VARIABLES[variable]
+  const row = focused ?? latestRow(rows, dateWindow)
   return (
-    <div>
-      <ClimatologyReadout row={focused} variable={variable} year={year} comparedYears={comparedYears} />
-      <div data-testid="climatology-chart-host" onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
+    // The readout goes under the chart where there is no room beside it.
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2, alignItems: 'flex-start' }}>
+      <Box
+        data-testid="climatology-chart-host"
+        onPointerMove={onPointerMove}
+        onPointerLeave={onPointerLeave}
+        sx={{ flex: '1 1 480px', minWidth: 0 }}
+      >
         <Chart
           definition={definition}
           height={height}
@@ -213,8 +211,18 @@ const ClimatologyChart = ({
           }}
           onFocusChange={point => setFocused(point ? (point.datum as ClimatologyRow) : null)}
         />
-      </div>
-    </div>
+      </Box>
+      {row && (
+        <ClimatologyReadout
+          row={row}
+          variable={variable}
+          year={year}
+          comparedYears={comparedYears}
+          highlightedYear={highlightedYear}
+          onHighlight={onHighlight}
+        />
+      )}
+    </Box>
   )
 }
 

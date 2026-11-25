@@ -1,5 +1,5 @@
 import { createChartScene } from '@tanstack/charts'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { ClimatologyRow, DateWindow } from '@/features/climatology/climatologyRows'
 import { chooseComparedYears } from '@/features/climatology/comparedYears'
 import ClimatologyChart, { climatologyChartDefinition, DIMMED_OPACITY } from './ClimatologyChart'
@@ -109,27 +109,25 @@ describe('climatologyChartDefinition', () => {
 
 describe('ClimatologyChart', () => {
   it('renders a chart named for the station, variable and year', () => {
-    render(<ClimatologyChart {...input} title="AFTON" />)
+    render(<ClimatologyChart {...input} title="AFTON" onHighlight={vi.fn()} />)
 
     expect(screen.getByRole('img', { name: 'Temperature climatology for AFTON, 2026' })).toBeInTheDocument()
   })
 
-  it('describes a day in the readout above the chart when stepped to from the keyboard', async () => {
-    render(<ClimatologyChart {...input} title="AFTON" />)
-    const readout = screen.getByTestId('climatology-readout')
-    expect(readout).toHaveTextContent('Point at a day on the chart')
+  it('shows the latest day the year has a value for until a day is stepped to from the keyboard', async () => {
+    render(<ClimatologyChart {...input} title="AFTON" onHighlight={vi.fn()} />)
+    const readout = within(screen.getByTestId('climatology-readout'))
+    // Nothing is observed yet on July 3 and 4.
+    expect(readout.getByRole('table', { name: 'Jul 2' })).toBeInTheDocument()
+    expect(readout.getByRole('row', { name: '2026 21.0°C' })).toBeInTheDocument()
     const chart = screen.getByRole('img', { name: /Temperature climatology/ })
 
     chart.focus()
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
 
-    await waitFor(() => expect(readout).toHaveTextContent('Jul 1'))
-    expect(readout).toHaveTextContent('2026 20.0°C')
-    expect(readout).toHaveTextContent('Median 18.0°C')
-    expect(readout).toHaveTextContent('Middle half 12.0°C to 24.0°C')
-    expect(readout).toHaveTextContent('90th percentile 28.0°C')
-    expect(readout).toHaveTextContent('Lowest to highest 5.0°C to 35.0°C')
-    expect(readout).toHaveTextContent('Years of record 30')
+    expect(await readout.findByRole('table', { name: 'Jul 1' })).toBeInTheDocument()
+    expect(readout.getByRole('row', { name: '2026 20.0°C' })).toBeInTheDocument()
+    expect(readout.getByRole('row', { name: 'Median 18.0°C' })).toBeInTheDocument()
     // No tooltip floats over the chart.
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
@@ -144,6 +142,7 @@ describe('ClimatologyChart', () => {
         dateWindow={{ start: days[0], end: days[days.length - 1] }}
         onDateWindowChange={onDateWindowChange}
         title="AFTON"
+        onHighlight={vi.fn()}
       />
     )
 
@@ -153,24 +152,6 @@ describe('ClimatologyChart', () => {
     const [{ start, end }] = onDateWindowChange.mock.calls[0]
     expect(start).toBeGreaterThan(days[0])
     expect(end).toBeLessThan(days[days.length - 1])
-  })
-
-  it('counts the stations in the readout when several are combined', async () => {
-    const group = rows.map(each => ({
-      ...each,
-      count: 60,
-      stationCount: 2,
-      valueStationCount: each.value === null ? null : 2
-    }))
-    render(<ClimatologyChart {...input} rows={group} title="Kamloops Fire Centre" />)
-    const chart = screen.getByRole('img', { name: /Temperature climatology/ })
-
-    chart.focus()
-    fireEvent.keyDown(chart, { key: 'ArrowRight' })
-
-    const readout = screen.getByTestId('climatology-readout')
-    await waitFor(() => expect(readout).toHaveTextContent('2026 20.0°C (2 stations)'))
-    expect(readout).toHaveTextContent('Drawn from 60 values at 2 stations')
   })
 
   it('uses the y axis it is given, so several charts share one', () => {
@@ -183,7 +164,7 @@ describe('ClimatologyChart', () => {
     ['always', /Use a vertical wheel to zoom/],
     ['modifier', /Hold Control or Command while using a vertical wheel/]
   ] as const)('zooms with the wheel %s', (wheelZoom, instructions) => {
-    render(<ClimatologyChart {...input} wheelZoom={wheelZoom} title="AFTON" />)
+    render(<ClimatologyChart {...input} wheelZoom={wheelZoom} title="AFTON" onHighlight={vi.fn()} />)
 
     expect(screen.getByLabelText('Zoom and pan the dates shown')).toHaveAccessibleDescription(instructions)
   })

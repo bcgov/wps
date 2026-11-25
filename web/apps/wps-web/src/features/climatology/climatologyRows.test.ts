@@ -7,7 +7,9 @@ import {
   FULL_YEAR,
   formatDay,
   formatMonth,
+  formatRange,
   formatValue,
+  latestRow,
   MIN_WINDOW_DAYS,
   maxZoom,
   monthStarts,
@@ -285,5 +287,34 @@ describe('valueExtent', () => {
     )
 
     expect(valueExtent(rows)).toEqual([2, 40])
+  })
+})
+
+describe('formatRange', () => {
+  it('has the unit once, and the decimals of the variable', () => {
+    expect(formatRange(12.34, 20, 'temperature')).toBe('12.3 to 20.0°C')
+    expect(formatRange(0, 4.2, 'wind_speed')).toBe('0.0 to 4.2 km/h')
+    expect(formatRange(30.4, 55.6, 'relative_humidity')).toBe('30 to 56%')
+  })
+})
+
+describe('latestRow', () => {
+  const rows = dayRows([0, 1, 2, 3, 4]).map((row, index) => ({ ...row, value: index < 3 ? 20 : null }))
+  const window = { start: rows[0].time, end: rows[4].time }
+
+  it('is the last day with a value', () => {
+    expect(latestRow(rows, window)).toBe(rows[2])
+  })
+
+  it('is inside the window', () => {
+    expect(latestRow(rows, { start: rows[0].time, end: rows[1].time })).toBe(rows[1])
+  })
+
+  it('is the last day of the window when the year has no value in it', () => {
+    expect(latestRow(rows, { start: rows[3].time, end: rows[4].time })).toBe(rows[4])
+  })
+
+  it('is null with no days in the window', () => {
+    expect(latestRow([], window)).toBeNull()
   })
 })
