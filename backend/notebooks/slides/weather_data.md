@@ -126,14 +126,39 @@ The station data is stored twice, because one arrangement can't be good at both 
 
 ---
 
-## Delta Lake: a log of which files count
+## Why two kinds of storage
 
-![w:1020](images/delta.png)
+Station data is rows, looked up by station and time, so it is in Delta Lake. A weather model grid has a value in every cell, so it is in Zarr on Icechunk.
 
-Station data is ordinary files, plus a log of which ones count. A write is finished when it is in the log, so a reader never sees half of one.
+| Data | Instead of | Because |
+|---|---|---|
+| Stations | Postgres | We had to prune it, and its archives couldn't be queried |
+| Stations | Plain Parquet files | Several jobs write to the same table |
+| Stations | Zarr or Icechunk | 12 and 28 times as many files as Parquet, for model values |
+| Grids | The original files | About 20 times the space |
+| Grids | Original files cut to BC | Reading one place means opening a file for every hour |
+| Grids | Zarr alone | A reader could see half of a run |
 
 <!--
-Replacing A and B with D is what the nightly compaction does: many small files become one.
+Delta Lake was not chosen for speed. Plain Parquet was faster in our test, and Delta Lake needs nightly upkeep.
+The test used made-up data for 300 stations over 60 days, on a local disk. File counts carry over to object storage. Read times don't.
+Zarr was 36% smaller for observations. It was still about three times as many files as our two arrangements together, and the best at neither read.
+Postgres was not in the test, so there is no fair comparison of speed with the old database.
+The files cut to BC were estimated, not built.
+Our evaluation did not cover Iceberg or TimescaleDB.
+-->
+
+---
+
+## Delta Lake: a log of which files are in use
+
+![w:860](images/delta.png)
+
+Station data is ordinary files, plus a log that lists which ones are in use. Jobs add small files through the day, and each night these are combined into larger ones, so there are fewer to read. A new file isn't in use until its write is finished and in the log, so a reader never sees half of one.
+
+<!--
+Replacing A and B with D is what the nightly compaction does: many small files become one. No data changes.
+Each file is at least one request to storage, so many small files make a read slower.
 The replaced files are kept for 30 days, so a table can be read as it was at any point in that time.
 Two jobs can't write the same log entry. The second one has to try again or fail.
 Each table has its own log, so a write to two tables is two separate steps.
@@ -285,19 +310,25 @@ The files' speed has not been compared fairly with the database's.
 
 ---
 
-## What gets easier, and what is new
+## Benefits and risks
 
-| Less to worry about | New to look after |
+| Benefits | Risks |
 |---|---|
-| Weather history won't grow our database | This data depends on object storage |
+| We can keep all our weather history, without growing our database | We rely more on object storage, and on the team that supports it |
+| History can be read without a database | Object storage has no backups, but it is mirrored between Calgary and Kamloops |
+| Open formats that other tools can read | Newer formats, which we know less well. They are open source, and Delta Lake and Zarr are widely used |
 | No monthly partition and archive jobs | Nightly jobs to compact and clean up |
-| History can be read without a database | Tables can't be updated together in one step, so jobs have to recover |
-| Open formats that other tools can read | Newer libraries, which we know less well |
-| Tables made from the original records can be rebuilt | Two jobs writing one table at once is only partly tested |
-
-Production still uses the old system until it is moved.
+| Tables made from the original records can be rebuilt | Tables can't be updated together in one step, so jobs have to recover |
 
 <!--
+Production still uses the old system until it is moved.
+Once it is, object storage being down would affect MoreCast and fire watch as well as the API and the climatology page.
+Icechunk is open source too, but it is newer and less widely used than Delta Lake and Zarr.
+Our Postgres backups were kept in object storage anyway, so we already relied on it.
+The storage is Dell ECS, run by the OCIO. If one data centre is unavailable, it fails over to the other. Mirroring is constant but asynchronous, so the newest writes may not have been copied yet.
+Mirroring does not undo a mistake, because a deletion is mirrored too. A Delta table can be read as it was for 30 days, which covers a mistake inside a table. It does not cover losing the bucket.
+Rebuilding needs the original records, so it does not cover losing those.
+Two jobs writing one table at once is only partly tested.
 We haven't run it long enough to say it is more stable.
 On November 23 the HRDPS grid store stopped accepting data for about 12 hours and we don't know why. Station model jobs also ran out of memory while publishing, which has been fixed.
 The original records are the model runs and the WF1 observations and forecasts. They are added to and never replaced.
@@ -332,7 +363,6 @@ Next:
 - Copy production's history over and switch production
 - A way to view the weather model grids
 - Measure read times inside the cluster
-- Find out why the HRDPS 48-hour store stopped accepting data for about 12 hours on November 23. It can no longer hold up the permanent one
 
 <!--
 MoreCast and fire watch should work as before. The old database tables stay until production's history has been copied and checked.
