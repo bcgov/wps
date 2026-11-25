@@ -375,6 +375,22 @@ describe('ClimatologyPage', () => {
       expect(screen.getByText(/2017 is part of that history/)).toBeInTheDocument()
     })
 
+    it('adds years one at a time', async () => {
+      renderPage()
+      await chooseStation('AFTON (322)')
+      const options = await openYears()
+
+      fireEvent.click(options.getByText('2017'))
+      fireEvent.click(options.getByText('2023'))
+      fireEvent.click(options.getByText('2003'))
+
+      await waitFor(() =>
+        expect(getDailyClimatology).toHaveBeenLastCalledWith([322], 'temperature', currentYear, 'average', [
+          2023, 2017, 2003
+        ])
+      )
+    })
+
     it('chooses the last five years at once, and offers no more', async () => {
       renderPage()
       await chooseStation('AFTON (322)')
