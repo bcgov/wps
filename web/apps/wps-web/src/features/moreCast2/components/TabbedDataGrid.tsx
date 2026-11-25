@@ -163,6 +163,7 @@ export interface ElevationAdjustmentHandle {
 }
 
 interface TabbedDataGridProps {
+  onForecastStationChange?: (stationCode: number) => void
   ref?: React.Ref<ElevationAdjustmentHandle>
   fromTo: DateRange
   setFromTo: React.Dispatch<React.SetStateAction<DateRange>>
@@ -179,7 +180,8 @@ const TabbedDataGrid = ({
   setFromTo,
   fetchWeatherIndeterminates,
   modelElevationData,
-  onCompareElevations
+  onCompareElevations,
+  onForecastStationChange
 }: TabbedDataGridProps) => {
   // store
   const dispatch: AppDispatch = useDispatch()
@@ -721,6 +723,7 @@ const TabbedDataGrid = ({
         <GlobalStyles styles={inputGlobalStyles} />
         {forecastSummaryVisible ? (
           <ForecastSummaryDataGrid
+            onForecastStationChange={onForecastStationChange}
             loading={loading}
             rows={visibleRows}
             columnClickHandlerProps={columnClickHandlerProps}
@@ -729,6 +732,7 @@ const TabbedDataGrid = ({
           />
         ) : (
           <ForecastDataGrid
+            onForecastStationChange={onForecastStationChange}
             loading={loading}
             columnClickHandlerProps={columnClickHandlerProps}
             columnVisibilityModel={columnVisibilityModel}

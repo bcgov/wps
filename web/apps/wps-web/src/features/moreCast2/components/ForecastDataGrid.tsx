@@ -33,6 +33,7 @@ import {
   type ModelElevationData
 } from 'features/moreCast2/modelElevation'
 import React, { useCallback, useMemo } from 'react'
+import { isForecastRow } from '../util'
 
 const PREFIX = 'ForecastDataGrid'
 
@@ -94,6 +95,7 @@ const Root = styled('div')(({ theme }) => {
 })
 
 export interface ForecastDataGridProps {
+  onForecastStationChange?: (stationCode: number) => void
   loading: boolean
   columnClickHandlerProps: ColumnClickHandlerProps
   columnVisibilityModel: GridColumnVisibilityModel
@@ -189,6 +191,7 @@ const ForecastDataGrid = ({
   allMoreCast2Rows,
   modelElevationData,
   onCompareElevations,
+  onForecastStationChange,
   processRowUpdate
 }: ForecastDataGridProps) => {
   // derived data
@@ -206,6 +209,15 @@ const ForecastDataGrid = ({
   )
 
   // callbacks
+  const handleGridCellClick: GridEventListener<'cellClick'> = useCallback(
+    params => {
+      if (!isModelElevationRow(params.row) && isForecastRow(params.row)) {
+        onForecastStationChange?.(params.row.stationCode)
+      }
+    },
+    [onForecastStationChange]
+  )
+
   const handleGridDoubleClick: ForecastDataGridProps['onCellDoubleClickHandler'] = useCallback(
     (params, event, details) => {
       if (isModelElevationRow(params.row)) {
@@ -237,6 +249,7 @@ const ForecastDataGrid = ({
         slots={gridSlots}
         onColumnHeaderClick={handleColumnHeaderClick}
         onCellDoubleClick={handleGridDoubleClick}
+        onCellClick={handleGridCellClick}
         loading={loading}
         columns={columns}
         getRowClassName={getRowClassName}

@@ -9,7 +9,8 @@ import { DataGridColumns, getSummaryColumnGroupModel } from 'features/moreCast2/
 import { MORECAST2_INDEX_FIELDS } from 'features/moreCast2/components/MoreCast2Column'
 import type { ColumnClickHandlerProps } from 'features/moreCast2/components/TabbedDataGrid'
 import type { MoreCast2Row } from 'features/moreCast2/interfaces'
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
+import { isForecastRow } from '../util'
 
 const PREFIX = 'ForecastSummaryDataGrid'
 
@@ -48,6 +49,7 @@ const Root = styled('div')(() => {
 })
 
 interface ForecastSummaryDataGridProps {
+  onForecastStationChange?: (stationCode: number) => void
   loading: boolean
   rows: MoreCast2Row[]
   columnClickHandlerProps: ColumnClickHandlerProps
@@ -75,6 +77,7 @@ const isCellEditable = (params: GridCellParams) => {
 }
 
 const ForecastSummaryDataGrid = ({
+  onForecastStationChange,
   loading,
   rows,
   columnClickHandlerProps,
@@ -83,6 +86,14 @@ const ForecastSummaryDataGrid = ({
 }: ForecastSummaryDataGridProps) => {
   // derived data
   const columns = useMemo(() => DataGridColumns.getSummaryColumns(columnClickHandlerProps), [columnClickHandlerProps])
+
+  // callbacks
+  const handleGridCellClick: GridEventListener<'cellClick'> = useCallback(
+    params => {
+      if (isForecastRow(params.row)) onForecastStationChange?.(params.row.stationCode)
+    },
+    [onForecastStationChange]
+  )
 
   // render
   return (
@@ -96,6 +107,7 @@ const ForecastSummaryDataGrid = ({
         columnGroupHeaderHeight={36}
         columnHeaderHeight={44}
         onColumnHeaderClick={handleColumnHeaderClick}
+        onCellClick={handleGridCellClick}
         loading={loading}
         columns={columns}
         rows={rows}

@@ -147,6 +147,8 @@ describe('station elevation comparison sidebar', { timeout: 15000 }, () => {
 
   it('opens in the sidebar without changing drafts, columns, or requests', async () => {
     await renderPage()
+    await userEvent.click(cell(2))
+    expect(screen.queryByRole('region', { name: /Model elevations for/ })).not.toBeInTheDocument()
     const columns = vi.spyOn(DataGridColumns, 'getTabColumns')
     const requests = vi.mocked(fetchWeatherIndeterminates).mock.calls.length
     const draft = localStorage.getItem('morecastForecastDraft')
@@ -163,7 +165,7 @@ describe('station elevation comparison sidebar', { timeout: 15000 }, () => {
     expect(screen.getByTestId('morecast2-station-panel')).toBeVisible()
   })
 
-  it('stays on the chosen station while editing, copying models, and switching tabs', async () => {
+  it('follows forecast station clicks while editing, copying models, and switching tabs', async () => {
     await renderPage()
     await userEvent.click(compare())
     const metadata = vi.spyOn(modelElevation, 'getModelElevationData')
@@ -172,24 +174,76 @@ describe('station elevation comparison sidebar', { timeout: 15000 }, () => {
     await userEvent.clear(input)
     await userEvent.type(input, '25{Enter}')
     await waitFor(() => expect(within(cell(2)).getByRole('textbox')).toHaveValue('25'))
-    expect(panel()).toBeInTheDocument()
+    expect(panel('Beta station')).toBeInTheDocument()
     expect(
       new MorecastDraftForecast(localStorage)
         .getStoredDraftForecasts()
         ?.rows.find(row => row.stationCode === 2 && row.forDate.toISODate() === forecastDate.toISODate())?.tempForecast
         ?.value
     ).toBe(25)
+    await userEvent.click(within(panel('Beta station')).getByRole('button', { name: 'HRDPS' }))
+    const rate = screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' })
+    await userEvent.type(rate, '6.5')
     await userEvent.dblClick(cell(2, 'tempHRDPS'))
+    expect(rate).toHaveValue(6.5)
     await waitFor(() => expect(within(cell(2)).getByRole('textbox')).toHaveValue('20'))
     await userEvent.click(screen.getByTestId('rh-tab-button-unselected'))
-    expect(panel()).toBeInTheDocument()
+    expect(panel('Beta station')).toBeInTheDocument()
     await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
-    expect(panel()).toBeInTheDocument()
+    expect(panel('Beta station')).toBeInTheDocument()
+    expect(panel('Beta station')).toBeVisible()
+    await userEvent.click(cell(1))
+    expect(panel()).toBeVisible()
+    await userEvent.click(cell(2))
+    expect(panel('Beta station')).toBeVisible()
     await userEvent.click(screen.getByTestId('temp-tab-button-unselected'))
-    expect(panel()).toBeInTheDocument()
+    expect(panel('Beta station')).toBeInTheDocument()
     expect(metadata).not.toHaveBeenCalled()
     await userEvent.click(compare('Beta station'))
     expect(within(panel('Beta station')).getByText('-200')).toBeInTheDocument()
+  })
+
+  it('fills only the station followed by the open panel', async () => {
+    await renderPage()
+    await userEvent.click(compare())
+    await userEvent.click(cell(2, 'tempHRDPS'))
+    await userEvent.click(within(panel('Beta station')).getByRole('button', { name: 'HRDPS' }))
+    await userEvent.type(screen.getByRole('spinbutton', { name: 'Lapse rate (°C/km)' }), '9.8')
+    await userEvent.click(screen.getByRole('button', { name: 'Fill temperature forecasts' }))
+    const draft = new MorecastDraftForecast(localStorage).getStoredDraftForecasts()
+    expect(draft?.rows.every(row => row.stationCode === 2)).toBe(true)
+    expect(draft?.rows.find(row => row.stationCode === 2)?.tempForecast?.value).toBe(18)
+    expect(within(cell(1)).getByRole('textbox')).toHaveValue('')
+  })
+
+  it('ignores elevation headers and observed rows while the panel is open', async () => {
+    const { store } = await renderPage()
+    await userEvent.click(compare())
+    const header = compare('Beta station').closest('[role="row"]')!
+    await userEvent.click(header.querySelector<HTMLElement>('[data-field="tempHRDPS"]')!)
+    expect(panel()).toBeVisible()
+    const weather = store.getState().weatherIndeterminates
+    act(() =>
+      store.dispatch(
+        getWeatherIndeterminatesSuccess({
+          actuals: [
+            {
+              ...weather.predictions.find(row => row.station_code === 2)!,
+              determinate: WeatherDeterminate.ACTUAL,
+              temperature: 21
+            }
+          ],
+          predictions: weather.predictions,
+          forecasts: weather.forecasts,
+          grassCuring: weather.grassCuring
+        })
+      )
+    )
+    await userEvent.click(cell(2))
+    expect(panel()).toBeVisible()
+    await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
+    await userEvent.click(cell(2))
+    expect(panel()).toBeVisible()
   })
 
   it('supports keyboard activation and keeps Escape available for forecast editing', async () => {

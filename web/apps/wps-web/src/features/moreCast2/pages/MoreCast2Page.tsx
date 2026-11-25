@@ -104,6 +104,10 @@ const MoreCast2Page = () => {
     gridRef.current?.applyElevationAdjustment(comparisonStationCode!, model, adjustmentCelsius, overwriteExisting) ??
     'Forecast data is unavailable.'
 
+  const handleForecastStationChange = useCallback((stationCode: number) => {
+    setComparisonStationCode(current => (current === null ? null : stationCode))
+  }, [])
+
   const handleCloseComparison = () => setComparisonStationCode(null)
 
   // effects
@@ -168,6 +172,7 @@ const MoreCast2Page = () => {
             fetchWeatherIndeterminates={fetchWeatherIndeterminates}
             modelElevationData={modelElevationData}
             onCompareElevations={setComparisonStationCode}
+            onForecastStationChange={handleForecastStationChange}
           />
         </Observations>
       </Content>
