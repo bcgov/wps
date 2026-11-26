@@ -208,8 +208,9 @@ def test_source_failures_propagate(
     monkeypatch.setattr(
         elevation_sampler, download_method, Mock(side_effect=OSError("unavailable"))
     )
+    stations = [station()]
     with pytest.raises(OSError, match="unavailable"):
-        elevation_sampler.download_and_sample(model, RUN, [station()])
+        elevation_sampler.download_and_sample(model, RUN, stations)
 
 
 @pytest.mark.parametrize("model", ["HRDPS", "GFS"])
@@ -224,5 +225,7 @@ def test_unavailable_surface_response(
     )
     monkeypatch.setenv("REDIS_CACHE_ENV_CANADA", "False")
     monkeypatch.setenv("REDIS_CACHE_NOAA", "False")
+    elevation_sampler = sampler_module.ModelElevationSampler(tmp_path)
+    stations = [station()]
     with pytest.raises(FileNotFoundError, match="surface elevation unavailable"):
-        sampler_module.ModelElevationSampler(tmp_path).download_and_sample(model, RUN, [station()])
+        elevation_sampler.download_and_sample(model, RUN, stations)
