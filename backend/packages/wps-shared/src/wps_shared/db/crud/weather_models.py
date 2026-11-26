@@ -122,23 +122,24 @@ def store_model_run_station_elevations(
 ) -> None:
     """Add model elevation records for the given stations and flush the session.
 
-    Round elevations to two decimal places. Store null when a station has no
-    sample. Leave commits to the caller.
+    Round elevations to two decimal places and skip missing samples.
+    Leave commits to the caller.
     """
     rows: list[ModelRunStationElevation] = []
     for code in sorted(station_codes):
         elevation = elevations.get(code)
-        if elevation is not None:
-            elevation = round(elevation, 2)
+        if elevation is None:
+            continue
         rows.append(
             ModelRunStationElevation(
                 prediction_model_run_timestamp_id=model_run_id,
                 station_code=code,
-                elevation=elevation,
+                elevation=round(elevation, 2),
             )
         )
-    session.add_all(rows)
-    session.flush()
+    if rows:
+        session.add_all(rows)
+        session.flush()
 
 
 def delete_model_run_predictions(session: Session, older_than: datetime):
