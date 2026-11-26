@@ -269,6 +269,7 @@ def weather_stations_mapper(stations) -> List[WeatherStationGroupMember]:
             fire_zone=fire_zone,
             station_code=station["stationCode"],
             station_status=station["stationStatus"]["id"],
+            elevation=station.get("elevation"),
         )
         mapped_stations.append(weather_station)
 
