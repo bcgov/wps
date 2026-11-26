@@ -2539,19 +2539,6 @@ wheels = [
 ]
 
 [[package]]
-name = "postgres"
-version = "4.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "psycopg2-binary" },
-    { name = "psycopg2-pool" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/9d/d3/2e3c6dee18902886e4bee95596ce893aba90b6a4f4f6008986acc53e039c/postgres-4.0.tar.gz", hash = "sha256:67c57de10c0d39cd5e3437eef7ac895b2b53747603b3edcd261dedec5ac04d4c", size = 19650, upload-time = "2021-09-20T07:34:46.746Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/3a/f3cdb49983f5470412eb08ccf3a3a1bfc476acf1c010086019604f555ca8/postgres-4.0-py2.py3-none-any.whl", hash = "sha256:d81f757acbde2ca12785b8a3d44c39f1e49782963e84eb67d3e029ad67d6b1d3", size = 21706, upload-time = "2021-09-20T07:34:44.974Z" },
-]
-
-[[package]]
 name = "pqdm"
 version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2676,42 +2663,11 @@ wheels = [
 
 [[package]]
 name = "psycopg2"
-version = "2.9.11"
+version = "2.9.13"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/89/8d/9d12bc8677c24dad342ec777529bce705b3e785fa05d85122b5502b9ab55/psycopg2-2.9.11.tar.gz", hash = "sha256:964d31caf728e217c697ff77ea69c2ba0865fa41ec20bb00f0977e62fdcc52e3", size = 379598, upload-time = "2025-10-10T11:14:46.075Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/91/81/6ea19b8b28feb9405c8c87a307776614d6e404bdb98467d1ce10a39d2c1d/psycopg2-2.9.13.tar.gz", hash = "sha256:d36784fc2dae69523ba4b79c7d1d1b4d6e83e87836874f111262f4db940b16a6", size = 378068, upload-time = "2026-09-09T23:56:21.749Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/08/737aa39c78d705a7ce58248d00eeba0e9fc36be488f9b672b88736fbb1f7/psycopg2-2.9.11-cp314-cp314-win_amd64.whl", hash = "sha256:f10a48acba5fe6e312b891f290b4d2ca595fc9a06850fe53320beac353575578", size = 2803738, upload-time = "2025-10-10T11:10:23.196Z" },
-]
-
-[[package]]
-name = "psycopg2-binary"
-version = "2.9.11"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ac/6c/8767aaa597ba424643dc87348c6f1754dd9f48e80fdc1b9f7ca5c3a7c213/psycopg2-binary-2.9.11.tar.gz", hash = "sha256:b6aed9e096bf63f9e75edf2581aa9a7e7186d97ab5c177aa6c87797cd591236c", size = 379620, upload-time = "2025-10-10T11:14:48.041Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/64/12/93ef0098590cf51d9732b4f139533732565704f45bdc1ffa741b7c95fb54/psycopg2_binary-2.9.11-cp314-cp314-macosx_10_13_x86_64.whl", hash = "sha256:92e3b669236327083a2e33ccfa0d320dd01b9803b3e14dd986a4fc54aa00f4e1", size = 3756567, upload-time = "2025-10-10T11:13:11.885Z" },
-    { url = "https://files.pythonhosted.org/packages/7c/a9/9d55c614a891288f15ca4b5209b09f0f01e3124056924e17b81b9fa054cc/psycopg2_binary-2.9.11-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:e0deeb03da539fa3577fcb0b3f2554a97f7e5477c246098dbb18091a4a01c16f", size = 3864755, upload-time = "2025-10-10T11:13:17.727Z" },
-    { url = "https://files.pythonhosted.org/packages/13/1e/98874ce72fd29cbde93209977b196a2edae03f8490d1bd8158e7f1daf3a0/psycopg2_binary-2.9.11-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:9b52a3f9bb540a3e4ec0f6ba6d31339727b2950c9772850d6545b7eae0b9d7c5", size = 4411646, upload-time = "2025-10-10T11:13:24.432Z" },
-    { url = "https://files.pythonhosted.org/packages/5a/bd/a335ce6645334fb8d758cc358810defca14a1d19ffbc8a10bd38a2328565/psycopg2_binary-2.9.11-cp314-cp314-manylinux2014_ppc64le.manylinux_2_17_ppc64le.whl", hash = "sha256:db4fd476874ccfdbb630a54426964959e58da4c61c9feba73e6094d51303d7d8", size = 4468701, upload-time = "2025-10-10T11:13:29.266Z" },
-    { url = "https://files.pythonhosted.org/packages/44/d6/c8b4f53f34e295e45709b7568bf9b9407a612ea30387d35eb9fa84f269b4/psycopg2_binary-2.9.11-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:47f212c1d3be608a12937cc131bd85502954398aaa1320cb4c14421a0ffccf4c", size = 4166293, upload-time = "2025-10-10T11:13:33.336Z" },
-    { url = "https://files.pythonhosted.org/packages/4b/e0/f8cc36eadd1b716ab36bb290618a3292e009867e5c97ce4aba908cb99644/psycopg2_binary-2.9.11-cp314-cp314-manylinux_2_38_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:e35b7abae2b0adab776add56111df1735ccc71406e56203515e228a8dc07089f", size = 3983184, upload-time = "2025-10-30T02:55:32.483Z" },
-    { url = "https://files.pythonhosted.org/packages/53/3e/2a8fe18a4e61cfb3417da67b6318e12691772c0696d79434184a511906dc/psycopg2_binary-2.9.11-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:fcf21be3ce5f5659daefd2b3b3b6e4727b028221ddc94e6c1523425579664747", size = 3652650, upload-time = "2025-10-10T11:13:38.181Z" },
-    { url = "https://files.pythonhosted.org/packages/76/36/03801461b31b29fe58d228c24388f999fe814dfc302856e0d17f97d7c54d/psycopg2_binary-2.9.11-cp314-cp314-musllinux_1_2_ppc64le.whl", hash = "sha256:9bd81e64e8de111237737b29d68039b9c813bdf520156af36d26819c9a979e5f", size = 3298663, upload-time = "2025-10-10T11:13:44.878Z" },
-    { url = "https://files.pythonhosted.org/packages/97/77/21b0ea2e1a73aa5fa9222b2a6b8ba325c43c3a8d54272839c991f2345656/psycopg2_binary-2.9.11-cp314-cp314-musllinux_1_2_riscv64.whl", hash = "sha256:32770a4d666fbdafab017086655bcddab791d7cb260a16679cc5a7338b64343b", size = 3044737, upload-time = "2025-10-30T02:55:35.69Z" },
-    { url = "https://files.pythonhosted.org/packages/67/69/f36abe5f118c1dca6d3726ceae164b9356985805480731ac6712a63f24f0/psycopg2_binary-2.9.11-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:c3cb3a676873d7506825221045bd70e0427c905b9c8ee8d6acd70cfcbd6e576d", size = 3347643, upload-time = "2025-10-10T11:13:53.499Z" },
-    { url = "https://files.pythonhosted.org/packages/e1/36/9c0c326fe3a4227953dfb29f5d0c8ae3b8eb8c1cd2967aa569f50cb3c61f/psycopg2_binary-2.9.11-cp314-cp314-win_amd64.whl", hash = "sha256:4012c9c954dfaccd28f94e84ab9f94e12df76b4afb22331b1f0d3154893a6316", size = 2803913, upload-time = "2025-10-10T11:13:57.058Z" },
-]
-
-[[package]]
-name = "psycopg2-pool"
-version = "1.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "psycopg2-binary" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ba/8f/a5ae396ec7aa955e9d234b7d38ae3e975a47fbf45c7f4571be4b0e7473b4/psycopg2-pool-1.2.tar.gz", hash = "sha256:e9ec38d5af15b7cef5546452797935129c99482b25646f258a21786bfb826bf3", size = 11385, upload-time = "2024-01-15T11:55:30.469Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e6/37/99fc8b2725df9b9c3df8a184209480290d1300cd7a4cb14ed6b29ce6ef9e/psycopg2_pool-1.2-py2.py3-none-any.whl", hash = "sha256:3c8251f6fac3145eb4c5bf3407bb61543dbbcbb8117af1341cd7a8b5468aedbb", size = 7349, upload-time = "2024-01-15T11:55:29.222Z" },
+    { url = "https://files.pythonhosted.org/packages/b9/f9/f6e9d47ea04e09282c618f5eeb67634f39ea4b04acedd0a6d8da4d986d50/psycopg2-2.9.13-cp314-cp314-win_amd64.whl", hash = "sha256:a6f54fd8e0024f35240866b5dfff9ead2a0dbd33b8096eec438bc6093412842d", size = 2866943, upload-time = "2026-09-09T23:54:01.268Z" },
 ]
 
 [[package]]
@@ -3983,7 +3939,6 @@ dependencies = [
     { name = "orjson" },
     { name = "pandas" },
     { name = "pdfkit" },
-    { name = "postgres" },
     { name = "psycopg2" },
     { name = "pyjnius" },
     { name = "pyjwt" },
@@ -4049,7 +4004,6 @@ requires-dist = [
     { name = "orjson", specifier = ">=3.9.0,<4" },
     { name = "pandas", specifier = ">=2,<3" },
     { name = "pdfkit", specifier = ">=1.0.0,<2" },
-    { name = "postgres", specifier = ">=4,<5" },
     { name = "psycopg2", specifier = ">=2,<3" },
     { name = "pycodestyle", marker = "extra == 'dev'", specifier = ">=2,<3" },
     { name = "pyjnius", specifier = ">=1.3.0,<2" },
@@ -4087,7 +4041,7 @@ dependencies = [
     { name = "geoalchemy2" },
     { name = "herbie-data" },
     { name = "numpy" },
-    { name = "psycopg2-binary" },
+    { name = "psycopg2" },
     { name = "redis" },
     { name = "scikit-learn" },
     { name = "shapely" },
@@ -4112,7 +4066,7 @@ requires-dist = [
     { name = "herbie-data", specifier = ">=2026.10.0,<2027" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5,<7" },
     { name = "numpy", specifier = "==2.3.*" },
-    { name = "psycopg2-binary", specifier = ">=2.9.10,<3" },
+    { name = "psycopg2", specifier = ">=2.9.10,<3" },
     { name = "redis", specifier = ">=8,<9" },
     { name = "scikit-learn", specifier = ">=1.6.1,<2" },
     { name = "shapely", specifier = ">=2.0.5,<3" },
@@ -4161,7 +4115,7 @@ dependencies = [
     { name = "gdal" },
     { name = "geoalchemy2" },
     { name = "geopandas" },
-    { name = "psycopg2-binary" },
+    { name = "psycopg2" },
     { name = "pydantic" },
     { name = "pyjwt" },
     { name = "python-decouple" },
@@ -4189,7 +4143,7 @@ requires-dist = [
     { name = "gdal", specifier = "==3.13.3" },
     { name = "geoalchemy2", specifier = ">=0,<1" },
     { name = "geopandas", specifier = ">=1.0.1,<2" },
-    { name = "psycopg2-binary", specifier = ">=2.9.10,<3" },
+    { name = "psycopg2", specifier = ">=2.9.10,<3" },
     { name = "pydantic", specifier = ">=2.10.6,<3" },
     { name = "pyjwt", specifier = ">=2.10.1,<3" },
     { name = "python-decouple", specifier = ">=3,<4" },
