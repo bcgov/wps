@@ -6,6 +6,7 @@ from urllib.parse import parse_qs, urlsplit
 import numpy as np
 import pytest
 from affine import Affine
+from cfgrib import dataset as cfgrib_dataset
 from osgeo import gdal
 from pyproj import CRS
 from weather_model_jobs import model_elevation_sampler as sampler_module
@@ -196,6 +197,23 @@ def test_ecmwf_uses_herbie_for_surface_geopotential_only(
     download.assert_called_once()
     assert download.call_args.args == (r"^:z:",)
     assert download.call_args.kwargs["errors"] == "raise"
+
+
+def test_ecmwf_decodes_surface_field_once_for_all_stations(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    decode = Mock(wraps=cfgrib_dataset.get_values_in_order)
+    monkeypatch.setattr(cfgrib_dataset, "get_values_in_order", decode)
+    stations = [station(code=code) for code in range(1, 6)]
+
+    result = sampler_module.ModelElevationSampler(tmp_path)._sample(
+        "ECMWF", FIXTURES / "surface_geopotential.grib2", stations
+    )
+
+    assert result == {
+        item.code: pytest.approx(1049.7510378799082, abs=0.0001, rel=0) for item in stations
+    }
+    decode.assert_called_once()
 
 
 @pytest.mark.parametrize(
