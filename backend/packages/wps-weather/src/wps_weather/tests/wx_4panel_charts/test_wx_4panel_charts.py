@@ -279,6 +279,49 @@ class TestDataset:
 
 
 # ---------------------------------------------------------------------------
+# _make_4panel_chart
+# ---------------------------------------------------------------------------
+
+
+class _ClosableFakeDataset(_FakeDataset):
+    def close(self):
+        pass
+
+
+class TestMake4PanelChart:
+    # Every panel's errors must reach the hour loop, which skips the chart and leaves the
+    # run in progress so it is retried. A panel that caught its own errors would leave its
+    # chart missing for good.
+    @pytest.mark.anyio
+    @pytest.mark.parametrize(
+        "failing_cfg_key",
+        ["z500_grib", "mslp_grib", "z700_grib", "pcpn_grib"],
+        ids=["500mb", "mslp", "700mb", "precip"],
+    )
+    async def test_panel_error_is_passed_on_not_swallowed(self, failing_cfg_key):
+        cfg500, cfgmslp, cfg700, cfgpcpn = make_mock_configs()
+        cfg500["extent"] = [-170.0, -100.0, 30.0, 75.0]
+        failing_key = {**cfg500, **cfgmslp, **cfg700, **cfgpcpn}[failing_cfg_key]
+
+        async def open_dataset(key, bounds):
+            if key == failing_key:
+                raise ValueError("No grid points inside bounds")
+            return _ClosableFakeDataset()
+
+        runner = make_runner()
+        runner._open_dataset_s3 = AsyncMock(side_effect=open_dataset)
+        module = "wps_weather.wx_4panel_charts.wx_4panel_charts"
+
+        with patch(f"{module}.xr") as mock_xr, patch(f"{module}.plt") as mock_plt:
+            mock_xr.Dataset = _ClosableFakeDataset
+            mock_plt.subplots.return_value = (MagicMock(), MagicMock())
+            with pytest.raises(ValueError):
+                await runner._make_4panel_chart(
+                    cfg500, cfgmslp, cfg700, cfgpcpn, (1, 1), 100, "out/chart.png", MagicMock()
+                )
+
+
+# ---------------------------------------------------------------------------
 # _make_4panel_charts
 # ---------------------------------------------------------------------------
 
@@ -396,6 +439,19 @@ class TestMake4PanelCharts:
 
         assert result is False  # run is not marked complete, so the failed chart is retried
         assert runner._make_4panel_chart.call_count == 2
+
+    @pytest.mark.anyio
+    async def test_retry_makes_only_the_missing_chart_and_returns_true(self):
+        # Retrying an incomplete run: hour 3's chart already exists, hour 6's is missing.
+        runner, s3_client = self._make_runner(all_objects_exist=True)
+        s3_client.object_exists = AsyncMock(side_effect=[True, False])
+
+        result = await runner._make_4panel_charts(ECCCModel.GDPS, "20260318", "00", 3, 6, 3)
+
+        assert result is True  # run() marks the run complete
+        runner._make_4panel_chart.assert_called_once()
+        build_config = _config_builder_mock.ConfigBuilder.return_value.build_config_for_hour
+        assert build_config.call_args == call(6)  # the chart made was hour 6's
 
 
 # ---------------------------------------------------------------------------
@@ -913,3 +969,20 @@ class TestMain:
             await main()
 
         mock_runner.run.assert_not_called()
+
+    @pytest.mark.anyio
+    async def test_does_not_log_up_to_date_when_a_run_is_incomplete(self):
+        now = datetime(2026, 3, 31, 15, 30, 0, tzinfo=timezone.utc)
+        start = datetime(2026, 3, 31, 12, 0, 0, tzinfo=timezone.utc)
+
+        patches, mock_runner = _make_main_patches(now, start)
+        mock_runner.run.return_value = False
+        with (
+            patches[0], patches[1], patches[2], patches[3], patches[4], patches[5],
+            patch("wps_weather.wx_4panel_charts.wx_4panel_charts.logger") as mock_logger,
+        ):
+            await main()
+
+        messages = [c.args[0] for c in mock_logger.info.call_args_list]
+        assert not any("up to date" in m for m in messages)
+        assert any("not done yet" in m for m in messages)
