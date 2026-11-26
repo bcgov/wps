@@ -14,13 +14,11 @@ from types import MappingProxyType
 from typing import ClassVar, Mapping
 
 import numpy as np
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 
-from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES
 from wps_sfms.julian_rasters import JulianDatasets
 from wps_sfms.publish import publish_dataset
 from wps_sfms.raster_dependencies import GriddedRasterDependencies
@@ -72,16 +70,6 @@ class TemporalFuelGrid:
 
     # national grid values swapped from matted to standing grass during the standing period
     GRASS_STANDING_GRID_VALUES: ClassVar[Mapping[int, int]] = MappingProxyType({31: 32})
-
-    @classmethod
-    def bc_non_combustible_values(cls) -> list[int]:
-        """Return BC base-grid values that translate to national Non-fuel/water values."""
-        non_fuel_values = set(NATIONAL_FUEL_TYPES.grid_values("NF"))
-        return [
-            bc_value
-            for bc_value, national_value in cls.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE.items()
-            if national_value in non_fuel_values
-        ]
 
     values: np.ndarray
     """National fuel grid values, with NaN where the base fuel grid has no data."""
@@ -162,7 +150,6 @@ async def publish_temporal_fuel_raster(
                     s3_client,
                     output_ds,
                     output_key,
-                    cog_resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
                 )
 
     logger.info(

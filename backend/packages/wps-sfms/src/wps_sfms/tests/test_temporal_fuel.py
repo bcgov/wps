@@ -7,15 +7,14 @@ import numpy as np
 import pytest
 from osgeo import gdal
 from pytest_mock import MockerFixture
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.national_fuel_lookup import NATIONAL_FUEL_CODES
 
-from wps_sfms.julian_rasters import JulianDatasets
 from wps_sfms.fbp_fuel_types import NATIONAL_FUEL_TYPES
+from wps_sfms.julian_rasters import JulianDatasets
 from wps_sfms.processors.temporal_fuel import (
-    TemporalFuelInputDatasets,
     TemporalFuelGrid,
+    TemporalFuelInputDatasets,
     publish_temporal_fuel_raster,
 )
 from wps_sfms.tests.raster_test_utils import TEST_INPUT_NODATA, create_test_wps_dataset
@@ -40,10 +39,6 @@ def test_bc_grid_values_translate_to_national_lookup_values():
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[12] == 31  # O-1a
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[14] == 40  # M-1
     assert TemporalFuelGrid.NATIONAL_GRID_VALUES_BY_BC_GRID_VALUE[99] == 101  # Non-fuel
-
-
-def test_bc_non_combustible_values_come_from_national_fuel_lookup():
-    assert TemporalFuelGrid.bc_non_combustible_values() == [99, 102]
 
 
 CFFDRS_FUEL_TYPES = NATIONAL_FUEL_TYPES.by_grid_value
@@ -218,14 +213,13 @@ async def test_publish_temporal_fuel_raster_stores_grid(
 ):
     published = {}
 
-    async def capture_publish(_s3_client, dataset, output_key, cog_resample_alg):
+    async def capture_publish(_s3_client, dataset, output_key):
         band = dataset.as_gdal_ds().GetRasterBand(1)
         published.update(
             output_key=output_key,
             values=band.ReadAsArray(),
             datatype=band.DataType,
             nodata=band.GetNoDataValue(),
-            cog_resample_alg=cog_resample_alg,
         )
         return SimpleNamespace(
             output_key=output_key, cog_key=f"{output_key}_cog", content_hash="temporal-hash"
@@ -243,7 +237,6 @@ async def test_publish_temporal_fuel_raster_stores_grid(
     )
     assert published["datatype"] == gdal.GDT_Float32
     assert published["nodata"] == BASE_NODATA
-    assert published["cog_resample_alg"] == GDALResamplingMethod.NEAREST_NEIGHBOUR
 
 
 @pytest.mark.anyio
