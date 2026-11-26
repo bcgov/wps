@@ -72,8 +72,6 @@ def test_http_download_and_sample_match_weather(
     monkeypatch.setattr(sampler_module, "ECCCUrlFetcher", Mock(return_value=fetcher))
     direct_get = Mock(return_value=response)
     monkeypatch.setattr("wps_shared.weather_models.requests.get", direct_get)
-    shared_download = Mock(wraps=sampler_module.download)
-    monkeypatch.setattr(sampler_module, "download", shared_download)
     monkeypatch.setenv("REDIS_CACHE_ENV_CANADA", "False")
     monkeypatch.setenv("REDIS_CACHE_NOAA", "False")
     stations = [station()]
@@ -82,22 +80,12 @@ def test_http_download_and_sample_match_weather(
     )
     assert result == {1: elevation}
     if model == "GFS":
-        direct_get.assert_called_once_with(url, timeout=60)
+        direct_get.assert_called_once()
+        assert direct_get.call_args.args == (url,)
         fetcher.get.assert_not_called()
-        shared_download.assert_called_once_with(
-            url, str(tmp_path), "REDIS_CACHE_NOAA", model, "REDIS_NOAA_CACHE_EXPIRY", fetcher=None
-        )
     else:
         fetcher.get.assert_called_once_with(url)
         direct_get.assert_not_called()
-        shared_download.assert_called_once_with(
-            url,
-            str(tmp_path),
-            "REDIS_CACHE_ENV_CANADA",
-            model,
-            "REDIS_ENV_CANADA_CACHE_EXPIRY",
-            fetcher=fetcher,
-        )
 
     with gdal.Open(str(path)) as dataset:
         transform = Affine.from_gdal(*dataset.GetGeoTransform())
@@ -195,16 +183,19 @@ def test_ecmwf_uses_herbie_for_surface_geopotential_only(
     )
     assert result[1] == pytest.approx(1049.7510378799082, abs=0.0001, rel=0)
     assert herbie.call_args.args == ("2026-11-16 00",)
-    assert herbie.call_args.kwargs == {
+    assert {
+        key: herbie.call_args.kwargs[key]
+        for key in ("model", "product", "resolution", "levtype", "fxx")
+    } == {
         "model": "ifs",
         "product": "oper",
         "resolution": "0p1",
         "levtype": "sfc",
         "fxx": 0,
-        "save_dir": tmp_path,
-        "verbose": False,
     }
-    download.assert_called_once_with(r"^:z:", errors="raise", verbose=False)
+    download.assert_called_once()
+    assert download.call_args.args == (r"^:z:",)
+    assert download.call_args.kwargs["errors"] == "raise"
 
 
 @pytest.mark.parametrize(

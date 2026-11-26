@@ -157,7 +157,7 @@ def sample_ecmwf(
     ) as dataset:
         stations_df = get_stations_dataframe(transformer, stations)
         selected = sample_station_points(crop_to_bc(dataset), stations_df)
-        elevations = {}
+        elevations: dict[int, float | None] = {}
         for station in stations:
             value = float(selected.z.sel(point_code=station.code).item()) / GRAVITY
             elevations[station.code] = value if math.isfinite(value) else None

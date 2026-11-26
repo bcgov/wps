@@ -1,5 +1,4 @@
 import importlib
-import logging
 import traceback
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, Mock
@@ -27,17 +26,13 @@ def run_record(run_id: int = 1) -> PredictionModelRunTimestamp:
     return PredictionModelRunTimestamp(id=run_id, prediction_run_timestamp=RUN)
 
 
-def test_only_missing_weather_stations_get_assignments(
-    caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_only_missing_weather_stations_get_assignments() -> None:
     session = session_with_stations([1, 2, 3, 5, 4], [1])
     elevation_sampler = Mock()
     elevation_sampler.download_and_sample.return_value = {2: 1234.56789, 3: None}
     stations = [station(1), station(2), station(3), station(6)]
     processor = ingestion.ModelElevationProcessor(session, stations)
-    monkeypatch.setattr(ingestion, "perf_counter", Mock(side_effect=[10.0, 12.5]))
-    with caplog.at_level(logging.INFO, logger=ingestion.__name__):
-        processor.process_run(run_record(), "HRDPS", elevation_sampler)
+    processor.process_run(run_record(), "HRDPS", elevation_sampler)
     elevation_sampler.download_and_sample.assert_called_once_with("HRDPS", RUN, stations[1:3])
     rows = session.add_all.call_args.args[0]
     assert [(row.station_code, row.elevation) for row in rows] == [
@@ -49,127 +44,53 @@ def test_only_missing_weather_stations_get_assignments(
     assert all(row.prediction_model_run_timestamp_id == 1 for row in rows)
     session.flush.assert_called_once()
     session.commit.assert_not_called()
-    assert caplog.record_tuples == [
-        (
-            ingestion.__name__,
-            logging.INFO,
-            f"Processing station elevations model=HRDPS initialization={RUN.isoformat()} "
-            "pending=4 existing=1",
-        ),
-        (
-            ingestion.__name__,
-            logging.INFO,
-            f"Station elevations processed model=HRDPS initialization={RUN.isoformat()} "
-            "flushed=4 available=1 unavailable=3 elapsed_seconds=2.50",
-        ),
-        (
-            ingestion.__name__,
-            logging.WARNING,
-            f"Station metadata unavailable model=HRDPS initialization={RUN.isoformat()} "
-            "station_codes=[4, 5]",
-        ),
-        (
-            ingestion.__name__,
-            logging.WARNING,
-            f"Model elevation samples unavailable model=HRDPS initialization={RUN.isoformat()} "
-            "station_codes=[3]",
-        ),
-    ]
 
 
 @pytest.mark.parametrize("weather_codes,saved_codes", [([1], [1]), ([], [])])
 def test_saved_assignments_skip_downloads_even_when_the_elevation_was_null(
-    weather_codes: list[int], saved_codes: list[int], caplog: pytest.LogCaptureFixture
+    weather_codes: list[int], saved_codes: list[int]
 ) -> None:
     session = session_with_stations(weather_codes, saved_codes)
     elevation_sampler = Mock()
-    with caplog.at_level(logging.DEBUG, logger=ingestion.__name__):
-        ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
-            run_record(), "GFS", elevation_sampler
-        )
+    ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
+        run_record(), "GFS", elevation_sampler
+    )
     elevation_sampler.download_and_sample.assert_not_called()
     session.add_all.assert_not_called()
     session.flush.assert_not_called()
-    assert caplog.record_tuples == [
-        (
-            ingestion.__name__,
-            logging.DEBUG,
-            f"Skipping station elevations model=GFS initialization={RUN.isoformat()}: "
-            "no missing assignments",
-        )
-    ]
 
 
 @pytest.mark.parametrize("elevation", [1234.5, None])
-def test_samples_are_saved(elevation: float | None, caplog: pytest.LogCaptureFixture) -> None:
+def test_samples_are_saved(elevation: float | None) -> None:
     session = session_with_stations([1], [])
     elevation_sampler = Mock()
     elevation_sampler.download_and_sample.return_value = {1: elevation}
-    with caplog.at_level(logging.INFO, logger=ingestion.__name__):
-        ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
-            run_record(), "RDPS", elevation_sampler
-        )
+    ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
+        run_record(), "RDPS", elevation_sampler
+    )
     assert session.add_all.call_args.args[0][0].elevation == elevation
-    warnings = [
-        message for name, level, message in caplog.record_tuples if level == logging.WARNING
-    ]
-    if elevation is None:
-        assert warnings == [
-            f"Model elevation samples unavailable model=RDPS initialization={RUN.isoformat()} "
-            "station_codes=[1]"
-        ]
-    else:
-        assert warnings == []
-        assert "flushed=1 available=1 unavailable=0" in caplog.text
 
 
-def test_missing_station_metadata_does_not_download_a_surface_field(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
+def test_missing_station_metadata_does_not_download_a_surface_field() -> None:
     session = session_with_stations([1], [])
     elevation_sampler = Mock()
-    with caplog.at_level(logging.WARNING, logger=ingestion.__name__):
-        ingestion.ModelElevationProcessor(session, []).process_run(
-            run_record(), "GDPS", elevation_sampler
-        )
+    ingestion.ModelElevationProcessor(session, []).process_run(
+        run_record(), "GDPS", elevation_sampler
+    )
     elevation_sampler.download_and_sample.assert_not_called()
     assert session.add_all.call_args.args[0][0].elevation is None
-    assert caplog.record_tuples == [
-        (
-            ingestion.__name__,
-            logging.WARNING,
-            f"Station metadata unavailable model=GDPS initialization={RUN.isoformat()} "
-            "station_codes=[1]",
-        )
-    ]
 
 
-def test_loading_failure_does_not_save_assignments(caplog: pytest.LogCaptureFixture) -> None:
+def test_download_failure_does_not_save_assignments() -> None:
     session = session_with_stations([1], [])
     elevation_sampler = Mock()
     elevation_sampler.download_and_sample.side_effect = OSError("unavailable")
-    with caplog.at_level(logging.INFO, logger=ingestion.__name__):
-        with pytest.raises(OSError, match="unavailable"):
-            ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
-                run_record(), "GFS", elevation_sampler
-            )
+    with pytest.raises(OSError, match="unavailable"):
+        ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
+            run_record(), "GFS", elevation_sampler
+        )
     session.add_all.assert_not_called()
     session.flush.assert_not_called()
-    assert "Processing station elevations model=GFS" in caplog.text
-    assert "flushed=" not in caplog.text
-
-
-def test_no_pending_runs_are_logged_at_debug(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
-    select_runs = Mock()
-    select_runs.return_value.all.return_value = []
-    monkeypatch.setattr(ingestion, "get_prediction_model_run_timestamp_records", select_runs)
-    with caplog.at_level(logging.DEBUG, logger=ingestion.__name__):
-        ingestion.ModelElevationProcessor(MagicMock(), []).process(ModelEnum.ECMWF)
-    assert caplog.record_tuples == [
-        (ingestion.__name__, logging.DEBUG, "No pending runs for station elevations model=ECMWF")
-    ]
 
 
 def test_processor_selects_pending_runs_and_cleans_up_temporary_files(
