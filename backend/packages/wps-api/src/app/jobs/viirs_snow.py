@@ -28,7 +28,10 @@ from app.utils.pmtiles import tippecanoe_wrapper, write_geojson
 logger = logging.getLogger(__name__)
 
 PRODUCT_VERSION = 2
-SHORT_NAME = "VNP10A1F"
+# NOAA-20 (JPSS-1) cloud-gap-filled snow cover. replaces VNP10A1F (Suomi NPP), which stopped on 2026-11-02
+SHORT_NAME = "VJ110A1F"
+# how many days behind we can fall before an empty granule search is worth alerting on
+STALE_DATA_THRESHOLD_DAYS = 5
 RAW_SNOW_COVERAGE_NAME = "raw_snow_coverage.tif"
 RAW_SNOW_COVERAGE_CLIPPED_NAME = "raw_snow_coverage_clipped.tif"
 BINARY_SNOW_COVERAGE_CLASSIFICATION_NAME = "binary_snow_coverage.tif"
@@ -381,7 +384,26 @@ class ViirsSnowJob:
         if start_date >= end_date:
             logger.info("Processing of VIIRS snow data is up to date.")
             return
-        await self._run_viirs_snow_by_date(start_date, end_date)
+        try:
+            await self._run_viirs_snow_by_date(start_date, end_date)
+        except NoGranulesException as exception:
+            self._warn_if_data_stale(last_processed_date, end_date, exception)
+            raise
+
+    def _warn_if_data_stale(
+        self, last_processed_date: date | None, end_date: date, exception: NoGranulesException
+    ):
+        """Send a warning when no granules are found and we have fallen well behind."""
+        if last_processed_date is None:
+            return
+        days_behind = (end_date - last_processed_date).days
+        if days_behind <= STALE_DATA_THRESHOLD_DAYS:
+            return
+        message = (
+            f":warning: No VIIRS snow granules ({SHORT_NAME}) found and the last processed "
+            f"date is {days_behind} days old."
+        )
+        send_chatops_notification(message, exception, severity="warning")
 
     async def _run_viirs_snow_with_args(self, args: argparse.Namespace):
         """Logic for processing snow coverage data for a start and end date provided as command line arguments."""
