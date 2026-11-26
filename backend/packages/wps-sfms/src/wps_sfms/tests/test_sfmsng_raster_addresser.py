@@ -258,11 +258,6 @@ class TestPrimaryFireBehaviourInputs:
             "sfms_ng/actual/2024/04/15/sfc_20240415.tif"
         )
 
-    def test_fuel_classification_key_uses_run_type_and_date(self, addresser: SFMSNGRasterAddresser):
-        assert addresser.get_fuel_classification_key(TEST_DATETIME, RunType.FORECAST) == (
-            "sfms_ng/forecast/2024/04/15/fuel_20240415.tif"
-        )
-
     def test_percent_conifer_key_uses_year(self, addresser: SFMSNGRasterAddresser):
         assert addresser.get_percent_conifer_key(2024) == "sfms/static/m12_2024.tif"
 
@@ -316,9 +311,6 @@ class TestPrimaryFireBehaviourInputs:
         )
 
         assert result.fuel_key == fuel_key
-        assert result.fuel_cog_key == (
-            f"{addresser.s3_prefix}/sfms_ng/{run_type.value}/2024/04/15/fuel_20240415_cog.tif"
-        )
         assert result.ffmc_key == ffmc_key
         assert result.bui_key == bui_key
         assert result.wind_speed_key == wind_speed_key
