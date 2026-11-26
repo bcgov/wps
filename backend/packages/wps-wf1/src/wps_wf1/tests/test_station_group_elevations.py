@@ -31,7 +31,7 @@ def api_for(groups):
     return api
 
 
-@pytest.mark.parametrize("height", [625, 0, -5, None])
+@pytest.mark.parametrize("height", [625, 625.5, 0, -5, None])
 def test_group_mapper_preserves_nullable_elevation(height):
     result = unique_weather_stations_mapper([member(elevation=height)])
     response = WeatherStationGroupMembersResponse(stations=result).model_dump(mode="json")

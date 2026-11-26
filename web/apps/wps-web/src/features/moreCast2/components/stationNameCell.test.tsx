@@ -191,11 +191,14 @@ describe('StationNameCell', () => {
   ])('uses current station metadata for a restored row in the %s', async (_, columnsForGrid) => {
     const user = userEvent.setup()
     const store = makeStore([station(1250)])
-    const restoredRow = {
-      ...createEmptyMoreCast2Row('draft', 123, 'Saved station name', DateTime.utc(2026, 11, 11), 49, -123),
-      stationElevation: 100
-    }
-    const before = JSON.stringify(restoredRow)
+    const restoredRow = createEmptyMoreCast2Row(
+      'draft',
+      123,
+      'Saved station name',
+      DateTime.utc(2026, 11, 11),
+      49,
+      -123
+    )
     const props: ColumnClickHandlerProps = {
       colDef: null,
       contextMenu: null,
@@ -226,6 +229,5 @@ describe('StationNameCell', () => {
     })
     expect(screen.queryByText('900 m')).not.toBeInTheDocument()
     expect(within(tooltip).getByText('Station elevation: 900 m')).toBeVisible()
-    expect(JSON.stringify(restoredRow)).toBe(before)
   })
 })

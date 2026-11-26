@@ -116,7 +116,7 @@ class WeatherStationGroupMember(BaseModel):
     fire_zone: Optional[FireZone] = None
     station_code: int
     station_status: str
-    elevation: Optional[int] = None
+    elevation: Optional[float] = None
 
 
 class WeatherStationGroupMembersResponse(BaseModel):
