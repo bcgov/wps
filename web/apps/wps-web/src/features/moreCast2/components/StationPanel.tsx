@@ -46,7 +46,9 @@ const Root = styled('div')(({ theme }) => ({
   [`&.${classes.root}`]: {
     display: 'flex',
     flexDirection: 'column',
-    minWidth: '375px',
+    flex: 1,
+    minHeight: 0,
+    minWidth: 0,
     marginTop: theme.spacing(2),
     width: '100%'
   },
@@ -59,6 +61,8 @@ const Root = styled('div')(({ theme }) => ({
   },
 
   [`& .${classes.stationContainer}`]: {
+    flex: 1,
+    minHeight: 0,
     overflowY: 'auto'
   }
 }))
@@ -112,7 +116,7 @@ const StationPanel = (props: StationPanelProps) => {
       </div>
       {!loading ? (
         <>
-          <Stack spacing={1}>
+          <Stack spacing={1} sx={{ flexShrink: 0 }}>
             <Box>
               <FormControl className={classes.formControl}>
                 <StationGroupDropdown

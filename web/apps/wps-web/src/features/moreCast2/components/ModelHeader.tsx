@@ -2,37 +2,30 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import type { GridColumnHeaderParams } from '@mui/x-data-grid-pro'
 import { weatherModelsWithTooltips } from '@wps/api/moreCast2API'
-import { isEmpty, isNil } from 'lodash'
-import { DateTime } from 'luxon'
-import React from 'react'
+import type { DateTime } from 'luxon'
+import React, { useMemo } from 'react'
 import type { MoreCast2Row } from '@/features/moreCast2/interfaces'
+import { getLatestModelRunTimestamp } from '@/features/moreCast2/modelElevation'
 
 interface ModelHeaderProps {
   params: Pick<GridColumnHeaderParams<MoreCast2Row>, 'field'> & {
     colDef: Pick<GridColumnHeaderParams<MoreCast2Row>['colDef'], 'field' | 'headerName'>
   }
   allRows?: MoreCast2Row[]
+  modelRunTimestamp?: DateTime | null
 }
 
-const ModelHeader = ({ params, allRows }: ModelHeaderProps) => {
+const ModelHeader = ({ params, allRows, modelRunTimestamp }: ModelHeaderProps) => {
+  // derived data
   const headerName = params.colDef.headerName ?? ''
   const modelType = weatherModelsWithTooltips.find(model => headerName === model)
-  const timestampField = `predictionRunTimestamp${modelType}` as keyof MoreCast2Row
+  const timestamp = useMemo(() => {
+    if (modelRunTimestamp !== undefined) return modelRunTimestamp
+    return modelType ? getLatestModelRunTimestamp(allRows, modelType) : null
+  }, [allRows, modelType, modelRunTimestamp])
 
-  const latestTimestamp = () => {
-    if (isNil(allRows) || isEmpty(allRows)) {
-      return null
-    }
-    const timestamps = allRows
-      .map(row => DateTime.fromISO(row[timestampField] as string))
-      .filter(timestamp => timestamp.isValid)
-      .toSorted((timeA, timeB) => timeA.toMillis() - timeB.toMillis())
-
-    return timestamps.length > 0 ? timestamps[timestamps.length - 1] : null
-  }
-  const timestamp = latestTimestamp()
-
-  if (modelType && allRows && allRows.length > 0 && timestamp) {
+  // render
+  if (modelType && timestamp) {
     return (
       <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <Typography style={{ fontSize: '14px', lineHeight: '20px' }}>{headerName}</Typography>

@@ -50,7 +50,7 @@ const GroupHeader = ({ id, columns, weatherParam, handleShowHideChange }: GroupH
 
   return (
     <>
-      <Button sx={{ color: 'black' }} endIcon={<PlaylistAdd />} onClick={handleClick}>
+      <Button size="small" sx={{ color: 'black', py: 0.5 }} endIcon={<PlaylistAdd />} onClick={handleClick}>
         <Typography style={{ fontWeight: 'bold' }}>{id}</Typography>
       </Button>
       <Popover

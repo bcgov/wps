@@ -35,7 +35,14 @@ const ActualCell = ({ missingActual, value }: ActualCellProps) => {
           border: '2px',
           borderColor: theme.palette.error.main,
           borderStyle: missingActual ? 'solid' : 'none',
-          borderRadius: 1
+          borderRadius: 1,
+          // observations stay read only without fading into the model reference values
+          '& .MuiInputBase-input.Mui-disabled': {
+            color: theme.palette.text.primary,
+            WebkitTextFillColor: theme.palette.text.primary,
+            opacity: 1,
+            fontWeight: 600
+          }
         }}
         disabled={true}
         size="small"

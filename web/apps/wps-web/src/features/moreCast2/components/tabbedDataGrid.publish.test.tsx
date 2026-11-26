@@ -29,6 +29,9 @@ vi.mock('@wps/api/moreCast2API', async importOriginal => ({
   fetchWeatherIndeterminates: vi.fn()
 }))
 
+const modelElevationData = { latestRuns: {}, stationElevations: new Map() }
+const onCompareElevations = vi.fn()
+
 const timestamp = DateTime.utc(2030, 7, 4, 20)
 const skipped: WF1SkippedForecast[] = [
   { station_code: 1, station_name: 'Test station', for_date: timestamp.toMillis(), reason: 'actual_exists' }
@@ -95,7 +98,13 @@ const renderPublishing = async (refresh = vi.fn(), testStore = createPublishingS
   draft.createStoredForecast(selectAllMoreCast2Rows(testStore.getState()), DateTime.now())
   render(
     <Provider store={testStore}>
-      <TabbedDataGrid fromTo={{}} setFromTo={vi.fn()} fetchWeatherIndeterminates={refresh} />
+      <TabbedDataGrid
+        modelElevationData={modelElevationData}
+        onCompareElevations={onCompareElevations}
+        fromTo={{}}
+        setFromTo={vi.fn()}
+        fetchWeatherIndeterminates={refresh}
+      />
     </Provider>
   )
   await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
@@ -110,7 +119,7 @@ describe('MoreCast publishing', () => {
     vi.restoreAllMocks()
   })
 
-  test('clears saved drafts before refreshing and shows skipped rows', async () => {
+  test('publishes station forecasts, clears saved drafts before refreshing and shows skipped rows', async () => {
     vi.mocked(submitMoreCastForecastRecords).mockResolvedValue({
       success: true,
       wf1PublishedCount: 0,
@@ -119,7 +128,13 @@ describe('MoreCast publishing', () => {
     const refresh = vi.fn(() => {
       expect(new MorecastDraftForecast(localStorage).hasDraftForecastStored()).toBe(false)
     })
-    const { draft } = await renderPublishing(refresh)
+    const { draft } = await renderPublishing(refresh, createPublishingStore())
+    expect(
+      vi
+        .mocked(submitMoreCastForecastRecords)
+        .mock.calls.at(-1)?.[0]
+        .map(row => row.stationCode)
+    ).toEqual([1])
     expect(await screen.findByRole('dialog', { name: 'Forecasts saved' })).toHaveTextContent('Published 0 to WF1.')
     expect(screen.getByRole('table', { name: 'Forecasts saved only in MoreCast' })).toHaveTextContent('Test station')
     expect(draft.hasDraftForecastStored()).toBe(false)
@@ -201,7 +216,13 @@ describe('MoreCast publishing', () => {
     })
     render(
       <Provider store={testStore}>
-        <TabbedDataGrid fromTo={{}} setFromTo={vi.fn()} fetchWeatherIndeterminates={refresh} />
+        <TabbedDataGrid
+          modelElevationData={modelElevationData}
+          onCompareElevations={onCompareElevations}
+          fromTo={{}}
+          setFromTo={vi.fn()}
+          fetchWeatherIndeterminates={refresh}
+        />
       </Provider>
     )
     expect(await screen.findByRole('textbox', { name: 'MANUAL' })).toHaveValue('42')
@@ -256,7 +277,13 @@ describe('MoreCast publishing', () => {
     })
     render(
       <Provider store={store}>
-        <TabbedDataGrid fromTo={{}} setFromTo={vi.fn()} fetchWeatherIndeterminates={vi.fn()} />
+        <TabbedDataGrid
+          modelElevationData={modelElevationData}
+          onCompareElevations={onCompareElevations}
+          fromTo={{}}
+          setFromTo={vi.fn()}
+          fetchWeatherIndeterminates={vi.fn()}
+        />
       </Provider>
     )
 
@@ -270,7 +297,9 @@ describe('MoreCast publishing', () => {
     expect(refreshed.find(row => row.stationCode === 1)?.tempActual).toBe(15)
     expect(refreshed.find(row => row.stationCode === 1)?.tempForecast?.value).toBe(20)
     expect(refreshed.find(row => row.stationCode === 2)?.tempForecast?.value).toBe(42)
-    expect(screen.getByText(/^Draft saved /)).toBeVisible()
+    const draftStatus = screen.getByTestId('morecast-draft-status')
+    expect(draftStatus).toBeVisible()
+    expect(screen.getByRole('toolbar', { name: 'Morecast controls' })).not.toContainElement(draftStatus)
 
     await userEvent.click(screen.getByTestId('summary-tab-button-unselected'))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Publish to WF1' })).toBeEnabled())
@@ -279,7 +308,7 @@ describe('MoreCast publishing', () => {
     const submitted = vi.mocked(submitMoreCastForecastRecords).mock.calls[0][0]
     expect(submitted.map(row => row.stationCode)).toEqual([2])
     expect(localStorage.getItem(draft.STORAGE_KEY)).toBeNull()
-    expect(screen.queryByText(/^Draft saved /)).not.toBeInTheDocument()
+    expect(screen.queryByTestId('morecast-draft-status')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Reset' })).toBeDisabled()
   })
 })

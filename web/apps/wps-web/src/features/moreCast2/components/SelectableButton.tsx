@@ -1,11 +1,10 @@
 import styled from '@emotion/styled'
 
 import { Button } from '@mui/material'
-import { MORECAST_WEATHER_PARAMS, type MoreCastParams, theme } from '@wps/ui/theme'
+import { MORECAST_WEATHER_PARAMS, type MoreCastParams } from '@wps/ui/theme'
 import React from 'react'
 
 const StyledButton = styled(Button)(() => ({
-  marginLeft: theme.spacing(1),
   '&:hover': {
     color: 'black',
     backgroundColor: 'white'
@@ -37,6 +36,7 @@ interface SelectableButtonProps {
 const SelectableButton = ({ children, dataTestId, onClick, selected, weatherParam }: SelectableButtonProps) => {
   return selected ? (
     <SelectedButton
+      size="small"
       data-testid={`${dataTestId}-selected`}
       onClick={onClick}
       variant={selected ? 'contained' : 'outlined'}
@@ -46,6 +46,7 @@ const SelectableButton = ({ children, dataTestId, onClick, selected, weatherPara
     </SelectedButton>
   ) : (
     <UnSelectedButton
+      size="small"
       data-testid={`${dataTestId}-unselected`}
       onClick={onClick}
       variant={selected ? 'contained' : 'outlined'}
