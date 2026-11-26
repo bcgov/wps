@@ -35,12 +35,7 @@ def test_only_missing_weather_stations_get_assignments() -> None:
     processor.process_run(run_record(), "HRDPS", elevation_sampler)
     elevation_sampler.download_and_sample.assert_called_once_with("HRDPS", RUN, stations[1:3])
     rows = session.add_all.call_args.args[0]
-    assert [(row.station_code, row.elevation) for row in rows] == [
-        (2, 1234.57),
-        (3, None),
-        (4, None),
-        (5, None),
-    ]
+    assert [(row.station_code, row.elevation) for row in rows] == [(2, 1234.57)]
     assert all(row.prediction_model_run_timestamp_id == 1 for row in rows)
     session.flush.assert_called_once()
     session.commit.assert_not_called()
@@ -60,8 +55,8 @@ def test_saved_assignments_skip_downloads_even_when_the_elevation_was_null(
     session.flush.assert_not_called()
 
 
-@pytest.mark.parametrize("elevation", [1234.5, None])
-def test_samples_are_saved(elevation: float | None) -> None:
+@pytest.mark.parametrize("elevation", [1234.5, 0.0])
+def test_samples_are_saved(elevation: float) -> None:
     session = session_with_stations([1], [])
     elevation_sampler = Mock()
     elevation_sampler.download_and_sample.return_value = {1: elevation}
@@ -71,6 +66,17 @@ def test_samples_are_saved(elevation: float | None) -> None:
     assert session.add_all.call_args.args[0][0].elevation == elevation
 
 
+def test_null_sample_does_not_save_or_flush() -> None:
+    session = session_with_stations([1], [])
+    elevation_sampler = Mock()
+    elevation_sampler.download_and_sample.return_value = {1: None}
+    ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
+        run_record(), "RDPS", elevation_sampler
+    )
+    session.add_all.assert_not_called()
+    session.flush.assert_not_called()
+
+
 def test_missing_station_metadata_does_not_download_a_surface_field() -> None:
     session = session_with_stations([1], [])
     elevation_sampler = Mock()
@@ -78,19 +84,48 @@ def test_missing_station_metadata_does_not_download_a_surface_field() -> None:
         run_record(), "GDPS", elevation_sampler
     )
     elevation_sampler.download_and_sample.assert_not_called()
-    assert session.add_all.call_args.args[0][0].elevation is None
-
-
-def test_download_failure_does_not_save_assignments() -> None:
-    session = session_with_stations([1], [])
-    elevation_sampler = Mock()
-    elevation_sampler.download_and_sample.side_effect = OSError("unavailable")
-    with pytest.raises(OSError, match="unavailable"):
-        ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
-            run_record(), "GFS", elevation_sampler
-        )
     session.add_all.assert_not_called()
     session.flush.assert_not_called()
+
+
+@pytest.mark.parametrize("error", [OSError("unavailable"), ValueError("invalid surface")])
+def test_sampler_failure_does_not_save_assignments(error: Exception, caplog) -> None:
+    session = session_with_stations([1], [])
+    elevation_sampler = Mock()
+    elevation_sampler.download_and_sample.side_effect = error
+    ingestion.ModelElevationProcessor(session, [station(1)]).process_run(
+        run_record(), "GFS", elevation_sampler
+    )
+    session.add_all.assert_not_called()
+    session.flush.assert_not_called()
+    session.commit.assert_not_called()
+    assert (
+        f"Station elevation sampling failed model=GFS initialization={RUN.isoformat()}"
+        in caplog.text
+    )
+    assert caplog.records[0].exc_info[1] is error
+
+
+def test_failed_older_run_does_not_block_newer_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    session = MagicMock()
+    session.scalars.side_effect = [[1], [], [1], []]
+    older = run_record(1)
+    newer = run_record(2)
+    newer.prediction_run_timestamp = RUN.replace(hour=12)
+    select_runs = Mock()
+    select_runs.return_value.all.return_value = [(older, None), (newer, None)]
+    monkeypatch.setattr(ingestion, "get_prediction_model_run_timestamp_records", select_runs)
+    sample = Mock(side_effect=[OSError("unavailable"), {1: 1234.5}])
+    monkeypatch.setattr(ingestion.ModelElevationSampler, "download_and_sample", sample)
+
+    ingestion.ModelElevationProcessor(session, [station(1)]).process(ModelEnum.GFS)
+
+    rows = [row for call in session.add_all.call_args_list for row in call.args[0]]
+    assert [(row.prediction_model_run_timestamp_id, row.elevation) for row in rows] == [
+        (2, 1234.5),
+    ]
+    assert [call.args[1] for call in sample.call_args_list] == [RUN, newer.prediction_run_timestamp]
+    session.flush.assert_called_once()
 
 
 def test_processor_selects_pending_runs_and_cleans_up_temporary_files(
@@ -124,30 +159,32 @@ def test_processor_selects_pending_runs_and_cleans_up_temporary_files(
     assert not directories[0].exists()
 
 
-def test_run_failure_preserves_exception_with_context_for_chatops(
+def test_database_failure_preserves_exception_with_context_for_chatops(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     select_runs = Mock()
     runs = [run_record(1), run_record(2)]
     select_runs.return_value.all.return_value = [(run, None) for run in runs]
     monkeypatch.setattr(ingestion, "get_prediction_model_run_timestamp_records", select_runs)
-    processor = ingestion.ModelElevationProcessor(MagicMock(), [station(1)])
-    error = OSError("surface unavailable")
-    process_run = Mock(side_effect=error)
-    monkeypatch.setattr(processor, "process_run", process_run)
+    session = session_with_stations([1], [])
+    processor = ingestion.ModelElevationProcessor(session, [station(1)])
+    error = RuntimeError("database unavailable")
+    session.flush.side_effect = error
+    sample = Mock(return_value={1: 1234.5})
+    monkeypatch.setattr(ingestion.ModelElevationSampler, "download_and_sample", sample)
 
-    with pytest.raises(OSError, match="surface unavailable") as raised:
+    with pytest.raises(RuntimeError, match="database unavailable") as raised:
         processor.process(ModelEnum.HRDPS)
 
     assert raised.value is error
     formatted = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-    assert "surface unavailable" in formatted
+    assert "database unavailable" in formatted
     assert (
         f"Station elevation processing failed for HRDPS initialization {RUN.isoformat()}"
         in formatted
     )
-    process_run.assert_called_once()
-    assert process_run.call_args.args[:2] == (runs[0], "HRDPS")
+    sample.assert_called_once()
+    session.flush.assert_called_once()
 
 
 def test_nam_does_not_collect_elevations(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -155,6 +192,25 @@ def test_nam_does_not_collect_elevations(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setattr(ingestion, "get_prediction_model_run_timestamp_records", select_runs)
     ingestion.ModelElevationProcessor(MagicMock(), []).process(ModelEnum.NAM)
     select_runs.assert_not_called()
+
+
+def prepare_job_elevations(
+    monkeypatch: pytest.MonkeyPatch, events: list[str], fail: bool
+) -> MagicMock:
+    session = session_with_stations([1], [])
+    monkeypatch.setattr("wps_shared.db.database._get_write_session", lambda: session)
+    select_runs = Mock()
+    select_runs.return_value.all.return_value = [(run_record(), None)]
+    monkeypatch.setattr(ingestion, "get_prediction_model_run_timestamp_records", select_runs)
+
+    def sample(*args) -> dict[int, float]:
+        events.append("elevation")
+        if fail:
+            raise OSError("unavailable")
+        return {1: 1234.5}
+
+    monkeypatch.setattr(ingestion.ModelElevationSampler, "download_and_sample", sample)
+    return session
 
 
 @pytest.mark.parametrize(
@@ -171,31 +227,23 @@ def test_weather_jobs_collect_elevations_before_interpolation(
     module = importlib.import_module(f"weather_model_jobs.{module_name}")
     monkeypatch.setattr(module.sys, "argv", [module_name, model])
     events = []
+    session = prepare_job_elevations(monkeypatch, events, fail)
     weather = MagicMock()
+    weather.grib_processor.stations = [station(1)]
     weather.process.side_effect = lambda: events.append("weather")
     monkeypatch.setattr(module, job_class, Mock(return_value=weather))
     monkeypatch.setattr(module, "judge_run", Mock(return_value=1))
-    elevation = Mock()
-
-    def collect(model_type: ModelEnum) -> None:
-        events.append("elevation")
-        if fail:
-            raise OSError("unavailable")
-
-    elevation.process.side_effect = collect
-    constructor = Mock(return_value=elevation)
-    monkeypatch.setattr(module, "ModelElevationProcessor", constructor)
     interpolation = Mock()
     interpolation.process.side_effect = lambda _: events.append("interpolation")
     monkeypatch.setattr(module, "ModelValueProcessor", Mock(return_value=interpolation))
+    module.process_models()
+    assert events == ["weather", "elevation", "interpolation"]
     if fail:
-        with pytest.raises(OSError, match="unavailable"):
-            module.process_models()
-        assert events == ["weather", "elevation"]
+        session.add_all.assert_not_called()
+        session.flush.assert_not_called()
     else:
-        module.process_models()
-        assert events == ["weather", "elevation", "interpolation"]
-    assert constructor.call_args.args[1] is weather.grib_processor.stations
+        assert session.add_all.call_args.args[0][0].elevation == 1234.5
+    session.commit.assert_called_once()
 
 
 @pytest.mark.anyio
@@ -205,30 +253,24 @@ async def test_ecmwf_collects_elevations_before_interpolation(
 ) -> None:
     module = importlib.import_module("weather_model_jobs.ecmwf")
     events = []
+    session = prepare_job_elevations(monkeypatch, events, fail)
 
     async def stations() -> list[WeatherStation]:
         return [station(1)]
 
     monkeypatch.setattr(module, "get_stations_asynchronously", stations)
     weather = Mock()
+    weather.model_type = ModelEnum.ECMWF
     weather.process.side_effect = lambda: events.append("weather")
     monkeypatch.setattr(module, "ECMWF", Mock(return_value=weather))
-    elevation = Mock()
-
-    def collect(model_type: ModelEnum) -> None:
-        events.append("elevation")
-        if fail:
-            raise OSError("unavailable")
-
-    elevation.process.side_effect = collect
-    monkeypatch.setattr(module, "ModelElevationProcessor", Mock(return_value=elevation))
     interpolation = Mock()
     interpolation.process.side_effect = lambda: events.append("interpolation")
     monkeypatch.setattr(module, "ECMWFPredictionProcessor", Mock(return_value=interpolation))
+    await module.process_models()
+    assert events == ["weather", "elevation", "interpolation"]
     if fail:
-        with pytest.raises(OSError, match="unavailable"):
-            await module.process_models()
-        assert events == ["weather", "elevation"]
+        session.add_all.assert_not_called()
+        session.flush.assert_not_called()
     else:
-        await module.process_models()
-        assert events == ["weather", "elevation", "interpolation"]
+        assert session.add_all.call_args.args[0][0].elevation == 1234.5
+    session.commit.assert_called_once()

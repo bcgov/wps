@@ -65,10 +65,8 @@ class ModelElevationProcessor:
     ) -> None:
         """Store missing model elevations for stations with predictions in this run.
 
-        Keep existing entries, including nulls. Missing station metadata or surface
-        values are stored as null elevations.
-
-        Flush new rows without committing so the caller controls the transaction.
+        Keep existing entries and skip unavailable elevations. Missing station
+        metadata or failed downloads and samples shouldn't block the forecast interpolation.
         """
         model_run_timestamp = run.prediction_run_timestamp.isoformat()
         station_codes = get_model_run_station_codes(self.session, run.id)
@@ -90,11 +88,20 @@ class ModelElevationProcessor:
             len(station_codes) - len(missing),
         )
         stations = [station for station in self.stations if station.code in missing]
-        elevations = (
-            elevation_sampler.download_and_sample(model, run.prediction_run_timestamp, stations)
-            if stations
-            else {}
-        )
+        elevations = {}
+        if stations:
+            try:
+                elevations = elevation_sampler.download_and_sample(
+                    model, run.prediction_run_timestamp, stations
+                )
+            except Exception:
+                # optional metadata must not block forecast interpolation
+                logger.exception(
+                    "Station elevation sampling failed model=%s initialization=%s; "
+                    "skipping unavailable elevations",
+                    model,
+                    model_run_timestamp,
+                )
         store_model_run_station_elevations(self.session, run.id, missing, elevations)
 
         matched_codes = {station.code for station in stations}
@@ -108,7 +115,7 @@ class ModelElevationProcessor:
             "flushed=%s available=%s unavailable=%s elapsed_seconds=%.2f",
             model,
             model_run_timestamp,
-            len(missing),
+            len(missing) - unavailable_count,
             len(missing) - unavailable_count,
             unavailable_count,
             perf_counter() - started,
