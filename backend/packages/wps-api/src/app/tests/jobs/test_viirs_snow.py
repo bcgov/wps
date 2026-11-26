@@ -30,8 +30,10 @@ from app.jobs.viirs_snow import (
     translate_assign_sinu,
 )
 
+
 async def mock__get_bc_boundary_from_s3(self, temp_dir):
     return
+
 
 # ---------- Helpers / fixtures ----------
 
@@ -309,6 +311,7 @@ def test_viirs_snow_job_exits_cleanly_when_no_viirs_data(
     monkeypatch.setattr(
         ViirsSnowJob, "_download_viirs_granules_by_date", mock__download_viirs_granules_by_date
     )
+    chatops_mock = mocker.patch.object(viirs_snow, "send_chatops_notification")
     # mock sys.argv with a random path, otherwise argparser will pickup the sys.argv args from pytest
     mocker.patch("sys.argv", ["/test"])
 
@@ -316,6 +319,37 @@ def test_viirs_snow_job_exits_cleanly_when_no_viirs_data(
         viirs_snow.main()
     # Assert that we exited with an error code.
     assert excinfo.value.code == os.EX_OK
+    # a short lag is normal so nobody should be paged
+    chatops_mock.assert_not_called()
+
+
+def test_viirs_snow_job_warns_when_no_viirs_data_and_last_processed_date_is_stale(
+    mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
+):
+    """Test that a warning is sent, but the job still exits cleanly, when no granules are found
+    and the last processed date is well behind.
+    """
+
+    async def mock__get_last_processed_date(self, for_date: datetime):
+        return date.today() - timedelta(days=10)
+
+    def mock__download_viirs_granules_by_date(self, for_date: date, path: str):
+        raise NoGranulesException("No granules available.")
+
+    monkeypatch.setattr(ViirsSnowJob, "_get_last_processed_date", mock__get_last_processed_date)
+    monkeypatch.setattr(ViirsSnowJob, "_get_bc_boundary_from_s3", mock__get_bc_boundary_from_s3)
+    monkeypatch.setattr(
+        ViirsSnowJob, "_download_viirs_granules_by_date", mock__download_viirs_granules_by_date
+    )
+    chatops_mock = mocker.patch.object(viirs_snow, "send_chatops_notification")
+    # mock sys.argv with a random path, otherwise argparser will pickup the sys.argv args from pytest
+    mocker.patch("sys.argv", ["/test"])
+
+    with pytest.raises(SystemExit) as excinfo:
+        viirs_snow.main()
+    assert excinfo.value.code == os.EX_OK
+    chatops_mock.assert_called_once()
+    assert chatops_mock.call_args.kwargs["severity"] == "warning"
 
 
 def test_viirs_snow_job_fails_on_earthdata_access_auth_failure(
