@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_mock import MockerFixture
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.run_type import RunType
 
 from wps_sfms.danger_rating_step import interpolate_danger_rating
@@ -41,7 +40,6 @@ async def test_interpolates_and_records_danger_rating(mocker: MockerFixture, tra
         run.s3_client,
         run.base_fuel_raster_path,
         output_key,
-        cog_resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
     )
     assert tracked_jobs == [SFMSRunLogJobName.DANGER_RATING_INTERPOLATION]
     assert run.manifest.output.danger_rating_raster == output_key
