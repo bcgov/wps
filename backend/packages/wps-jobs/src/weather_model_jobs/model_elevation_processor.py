@@ -112,10 +112,9 @@ class ModelElevationProcessor:
         unavailable_count = len(missing_metadata_codes) + len(missing_sample_codes)
         logger.info(
             "Station elevations processed model=%s initialization=%s "
-            "flushed=%s available=%s unavailable=%s elapsed_seconds=%.2f",
+            "flushed=%s unavailable=%s elapsed_seconds=%.2f",
             model,
             model_run_timestamp,
-            len(missing) - unavailable_count,
             len(missing) - unavailable_count,
             unavailable_count,
             perf_counter() - started,

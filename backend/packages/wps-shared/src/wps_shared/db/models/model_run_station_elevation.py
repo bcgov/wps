@@ -8,7 +8,7 @@ from wps_shared.db.models import Base
 class ModelRunStationElevation(Base):
     """Model surface height in metres for a station, shared by all hours in a forecast run.
 
-    A null elevation means station metadata or a sampled surface value was unavailable.
+    Unavailable elevations have no stored row.
     The model and initialization come from the associated forecast run.
     """
 

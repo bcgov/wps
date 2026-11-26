@@ -104,10 +104,7 @@ def get_model_run_station_codes(session: Session, model_run_id: int) -> set[int]
 
 
 def get_model_run_elevation_station_codes(session: Session, model_run_id: int) -> set[int]:
-    """Return station codes with saved elevation records for the model run.
-
-    Include null elevations so they are treated as processed.
-    """
+    """Return station codes with saved elevation records for the model run."""
     statement = select(ModelRunStationElevation.station_code).where(
         ModelRunStationElevation.prediction_model_run_timestamp_id == model_run_id
     )
