@@ -20,6 +20,7 @@ from wps_shared.schemas.morecast_v2 import (
     MoreCastForecastInput,
     MoreCastForecastRequest,
     StationDailyFromWF1,
+    WeatherIndeterminate,
     WF1ForecastRecordType,
     WF1PostForecast,
     WF1SkippedForecast,
@@ -398,16 +399,48 @@ def test_get_determinates_unauthorized(client: TestClient):
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize(
+    "model_elevation,has_predictions", [(1049.75, True), (0.0, True), (None, True), (None, False)]
+)
 async def test_get_determinates_authorized(
-    anyio_backend, async_client: AsyncClient, monkeypatch: pytest.MonkeyPatch
-):
+    anyio_backend,
+    async_client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+    model_elevation: float | None,
+    has_predictions: bool,
+) -> None:
     def mock_admin_role_function(*_, **__):
         return MockJWTDecodeWithRole("morecast2_write_forecast")
 
     monkeypatch.setattr(decode_fn, mock_admin_role_function)
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
+    run_timestamp = datetime(2023, 3, 15)
+    predictions = [
+        WeatherIndeterminate(
+            station_code=209,
+            station_name="Station 209",
+            determinate=model,
+            utc_timestamp=datetime(2023, 3, 15, 20),
+            prediction_run_timestamp=run_timestamp,
+            model_elevation=model_elevation if model == "ECMWF" else None,
+        )
+        for model in ("ECMWF", "ECMWF_BIAS")
+    ]
+    if not has_predictions:
+        predictions = []
+    monkeypatch.setattr(
+        app.routers.morecast_v2,
+        "fetch_latest_model_run_predictions_by_station_code_and_date_range",
+        Mock(return_value=predictions),
+    )
 
     response = await async_client.post(
         morecast_v2_post_determinates_url, json={"stations": [209, 211, 302]}
     )
     assert response.status_code == 200
+    returned_predictions = response.json()["predictions"]
+    expected_models = ["ECMWF", "ECMWF_BIAS"] if has_predictions else []
+    assert [row["determinate"] for row in returned_predictions] == expected_models
+    expected_elevations = [model_elevation, None] if has_predictions else []
+    assert [row["model_elevation"] for row in returned_predictions] == expected_elevations
+    assert "model_elevations" not in response.json()

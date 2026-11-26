@@ -8,6 +8,7 @@ from sqlalchemy import extract, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from wps_shared.db.models.model_run_station_elevation import ModelRunStationElevation
 from wps_shared.db.models.weather_models import (
     ModelRunForSFMS,
     ModelRunPrediction,
@@ -92,6 +93,52 @@ def get_model_run_predictions_for_station(
     )
 
 
+def get_model_run_station_codes(session: Session, model_run_id: int) -> set[int]:
+    """Return station codes with weather predictions in the model run."""
+    statement = (
+        select(ModelRunPrediction.station_code)
+        .where(ModelRunPrediction.prediction_model_run_timestamp_id == model_run_id)
+        .distinct()
+    )
+    return set(session.scalars(statement))
+
+
+def get_model_run_elevation_station_codes(session: Session, model_run_id: int) -> set[int]:
+    """Return station codes with saved elevation records for the model run."""
+    statement = select(ModelRunStationElevation.station_code).where(
+        ModelRunStationElevation.prediction_model_run_timestamp_id == model_run_id
+    )
+    return set(session.scalars(statement))
+
+
+def store_model_run_station_elevations(
+    session: Session,
+    model_run_id: int,
+    station_codes: set[int],
+    elevations: dict[int, float | None],
+) -> None:
+    """Add model elevation records for the given stations and flush the session.
+
+    Round elevations to two decimal places and skip missing samples.
+    Leave commits to the caller.
+    """
+    rows: list[ModelRunStationElevation] = []
+    for code in sorted(station_codes):
+        elevation = elevations.get(code)
+        if elevation is None:
+            continue
+        rows.append(
+            ModelRunStationElevation(
+                prediction_model_run_timestamp_id=model_run_id,
+                station_code=code,
+                elevation=round(elevation, 2),
+            )
+        )
+    if rows:
+        session.add_all(rows)
+        session.flush()
+
+
 def delete_model_run_predictions(session: Session, older_than: datetime):
     """Delete any model run prediction older than a certain date."""
     logger.info("Deleting model_run_prediction data older than %s...", older_than)
@@ -143,6 +190,7 @@ def get_latest_station_prediction(
             WeatherStationModelPrediction.bias_adjusted_precip_24h,
             WeatherStationModelPrediction.wdir_tgl_10,
             WeatherStationModelPrediction.wind_tgl_10,
+            ModelRunStationElevation.elevation.label("model_elevation"),
         )
         .join(
             PredictionModelRunTimestamp,
@@ -151,6 +199,14 @@ def get_latest_station_prediction(
         )
         .join(
             PredictionModel, PredictionModel.id == PredictionModelRunTimestamp.prediction_model_id
+        )
+        .outerjoin(
+            ModelRunStationElevation,
+            (
+                ModelRunStationElevation.prediction_model_run_timestamp_id
+                == WeatherStationModelPrediction.prediction_model_run_timestamp_id
+            )
+            & (ModelRunStationElevation.station_code == WeatherStationModelPrediction.station_code),
         )
         .join(
             latest_predictions_subquery,

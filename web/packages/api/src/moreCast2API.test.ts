@@ -91,10 +91,10 @@ describe('moreCast2API', () => {
       DateTime.fromObject({ year: 2021, month: 1, day: 1 }),
       DateTime.fromObject({ year: 2021, month: 1, day: 2 })
     )
-    expect(JSON.stringify(res)).toBe(JSON.stringify({ actuals: [], forecasts: [], grassCuring: [], predictions: [] }))
+    expect(res).toEqual({ actuals: [], forecasts: [], grassCuring: [], predictions: [] })
   })
 
-  it('should fetch weather indeterminates with stations requested', async () => {
+  it.each([1234.57, 0, null])('preserves model elevation %s on weather predictions', async modelElevation => {
     const response = {
       data: {
         actuals: [
@@ -131,6 +131,7 @@ describe('moreCast2API', () => {
             station_code: 3,
             station_name: 'three',
             determinate: WeatherDeterminate.GDPS,
+            model_elevation: modelElevation,
             utc_timestamp: DateTime.fromObject({ year: 1970, month: 1, day: 1 }).toMillis(),
             precipitation: 3,
             relative_humidity: 3,
@@ -167,5 +168,6 @@ describe('moreCast2API', () => {
       predictions: response.data.predictions
     }
     expect(JSON.stringify(res)).toBe(JSON.stringify(expected))
+    expect(res.predictions[0].model_elevation).toBe(modelElevation)
   })
 })

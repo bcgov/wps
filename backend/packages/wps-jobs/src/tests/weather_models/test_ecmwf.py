@@ -639,6 +639,7 @@ async def test_process_models_filters_stations_to_crop_bounds(mocker: MockerFixt
 
     mock_ecmwf = mocker.patch("weather_model_jobs.ecmwf.ECMWF")
     mock_prediction_processor = mocker.patch("weather_model_jobs.ecmwf.ECMWFPredictionProcessor")
+    mock_elevation_processor = mocker.patch("weather_model_jobs.ecmwf.ModelElevationProcessor")
 
     await weather_model_jobs.ecmwf.process_models()
 
@@ -650,6 +651,10 @@ async def test_process_models_filters_stations_to_crop_bounds(mocker: MockerFixt
     )
     mock_ecmwf.return_value.process.assert_called_once()
     mock_prediction_processor.return_value.process.assert_called_once()
+    assert mock_elevation_processor.call_args.args[1] == expected_stations
+    mock_elevation_processor.return_value.process.assert_called_once_with(
+        mock_ecmwf.return_value.model_type
+    )
 
 
 @pytest.mark.anyio

@@ -63,6 +63,31 @@ describe('reconciling drafts after weather fetches', () => {
     vi.restoreAllMocks()
   })
 
+  test('keeps model elevation on predictions when filling missing data', async () => {
+    const modelPrediction: WeatherIndeterminate = {
+      ...reading(1, 20),
+      determinate: WeatherDeterminate.HRDPS,
+      prediction_run_timestamp: '2030-07-04T00:00:00Z',
+      model_elevation: 1234.57
+    }
+    vi.mocked(fetchWeatherIndeterminates).mockResolvedValue({
+      actuals: [],
+      forecasts: [],
+      grassCuring: [],
+      predictions: [modelPrediction]
+    })
+    const store = configureStore({ reducer: rootReducer })
+
+    await store.dispatch(getWeatherIndeterminates(stations, timestamp.startOf('day'), timestamp.startOf('day')))
+
+    const prediction = store
+      .getState()
+      .weatherIndeterminates.predictions.find(
+        row => row.station_code === 1 && row.determinate === WeatherDeterminate.HRDPS
+      )
+    expect(prediction).toMatchObject(modelPrediction)
+  })
+
   test.each([0, null])(
     'removes a returned actual with temperature %s before rebuilding the grid',
     async temperature => {

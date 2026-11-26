@@ -184,6 +184,7 @@ export interface WeatherIndeterminate {
   danger_rating: number | null
   grass_curing: number | null
   prediction_run_timestamp: string | null
+  model_elevation?: number | null
 }
 
 export interface WeatherIndeterminatePayload {
