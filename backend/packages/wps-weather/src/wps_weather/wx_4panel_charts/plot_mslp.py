@@ -20,8 +20,8 @@ import matplotlib.ticker as mticker
 import numpy as np
 import xarray as xr
 from cartopy.feature import NaturalEarthFeature, ShapelyFeature
-from cartopy.util import add_cyclic_point
 from scipy.ndimage import maximum_filter, minimum_filter
+from wps_weather.wx_4panel_charts.gdps_longitude import prepare_gdps_lon_axis
 
 # --------------------------------------------------
 # FINAL "decided" feature values live here
@@ -273,18 +273,7 @@ def plot_mslp_thickness(cfg=None, ax=None, ds_msl=None, ds_thk=None):
     lats = ds_msl["latitude"].values
     lons = ds_msl["longitude"].values
 
-    lon_wrapped = ((lons + 180.0) % 360.0) - 180.0
-    order = np.argsort(lon_wrapped)
-    lon_plot = lon_wrapped[order]
-    
-    Z = mslp.values[:, order]
-    T = thickness.values[:, order]
-    
-    # --- IMPORTANT FIX: add cyclic point to remove dateline seam ---
-    Z, lon_plot_cyc = add_cyclic_point(Z, coord=lon_plot)
-    T, _            = add_cyclic_point(T, coord=lon_plot)
-    
-    lon_plot = lon_plot_cyc
+    lon_plot, (Z, T) = prepare_gdps_lon_axis(lons, mslp.values, thickness.values)
 
 
     # --- Gridlines + single labels ---
