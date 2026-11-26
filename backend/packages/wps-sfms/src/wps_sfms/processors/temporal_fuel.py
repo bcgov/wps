@@ -14,7 +14,6 @@ from types import MappingProxyType
 from typing import ClassVar, Mapping
 
 import numpy as np
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import gdal_s3_context
@@ -151,7 +150,6 @@ async def publish_temporal_fuel_raster(
                     s3_client,
                     output_ds,
                     output_key,
-                    cog_resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
                 )
 
     logger.info(

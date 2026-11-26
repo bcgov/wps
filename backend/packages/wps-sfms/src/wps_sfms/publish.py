@@ -7,14 +7,14 @@ import tempfile
 from dataclasses import dataclass
 
 import aiofiles
-
-from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 from wps_shared.geospatial.cog import generate_web_optimized_cog
 from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import GDALPath, S3Key
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
+
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,8 @@ async def publish_dataset(
     dataset: WPSDataset,
     output_key: S3Key | str,
     generate_cog: bool = True,
-    cog_resample_alg: GDALResamplingMethod = GDALResamplingMethod.BILINEAR,
 ) -> PublishedRaster:
-    """Upload a GeoTIFF to object storage and optionally generate a matching web COG."""
+    """Upload a GeoTIFF and optionally generate a nearest-neighbour web COG."""
 
     raster_addresser = SFMSNGRasterAddresser()
     s3_output_key = S3Key(str(output_key))
@@ -55,7 +54,9 @@ async def publish_dataset(
 
         if cog_key is not None:
             generate_web_optimized_cog(
-                input_path=tmp_path, output_path=cog_key, resample_alg=cog_resample_alg
+                input_path=tmp_path,
+                output_path=cog_key,
+                resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
             )
 
     return PublishedRaster(

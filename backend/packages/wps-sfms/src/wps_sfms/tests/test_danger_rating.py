@@ -5,13 +5,13 @@ from uuid import uuid4
 import numpy as np
 import pytest
 from osgeo import gdal
+from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
+
 from wps_sfms.interpolation.common import SFMS_NO_DATA
 from wps_sfms.interpolation.field import ScalarField
 from wps_sfms.processors.danger_rating import DangerRatingInterpolator
 from wps_sfms.processors.idw import Interpolator
 from wps_sfms.tests.conftest import create_test_raster
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
-from wps_shared.geospatial.wps_dataset import Georeference, WPSDataset
 
 
 @pytest.mark.parametrize(
@@ -79,20 +79,8 @@ def test_danger_rating_interpolator_uses_idw_and_mask():
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    "processor_type,process_kwargs,resample_alg",
-    [
-        (
-            DangerRatingInterpolator,
-            {"cog_resample_alg": GDALResamplingMethod.NEAREST_NEIGHBOUR},
-            GDALResamplingMethod.NEAREST_NEIGHBOUR,
-        ),
-        (Interpolator, {}, GDALResamplingMethod.BILINEAR),
-    ],
-)
-async def test_interpolator_publishes_with_expected_cog_resampling(
-    mocker, processor_type, process_kwargs, resample_alg
-):
+@pytest.mark.parametrize("processor_type", [DangerRatingInterpolator, Interpolator])
+async def test_interpolator_uses_shared_publisher(mocker, processor_type):
     dataset = WPSDataset.from_array(
         np.array([[2.0]], dtype=np.float32),
         Georeference((0, 1, 0, 0, 0, -1), ""),
@@ -109,9 +97,7 @@ async def test_interpolator_publishes_with_expected_cog_resampling(
     )
     s3_client = MagicMock()
 
-    result = await processor.process(s3_client, "reference.tif", "output.tif", **process_kwargs)
+    result = await processor.process(s3_client, "reference.tif", "output.tif")
 
     assert result == "output.tif"
-    publish.assert_awaited_once_with(
-        s3_client, dataset, "output.tif", cog_resample_alg=resample_alg
-    )
+    publish.assert_awaited_once_with(s3_client, dataset, "output.tif")

@@ -4,7 +4,6 @@ import logging
 
 from wps_shared.chatops_notification import send_chatops_notification
 from wps_shared.db.models.sfms_run import SFMSRunLogJobName
-from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.schemas.sfms import SFMSDaily
 from wps_shared.sfms.raster_addresser import S3Key
 
@@ -41,7 +40,6 @@ async def interpolate_danger_rating(
             context.s3_client,
             context.base_fuel_raster_path,
             output_key,
-            cog_resample_alg=GDALResamplingMethod.NEAREST_NEIGHBOUR,
         )
 
     await context.track(SFMSRunLogJobName.DANGER_RATING_INTERPOLATION, _interpolate)

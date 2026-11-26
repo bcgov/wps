@@ -1,12 +1,16 @@
 import hashlib
 from unittest.mock import AsyncMock, MagicMock
 
+import numpy as np
 import pytest
-
-from wps_sfms.publish import publish_dataset
-from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
+from osgeo import gdal
+from wps_shared.geospatial.geospatial import GDALResamplingMethod
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.tests.geospatial.dataset_common import create_test_dataset
+
+from wps_sfms.interpolation.common import SFMS_NO_DATA
+from wps_sfms.publish import publish_dataset
+from wps_sfms.sfmsng_raster_addresser import SFMSNGRasterAddresser
 
 
 @pytest.mark.anyio
@@ -42,6 +46,9 @@ async def test_publish_dataset_uploads_raster_and_generates_cog_by_default(mocke
     generate_cog_spy.assert_called_once()
     assert generate_cog_spy.call_args.kwargs["output_path"] == expected_cog_key
     assert generate_cog_spy.call_args.kwargs["input_path"].endswith("temperature_20240704.tif")
+    assert (
+        generate_cog_spy.call_args.kwargs["resample_alg"] == GDALResamplingMethod.NEAREST_NEIGHBOUR
+    )
 
     assert published.output_key == output_key
     assert published.cog_key == expected_cog_key
@@ -81,3 +88,54 @@ async def test_publish_dataset_can_skip_cog_generation(mocker):
     generate_cog_spy.assert_not_called()
     assert published.output_key == output_key
     assert published.cog_key is None
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("left_value,right_value", [(0, 20773.5), (120, 85)])
+async def test_nearest_neighbour_cog_preserves_source_values_and_nodata(
+    mocker, tmp_path, left_value, right_value
+):
+    output_key = "sfms_ng/actual/2024/07/04/hfi_20240704.tif"
+    cog_path = str(tmp_path / "hfi_cog.tif")
+    mocker.patch.object(SFMSNGRasterAddresser, "get_cog_key", return_value=cog_path)
+    s3_client = MagicMock()
+    s3_client.put_object = AsyncMock()
+
+    size = 600
+    source_values = np.full((size, size), right_value, dtype=np.float32)
+    source_values[:, : size // 2] = left_value
+    source_values[:30, :] = SFMS_NO_DATA
+    gdal_ds = create_test_dataset(
+        "hfi.tif",
+        size,
+        size,
+        (-126, -118, 49, 56),
+        4326,
+        fill_value=0,
+        no_data_value=SFMS_NO_DATA,
+    )
+    gdal_ds.GetRasterBand(1).WriteArray(source_values)
+
+    with WPSDataset(ds_path=None, ds=gdal_ds) as dataset:
+        published = await publish_dataset(s3_client, dataset, output_key)
+        np.testing.assert_array_equal(dataset.as_gdal_ds().ReadAsArray(), source_values)
+
+    s3_client.put_object.assert_awaited_once()
+    upload = s3_client.put_object.await_args.kwargs
+    assert upload["key"] == output_key
+    assert published.content_hash == hashlib.sha256(upload["body"]).hexdigest()
+    assert published.cog_key == cog_path
+
+    uploaded_path = tmp_path / "uploaded.tif"
+    uploaded_path.write_bytes(upload["body"])
+    with gdal.Open(str(uploaded_path)) as uploaded:
+        np.testing.assert_array_equal(uploaded.ReadAsArray(), source_values)
+
+    with gdal.Open(cog_path) as cog:
+        band = cog.GetRasterBand(1)
+        assert band.GetOverviewCount() > 0
+        levels = [band] + [band.GetOverview(i) for i in range(band.GetOverviewCount())]
+        for level in levels:
+            values = level.ReadAsMaskedArray()
+            assert np.ma.getmaskarray(values).any()
+            assert set(np.unique(values.compressed())) == {left_value, right_value}

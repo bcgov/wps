@@ -9,7 +9,11 @@ import { fromLonLat } from 'ol/proj'
 import GeoTIFF from 'ol/source/GeoTIFF'
 import { PMTilesVectorSource } from 'ol-pmtiles'
 import { FetchSource } from 'pmtiles'
-import type { RasterType, SFMSNGRasterType } from '@/features/sfmsInsights/components/map/rasterConfig'
+import {
+  pairsWithFuel,
+  type RasterType,
+  type SFMSNGRasterType
+} from '@/features/sfmsInsights/components/map/rasterConfig'
 import {
   fuelCOGColourExpression,
   getSFMSNGRasterColourExpression,
@@ -19,12 +23,9 @@ import {
 export const BASEMAP_LAYER_NAME = 'basemapLayer'
 export const SNOW_LAYER_NAME = 'snowVector'
 export const FWI_LAYER_NAME = 'fwiRaster'
+const FUEL_GRID_PATH = 'sfms_ng/fuel/fbp2025_v2_3857_cog.tif'
 
-export const getSFMSNGRasterPath = (
-  date: DateTime,
-  rasterType: SFMSNGRasterType,
-  runType: RunType = RunType.ACTUAL
-) => {
+export const getSFMSNGRasterPath = (date: DateTime, rasterType: RasterType, runType: RunType = RunType.ACTUAL) => {
   const dateString = date.toISODate() ?? ''
   const datePath = dateString.replaceAll('-', '/')
   const dateStringBasic = dateString.replaceAll('-', '')
@@ -79,8 +80,14 @@ export const getSFMSNGRasterLayer = (
     headers.Authorization = `Bearer ${token}`
   }
 
+  // fbp outputs pair with the static fuel COG (band 2) to label Non-fuel/Water.
+  // Override nodata with NaN to retain numeric NoData sentinels; valid fuel can make combined alpha nonzero.
+  const sources = pairsWithFuel(rasterType)
+    ? [{ url, nodata: Number.NaN }, { url: `${API_BASE_URL}/object-store-proxy/${FUEL_GRID_PATH}` }]
+    : [{ url }]
+
   const source = new GeoTIFF({
-    sources: [{ url }],
+    sources,
     sourceOptions: {
       headers
     },
@@ -106,8 +113,7 @@ export const getSFMSNGRasterLayer = (
 }
 
 export const getFuelGridCOG = (token?: string) => {
-  const path = 'sfms_ng/fuel/fbp2025_v2_3857_cog.tif'
-  const url = `${API_BASE_URL}/object-store-proxy/${path}`
+  const url = `${API_BASE_URL}/object-store-proxy/${FUEL_GRID_PATH}`
 
   const headers: Record<string, string> = {}
   if (token) {

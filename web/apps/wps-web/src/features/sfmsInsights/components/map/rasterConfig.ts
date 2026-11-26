@@ -279,6 +279,12 @@ export const FUEL_COLOUR_BREAKS: ColourBreak[] = FUEL_TYPE_COLOURS.map(({ value,
   label: fuelCode
 }))
 
+export const NON_FUEL_TYPES = FUEL_TYPE_COLOURS.filter(({ value }) => value === 99 || value === 102)
+
+export const NON_FUEL_COLOUR_BREAKS = FUEL_COLOUR_BREAKS.filter(({ min }) =>
+  NON_FUEL_TYPES.some(({ value }) => value === min)
+)
+
 export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
   fuel: { group: 'fuel', label: 'Fuel', colourBreaks: FUEL_COLOUR_BREAKS },
   temperature: { group: 'weather', label: 'Temperature', colourBreaks: TEMPERATURE_COLOUR_BREAKS },
@@ -306,3 +312,13 @@ export const RASTER_CONFIG: Record<RasterType, RasterConfig> = {
     tooltipDecimalPlaces: 1
   }
 }
+
+// Layers in the FBP group are paired with fuel data as a second source band.
+export const pairsWithFuel = (rasterType: RasterType): boolean => RASTER_CONFIG[rasterType].group === 'fbp'
+
+const RASTER_ALPHA_BAND = 2
+const PAIRED_RASTER_ALPHA_BAND = 3
+
+// OpenLayers band indices are one-based; paired layers have an extra fuel band before alpha.
+export const getAlphaBand = (rasterType?: RasterType): number =>
+  rasterType && pairsWithFuel(rasterType) ? PAIRED_RASTER_ALPHA_BAND : RASTER_ALPHA_BAND
