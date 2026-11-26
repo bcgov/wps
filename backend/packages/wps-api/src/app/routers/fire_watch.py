@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Sequence, Tuple
 
 from aiohttp import ClientSession
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.shape import to_shape
 from shapely import from_wkt
@@ -16,7 +16,7 @@ from wps_shared.db.crud.fire_watch import (
     get_fire_centre_by_name,
     get_fire_watch_by_id,
     get_fire_watch_weather_by_model_with_prescription_status,
-    get_latest_processed_model_run_id_in_fire_watch_weather,
+    get_latest_processed_model_run_in_fire_watch_weather,
     save_fire_watch,
     update_fire_watch,
 )
@@ -40,6 +40,7 @@ from wps_shared.schemas.fire_watch import (
 from wps_shared.schemas.psu import FireCentre
 from wps_shared.schemas.stations import GeoJsonWeatherStation
 from wps_shared.utils.time import get_utc_now
+from wps_weather_data.runs import RunsTable
 from wps_wf1.wfwx_api import WfwxApi
 
 from app.fire_watch.calculate_weather import (
@@ -53,6 +54,11 @@ router = APIRouter(
     prefix="/fire-watch",
     dependencies=[Depends(authentication_required), Depends(audit)],
 )
+
+
+def get_runs_table(request: Request) -> RunsTable:
+    """The `runs` table the app created at startup (see `lifespan` in app.main)."""
+    return request.app.state.runs_table
 
 
 def reproject_burn_location(coordinate: List[float], source_srs, target_srs):
@@ -288,6 +294,7 @@ async def update_existing_fire_watch(
     fire_watch_id: int,
     fire_watch_input_request: FireWatchInputRequest,
     token=Depends(authentication_required),
+    runs_table: RunsTable = Depends(get_runs_table),
 ):
     idir = token.get("idir_username", None)
     fire_watch_input = marshall_fire_watch_input_to_db(fire_watch_input_request.fire_watch, idir)
@@ -302,15 +309,14 @@ async def update_existing_fire_watch(
             raise HTTPException(status_code=404, detail=f"FireWatch {fire_watch_id} not found")
         updated_fire_watch = await update_fire_watch(session, fire_watch_id, fire_watch_input)
 
-        latest_model_run_parameters_id = (
-            await get_latest_processed_model_run_id_in_fire_watch_weather(session)
-        )
+        latest_run_ts = await get_latest_processed_model_run_in_fire_watch_weather(session)
 
         try:
             await reprocess_fire_watch_weather(
                 session,
                 updated_fire_watch,
-                latest_model_run_parameters_id,
+                latest_run_ts,
+                runs_table,
             )
         except MissingWeatherDataError as e:
             logger.error(f"Missing weather data: {e}")
@@ -326,7 +332,7 @@ async def update_existing_fire_watch(
             )
 
         fire_watch_weather = await get_fire_watch_weather_by_model_with_prescription_status(
-            session, updated_fire_watch.id, latest_model_run_parameters_id
+            session, updated_fire_watch.id, latest_run_ts
         )
 
         updated_burn_forecast = create_fire_watch_burn_forecasts_response(
@@ -344,11 +350,9 @@ async def get_burn_forecasts(_=Depends(authentication_required)):
         stations = await wfwx_api.get_stations_as_geojson()
     async with get_async_read_session_scope() as session:
         fire_watches = await get_all_fire_watches(session)
-        latest_model_run_parameters_id = (
-            await get_latest_processed_model_run_id_in_fire_watch_weather(session)
-        )
+        latest_run_ts = await get_latest_processed_model_run_in_fire_watch_weather(session)
         fire_watch_weather = await get_all_fire_watch_weather_with_prescription_status(
-            session, latest_model_run_parameters_id
+            session, latest_run_ts
         )
         fire_watch_burn_forecasts_response = create_fire_watch_burn_forecasts_response(
             stations, fire_watches, fire_watch_weather

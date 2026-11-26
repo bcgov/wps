@@ -38,7 +38,14 @@ class SFMSDaily(BaseModel):
     ffmc: Optional[float] = None
     dmc: Optional[float] = None
     dc: Optional[float] = None
+    isi: Optional[float] = None
+    bui: Optional[float] = None
+    fwi: Optional[float] = None
     danger_rating: Optional[int] = None
+    grass_curing: Optional[float] = None
+    # Whether WF1 accepted the record, and why not.
+    observation_valid: Optional[bool] = None
+    observation_valid_comment: Optional[str] = None
 
 
 class SFMSRunBounds(BaseModel):

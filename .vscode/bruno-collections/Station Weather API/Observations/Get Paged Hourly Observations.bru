@@ -1,0 +1,23 @@
+meta {
+  name: Get Paged Hourly Observations
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{API_BASE_URL}}/weather/v1/observations/hourly?station_codes=322&start=2020-01-01&end=2025-12-31
+  body: none
+  auth: inherit
+}
+
+params:query {
+  station_codes: 322
+  start: 2020-01-01
+  end: 2025-12-31
+}
+
+docs {
+  More than one page of rows (50,000 per page, counted as stations x days x 24 for hourly).
+  The response covers 2020-01-01 to 2025-09-13 and `next` (also the `Link` header) is the
+  path of the rest, starting at /api, so put the host in front of it to fetch the next page.
+}

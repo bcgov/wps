@@ -10,24 +10,18 @@ import tempfile
 from urllib.parse import urlparse
 
 import requests
-import wps_shared.db.database
 import wps_shared.utils.time as time_utils
-from sqlalchemy.orm import Session
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
-    check_if_model_run_complete,
-    flag_file_as_processed,
+    RunStager,
+    model_run_timestamp,
+    publish_staged_runs,
+    run_is_published,
 )
 from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
-)
-from wps_shared.db.crud.weather_models import (
-    get_prediction_model,
-    get_prediction_run,
-    get_processed_file_record,
-    update_prediction_run,
 )
 from wps_shared.weather_models import (
     ModelEnum,
@@ -42,6 +36,8 @@ from wps_shared.weather_models.model_run_urls import (
     get_model_run_urls,
 )
 from wps_shared.wps_logging import configure_logging
+from wps_weather_data.runs import RunsTable
+from wps_weather_data.staging import StagingTable
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -229,38 +225,17 @@ def parse_env_canada_filename(url):
     return info
 
 
-def mark_prediction_model_run_processed(
-    session: Session,
-    model: ModelEnum,
-    projection: ProjectionEnum,
-    now: datetime.datetime,
-    model_run_hour: int,
-):
-    """Mark a prediction model run as processed (complete)"""
-
-    prediction_model = get_prediction_model(session, model, projection)
-    prediction_run_timestamp = datetime.datetime(
-        year=now.year, month=now.month, day=now.day, hour=now.hour, tzinfo=datetime.timezone.utc
-    )
-    prediction_run_timestamp = adjust_model_day(prediction_run_timestamp, model_run_hour)
-    prediction_run_timestamp = prediction_run_timestamp.replace(hour=model_run_hour)
-    logger.info(
-        "prediction_model:%s, prediction_run_timestamp:%s",
-        prediction_model,
-        prediction_run_timestamp,
-    )
-    prediction_run = get_prediction_run(session, prediction_model.id, prediction_run_timestamp)
-    logger.info("prediction run: %s", prediction_run)
-    prediction_run.complete = True
-    update_prediction_run(session, prediction_run)
-
-
 class EnvCanada:
     """Class that orchestrates downloading and processing of weather model grib files from environment
     Canada.
     """
 
-    def __init__(self, session: Session, model_type: ModelEnum):
+    def __init__(
+        self,
+        model_type: ModelEnum,
+        staging_table: StagingTable | None = None,
+        runs_table: RunsTable | None = None,
+    ):
         """Prep variables"""
         self.files_downloaded = 0
         self.files_processed = 0
@@ -271,7 +246,10 @@ class EnvCanada:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor()
         self.model_type: ModelEnum = model_type
-        self.session = session
+        self.staging_table = staging_table or StagingTable(model_type)
+        self.runs_table = runs_table or RunsTable()
+        # Runs fully staged by the end of process(), ready to publish.
+        self.complete_runs: list[datetime.datetime] = []
         # set projection based on model_type
         if self.model_type == ModelEnum.GDPS:
             self.projection = ProjectionEnum.LATLON_15X_15
@@ -282,13 +260,11 @@ class EnvCanada:
         else:
             raise UnhandledPredictionModelType(f"Unknown model type: {self.model_type}")
 
-    def process_model_run_urls(self, urls, fetcher: ECCCUrlFetcher):
-        """Process the urls for a model run."""
+    def process_model_run_urls(self, urls, fetcher: ECCCUrlFetcher, stager: RunStager):
+        """Process the urls for a model run, staging each file's station values."""
         for url in urls:
             try:
-                # check the database for a record of this file:
-                processed_file_record = get_processed_file_record(self.session, url)
-                if processed_file_record:
+                if stager.is_processed(url):
                     # This file has already been processed - so we skip it.
                     # NOTE: changing this to logger.debug causes too much noise in unit tests.
                     logger.debug("file already processed %s", url)
@@ -309,11 +285,10 @@ class EnvCanada:
                             self.files_downloaded += 1
                             # If we've downloaded the file ok, we can now process it.
                             try:
-                                self.grib_processor.process_grib_file(
-                                    downloaded, model_info, self.session
+                                values = self.grib_processor.process_grib_file(
+                                    downloaded, model_info
                                 )
-                                # Flag the file as processed
-                                flag_file_as_processed(url, self.session)
+                                stager.add(url, model_info.prediction_timestamp, values)
                                 self.files_processed += 1
                             finally:
                                 # delete the file when done.
@@ -328,31 +303,44 @@ class EnvCanada:
                 # as we can.
                 logger.exception("unexpected exception processing %s", url)
 
+    def expected_runs(self):
+        """The runs the job covers, each with the urls of all its files."""
+        for hour in get_env_canada_model_run_hours(self.model_type):
+            yield (
+                model_run_timestamp(self.now, hour),
+                get_model_run_urls(self.now, self.model_type, hour),
+            )
+
     def process_model_run(self, model_run_hour):
         """Process a particular model run"""
         logger.info("Processing {} model run {:02d}".format(self.model_type, model_run_hour))
 
         # Get the urls for the current model run.
         urls = get_model_run_urls(self.now, self.model_type, model_run_hour)
+        run_ts = model_run_timestamp(self.now, model_run_hour)
+        if run_is_published(self.runs_table, self.staging_table, self.model_type, run_ts):
+            logger.info("%s model run %s is already published", self.model_type, run_ts)
+            return
 
         fetcher = ECCCUrlFetcher(self.now, model_run_hour)
+        stager = RunStager(self.staging_table, run_ts)
 
         # Process all the urls.
-        self.process_model_run_urls(urls, fetcher)
+        try:
+            self.process_model_run_urls(urls, fetcher, stager)
+        finally:
+            stager.flush()
 
         fetcher.log_connection_summary()
 
         # Having completed processing, check if we're all done.
-        if check_if_model_run_complete(self.session, urls):
+        if stager.is_complete(urls):
             logger.info(
                 "{} model run {:02d}:00 completed with SUCCESS".format(
                     self.model_type, model_run_hour
                 )
             )
-
-            mark_prediction_model_run_processed(
-                self.session, self.model_type, self.projection, self.now, model_run_hour
-            )
+            self.complete_runs.append(run_ts)
         elif is_no_files_warning_due(
             self.now,
             time_utils.get_utc_now(),
@@ -386,13 +374,18 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    with wps_shared.db.database.get_write_session_scope() as session:
-        env_canada = EnvCanada(session, model_type)
-        env_canada.process()
+    env_canada = EnvCanada(model_type)
+    model_value_processor = ModelValueProcessor(model_type)
+    publish_staged_runs(
+        model_value_processor,
+        env_canada.staging_table,
+        env_canada.expected_runs(),
+        env_canada.now,
+    )
+    env_canada.process()
 
-        # interpolate and machine learn everything that needs interpolating.
-        model_value_processor = ModelValueProcessor(session)
-        model_value_processor.process(model_type)
+    # interpolate, machine learn and publish every run that is now fully staged.
+    model_value_processor.process(env_canada.complete_runs)
 
     # calculate the execution time.
     execution_time = datetime.datetime.now() - start_time

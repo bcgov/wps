@@ -10,25 +10,19 @@ from urllib.parse import parse_qs, urlsplit
 from zoneinfo import ZoneInfo
 
 import requests
-import wps_shared.db.database
 import wps_shared.utils.time as time_utils
 from requests import HTTPError
-from sqlalchemy.orm import Session
 from weather_model_jobs.common_model_fetchers import (
     ModelValueProcessor,
-    check_if_model_run_complete,
-    flag_file_as_processed,
+    RunStager,
+    model_run_timestamp,
+    publish_staged_runs,
+    run_is_published,
 )
 from weather_model_jobs.model_job_runner import judge_run, run_model_job
 from weather_model_jobs.utils.process_grib import (
     GribFileProcessor,
     ModelRunInfo,
-)
-from wps_shared.db.crud.weather_models import (
-    get_prediction_model,
-    get_prediction_run,
-    get_processed_file_record,
-    update_prediction_run,
 )
 from wps_shared.geospatial.bounds import (
     BC_MAX_LATITUDE,
@@ -42,6 +36,8 @@ from wps_shared.weather_models import (
     download,
 )
 from wps_shared.wps_logging import configure_logging
+from wps_weather_data.runs import RunsTable
+from wps_weather_data.staging import StagingTable
 
 # If running as its own process, configure logging appropriately.
 if __name__ == "__main__":
@@ -231,47 +227,15 @@ def parse_nam_url_for_timestamps(url: str):
     return (model_run_timestamp, prediction_timestamp)
 
 
-def adjust_model_day(now, model_run_hour) -> datetime:
-    """Adjust the model day, based on the current time.
-
-    If now (e.g. 10h00) is less than model run (e.g. 12), it means we have to look for yesterdays
-    model run.
-    """
-    if now.hour < int(model_run_hour):
-        return now - datetime.timedelta(days=1)
-    return now
-
-
-def mark_prediction_model_run_processed(
-    session: Session,
-    model: ModelEnum,
-    projection: ProjectionEnum,
-    now: datetime.datetime,
-    model_run_hour: int,
-):
-    """Mark a prediction model run as processed (complete)"""
-
-    prediction_model = get_prediction_model(session, model, projection)
-    prediction_run_timestamp = datetime.datetime(
-        year=now.year, month=now.month, day=now.day, hour=now.hour, tzinfo=datetime.timezone.utc
-    )
-    prediction_run_timestamp = adjust_model_day(prediction_run_timestamp, model_run_hour)
-    prediction_run_timestamp = prediction_run_timestamp.replace(hour=int(model_run_hour))
-    logger.info(
-        "prediction_model:%s, prediction_run_timestamp:%s",
-        prediction_model,
-        prediction_run_timestamp,
-    )
-    prediction_run = get_prediction_run(session, prediction_model.id, prediction_run_timestamp)
-    logger.info("prediction run: %s", prediction_run)
-    prediction_run.complete = True
-    update_prediction_run(session, prediction_run)
-
-
 class NOAA:
     """Class that orchestrates downloading and processing of GFS weather model grib files from NOAA."""
 
-    def __init__(self, session: Session, model_type: ModelEnum):
+    def __init__(
+        self,
+        model_type: ModelEnum,
+        staging_table: StagingTable | None = None,
+        runs_table: RunsTable | None = None,
+    ):
         """Prep variables"""
         self.files_downloaded = 0
         self.files_processed = 0
@@ -281,16 +245,19 @@ class NOAA:
         self.now = time_utils.get_utc_now()
         self.grib_processor = GribFileProcessor()
         self.model_type: ModelEnum = model_type
-        self.session = session
+        self.staging_table = staging_table or StagingTable(model_type)
+        self.runs_table = runs_table or RunsTable()
+        # Runs fully staged by the end of process(), ready to publish.
+        self.complete_runs: list[datetime.datetime] = []
         # projection depends on model type
         if self.model_type == ModelEnum.GFS:
             self.projection = ProjectionEnum.GFS_LONLAT
         elif self.model_type == ModelEnum.NAM:
             self.projection = ProjectionEnum.NAM_POLAR_STEREO
 
-    def process_url(self, url):
+    def process_url(self, url, stager: RunStager):
         """Download and process a single grib file URL, skipping if already processed."""
-        if get_processed_file_record(self.session, url):
+        if stager.is_processed(url):
             # NOTE: changing this to logger.debug causes too much noise in unit tests.
             logger.debug("file already processed %s", url)
             return
@@ -311,17 +278,17 @@ class NOAA:
             if downloaded:
                 self.files_downloaded += 1
                 try:
-                    self.grib_processor.process_grib_file(downloaded, model_info, self.session)
-                    flag_file_as_processed(url, self.session)
+                    values = self.grib_processor.process_grib_file(downloaded, model_info)
+                    stager.add(url, prediction_timestamp, values)
                     self.files_processed += 1
                 finally:
                     os.remove(downloaded)
 
-    def process_model_run_urls(self, urls):
+    def process_model_run_urls(self, urls, stager: RunStager):
         """Process the urls for a model run."""
         for url in urls:
             try:
-                self.process_url(url)
+                self.process_url(url, stager)
             except HTTPError as http_error:
                 if http_error.response is not None and http_error.response.status_code in (
                     403,
@@ -351,28 +318,40 @@ class NOAA:
                 # as we can.
                 logger.exception("unexpected exception processing %s", url)
 
+    def _model_run_urls(self, model_run_hour) -> list[str]:
+        if self.model_type == ModelEnum.GFS:
+            return list(get_gfs_model_run_download_urls(self.now, model_run_hour))
+        return list(get_nam_model_run_download_urls(self.now, model_run_hour))
+
+    def expected_runs(self):
+        """The runs the job covers, each with the urls of all its files."""
+        for hour in get_gfs_and_nam_model_run_hours():
+            yield model_run_timestamp(self.now, int(hour)), self._model_run_urls(hour)
+
     def process_model_run(self, model_run_hour):
         """Process a particular model run"""
         logger.info("Processing {} model run {}".format(self.model_type, model_run_hour))
 
         # Get the urls for the current model run.
-        if self.model_type == ModelEnum.GFS:
-            urls = list(get_gfs_model_run_download_urls(self.now, model_run_hour))
-        elif self.model_type == ModelEnum.NAM:
-            urls = list(get_nam_model_run_download_urls(self.now, model_run_hour))
+        urls = self._model_run_urls(model_run_hour)
+        run_ts = model_run_timestamp(self.now, int(model_run_hour))
+        if run_is_published(self.runs_table, self.staging_table, self.model_type, run_ts):
+            logger.info("%s model run %s is already published", self.model_type, run_ts)
+            return
+        stager = RunStager(self.staging_table, run_ts)
 
         # Process all the urls.
-        self.process_model_run_urls(urls)
+        try:
+            self.process_model_run_urls(urls, stager)
+        finally:
+            stager.flush()
 
         # Having completed processing, check if we're all done.
-        if check_if_model_run_complete(self.session, urls):
+        if stager.is_complete(urls):
             logger.info(
                 "{} model run {}:00 completed with SUCCESS".format(self.model_type, model_run_hour)
             )
-
-            mark_prediction_model_run_processed(
-                self.session, self.model_type, self.projection, self.now, model_run_hour
-            )
+            self.complete_runs.append(run_ts)
 
     def process(self):
         """Entry point for downloading and processing weather model grib files"""
@@ -399,13 +378,13 @@ def process_models():
     # grab the start time.
     start_time = datetime.datetime.now()
 
-    with wps_shared.db.database.get_write_session_scope() as session:
-        noaa = NOAA(session, model_type)
-        noaa.process()
+    noaa = NOAA(model_type)
+    model_value_processor = ModelValueProcessor(model_type)
+    publish_staged_runs(model_value_processor, noaa.staging_table, noaa.expected_runs(), noaa.now)
+    noaa.process()
 
-        # interpolate and machine learn everything that needs interpolating.
-        model_value_processor = ModelValueProcessor(session)
-        model_value_processor.process(model_type)
+    # interpolate, machine learn and publish every run that is now fully staged.
+    model_value_processor.process(noaa.complete_runs)
 
     # calculate the execution time.
     execution_time = datetime.datetime.now() - start_time

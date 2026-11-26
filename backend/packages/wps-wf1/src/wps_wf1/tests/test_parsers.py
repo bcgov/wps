@@ -70,6 +70,19 @@ class TestParseHourlyActual:
         assert hourly_actual.precip_valid is True
         assert hourly_actual.wspeed_valid is True
 
+    def test_keeps_wf1s_validity(self):
+        raw_actual = {
+            "weatherTimestamp": datetime.now(tz=timezone.utc).timestamp(),
+            "temperature": 10.0,
+            "observationValidInd": False,
+            "observationValidComment": "barometric pressure must be greater than or equal to 800.",
+        }
+
+        hourly_actual = parse_hourly_actual(1, raw_actual)
+
+        assert hourly_actual.observation_valid is False
+        assert hourly_actual.observation_valid_comment.startswith("barometric pressure")
+
     def test_invalid_metrics(self):
         """Metric valid flags should be false"""
 
@@ -133,7 +146,13 @@ class TestSfmsDailyMapper:
             fineFuelMoistureCode=85.0,
             duffMoistureCode=30.0,
             droughtCode=200.0,
+            initialSpreadIndex=6.0,
+            buildUpIndex=45.0,
+            fireWeatherIndex=15.0,
             dangerForest=3,
+            grasslandCuring=70.0,
+            observationValidInd=False,
+            observationValidComment="missing hourly data",
         )
 
         result = sfms_daily_mapper([raw])
@@ -155,7 +174,13 @@ class TestSfmsDailyMapper:
             ffmc=85.0,
             dmc=30.0,
             dc=200.0,
+            isi=6.0,
+            bui=45.0,
+            fwi=15.0,
             danger_rating=3,
+            grass_curing=70.0,
+            observation_valid=False,
+            observation_valid_comment="missing hourly data",
         )
 
     @pytest.mark.parametrize("danger_fields", [{}, {"dangerForest": None}])

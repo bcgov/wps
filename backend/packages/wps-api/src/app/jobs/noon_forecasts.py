@@ -1,19 +1,17 @@
-"""This is a job to pull noon forecasts from the Wildfire 1 API
-for each weather station and store the results in our database.
-"""
+"""Job that loads forecasters' noon forecasts from WF1 into the `wf1` and `by_time` tables in
+object storage, as `FORECAST`."""
 
 import asyncio
 import logging
 import os
 import sys
 
-import wps_shared.db.database
 import wps_shared.utils.time
 from aiohttp.client import ClientSession
-from sqlalchemy.exc import IntegrityError
 from wps_shared.chatops_notification import send_chatops_notification
-from wps_shared.db.crud.forecasts import save_noon_forecast
 from wps_shared.wps_logging import configure_logging
+from wps_weather_data.by_time import ByTimeTable
+from wps_weather_data.wf1 import Wf1Table, forecasts_table
 from wps_wf1.wfwx_api import WfwxApi
 
 logger = logging.getLogger(__name__)
@@ -22,8 +20,10 @@ logger = logging.getLogger(__name__)
 class NoonForecastJob:
     """Implementation of class to process noon forecasts."""
 
-    def __init__(self):
+    def __init__(self, wf1_table: Wf1Table | None = None, by_time_table: ByTimeTable | None = None):
         self.now = wps_shared.utils.time.get_utc_now()
+        self.wf1_table = wf1_table or Wf1Table()
+        self.by_time_table = by_time_table or ByTimeTable()
 
     async def run_wfwx(self):
         """Entry point for running the bot"""
@@ -32,18 +32,11 @@ class NoonForecastJob:
             noon_forecasts = await wfwx_api.get_noon_forecasts_all_stations(self.now)
             logger.info("Retrieved %s noon forecasts", len(noon_forecasts))
 
-        with wps_shared.db.database.get_write_session_scope() as session:
-            for noon_forecast in noon_forecasts:
-                try:
-                    save_noon_forecast(session, noon_forecast)
-                except IntegrityError as exception:
-                    logger.info(
-                        "Skipping duplicate record for %s @ %s",
-                        noon_forecast.station_code,
-                        noon_forecast.weather_date,
-                        exc_info=exception,
-                    )
-                    session.rollback()
+        rows = forecasts_table(noon_forecasts, wps_shared.utils.time.get_utc_now())
+        # wf1 records each forecast as it changes, which WF1 itself does not keep. Every row is
+        # merged into by_time, so a merge that failed after the append is made good next run.
+        self.wf1_table.append_changed(rows)
+        self.by_time_table.merge_wf1_rows(rows)
 
 
 def main():

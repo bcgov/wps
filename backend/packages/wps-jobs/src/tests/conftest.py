@@ -1,13 +1,8 @@
-from datetime import datetime
-from typing import Optional
 import pytest
 from unittest.mock import MagicMock
-import weather_model_jobs.env_canada
-import weather_model_jobs.utils.process_grib
-from wps_shared.db.models.weather_models import PredictionModel, PredictionModelRunTimestamp
 import wps_shared.db.database
-from wps_shared.utils.time import get_utc_now
-from wps_shared.weather_models import ModelEnum, ProjectionEnum
+import wps_weather_data.table
+from wps_weather_data.weather_data_addresser import WeatherDataAddresser
 from wps_shared.tests.conftest import (
     anyio_backend,
     mock_env,
@@ -31,37 +26,12 @@ def mock_session(monkeypatch):
     monkeypatch.setattr(wps_shared.db.database, "_get_write_session", MagicMock())
     monkeypatch.setattr(wps_shared.db.database, "_get_read_session", MagicMock())
 
-    prediction_model = PredictionModel(
-        id=1,
-        abbreviation="GDPS",
-        projection="latlon.15x.15",
-        name="Global Deterministic Prediction System",
-    )
 
-    def mock_get_prediction_model(session, model, projection) -> Optional[PredictionModel]:
-        if model == ModelEnum.GDPS and projection == ProjectionEnum.LATLON_15X_15:
-            return prediction_model
-        return None
-
-    def mock_get_prediction_run(
-        session, prediction_model_id: int, prediction_run_timestamp: datetime
-    ):
-        return PredictionModelRunTimestamp(
-            id=1,
-            prediction_model_id=1,
-            prediction_run_timestamp=get_utc_now(),
-            prediction_model=prediction_model,
-            complete=True,
-        )
-
+@pytest.fixture(autouse=True)
+def local_station_weather_tables(monkeypatch, tmp_path):
+    """Keep the station weather Delta tables (`staging`, `runs`, `by_time`) in a temporary
+    directory instead of the object store, so tests read and write real, empty tables."""
     monkeypatch.setattr(
-        weather_model_jobs.env_canada, "get_prediction_model", mock_get_prediction_model
+        WeatherDataAddresser, "delta_uri", lambda self, key: str(tmp_path / "tables" / key)
     )
-    monkeypatch.setattr(
-        weather_model_jobs.utils.process_grib,
-        "get_prediction_model",
-        mock_get_prediction_model,
-    )
-    monkeypatch.setattr(
-        weather_model_jobs.env_canada, "get_prediction_run", mock_get_prediction_run
-    )
+    monkeypatch.setattr(wps_weather_data.table, "object_store_options", lambda: None)

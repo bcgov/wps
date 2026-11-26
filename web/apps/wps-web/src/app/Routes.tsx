@@ -9,6 +9,7 @@ const PercentileCalculatorPageWithDisclaimer = lazy(
 const HfiCalculatorPage = lazy(() => import('features/hfiCalculator/pages/HfiCalculatorPage'))
 
 import {
+  CLIMATOLOGY_ROUTE,
   FIRE_BEHAVIOR_CALC_ROUTE,
   FIRE_BEHAVIOUR_ADVISORY_ROUTE,
   FIRE_WATCH_ROUTE,
@@ -26,6 +27,7 @@ const FireBehaviourCalculator = lazy(() => import('features/fbaCalculator/pages/
 const FireBehaviourAdvisoryPage = lazy(() => import('features/fba/pages/FireBehaviourAdvisoryPage'))
 const LandingPage = lazy(() => import('features/landingPage/pages/LandingPage'))
 const MoreCast2Page = lazy(() => import('features/moreCast2/pages/MoreCast2Page'))
+const ClimatologyPage = lazy(() => import('features/climatology/pages/ClimatologyPage'))
 
 import LoadingBackdrop from 'features/hfiCalculator/components/LoadingBackdrop'
 import FireWatchPage from '@/features/fireWatch/pages/FireWatchPage'
@@ -93,6 +95,14 @@ const WPSRoutes: React.FunctionComponent = () => {
             element={
               <AuthWrapper>
                 <SFMSInsightsPage />
+              </AuthWrapper>
+            }
+          />
+          <Route
+            path={CLIMATOLOGY_ROUTE}
+            element={
+              <AuthWrapper>
+                <ClimatologyPage />
               </AuthWrapper>
             }
           />

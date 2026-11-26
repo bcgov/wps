@@ -2,15 +2,15 @@ import math
 import pytest
 from datetime import datetime
 from wps_shared.db.models.observations import HourlyActual
-from wps_shared.db.models.weather_models import ModelRunPrediction
+from weather_model_jobs.model_values import ModelValues
 from weather_model_jobs.bias_adjusted_variable import WIND_DIRECTION
 from weather_model_jobs.machine_learning import HourOfDayRegression
 from weather_model_jobs.utils.wind_direction_utils import compute_u_v
 
 
-# with this code's u, v convention: 10 km/h from 180° is [10, 0], 15 km/h from 90° is [0, -15]
-PREDICTED_U_V = [10.0, 0.0]
-OBSERVED_U_V = [0.0, -15.0]
+# 10 km/h from 180° blows north, and 15 km/h from 90° blows west
+PREDICTED_U_V = [0.0, 10.0]
+OBSERVED_U_V = [-15.0, 0.0]
 
 
 @pytest.mark.parametrize(
@@ -19,51 +19,51 @@ OBSERVED_U_V = [0.0, -15.0]
         # Happy path
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18), wind_speed=15, wind_direction=90),
-            ModelRunPrediction(wind_tgl_10=10, wdir_tgl_10=180),
+            ModelValues(wind_tgl_10=10, wdir_tgl_10=180),
             PREDICTED_U_V,
             OBSERVED_U_V,
         ),
         # No actual data
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18)),
-            ModelRunPrediction(wind_tgl_10=10, wdir_tgl_10=180),
+            ModelValues(wind_tgl_10=10, wdir_tgl_10=180),
             PREDICTED_U_V,
             None,
         ),
         # No prediction data
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18), wind_speed=15, wind_direction=90),
-            ModelRunPrediction(),
+            ModelValues(),
             None,
             OBSERVED_U_V,
         ),
         # No actual or prediction data
-        (HourlyActual(weather_date=datetime(2020, 10, 10, 18)), ModelRunPrediction(), None, None),
+        (HourlyActual(weather_date=datetime(2020, 10, 10, 18)), ModelValues(), None, None),
         # Only windspeed for actual
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18), wind_speed=15),
-            ModelRunPrediction(wind_tgl_10=10, wdir_tgl_10=180),
+            ModelValues(wind_tgl_10=10, wdir_tgl_10=180),
             PREDICTED_U_V,
             None,
         ),
         # Only wind direction for actual
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18), wind_direction=90),
-            ModelRunPrediction(wind_tgl_10=10, wdir_tgl_10=180),
+            ModelValues(wind_tgl_10=10, wdir_tgl_10=180),
             PREDICTED_U_V,
             None,
         ),
         # Only windspeed for prediction
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18), wind_speed=15, wind_direction=90),
-            ModelRunPrediction(wind_tgl_10=10),
+            ModelValues(wind_tgl_10=10),
             None,
             OBSERVED_U_V,
         ),
         # Only wind direction for prediction
         (
             HourlyActual(weather_date=datetime(2020, 10, 10, 18), wind_speed=15, wind_direction=90),
-            ModelRunPrediction(wdir_tgl_10=180),
+            ModelValues(wdir_tgl_10=180),
             None,
             OBSERVED_U_V,
         ),
@@ -72,7 +72,7 @@ OBSERVED_U_V = [0.0, -15.0]
             HourlyActual(
                 weather_date=datetime(2020, 10, 10, 18), wind_speed=math.nan, wind_direction=90
             ),
-            ModelRunPrediction(wind_tgl_10=10, wdir_tgl_10=180),
+            ModelValues(wind_tgl_10=10, wdir_tgl_10=180),
             PREDICTED_U_V,
             None,
         ),

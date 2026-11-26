@@ -1,0 +1,31 @@
+[project]
+name = "wps-weather-data"
+version = "0.1.0"
+description = "Wildfire Predictive Services Unit station weather data in object storage"
+authors = []
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "wps-shared",
+    "deltalake>=1.6.6,<2",
+    "pyarrow>=26,<27",
+]
+
+[project.optional-dependencies]
+# Model grids in Icechunk (wps_weather_data.grids), for the jobs that write them and the API that
+# reads them.
+grids = [
+    "eccodes>=2.45,<3",
+    "icechunk>=2.3.1,<3",
+    "numcodecs[pcodec]>=0.17.1,<0.18",
+    "zarr>=3.4.2,<4",
+]
+
+[tool.uv.sources]
+wps-shared = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wps_weather_data"]

@@ -12,9 +12,7 @@ from requests import HTTPError
 from tests.weather_models.test_models_common import MockResponse
 from weather_model_jobs import common_model_fetchers, noaa
 from wps_shared.weather_models import (
-    CompletedWithSomeExceptions,
     ModelEnum,
-    NoFilesProcessed,
 )
 
 logger = logging.getLogger(__name__)
@@ -181,13 +179,13 @@ def mock_grib_processor(monkeypatch):
 
 def _make_noaa(monkeypatch, model_type=ModelEnum.GFS):
     monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock)
-    return noaa.NOAA(MagicMock(), model_type)
+    return noaa.NOAA(model_type)
 
 
 def _raise(exception):
     """Return a process_url stand-in that always raises *exception*."""
 
-    def process_url(url):
+    def process_url(url, stager):
         raise exception
 
     return process_url
@@ -202,7 +200,7 @@ def test_process_model_run_urls_403_is_warned_not_raised(monkeypatch):
 
     monkeypatch.setattr(noaa_instance, "process_url", _raise(http_error))
 
-    noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+    noaa_instance.process_model_run_urls(["https://example.com/grib1"], MagicMock())
 
     assert noaa_instance.exception_count == 0
 
@@ -216,7 +214,7 @@ def test_process_model_run_urls_404_is_warned_not_raised(monkeypatch):
 
     monkeypatch.setattr(noaa_instance, "process_url", _raise(http_error))
 
-    noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+    noaa_instance.process_model_run_urls(["https://example.com/grib1"], MagicMock())
 
     assert noaa_instance.exception_count == 0
 
@@ -231,7 +229,7 @@ def test_process_model_run_urls_500_http_error_is_reraised(monkeypatch):
     monkeypatch.setattr(noaa_instance, "process_url", _raise(http_error))
 
     with pytest.raises(HTTPError):
-        noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+        noaa_instance.process_model_run_urls(["https://example.com/grib1"], MagicMock())
 
 
 def test_process_model_run_urls_http_error_without_response_is_reraised(monkeypatch):
@@ -242,7 +240,7 @@ def test_process_model_run_urls_http_error_without_response_is_reraised(monkeypa
     monkeypatch.setattr(noaa_instance, "process_url", _raise(http_error))
 
     with pytest.raises(HTTPError):
-        noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+        noaa_instance.process_model_run_urls(["https://example.com/grib1"], MagicMock())
 
 
 def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
@@ -251,7 +249,9 @@ def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
 
     monkeypatch.setattr(noaa_instance, "process_url", _raise(ValueError("boom")))
 
-    noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
+    noaa_instance.process_model_run_urls(
+        ["https://example.com/grib1", "https://example.com/grib2"], MagicMock()
+    )
 
     assert noaa_instance.exception_count == 2
 
@@ -262,7 +262,6 @@ def test_process_model_run_urls_generic_exception_increments_count(monkeypatch):
 
 def test_process_models_delegates_the_verdict_to_judge_run(monkeypatch: pytest.MonkeyPatch):
     """process_models() must hand its counters to judge_run and return the result."""
-    monkeypatch.setattr("wps_shared.db.database.get_write_session_scope", MagicMock())
     monkeypatch.setattr(noaa, "ModelValueProcessor", MagicMock())
     monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock())
 
@@ -300,7 +299,9 @@ def test_process_model_run_urls_connection_error_increments_connection_count(mon
 
     monkeypatch.setattr(noaa_instance, "process_url", _raise(requests.ConnectionError()))
 
-    noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
+    noaa_instance.process_model_run_urls(
+        ["https://example.com/grib1", "https://example.com/grib2"], MagicMock()
+    )
 
     assert noaa_instance.connection_error_count == 2
     assert noaa_instance.exception_count == 0
@@ -312,7 +313,7 @@ def test_process_model_run_urls_timeout_increments_connection_count(monkeypatch)
 
     monkeypatch.setattr(noaa_instance, "process_url", _raise(requests.Timeout()))
 
-    noaa_instance.process_model_run_urls(["https://example.com/grib1"])
+    noaa_instance.process_model_run_urls(["https://example.com/grib1"], MagicMock())
 
     assert noaa_instance.connection_error_count == 1
     assert noaa_instance.exception_count == 0
@@ -327,65 +328,109 @@ def test_process_model_run_urls_403_does_not_stop_remaining_urls(monkeypatch):
 
     processed = []
 
-    def mock_process_url(url):
+    def mock_process_url(url, stager):
         if url == "https://example.com/grib1":
             raise http_error
         processed.append(url)
 
     monkeypatch.setattr(noaa_instance, "process_url", mock_process_url)
 
-    noaa_instance.process_model_run_urls(["https://example.com/grib1", "https://example.com/grib2"])
+    noaa_instance.process_model_run_urls(
+        ["https://example.com/grib1", "https://example.com/grib2"], MagicMock()
+    )
 
     assert processed == ["https://example.com/grib2"]
     assert noaa_instance.exception_count == 0
 
 
-def test_process_model_run_does_not_mark_complete_when_urls_incomplete(monkeypatch):
-    """mark_prediction_model_run_processed should not be called when check_if_model_run_complete returns False."""
+def test_process_model_run_is_not_complete_when_urls_incomplete(monkeypatch):
+    """A run is not complete while some of its files are not staged."""
     noaa_instance = _make_noaa(monkeypatch)
 
     urls = ["https://example.com/grib1", "https://example.com/grib2"]
     monkeypatch.setattr(noaa, "get_gfs_model_run_download_urls", lambda *_: iter(urls))
-    monkeypatch.setattr(noaa_instance, "process_model_run_urls", lambda _: None)
-    monkeypatch.setattr(noaa, "check_if_model_run_complete", lambda *_: False)
 
-    mock_mark = MagicMock()
-    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+    def stage_first_url(urls, stager):
+        stager.add(urls[0], noaa_instance.now, [])
+
+    monkeypatch.setattr(noaa_instance, "process_model_run_urls", stage_first_url)
 
     noaa_instance.process_model_run("00")
 
-    mock_mark.assert_not_called()
+    assert noaa_instance.complete_runs == []
 
 
-def test_process_model_run_marks_complete_when_all_urls_processed(monkeypatch):
-    """mark_prediction_model_run_processed should be called when check_if_model_run_complete returns True."""
+def test_process_model_run_is_complete_when_all_urls_processed(monkeypatch):
+    """A run whose files are all staged is ready to publish."""
     noaa_instance = _make_noaa(monkeypatch)
 
     urls = ["https://example.com/grib1", "https://example.com/grib2"]
     monkeypatch.setattr(noaa, "get_gfs_model_run_download_urls", lambda *_: iter(urls))
-    monkeypatch.setattr(noaa_instance, "process_model_run_urls", lambda _: None)
-    monkeypatch.setattr(noaa, "check_if_model_run_complete", lambda *_: True)
 
-    mock_mark = MagicMock()
-    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+    def stage_all_urls(urls, stager):
+        for url in urls:
+            stager.add(url, noaa_instance.now, [])
+
+    monkeypatch.setattr(noaa_instance, "process_model_run_urls", stage_all_urls)
 
     noaa_instance.process_model_run("00")
 
-    mock_mark.assert_called_once_with(
-        noaa_instance.session,
-        noaa_instance.model_type,
-        noaa_instance.projection,
-        noaa_instance.now,
-        "00",
+    run_ts = common_model_fetchers.model_run_timestamp(noaa_instance.now, 0)
+    assert noaa_instance.complete_runs == [run_ts]
+    assert noaa_instance.staging_table.processed_sources(run_ts) == set(urls)
+
+
+def test_process_model_run_skips_a_published_run(monkeypatch):
+    noaa_instance = _make_noaa(monkeypatch)
+    run_ts = common_model_fetchers.model_run_timestamp(noaa_instance.now, 0)
+    noaa_instance.runs_table.append_run(
+        ModelEnum.GFS, run_ts, [{"station_code": 1, "prediction_timestamp": run_ts}]
     )
+    process_model_run_urls = MagicMock()
+    monkeypatch.setattr(noaa_instance, "process_model_run_urls", process_model_run_urls)
+
+    noaa_instance.process_model_run("00")
+
+    process_model_run_urls.assert_not_called()
+    assert noaa_instance.complete_runs == []
+
+
+def test_process_url_stages_the_file_values(monkeypatch):
+    noaa_instance = _make_noaa(monkeypatch)
+    url = (
+        "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl?dir=%2Fgfs.20230412%2F00%2Fatmos"
+        "&file=gfs.t00z.pgrb2.0p25.f018&var_TMP=on"
+    )
+    values = [(1, datetime(2023, 4, 12, 18, tzinfo=timezone.utc), "tmp_tgl_2", 1.0)]
+    noaa_instance.grib_processor.process_grib_file = MagicMock(return_value=values)
+    monkeypatch.setattr(noaa, "download", lambda *args: "downloaded.grib2")
+    monkeypatch.setattr(noaa.os, "remove", MagicMock())
+    stager = MagicMock()
+    stager.is_processed.return_value = False
+
+    noaa_instance.process_url(url, stager)
+
+    stager.add.assert_called_once_with(url, datetime(2023, 4, 12, 18, tzinfo=timezone.utc), values)
+    assert noaa_instance.files_processed == 1
+
+
+def test_process_url_skips_a_processed_file(monkeypatch):
+    noaa_instance = _make_noaa(monkeypatch)
+    download = MagicMock()
+    monkeypatch.setattr(noaa, "download", download)
+    stager = MagicMock()
+    stager.is_processed.return_value = True
+
+    noaa_instance.process_url("https://example.com/grib1", stager)
+
+    download.assert_not_called()
+    stager.add.assert_not_called()
 
 
 @pytest.mark.parametrize("status_code", [403, 404])
-def test_process_model_run_does_not_mark_complete_on_403_or_404_error(monkeypatch, status_code):
-    """mark_prediction_model_run_processed should not be called when 403/404 errors prevent URLs from being processed.
-
-    403/404 responses are swallowed by process_model_run_urls, so processing continues but the
-    affected files are never flagged as done, leaving check_if_model_run_complete returning False.
+def test_process_model_run_is_not_complete_on_403_or_404_error(monkeypatch, status_code):
+    """403/404 responses are swallowed by process_model_run_urls, so processing continues but the
+    affected files are never staged, so the run is not complete.
     """
     noaa_instance = _make_noaa(monkeypatch)
 
@@ -396,18 +441,45 @@ def test_process_model_run_does_not_mark_complete_on_403_or_404_error(monkeypatc
     mock_response.status_code = status_code
     http_error = HTTPError(response=mock_response)
 
-    def raise_http_error(_):
-        raise http_error
+    def raise_http_error_on_first_url(url, stager):
+        if url == urls[0]:
+            raise http_error
+        stager.add(url, noaa_instance.now, [])
 
-    monkeypatch.setattr(noaa_instance, "process_url", raise_http_error)
-
-    monkeypatch.setattr(
-        common_model_fetchers, "get_processed_file_count", lambda session, urls: len(urls) - 1
-    )
-
-    mock_mark = MagicMock()
-    monkeypatch.setattr(noaa, "mark_prediction_model_run_processed", mock_mark)
+    monkeypatch.setattr(noaa_instance, "process_url", raise_http_error_on_first_url)
 
     noaa_instance.process_model_run("00")
 
-    mock_mark.assert_not_called()
+    assert noaa_instance.complete_runs == []
+    assert noaa_instance.exception_count == 0
+
+
+@pytest.mark.parametrize("model", [ModelEnum.GFS, ModelEnum.NAM])
+def test_expected_runs_are_the_runs_and_files_the_job_downloads(
+    monkeypatch: pytest.MonkeyPatch, model
+):
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock())
+    job = noaa.NOAA(model)
+    stagers = []
+    monkeypatch.setattr(
+        job,
+        "process_model_run_urls",
+        lambda urls, stager: stagers.append((stager.run_ts, list(urls))),
+    )
+
+    job.process()
+
+    assert [(run_ts, list(urls)) for run_ts, urls in job.expected_runs()] == stagers
+
+
+def test_staged_runs_are_published_before_anything_is_downloaded(monkeypatch: pytest.MonkeyPatch):
+    calls = []
+    monkeypatch.setattr(noaa, "GribFileProcessor", MagicMock())
+    monkeypatch.setattr(noaa, "ModelValueProcessor", MagicMock())
+    monkeypatch.setattr(noaa, "publish_staged_runs", lambda *args: calls.append("publish"))
+    monkeypatch.setattr(noaa.NOAA, "process", lambda self: calls.append("download"))
+    monkeypatch.setattr(sys, "argv", ["argv", "GFS"])
+
+    noaa.process_models()
+
+    assert calls == ["publish", "download"]

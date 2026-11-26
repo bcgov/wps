@@ -150,6 +150,9 @@ objects:
                   value: ${ALLOWED_ORIGINS}
                 - name: ENVIRONMENT
                   value: ${ENVIRONMENT}
+                # Which deployment this is, so it reads its own station weather tables in object storage
+                - name: SUFFIX
+                  value: ${SUFFIX}
                 - name: GUNICORN_WORKERS # The number of workers to spawn
                   value: ${GUNICORN_WORKERS}
                 - name: WFWX_MAX_PAGE_SIZE

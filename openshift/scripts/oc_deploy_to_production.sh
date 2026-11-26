@@ -63,6 +63,10 @@ echo Deploy SFMS API
 PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_sfms_api.sh prod render >>"${BATCH_FILE}"
 echo Allow APS to reach SFMS API
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_sfms_gateway_networkpolicy.sh prod render >>"${BATCH_FILE}"
+echo Deploy Station Weather API
+PROJ_TARGET=${PROJ_TARGET} ENVIRONMENT="production" bash $(dirname ${0})/oc_deploy_weather_api.sh prod render >>"${BATCH_FILE}"
+echo Allow APS to reach Station Weather API
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_weather_gateway_networkpolicy.sh prod render >>"${BATCH_FILE}"
 
 echo ECCC Consumer
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_eccc_grib_consumer.sh prod render >>"${BATCH_FILE}"
@@ -81,6 +85,16 @@ PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_gfs_cronjob.sh
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_noaa_nam_cronjob.sh prod >>"${BATCH_FILE}"
 echo ECMWF Subscriber
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_ecmwf_cronjob.sh prod >>"${BATCH_FILE}"
+echo Station Weather Maintenance
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_station_weather_maintenance_cronjob.sh prod >>"${BATCH_FILE}"
+echo Station Weather By Station
+PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_station_weather_by_station_cronjob.sh prod >>"${BATCH_FILE}"
+echo Model Grids
+PROJ_TARGET=${PROJ_TARGET} MODEL=HRDPS bash $(dirname ${0})/oc_provision_model_grids_cronjob.sh prod >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MODEL=RDPS bash $(dirname ${0})/oc_provision_model_grids_cronjob.sh prod >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MODEL=GDPS bash $(dirname ${0})/oc_provision_model_grids_cronjob.sh prod >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MODEL=GFS bash $(dirname ${0})/oc_provision_model_grids_cronjob.sh prod >>"${BATCH_FILE}"
+PROJ_TARGET=${PROJ_TARGET} MODEL=ECMWF bash $(dirname ${0})/oc_provision_model_grids_cronjob.sh prod >>"${BATCH_FILE}"
 echo VIIRS Snow
 PROJ_TARGET=${PROJ_TARGET} bash $(dirname ${0})/oc_provision_viirs_snow_cronjob.sh prod >>"${BATCH_FILE}"
 echo Grass Curing

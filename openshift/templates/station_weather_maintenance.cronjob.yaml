@@ -1,0 +1,104 @@
+kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: ${JOB_NAME}-cronjob-template
+  annotations:
+    description: "Scheduled task to compact, checkpoint and vacuum the station weather Delta Lake tables in object storage."
+    tags: "cronjob,station-weather"
+labels:
+  app.kubernetes.io/part-of: "${NAME}"
+  app: ${NAME}-${SUFFIX}
+parameters:
+  - name: NAME
+    description: Module name
+    value: wps
+  - name: GLOBAL_NAME
+    description: Name of global Module
+    value: wps-global
+  - name: SUFFIX
+    description: Deployment suffix, e.g. pr-###
+    required: true
+  - name: PROJ_TOOLS
+    value: e1e498-tools
+  - name: JOB_NAME
+    value: station-weather-maintenance
+  - name: IMAGE_REGISTRY
+    required: true
+    value: image-registry.openshift-image-registry.svc:5000
+  - name: SCHEDULE
+    required: true
+  - name: APP_LABEL
+    required: true
+  - name: MEMORY_REQUEST
+    description: Memory request
+    value: 512Mi
+  - name: MEMORY_LIMIT
+    # Compacting a table after a backfill has peaked at 1.7 GiB.
+    description: Memory limit
+    value: 2Gi
+objects:
+  - kind: CronJob
+    apiVersion: batch/v1
+    metadata:
+      name: ${JOB_NAME}
+    spec:
+      schedule: ${SCHEDULE}
+      # A run that is still going when the next is due must finish first: two runs compacting
+      # the same table would only conflict with each other.
+      concurrencyPolicy: "Forbid"
+      failedJobsHistoryLimit: 5
+      successfulJobsHistoryLimit: 3
+      jobTemplate:
+        metadata:
+          labels:
+            cronjob: ${JOB_NAME}
+            app: ${APP_LABEL}
+        spec:
+          backoffLimit: 2
+          template:
+            spec:
+              containers:
+                - name: ${JOB_NAME}
+                  image: ${IMAGE_REGISTRY}/${PROJ_TOOLS}/${NAME}-jobs-${SUFFIX}:${SUFFIX}
+                  imagePullPolicy: "Always"
+                  command:
+                    [
+                      "uv",
+                      "run",
+                      "--no-sync",
+                      "python",
+                      "-m",
+                      "wps_weather_data.maintenance",
+                    ]
+                  env:
+                    - name: UV_NO_CACHE
+                      value: "1"
+                    - name: SUFFIX
+                      value: ${SUFFIX}
+                    - name: OBJECT_STORE_SERVER
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-server
+                    - name: OBJECT_STORE_USER_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-user-id
+                    - name: OBJECT_STORE_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-secret
+                    - name: OBJECT_STORE_BUCKET
+                      valueFrom:
+                        secretKeyRef:
+                          name: ${GLOBAL_NAME}
+                          key: object-store-bucket
+                  resources:
+                    limits:
+                      memory: ${MEMORY_LIMIT}
+                    requests:
+                      cpu: "250m"
+                      memory: ${MEMORY_REQUEST}
+              restartPolicy: OnFailure

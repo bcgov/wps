@@ -3,111 +3,27 @@
 import os
 import sys
 import logging
-from typing import Optional
 import pytest
 import requests
 import datetime
 from aiohttp import ClientSession
-from sqlalchemy.orm import Session
 from pytest_mock import MockerFixture
 from wps_shared.weather_models.model_run_urls import (
     HRDPS_GRIB_LAYERS,
     get_high_res_model_run_download_urls,
 )
 import wps_shared.utils.time as time_utils
-import wps_shared.db.database
-import wps_shared.db.crud.weather_models
 import weather_model_jobs.env_canada
 from weather_model_jobs import model_job_runner
-import weather_model_jobs.common_model_fetchers
-import weather_model_jobs.utils.process_grib
 from wps_shared.weather_models import ProjectionEnum
-from wps_shared.db.models.weather_models import (
-    PredictionModel,
-    ProcessedModelRunUrl,
-    PredictionModelRunTimestamp,
-)
 from wps_shared.tests.common import default_mock_client_get
-from tests.weather_models.test_env_canada_gdps import MockResponse
+from tests.weather_models.test_env_canada_gdps import (  # noqa: F401 (fixture)
+    MockResponse,
+    only_first_url_unprocessed,
+)
 
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture()
-def mock_database(monkeypatch):
-    """Mocked out database queries"""
-    hrdps_url = (
-        "https://dd.weather.gc.ca/today/model_hrdps/continental/2.5km/"
-        "00/001/20200521T00Z_MSC_HRDPS_RH_AGL-2m_RLatLon0.0225_PT001H.grib2"
-    )
-    hrdps_processed_model_run = ProcessedModelRunUrl(url=hrdps_url)
-    hrdps_prediction_model = PredictionModel(
-        id=3,
-        abbreviation="HRDPS",
-        projection="ps2.5km",
-        name="High Resolution Deterministic Prediction System",
-    )
-    hrdps_prediction_model_run = PredictionModelRunTimestamp(
-        id=1,
-        prediction_model_id=hrdps_prediction_model.id,
-        prediction_run_timestamp=time_utils.get_utc_now(),
-        prediction_model=hrdps_prediction_model,
-        complete=True,
-    )
-
-    def mock_get_prediction_model(session, model, projection) -> Optional[PredictionModel]:
-        return hrdps_prediction_model
-
-    def mock_get_hrdps_prediction_model_run_timestamp_records(*args, **kwargs):
-        return [(hrdps_prediction_model_run, hrdps_prediction_model)]
-
-    def mock_get_processed_file_record(session, url: str):
-        # We only want the one file to be processed - otherwise our test takes forever
-        if url != hrdps_url:
-            return hrdps_processed_model_run
-        return None
-
-    def mock_get_prediction_run(*args, **kwargs):
-        return hrdps_prediction_model_run
-
-    monkeypatch.setattr(
-        weather_model_jobs.utils.process_grib,
-        "get_prediction_model",
-        mock_get_prediction_model,
-    )
-    monkeypatch.setattr(
-        weather_model_jobs.common_model_fetchers,
-        "get_prediction_model_run_timestamp_records",
-        mock_get_hrdps_prediction_model_run_timestamp_records,
-    )
-    monkeypatch.setattr(
-        weather_model_jobs.env_canada,
-        "get_processed_file_record",
-        mock_get_processed_file_record,
-    )
-    monkeypatch.setattr(
-        wps_shared.db.crud.weather_models, "get_prediction_run", mock_get_prediction_run
-    )
-
-
-@pytest.fixture()
-def mock_get_processed_file_record(monkeypatch):
-    """Mock "get_processed_file_record" to only return the None on the 1st call."""
-    called = False
-
-    def get_processed_file_record(session: Session, url: str):
-        nonlocal called
-        if called:
-            return ProcessedModelRunUrl()
-        called = True
-        return None
-
-    monkeypatch.setattr(
-        weather_model_jobs.env_canada,
-        "get_processed_file_record",
-        get_processed_file_record,
-    )
 
 
 @pytest.fixture()
@@ -137,11 +53,11 @@ def test_get_hrdps_download_urls():
     )
 
 
-@pytest.mark.usefixtures("mock_get_processed_file_record")
-def test_process_hrdps(mock_download, mock_database, monkeypatch: pytest.MonkeyPatch):
+@pytest.mark.usefixtures("only_first_url_unprocessed")
+def test_process_hrdps(mock_download, monkeypatch: pytest.MonkeyPatch):
     """run process method to see if it runs successfully."""
-    # All files, except one, are marked as already having been downloaded, so we expect one file to
-    # be processed.
+    # All files, except one, are treated as already processed, so we expect one file to be
+    # processed.
     monkeypatch.setattr(ClientSession, "get", default_mock_client_get)
     sys.argv = ["argv", "HRDPS"]
     assert weather_model_jobs.env_canada.process_models() == 1

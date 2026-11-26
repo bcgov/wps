@@ -77,4 +77,9 @@ objects:
       strategy:
         dockerStrategy:
           dockerfilePath: ${DOCKER_FILE}
+          # Commit one layer at the end instead of one per Dockerfile step. Each commit keeps a
+          # copy of what the step changed beside the container's own, so the venv (1.1 GB)
+          # was on disk several times, and the build pod reached the namespace's 15 GiB limit
+          # on local storage and was evicted (BuildPodEvicted). No build here reuses layers.
+          imageOptimizationPolicy: SkipLayers
       triggers: []

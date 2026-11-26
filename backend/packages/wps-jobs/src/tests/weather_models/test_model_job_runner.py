@@ -6,7 +6,6 @@ delegate to judge_run() and run_model_job(), so the rules are pinned here once.
 
 import os
 import sys
-from unittest.mock import MagicMock
 
 import pytest
 from weather_model_jobs import model_job_runner
@@ -91,7 +90,6 @@ def test_run_model_job(case, mocker, monkeypatch):
     """Pin the exit code and chatops severity produced for every verdict."""
     raised, exit_code, severity = case
 
-    monkeypatch.setattr(model_job_runner, "apply_data_retention_policy", MagicMock())
     chatops_spy = mocker.patch.object(model_job_runner, "send_chatops_notification")
 
     def process_models():
@@ -114,18 +112,6 @@ def test_run_model_job(case, mocker, monkeypatch):
         message = chatops_spy.call_args.args[0]
         assert MODEL in message
         assert SOURCE in message
-
-
-def test_run_model_job_applies_data_retention_policy_on_success(mocker, monkeypatch):
-    """The retention policy only runs when the job got that far."""
-    retention = MagicMock()
-    monkeypatch.setattr(model_job_runner, "apply_data_retention_policy", retention)
-    mocker.patch.object(model_job_runner, "send_chatops_notification")
-
-    with pytest.raises(SystemExit):
-        run_model_job(lambda: None, source=SOURCE, model=MODEL)
-
-    retention.assert_called_once()
 
 
 def test_judge_run_warns_about_connection_errors(caplog):

@@ -103,6 +103,24 @@ describe('SFMSMap', () => {
     expect(map).toBeVisible()
   })
 
+  it('leaves out the raster legend when its details are off, and shows what else is on the map', () => {
+    const { queryByText, getByText, rerender } = renderWithStore(
+      <SFMSMap snowDate={null} rasterDate={null} rasterType="fuel" />
+    )
+    expect(getByText('C-1')).toBeInTheDocument()
+
+    rerender(
+      <Provider store={makeStore()}>
+        <SFMSMap snowDate={null} rasterDate={null} rasterType="fuel" showRasterDetails={false}>
+          <div>Stations</div>
+        </SFMSMap>
+      </Provider>
+    )
+
+    expect(queryByText('C-1')).not.toBeInTheDocument()
+    expect(getByText('Stations')).toBeInTheDocument()
+  })
+
   it('should create only the persistent fire centre boundary layer above raster layers', () => {
     renderWithStore(<SFMSMap snowDate={null} rasterDate={DateTime.fromISO('2025-11-02')} />)
 

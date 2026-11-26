@@ -1,0 +1,45 @@
+kind: DraftDataset
+name: psu-weather-${SUFFIX}
+title: Station Weather API${DISPLAY_SUFFIX}
+notes: |
+  The Station Weather API provides historical and current BC Wildfire Service weather
+  station data.
+
+  Available data includes hourly and daily observations going back to 1987 from the
+  BCWS data mart, forecasters' noon forecasts, Fire Weather Index (FWI) System indices,
+  and weather model values interpolated to stations. Supported weather models are GDPS,
+  RDPS, HRDPS, GFS, NAM, and ECMWF.
+
+  Weather model forecasts are also available at any location in BC, from the grids of
+  HRDPS, RDPS, GDPS, GFS, and ECMWF.
+
+  Documentation and background:
+
+  - [Station Weather API specification](https://${DOCS_HOST}/api/weather/docs) for endpoint details.
+  - [Canada's Fire Weather Index System](https://natural-resources.canada.ca/forests-forestry/wildland-fires/canada-fire-weather-index-system)
+    for background on FWI.
+
+  Access requires an API key issued through the API Services Portal.
+
+  For Station Weather API support, contact
+  [BCWS.PredictiveServices@gov.bc.ca](mailto:BCWS.PredictiveServices@gov.bc.ca).
+tags:
+  [
+    weather,
+    weather-stations,
+    observations,
+    forecasts,
+    fwi,
+    fire-weather-index,
+    weather-models,
+    wildfire,
+    cffdrs,
+    openapi,
+  ]
+organization: ministry-of-forests
+organizationUnit: bc-wildfire-service
+# License options: https://bcgov.github.io/data-publication/pages/dps_licences.html
+license_title: Access Only
+view_audience: Government
+security_class: PUBLIC
+record_publish_date: "2026-06-30"
