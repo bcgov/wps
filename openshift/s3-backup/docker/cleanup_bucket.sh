@@ -56,6 +56,7 @@ fi
 
 # pgbackrest/ holds the Crunchy cluster's own backups; backup/ holds the
 # pg_dump files written by backup_to_s3.sh (named after PG_HOSTNAME and PG_DATABASE).
+# This script builds S3 paths directly and does not honor OBJECT_STORE_KEY_PREFIX.
 for _target_path in "s3://${AWS_BUCKET}/pgbackrest/${SUFFIX}/" "s3://${AWS_BUCKET}/backup/${CLUSTER_NAME}-primary_wps/"
 do
     echo "Cleaning up ${_target_path}"

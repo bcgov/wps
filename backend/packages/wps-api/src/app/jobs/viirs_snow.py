@@ -74,7 +74,15 @@ def get_pmtiles_filepath(for_date: date, filename: str) -> str:
         "psu", "pmtiles", "snow", for_date.strftime("%Y-%m-%d"), filename
     )
 
-    return pmtiles_filepath
+    return object_store_key(pmtiles_filepath)
+
+
+
+def get_clipped_snow_coverage_key(for_date: date) -> str:
+    """S3 key for the clipped snow-coverage mosaic written by this job and read by HFI snow masking."""
+    return object_store_key(
+        f"snow_coverage/{for_date.strftime('%Y-%m-%d')}/clipped_snow_coverage_{for_date.strftime('%Y-%m-%d')}_epsg4326.tif"
+    )
 
 
 def build_modis_sinu_wkt() -> str:
@@ -247,7 +255,7 @@ class ViirsSnowJob:
         :type path: str
         """
         async with get_client() as (client, bucket):
-            key = f"snow_coverage/{for_date.strftime('%Y-%m-%d')}/clipped_snow_coverage_{for_date.strftime('%Y-%m-%d')}_epsg4326.tif"
+            key = get_clipped_snow_coverage_key(for_date)
             file_path = f"{path}/{RAW_SNOW_COVERAGE_CLIPPED_NAME}"
             with open(file_path, "rb") as file:
                 await client.put_object(Bucket=bucket, Key=key, Body=file)

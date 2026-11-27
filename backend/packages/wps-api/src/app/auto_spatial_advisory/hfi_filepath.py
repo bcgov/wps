@@ -1,7 +1,8 @@
 import os
-from wps_shared.run_type import RunType
 from datetime import date, datetime
 
+from wps_shared.run_type import RunType
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.time import convert_to_sfms_timezone
 
 
@@ -19,7 +20,7 @@ def get_pmtiles_filepath(run_datetime: datetime, run_type: RunType, filename: st
     sfms_run_date = convert_to_sfms_timezone(run_datetime).date()
     pmtiles_filepath = os.path.join("psu", "pmtiles", "hfi", run_type.value, sfms_run_date.strftime("%Y-%m-%d"), filename)
 
-    return pmtiles_filepath
+    return object_store_key(pmtiles_filepath)
 
 
 def get_pmtiles_filename(for_date: date):
@@ -46,7 +47,7 @@ def get_snow_masked_hfi_filepath(run_datetime: datetime, run_type: RunType, file
     sfms_run_datetime = convert_to_sfms_timezone(run_datetime)
     raster_filepath = os.path.join("psu", "rasters", "hfi", run_type.value, sfms_run_datetime.strftime("%Y-%m-%d"), filename)
 
-    return raster_filepath
+    return object_store_key(raster_filepath)
 
 
 def get_raster_tif_filename(for_date: date) -> str:

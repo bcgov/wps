@@ -4,6 +4,7 @@ import logging
 import sys
 
 from wps_shared import config
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
 
@@ -12,6 +13,11 @@ from wps_weather.eccc_grib_consumer import ECCCGribConsumer
 S3_BUCKET = config.get("WX_OBJECT_STORE_BUCKET")
 S3_USER_ID = config.get("WX_OBJECT_STORE_USER_ID")
 S3_SECRET = config.get("WX_OBJECT_STORE_SECRET")
+
+
+def resolve_s3_prefix(prefix: str) -> str:
+    """Apply OBJECT_STORE_KEY_PREFIX to the consumer's S3 prefix."""
+    return object_store_key(prefix)
 
 
 def parse_args():
@@ -72,7 +78,7 @@ async def main():
 
             consumer = ECCCGribConsumer(
                 s3_client=s3_client,
-                s3_prefix=args.s3_prefix,
+                s3_prefix=resolve_s3_prefix(args.s3_prefix),
                 models=args.models,
                 run_hours=run_hours,
                 num_workers=args.max_concurrent_downloads,

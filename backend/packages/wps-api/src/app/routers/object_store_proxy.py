@@ -11,6 +11,7 @@ from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, HTTPException, Path, Request
 from fastapi.responses import Response, StreamingResponse
 from wps_shared.auth import authentication_required
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3_client import S3Client
 
 logger = logging.getLogger(__name__)
@@ -76,6 +77,7 @@ async def head_s3_object(
 ):
     """Get metadata for object without downloading it - required for GeoTIFF sources."""
     logger.info(f"HEAD {path}")
+    path = object_store_key(path)
 
     try:
         async with S3Client() as s3_client:
@@ -102,6 +104,7 @@ async def head_s3_object(
 async def _proxy(path: str, byte_range: str | None, stream_fn) -> RangeStreamingResponse:
     """Shared proxy implementation — fetches from S3 via stream_fn and returns a streaming response."""
     filename = path.rsplit("/", 1)[-1]
+    path = object_store_key(path)
     try:
         generator, s3_resp = await stream_fn(path, byte_range)
         return RangeStreamingResponse(generator, s3_resp, filename)

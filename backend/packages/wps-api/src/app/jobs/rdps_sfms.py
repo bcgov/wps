@@ -24,6 +24,7 @@ from wps_shared.db.crud.weather_models import (
     get_saved_model_run_for_sfms,
 )
 from wps_shared.db.database import get_write_session_scope
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders, get_client
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.weather_models import CompletedWithSomeExceptions, ModelEnum, download
@@ -43,6 +44,11 @@ logger = logging.getLogger(__name__)
 
 DAYS_TO_RETAIN = 7
 MAX_MODEL_RUN_HOUR = 45
+RDPS_RETENTION_PREFIX = "weather_models/rdps/"
+
+
+def get_rdps_sfms_retention_prefix() -> str:
+    return object_store_key(RDPS_RETENTION_PREFIX)
 
 
 def get_model_run_hours_to_process() -> Generator[int, None, None]:
@@ -74,7 +80,9 @@ class RDPSGrib:
 
     def _generate_s3_key(self, model_run_hour: int, weather_param: str, file_name) -> str:
         """Creates a key for storing an object in S3 storage."""
-        return f"weather_models/{(ModelEnum.RDPS).lower()}/{self.date_key}/{model_run_hour:02d}/{weather_param}/{file_name}"
+        return object_store_key(
+            f"weather_models/{(ModelEnum.RDPS).lower()}/{self.date_key}/{model_run_hour:02d}/{weather_param}/{file_name}"
+        )
 
     async def _process_model_run_urls(
         self, model_run_hour: int, weather_param: str, urls: list[str], fetcher: ECCCUrlFetcher
@@ -158,7 +166,7 @@ class RDPSGrib:
         logger.info(
             f"Applying retention policy to RDPS data downloaded for SFMS. Data in S3 and corresponding database records older than {days_to_retain} days are being deleted."
         )
-        prefix = "weather_models/rdps/"
+        prefix = get_rdps_sfms_retention_prefix()
         async with S3Client() as client:
             await apply_retention_policy_on_date_folders(client, prefix, days_to_retain)
 

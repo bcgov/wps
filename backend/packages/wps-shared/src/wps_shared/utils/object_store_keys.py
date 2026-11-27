@@ -14,6 +14,8 @@ honor the prefix:
 - openshift/pgslice/docker/partition_and_archive.sh (``s3://$AWS_BUCKET/retired/...``)
 - openshift/hourlies-prune/docker/prune_hourlies.sh (``s3://$AWS_BUCKET/sfms/uploads/hourlies/...``)
 - openshift/s3-backup/docker/prune.py (lists and deletes in ``AWS_BUCKET``)
+- openshift/s3-backup/docker/backup_to_s3.sh (``s3://$AWS_BUCKET/backup/...``)
+- openshift/s3-backup/docker/cleanup_bucket.sh (``s3://$AWS_BUCKET/pgbackrest/...`` and ``s3://$AWS_BUCKET/backup/...``)
 """
 
 import os
