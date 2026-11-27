@@ -87,3 +87,20 @@ def test_get_percent_conifer_key(addresser: BaseRasterAddresser):
 def test_get_percent_dead_conifer_key(addresser: BaseRasterAddresser):
     result = addresser.get_percent_dead_conifer_key(2024)
     assert result == "sfms/static/m34_2024.tif"
+
+
+def test_fuel_raster_key_unchanged_when_prefix_unset(addresser: BaseRasterAddresser, monkeypatch):
+    monkeypatch.delenv("OBJECT_STORE_KEY_PREFIX", raising=False)
+    assert addresser.get_fuel_raster_key(TEST_DATETIME, 1) == (
+        f"sfms/static/fuel/{TEST_DATETIME.year}/fbp{TEST_DATETIME.year}_v1.tif"
+    )
+
+
+def test_fuel_raster_key_prefixed_when_set(addresser: BaseRasterAddresser, monkeypatch):
+    monkeypatch.setenv("OBJECT_STORE_KEY_PREFIX", "local/tester/")
+    assert addresser.get_fuel_raster_key(TEST_DATETIME, 1) == (
+        f"local/tester/sfms/static/fuel/{TEST_DATETIME.year}/fbp{TEST_DATETIME.year}_v1.tif"
+    )
+    assert addresser.gdal_path("sfms/static/bc_mask.tif") == (
+        f"{addresser.s3_prefix}/local/tester/sfms/static/bc_mask.tif"
+    )

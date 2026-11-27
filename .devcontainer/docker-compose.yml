@@ -1,0 +1,6 @@
+services:
+  api:
+    volumes:
+      - ..:/workspaces/wps:cached
+    user: worker
+    command: sleep infinity

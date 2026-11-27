@@ -1,0 +1,206 @@
+name: Publish ARM64 App Images to GHCR
+
+permissions: {}
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Dockerfile"
+      - "Dockerfile.jobs"
+      - "backend/**"
+      - "openshift/wps-api-base/**"
+      - "openshift/wps-jobs-base/**"
+      - ".github/workflows/publish_docker_base.yml"
+      - ".github/workflows/publish_arm64.yml"
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Dockerfile"
+      - "Dockerfile.jobs"
+      - "backend/**"
+      - "openshift/wps-api-base/**"
+      - "openshift/wps-jobs-base/**"
+      - ".github/workflows/publish_docker_base.yml"
+      - ".github/workflows/publish_arm64.yml"
+
+jobs:
+  build-arm64:
+    name: Build ${{ matrix.package }} (arm64)
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: wps-api
+            file: Dockerfile
+            base_package: wps-api-base
+            triggers: |
+              Dockerfile
+              backend/pyproject.toml
+              backend/uv.lock
+              backend/.python-version
+              backend/packages/wps-api/
+              backend/packages/cffdrs-vec/
+              backend/packages/wps-shared/
+              backend/packages/wps-sfms/
+              backend/packages/wps-wf1/
+              openshift/wps-api-base/
+              .github/workflows/publish_docker_base.yml
+              .github/workflows/publish_arm64.yml
+          - package: wps-jobs
+            file: Dockerfile.jobs
+            base_package: wps-jobs-base
+            triggers: |
+              Dockerfile.jobs
+              backend/pyproject.toml
+              backend/uv.lock
+              backend/.python-version
+              backend/packages/wps-jobs/
+              backend/packages/wps-shared/
+              backend/packages/wps-wf1/
+              openshift/wps-jobs-base/
+              .github/workflows/publish_docker_base.yml
+              .github/workflows/publish_arm64.yml
+          - package: wps-weather
+            file: backend/packages/wps-weather/Dockerfile
+            base_package: ""
+            triggers: |
+              backend/pyproject.toml
+              backend/uv.lock
+              backend/.python-version
+              backend/packages/wps-weather/
+              backend/packages/wps-shared/
+              backend/packages/wps-wf1/
+              .github/workflows/publish_arm64.yml
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Log in to GitHub Container Registry
+        if: matrix.base_package != ''
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve base image tag and build tags
+        id: meta
+        shell: bash
+        env:
+          BASE_PACKAGE: ${{ matrix.base_package }}
+          EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PR_NUMBER: ${{ github.event.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "tags=pr-${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -z "$BASE_PACKAGE" ]; then
+            echo "build_args=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # A same-SHA publish_docker_base.yml run is expected on every push to
+          # main (that workflow has no push path filters) and on pull requests
+          # whose diff touches the base image inputs.
+          expect_base=0
+          if [ "$EVENT_NAME" = "push" ]; then
+            expect_base=1
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            page=1
+            while :; do
+              files_url="${GITHUB_API_URL:-https://api.github.com}/repos/${REPO}/pulls/${PR_NUMBER}/files?per_page=100&page=${page}"
+              files_json="$(curl -fsS -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "$files_url")"
+              if printf '%s' "$files_json" | jq -e '
+                [.[].filename | select(
+                  startswith("openshift/wps-api-base/")
+                  or startswith("openshift/wps-jobs-base/")
+                  or . == ".github/workflows/publish_docker_base.yml"
+                )] | length > 0
+              ' >/dev/null; then
+                expect_base=1
+                break
+              fi
+              count="$(printf '%s' "$files_json" | jq 'length')"
+              if [ "$count" -lt 100 ]; then
+                break
+              fi
+              page=$((page + 1))
+            done
+          fi
+
+          # Grace-wait for a same-commit base publish so this job builds against
+          # the fresh base. Do not treat "no run yet" as success when a run is
+          # expected, and do not fall through on timeout.
+          runs_url="${GITHUB_API_URL:-https://api.github.com}/repos/${REPO}/actions/workflows/publish_docker_base.yml/runs?head_sha=${HEAD_SHA}&per_page=10"
+          deadline=$((SECONDS + 900))
+          in_progress=""
+          base_conclusion=""
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            runs_json="$(curl -fsS -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "$runs_url")"
+            in_progress="$(printf '%s' "$runs_json" | jq -r '[.workflow_runs[] | select(.status != "completed")][0].status // ""')"
+            if [ -n "$in_progress" ]; then
+              echo "Waiting for publish_docker_base.yml (${in_progress}) on ${HEAD_SHA}..."
+              sleep 15
+              continue
+            fi
+            base_conclusion="$(printf '%s' "$runs_json" | jq -r '.workflow_runs[0].conclusion // ""')"
+            if [ -n "$base_conclusion" ]; then
+              if [ "$base_conclusion" != "success" ]; then
+                echo "::error::publish_docker_base.yml on ${HEAD_SHA} finished with conclusion '${base_conclusion}'."
+                exit 1
+              fi
+              break
+            fi
+            if [ "$expect_base" = "1" ]; then
+              echo "Waiting for publish_docker_base.yml run to appear on ${HEAD_SHA}..."
+              sleep 15
+              continue
+            fi
+            break
+          done
+
+          if [ "$base_conclusion" != "success" ]; then
+            if [ -n "$in_progress" ]; then
+              echo "::error::Timed out after 900s waiting for publish_docker_base.yml on ${HEAD_SHA} to finish (still ${in_progress})."
+              exit 1
+            fi
+            if [ "$expect_base" = "1" ]; then
+              echo "::error::Timed out after 900s waiting for a publish_docker_base.yml run to appear for ${HEAD_SHA}."
+              exit 1
+            fi
+          fi
+
+          base_ref="ghcr.io/${REPO,,}/${BASE_PACKAGE}-arm64"
+          if [ "$EVENT_NAME" = "pull_request" ] && docker manifest inspect "${base_ref}:pr-${PR_NUMBER}" >/dev/null 2>&1; then
+            base_image="${base_ref}:pr-${PR_NUMBER}"
+          else
+            base_image="${base_ref}:latest"
+          fi
+          echo "build_args=DOCKER_IMAGE=${base_image}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push ${{ matrix.package }} (arm64)
+        uses: bcgov/actions/builder@acc058abf85bb183dad21b839a92a40a4ff47af3 # v0.14.0
+        with:
+          package: ${{ matrix.package }}
+          architecture: arm64
+          context: .
+          file: ${{ matrix.file }}
+          tags: ${{ steps.meta.outputs.tags }}
+          tag_fallback: latest
+          triggers: ${{ matrix.triggers }}
+          build_args: ${{ steps.meta.outputs.build_args }}

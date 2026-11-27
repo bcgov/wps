@@ -8,6 +8,7 @@ import numpy
 from numba import vectorize
 from osgeo import gdal
 from wps_shared import config
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import get_client, read_into_memory
 from wps_shared.weather_models import ModelEnum
 from wps_shared.weather_models.rdps import RDPSKeyAddresser, adjust_forecast_hour
@@ -49,7 +50,7 @@ async def compute_and_store_precip_rasters(model_run_timestamp: datetime):
                     f"No precip raster data for hour: {hour} and model run timestamp: {model_run_timestamp.strftime('%Y-%m-%d_%H:%M:%S')}"
                 )
                 break
-            key = (
+            key = object_store_key(
                 f"weather_models/{ModelEnum.RDPS.lower()}/{accumulation_timestamp.date().isoformat()}/"
                 + _rdps.compose_computed_precip_rdps_key(accumulation_end_datetime=accumulation_timestamp)
             )
@@ -151,10 +152,10 @@ def get_raster_keys_to_diff(timestamp: datetime):
         earlier_key = earlier_key + _rdps.compose_rdps_key(
             target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, "precip"
         )
-        return (earlier_key, later_key)
+        return (object_store_key(earlier_key), object_store_key(later_key))
 
     # model run hour, just return the model value from 24 hours ago
-    return (None, later_key)
+    return (None, object_store_key(later_key))
 
 
 def get_raster_keys_to_diff_legacy(timestamp: datetime):
@@ -170,8 +171,8 @@ def get_raster_keys_to_diff_legacy(timestamp: datetime):
         earlier_key = f"{key_prefix}/" + _rdps.compose_rdps_key_legacy(
             target_model_run_date, target_model_run_date.hour, target_model_run_date.hour, "precip"
         )
-        return (earlier_key, later_key)
-    return (None, later_key)
+        return (object_store_key(earlier_key), object_store_key(later_key))
+    return (None, object_store_key(later_key))
 
 
 def compute_precip_difference(later_precip: TemporalPrecip, earlier_precip: TemporalPrecip):

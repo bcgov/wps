@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from pydantic import BaseModel, Field
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import FWIParameter
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3_client import S3Client, get_s3_client
 
 from app.routers.object_store_proxy import _proxy
@@ -129,7 +130,7 @@ async def _find_uploaded_hffmc_key(s3_client: S3Client, for_date: date, hour: in
     hour_suffix = f"{dt.hour:02d}.tif"
     response = await s3_client.client.list_objects_v2(
         Bucket=s3_client.bucket,
-        Prefix=f"sfms/uploads/hourlies/{for_date}",
+        Prefix=object_store_key(f"sfms/uploads/hourlies/{for_date}"),
     )
     return next(
         (obj["Key"] for obj in response.get("Contents", []) if obj["Key"].endswith(hour_suffix)),

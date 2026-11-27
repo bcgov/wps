@@ -10,6 +10,7 @@ from wps_shared.sfms.raster_addresser import (
     FWIParameter,
     SFMSInterpolatedWeatherParameter,
 )
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import assert_all_utc, convert_to_sfms_timezone, convert_utc_to_pdt
 from wps_shared.weather_models import ModelEnum
@@ -40,7 +41,9 @@ class RasterKeyAddresser(BaseRasterAddresser):
     def get_uploaded_index_key(self, datetime: datetime, fwi_param: FWIParameter):
         sfms_datetime = convert_to_sfms_timezone(datetime)
         iso_date = sfms_datetime.date().isoformat()
-        return f"{self.sfms_daily_upload_prefix}/{iso_date}/{fwi_param.value}{iso_date.replace('-', '')}.tif"
+        return object_store_key(
+            f"{self.sfms_daily_upload_prefix}/{iso_date}/{fwi_param.value}{iso_date.replace('-', '')}.tif"
+        )
 
     def get_calculated_index_key(
         self, datetime_utc: datetime, fwi_param: FWIParameter, run_type: RunType = RunType.FORECAST
@@ -54,7 +57,9 @@ class RasterKeyAddresser(BaseRasterAddresser):
         :return: the key to the raster artifact in object storage
         """
         assert_all_utc(datetime_utc)
-        return f"{self.sfms_calculated_prefix}/{run_type.value}/{datetime_utc.date().isoformat()}/{fwi_param.value}{datetime_utc.date().isoformat().replace('-', '')}.tif"
+        return object_store_key(
+            f"{self.sfms_calculated_prefix}/{run_type.value}/{datetime_utc.date().isoformat()}/{fwi_param.value}{datetime_utc.date().isoformat().replace('-', '')}.tif"
+        )
 
     def get_model_data_key(
         self, start_time_utc: datetime, prediction_hour: int, weather_param: WeatherParameter
@@ -70,11 +75,13 @@ class RasterKeyAddresser(BaseRasterAddresser):
         weather_model_date_prefix = (
             f"{self.weather_model_prefix}/{start_time_utc.date().isoformat()}/"
         )
-        return os.path.join(
-            weather_model_date_prefix,
-            self.rdps.compose_rdps_key(
-                start_time_utc, start_time_utc.hour, prediction_hour, weather_param.value
-            ),
+        return object_store_key(
+            os.path.join(
+                weather_model_date_prefix,
+                self.rdps.compose_rdps_key(
+                    start_time_utc, start_time_utc.hour, prediction_hour, weather_param.value
+                ),
+            )
         )
 
     def get_calculated_precip_key(self, datetime_to_calculate_utc: datetime):
@@ -89,9 +96,11 @@ class RasterKeyAddresser(BaseRasterAddresser):
         calculated_weather_prefix = (
             f"{self.weather_model_prefix}/{datetime_to_calculate_utc.date().isoformat()}/"
         )
-        return os.path.join(
-            calculated_weather_prefix,
-            self.rdps.compose_computed_precip_rdps_key(datetime_to_calculate_utc),
+        return object_store_key(
+            os.path.join(
+                calculated_weather_prefix,
+                self.rdps.compose_computed_precip_rdps_key(datetime_to_calculate_utc),
+            )
         )
 
     def get_weather_data_keys(
@@ -124,11 +133,13 @@ class RasterKeyAddresser(BaseRasterAddresser):
             f"{self.weather_model_prefix}/{start_time_utc.date().isoformat()}/"
         )
         return tuple(
-            os.path.join(
-                weather_model_date_prefix,
-                self.rdps.compose_rdps_key_legacy(
-                    start_time_utc, start_time_utc.hour, prediction_hour, param.value
-                ),
+            object_store_key(
+                os.path.join(
+                    weather_model_date_prefix,
+                    self.rdps.compose_rdps_key_legacy(
+                        start_time_utc, start_time_utc.hour, prediction_hour, param.value
+                    ),
+                )
             )
             for param in WeatherParameter
         )
@@ -147,7 +158,9 @@ class RasterKeyAddresser(BaseRasterAddresser):
         # Convert utc into pdt and subtract one hour to get hFFMC source raster time. sfms only produces hFFMC from Apr - Oct which is always PDT
         datetime_pdt = convert_utc_to_pdt(datetime_utc) - timedelta(hours=1)
         iso_date = datetime_pdt.date().isoformat()
-        return f"{self.sfms_hourly_upload_prefix}/{iso_date}/fine_fuel_moisture_code{iso_date.replace('-', '')}{datetime_pdt.hour:02d}.tif"
+        return object_store_key(
+            f"{self.sfms_hourly_upload_prefix}/{iso_date}/fine_fuel_moisture_code{iso_date.replace('-', '')}{datetime_pdt.hour:02d}.tif"
+        )
 
     def get_weather_data_keys_hffmc(self, rdps_model_run_start: datetime, offset_hour):
         """
@@ -174,11 +187,13 @@ class RasterKeyAddresser(BaseRasterAddresser):
             f"{self.weather_model_prefix}/{rdps_model_run_start.date().isoformat()}/"
         )
         return tuple(
-            os.path.join(
-                weather_model_date_prefix,
-                self.rdps.compose_rdps_key_hffmc_legacy(
-                    rdps_model_run_start, offset_hour, param.value
-                ),
+            object_store_key(
+                os.path.join(
+                    weather_model_date_prefix,
+                    self.rdps.compose_rdps_key_hffmc_legacy(
+                        rdps_model_run_start, offset_hour, param.value
+                    ),
+                )
             )
             for param in WeatherParameter
         )
@@ -198,11 +213,13 @@ class RasterKeyAddresser(BaseRasterAddresser):
         weather_model_date_prefix = (
             f"{self.weather_model_prefix}/{rdps_model_run_start.date().isoformat()}/"
         )
-        return os.path.join(
-            weather_model_date_prefix,
-            self.rdps.compose_rdps_key_hffmc(
-                rdps_model_run_start, offset_hour, weather_param.value
-            ),
+        return object_store_key(
+            os.path.join(
+                weather_model_date_prefix,
+                self.rdps.compose_rdps_key_hffmc(
+                    rdps_model_run_start, offset_hour, weather_param.value
+                ),
+            )
         )
 
     def get_calculated_hffmc_index_key(self, datetime_utc: datetime):
@@ -215,7 +232,9 @@ class RasterKeyAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_utc)
         iso_date = datetime_utc.date().isoformat()
         weather_param_prefix = "fine_fuel_moisture_code"
-        return f"{self.sfms_calculated_prefix}/hourlies/{iso_date}/{weather_param_prefix}{iso_date.replace('-', '')}{datetime_utc.hour:02d}.tif"
+        return object_store_key(
+            f"{self.sfms_calculated_prefix}/hourlies/{iso_date}/{weather_param_prefix}{iso_date.replace('-', '')}{datetime_utc.hour:02d}.tif"
+        )
 
     def get_interpolated_key(
         self, datetime_utc: datetime, weather_param: SFMSInterpolatedWeatherParameter
@@ -237,7 +256,9 @@ class RasterKeyAddresser(BaseRasterAddresser):
         date_str = date.isoformat().replace("-", "")
         param_value = weather_param.value
 
-        return f"sfms/interpolated/{param_value}/{year:04d}/{month:02d}/{day:02d}/{param_value}_{date_str}.tif"
+        return object_store_key(
+            f"sfms/interpolated/{param_value}/{year:04d}/{month:02d}/{day:02d}/{param_value}_{date_str}.tif"
+        )
 
     async def resolve_weather_data_keys(
         self,

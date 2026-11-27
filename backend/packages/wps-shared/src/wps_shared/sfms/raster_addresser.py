@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import NewType
 
 from wps_shared import config
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.time import assert_all_utc
 
 # Distinct types for plain S3 keys vs GDAL vsis3-prefixed paths.
@@ -47,7 +48,7 @@ class BaseRasterAddresser:
 
     def gdal_path(self, key: S3Key) -> GDALPath:
         """Return a GDAL vsis3-prefixed path for a plain S3 key."""
-        return GDALPath(f"{self.s3_prefix}/{key}")
+        return GDALPath(f"{self.s3_prefix}/{object_store_key(key)}")
 
     def s3_key(self, path: str) -> S3Key:
         """Return the plain S3 key for a plain key or a GDAL vsis3-prefixed path."""
@@ -61,15 +62,16 @@ class BaseRasterAddresser:
         """Given a .tif key, return a GDAL-prefixed _cog.tif path."""
         if not key.endswith(".tif"):
             raise ValueError(f"Expected .tif file path, got {key}")
-        return GDALPath(self.s3_prefix + "/" + key.removesuffix(".tif") + "_cog.tif")
+        cog_key = object_store_key(key).removesuffix(".tif") + "_cog.tif"
+        return GDALPath(f"{self.s3_prefix}/{cog_key}")
 
     def get_dem_key(self) -> GDALPath:
         """GDAL virtual file system path to the BC DEM raster."""
-        return GDALPath(f"{self.s3_prefix}/sfms/static/bc_elevation.tif")
+        return self.gdal_path(S3Key("sfms/static/bc_elevation.tif"))
 
     def get_mask_key(self) -> GDALPath:
         """GDAL virtual file system path to the BC boundary mask raster."""
-        return GDALPath(f"{self.s3_prefix}/sfms/static/bc_mask.tif")
+        return self.gdal_path(S3Key("sfms/static/bc_mask.tif"))
 
     def get_fire_zone_units_path(self) -> GDALPath:
         """GDAL virtual file system path to the fire-zone-unit identifier raster."""
@@ -77,18 +79,18 @@ class BaseRasterAddresser:
 
     def get_percent_conifer_key(self, year: int) -> S3Key:
         """S3 key for a yearly mixedwood percent-conifer raster."""
-        return S3Key(f"sfms/static/m12_{year}.tif")
+        return S3Key(object_store_key(f"sfms/static/m12_{year}.tif"))
 
     def get_percent_dead_conifer_key(self, year: int) -> S3Key:
         """S3 key for a yearly dead-balsam-fir mixedwood percent raster."""
-        return S3Key(f"sfms/static/m34_{year}.tif")
+        return S3Key(object_store_key(f"sfms/static/m34_{year}.tif"))
 
     def get_fuel_raster_key(self, datetime_utc: datetime, version: int) -> S3Key:
         """S3 key for a versioned fuel type raster."""
         assert_all_utc(datetime_utc)
         year = datetime_utc.year
-        return S3Key(f"sfms/static/fuel/{year}/fbp{year}_v{version}.tif")
+        return S3Key(object_store_key(f"sfms/static/fuel/{year}/fbp{year}_v{version}.tif"))
 
     def get_unprocessed_fuel_raster_key(self, object_name: str) -> S3Key:
         """S3 key for an unprocessed fuel raster staged at sfms/static/."""
-        return S3Key(f"sfms/static/{object_name}")
+        return S3Key(object_store_key(f"sfms/static/{object_name}"))

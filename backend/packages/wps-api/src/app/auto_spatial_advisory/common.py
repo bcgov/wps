@@ -3,8 +3,10 @@ Common functionality for ASA
 """
 
 from datetime import date, datetime
+
 from wps_shared import config
 from wps_shared.run_type import RunType
+from wps_shared.utils.object_store_keys import object_store_gdal_path
 from wps_shared.utils.time import convert_to_sfms_timezone
 
 
@@ -18,5 +20,7 @@ def get_hfi_s3_key(run_type: RunType, run_datetime: datetime, for_date: date):
     # The filename in our object store, prepended with "vsis3" - which tells GDAL to use
     # it's S3 virtual file system driver to read the file.
     # https://gdal.org/user/virtual_file_systems.html
-    key = f"/vsis3/{bucket}/sfms/uploads/{run_type.value}/{sfms_run_datetime.date().isoformat()}/hfi{for_date_string}.tif"
-    return key
+    return object_store_gdal_path(
+        f"sfms/uploads/{run_type.value}/{sfms_run_datetime.date().isoformat()}/hfi{for_date_string}.tif",
+        bucket,
+    )

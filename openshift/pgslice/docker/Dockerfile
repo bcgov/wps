@@ -1,18 +1,29 @@
-FROM artifacts.developer.gov.bc.ca/docker-remote/ubuntu:24.04
+FROM docker.io/library/ubuntu:24.04
 
 # Omit checksum if not required
 ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
 
 RUN apt-get update && \
-    apt-get install -y build-essential ca-certificates libpq-dev postgresql-client-16 python3 ruby-full && \
+    apt-get install -y build-essential ca-certificates libpq-dev postgresql-client-16 python3 ruby-full unzip && \
     gem install pgslice
 
-# Download the Amazon CLI installer.
-ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
-
-# Switch to root user for package installs.
+# Download and install the Amazon CLI for the target architecture.
+# BuildKit and buildah set TARGETARCH. Builders that don't set it fall back to
+# dpkg's architecture.
+ARG TARGETARCH
 USER root
-RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/* && \
+    TARGET_ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" && \
+    case "${TARGET_ARCH}" in \
+      amd64) AWSCLI_ARCH=x86_64 ;; \
+      arm64) AWSCLI_ARCH=aarch64 ;; \
+      *) echo "Unsupported architecture: ${TARGET_ARCH}" >&2; exit 1 ;; \
+    esac && \
+    curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/awscliv2.zip \
+      "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" && \
+    unzip /tmp/awscliv2.zip -d /tmp/ && \
     /tmp/aws/install
 
 COPY fill_partition_data.sh .

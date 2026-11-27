@@ -2,19 +2,28 @@
 
 import io
 import logging
-from datetime import datetime, date
 import os
+from datetime import date, datetime
 from tempfile import SpooledTemporaryFile
-from fastapi import APIRouter, UploadFile, Response, Request, BackgroundTasks, Depends, Header
-from wps_shared.auth import sfms_authenticate
-from app.nats_publish import publish
-from wps_shared.schemas.sfms import HourlyTIF, HourlyTIFs
-from wps_shared.utils.s3 import get_client
-from wps_shared import config
-from app.utils.sfms import get_hourly_filename, get_sfms_file_message, get_target_filename, get_date_part, is_ffmc_file, is_hfi_file
-from app.auto_spatial_advisory.nats_config import stream_name, subjects, sfms_file_subject
-from wps_shared.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
 
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Request, Response, UploadFile
+from wps_shared import config
+from wps_shared.auth import sfms_authenticate
+from wps_shared.schemas.auto_spatial_advisory import ManualSFMS, SFMSFile
+from wps_shared.schemas.sfms import HourlyTIF, HourlyTIFs
+from wps_shared.utils.object_store_keys import object_store_key
+from wps_shared.utils.s3 import get_client
+
+from app.auto_spatial_advisory.nats_config import sfms_file_subject, stream_name, subjects
+from app.nats_publish import publish
+from app.utils.sfms import (
+    get_date_part,
+    get_hourly_filename,
+    get_sfms_file_message,
+    get_target_filename,
+    is_ffmc_file,
+    is_hfi_file,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +159,7 @@ async def get_hourlies(for_date: date):
     async with get_client() as (client, bucket):
         logger.info('Retrieving hourlies for "%s"', for_date)
         bucket = config.get("OBJECT_STORE_BUCKET")
-        response = await client.list_objects_v2(Bucket=bucket, Prefix=f"sfms/uploads/hourlies/{str(for_date)}")
+        response = await client.list_objects_v2(Bucket=bucket, Prefix=object_store_key(f"sfms/uploads/hourlies/{str(for_date)}"))
         if "Contents" in response:
             hourlies = [HourlyTIF(url=f'https://nrs.objectstore.gov.bc.ca/{bucket}/{hourly["Key"]}') for hourly in response["Contents"]]
             logger.info(f"Retrieved {len(hourlies)} hourlies")

@@ -301,3 +301,27 @@ async def test_resolve_weather_data_keys_hffmc_returns_none_when_both_absent(
     )
     assert result is None
     assert mock_s3.all_objects_exist.call_count == 2
+
+
+def test_uploaded_index_key_unchanged_when_prefix_unset(monkeypatch):
+    monkeypatch.delenv("OBJECT_STORE_KEY_PREFIX", raising=False)
+    addresser = RasterKeyAddresser()
+    assert addresser.get_uploaded_index_key(
+        datetime(2024, 10, 10, 6, tzinfo=timezone.utc), FWIParameter.DMC
+    ) == "sfms/uploads/actual/2024-10-09/dmc20241009.tif"
+
+
+def test_uploaded_index_key_prefixed_when_set(monkeypatch):
+    monkeypatch.setenv("OBJECT_STORE_KEY_PREFIX", "local/tester")
+    addresser = RasterKeyAddresser()
+    assert addresser.get_uploaded_index_key(
+        datetime(2024, 10, 10, 6, tzinfo=timezone.utc), FWIParameter.DMC
+    ) == "local/tester/sfms/uploads/actual/2024-10-09/dmc20241009.tif"
+
+
+def test_uploaded_index_key_normalizes_trailing_slash(monkeypatch):
+    monkeypatch.setenv("OBJECT_STORE_KEY_PREFIX", "local/tester/")
+    addresser = RasterKeyAddresser()
+    assert addresser.get_uploaded_index_key(
+        datetime(2024, 10, 10, 6, tzinfo=timezone.utc), FWIParameter.DMC
+    ) == "local/tester/sfms/uploads/actual/2024-10-09/dmc20241009.tif"

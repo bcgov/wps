@@ -1,5 +1,7 @@
 """ Simple script for pruning backups
 """
+
+# This job lists and deletes keys in AWS_BUCKET directly and does not honor OBJECT_STORE_KEY_PREFIX.
 import asyncio
 from datetime import datetime, timedelta
 

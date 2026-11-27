@@ -76,6 +76,7 @@ _datestamp=`date +\%Y/\%m`
 _target_filename="${PG_HOSTNAME}_${PG_DATABASE}_${_timestamp}.sql.gz"
 _target_folder="${PG_HOSTNAME}_${PG_DATABASE}/${_datestamp}"
 
+# This script builds S3 paths directly and does not honor OBJECT_STORE_KEY_PREFIX.
 _target_path="s3://${AWS_BUCKET}/backup/${_target_folder}/${_target_filename}"
 
 export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY}"

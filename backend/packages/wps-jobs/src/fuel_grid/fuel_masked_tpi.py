@@ -7,7 +7,6 @@ import tempfile
 
 import aiofiles
 from osgeo import gdal
-
 from wps_shared import config
 from wps_shared.db.crud.fuel_layer import get_processed_fuel_raster_details
 from wps_shared.db.database import get_async_read_session_scope
@@ -18,6 +17,7 @@ from wps_shared.geospatial.geospatial import (
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import iter_aligned_raster_windows
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import set_s3_gdal_config
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.wps_logging import configure_logging
@@ -82,7 +82,7 @@ def prepare_masked_tif(temp_dir: str, fuel_type_raster_path: str) -> str:
 def get_fuel_masked_tpi_key(year: int, version: int) -> str:
     classified_tpi_name = config.get("CLASSIFIED_TPI_DEM_NAME")
     classified_tpi_base, _ = os.path.splitext(classified_tpi_name)
-    return f"dem/tpi/{classified_tpi_base}_fuel_masked_{year}_v{version}.tif"
+    return object_store_key(f"dem/tpi/{classified_tpi_base}_fuel_masked_{year}_v{version}.tif")
 
 
 async def create_fuel_masked_tpi_raster(year: int, version: int | None = None) -> str:

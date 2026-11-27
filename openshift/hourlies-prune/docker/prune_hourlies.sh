@@ -33,6 +33,7 @@ then
     exit 1
 fi
 
+# This script builds S3 paths directly and does not honor OBJECT_STORE_KEY_PREFIX.
 hourlies_path="sfms/uploads/hourlies"
 day_before_yesterday=$(TZ=America/Vancouver date -d '2 days ago' -I)
 

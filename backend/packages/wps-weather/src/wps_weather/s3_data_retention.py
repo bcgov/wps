@@ -2,6 +2,7 @@ import asyncio
 import argparse
 import logging
 
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import apply_retention_policy_on_date_folders
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
@@ -17,6 +18,10 @@ S3_PREFIX = "weather_models/"
 S3_BUCKET = config.get("WX_OBJECT_STORE_BUCKET")
 S3_USER_ID = config.get("WX_OBJECT_STORE_USER_ID")
 S3_SECRET = config.get("WX_OBJECT_STORE_SECRET")
+
+
+def get_grib_retention_prefix() -> str:
+    return object_store_key(S3_PREFIX)
 
 
 def parse_args():
@@ -50,7 +55,7 @@ async def main():
 
             await apply_retention_policy_on_date_folders(
                 client=s3_client,
-                prefix=S3_PREFIX,
+                prefix=get_grib_retention_prefix(),
                 days_to_retain=GRIB_RETENTION_THRESHOLD,
                 dry_run=args.dry_run,
             )

@@ -1,4 +1,4 @@
-FROM postgres:16
+FROM docker.io/library/postgres:16
 
 # Set the locale
 ENV LC_ALL en_US.UTF-8
@@ -9,17 +9,23 @@ ENV LANGUAGE en_US.UTF-8
 ENV AWS_REQUEST_CHECKSUM_CALCULATION when_required
 
 
-RUN apt-get update && apt-get -y install unzip
+RUN apt-get update && apt-get -y install curl python3 unzip
 
-# Download the Amazon CLI installer.
-ADD "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" /tmp/awscliv2.zip
-
-# Switch to root user for package installs.
+# Download and install the Amazon CLI for the target architecture.
+# BuildKit and buildah set TARGETARCH. Builders that don't set it fall back to
+# dpkg's architecture.
+ARG TARGETARCH
 USER root
-RUN unzip /tmp/awscliv2.zip -d /tmp/ &&\
+RUN TARGET_ARCH="${TARGETARCH:-$(dpkg --print-architecture)}" && \
+    case "${TARGET_ARCH}" in \
+      amd64) AWSCLI_ARCH=x86_64 ;; \
+      arm64) AWSCLI_ARCH=aarch64 ;; \
+      *) echo "Unsupported architecture: ${TARGET_ARCH}" >&2; exit 1 ;; \
+    esac && \
+    curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/awscliv2.zip \
+      "https://awscli.amazonaws.com/awscli-exe-linux-${AWSCLI_ARCH}.zip" && \
+    unzip /tmp/awscliv2.zip -d /tmp/ && \
     /tmp/aws/install
-
-RUN apt-get -y install python3
 
 COPY --from=ghcr.io/astral-sh/uv:0.13.4 /uv /bin/
 

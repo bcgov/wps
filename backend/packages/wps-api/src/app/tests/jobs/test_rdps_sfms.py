@@ -86,3 +86,25 @@ async def test_rdps_job_fails_for_unexpected_exceptions(mocker: MockerFixture):
 
     with pytest.raises(CompletedWithSomeExceptions):
         await rdps_sfms.RDPSJob().run()
+
+
+def test_generate_s3_key_unchanged_when_prefix_unset(monkeypatch):
+    monkeypatch.delenv("OBJECT_STORE_KEY_PREFIX", raising=False)
+    grib = rdps_sfms.RDPSGrib(MagicMock(spec=Session))
+    grib.date_key = "2024-10-10"
+    assert (
+        grib._generate_s3_key(0, "temp", "file.grib2")
+        == "weather_models/rdps/2024-10-10/00/temp/file.grib2"
+    )
+    assert rdps_sfms.get_rdps_sfms_retention_prefix() == "weather_models/rdps/"
+
+
+def test_generate_s3_key_prefixed_when_set(monkeypatch):
+    monkeypatch.setenv("OBJECT_STORE_KEY_PREFIX", "local/tester")
+    grib = rdps_sfms.RDPSGrib(MagicMock(spec=Session))
+    grib.date_key = "2024-10-10"
+    assert (
+        grib._generate_s3_key(0, "temp", "file.grib2")
+        == "local/tester/weather_models/rdps/2024-10-10/00/temp/file.grib2"
+    )
+    assert rdps_sfms.get_rdps_sfms_retention_prefix() == "local/tester/weather_models/rdps/"

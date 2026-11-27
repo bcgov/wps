@@ -3,7 +3,9 @@
 import os
 from datetime import date
 from typing import Final
+
 from wps_shared.schemas.auto_spatial_advisory import SFMSFile, SFMSRunType
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.time import get_hour_20, get_vancouver_now
 
 
@@ -66,7 +68,7 @@ def get_target_filename(filename: str) -> str:
     # depending on the issue date, we decide if it's a forecast or actual.
     prefix = get_prefix(filename)
     # create the filename
-    return os.path.join('sfms', 'uploads', prefix, issue_date.isoformat()[:10], filename)
+    return object_store_key(os.path.join('sfms', 'uploads', prefix, issue_date.isoformat()[:10], filename))
 
 
 def get_hourly_filename(filename: str) -> str:
@@ -78,7 +80,7 @@ def get_hourly_filename(filename: str) -> str:
     # time IS the issue date.
     issue_date = get_vancouver_now()
     # create the filename
-    return os.path.join('sfms', 'uploads', 'hourlies', issue_date.isoformat()[:10], filename)
+    return object_store_key(os.path.join('sfms', 'uploads', 'hourlies', issue_date.isoformat()[:10], filename))
 
 
 def get_sfms_file_message(filename: str, meta_data: dict) -> SFMSFile:

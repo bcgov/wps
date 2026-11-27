@@ -5,6 +5,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import aiofiles
+from fuel_grid.combustible_area import calculate_combustible_area_by_fire_zone
+from fuel_grid.fuel_masked_tpi import prepare_masked_tif
+from fuel_grid.fuel_type_area import calculate_fuel_type_areas_per_zone
+from fuel_grid.tpi_fuel_area import calculate_masked_tpi_areas
 from sqlalchemy.ext.asyncio import AsyncSession
 from wps_shared import config
 from wps_shared.db.crud.auto_spatial_advisory import (
@@ -24,14 +28,10 @@ from wps_shared.db.models.fuel_type_raster import FuelRasterInstallStatus, FuelT
 from wps_shared.fuel_raster import process_fuel_type_raster
 from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser, S3Key
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.s3_client import S3Client
 from wps_shared.utils.time import get_utc_now
-
-from fuel_grid.combustible_area import calculate_combustible_area_by_fire_zone
-from fuel_grid.fuel_masked_tpi import prepare_masked_tif
-from fuel_grid.fuel_type_area import calculate_fuel_type_areas_per_zone
-from fuel_grid.tpi_fuel_area import calculate_masked_tpi_areas
 
 logger = logging.getLogger(__name__)
 
@@ -339,7 +339,7 @@ def get_fuel_masked_tpi_key(fuel_type_raster: ProcessedFuelRaster) -> str:
 
 def get_fuel_masked_tpi_key_for_version(year: int, version: int) -> str:
     filename = get_fuel_masked_tpi_filename(year, version)
-    return f"dem/tpi/{filename}"
+    return object_store_key(f"dem/tpi/{filename}")
 
 
 def get_fuel_masked_tpi_filename(year: int, version: int) -> str:

@@ -17,6 +17,7 @@ from wps_shared.sfms.raster_addresser import (
     S3Key,
     SFMSInterpolatedWeatherParameter,
 )
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.time import assert_all_utc
 
 from wps_sfms.raster_inputs import (
@@ -53,6 +54,10 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         super().__init__()
         self.root = "sfms_ng"
 
+    def _key(self, path: str) -> S3Key:
+        return S3Key(object_store_key(path))
+
+
     def get_weather_key(
         self,
         datetime_utc: datetime,
@@ -68,7 +73,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         date = datetime_utc.date()
         param = weather_param.value
         date_str = date.isoformat().replace("-", "")
-        return S3Key(
+        return self._key(
             f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/{param}_{date_str}.tif"
         )
 
@@ -95,7 +100,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_utc)
         date = datetime_utc.date()
         date_str = date.isoformat().replace("-", "")
-        return S3Key(
+        return self._key(
             f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/{fwi_param.value}_{date_str}.tif"
         )
 
@@ -104,7 +109,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_utc)
         date = datetime_utc.date()
         date_str = date.strftime("%Y%m%d")
-        return S3Key(
+        return self._key(
             f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/danger_rating_{date_str}.tif"
         )
 
@@ -123,14 +128,14 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         assert_all_utc(datetime_utc)
         date = datetime_utc.date()
         date_str = date.isoformat().replace("-", "")
-        return S3Key(
+        return self._key(
             f"{self.root}/{run_type.value}/{date.year:04d}/{date.month:02d}/{date.day:02d}/"
             f"{fbp_param.value}_{date_str}.tif"
         )
 
     def get_static_key(self, filename: str) -> S3Key:
         """S3 key for a static raster under the sfms_ng static prefix."""
-        return S3Key(f"{self.root}/static/{filename}")
+        return self._key(f"{self.root}/static/{filename}")
 
     def get_elevation_key(self) -> S3Key:
         """S3 key for the BC elevation raster used in shared FMC/FBP calculations."""
@@ -175,26 +180,26 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         Format: sfms_ng/fuel/temporal/YYYY/MM/DD/{version}/fuelYYYY_MM_DD_{version}.tif
         """
         date_str = target_date.strftime("%Y_%m_%d")
-        return S3Key(
+        return self._key(
             f"{self.root}/fuel/temporal/{target_date.year:04d}/{target_date.month:02d}/"
             f"{target_date.day:02d}/{version}/fuel{date_str}_{version}.tif"
         )
 
     def get_national_fuel_codes_key(self) -> S3Key:
         """S3 key for the JSON national fuel lookup that describes every temporal fuel raster."""
-        return S3Key(f"{self.root}/fuel/temporal/fuel_codes_lookup.json")
+        return self._key(f"{self.root}/fuel/temporal/fuel_codes_lookup.json")
 
     def get_fmc_key(self, target_date: date) -> S3Key:
         """S3 key for the shared Foliar Moisture Content raster for one calendar date."""
         date_str = target_date.strftime("%Y%m%d")
-        return S3Key(
+        return self._key(
             f"{self.root}/static/fmc/{target_date.year:04d}/{target_date.month:02d}/"
             f"{target_date.day:02d}/fmc_{date_str}.tif"
         )
 
     def get_run_manifest_prefix(self, run_type: RunType, for_date: date) -> S3Key:
         """prefix for manifests of one target date and run type."""
-        return S3Key(
+        return self._key(
             f"{self.root}/runs/{run_type.value}/{for_date.year:04d}/{for_date.month:02d}/"
             f"{for_date.day:02d}/target-{for_date.isoformat()}_run-"
         )
@@ -212,7 +217,7 @@ class SFMSNGRasterAddresser(BaseRasterAddresser):
         """
         assert_all_utc(run_datetime)
         run_datetime_str = run_datetime.strftime(RUN_DATETIME_FILENAME_FORMAT)
-        return S3Key(f"{self.get_run_manifest_prefix(run_type, for_date)}{run_datetime_str}.json")
+        return self._key(f"{self.get_run_manifest_prefix(run_type, for_date)}{run_datetime_str}.json")
 
     def get_fmc_inputs(
         self,

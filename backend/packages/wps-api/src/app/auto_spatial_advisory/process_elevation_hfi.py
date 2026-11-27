@@ -24,6 +24,7 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import count_values_by_zone
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
+from wps_shared.utils.object_store_keys import object_store_gdal_path
 from wps_shared.utils.s3 import gdal_s3_context
 
 from app.auto_spatial_advisory.hfi_filepath import (
@@ -104,10 +105,10 @@ async def process_tpi_by_firezone(run_type: RunType, run_datetime: datetime, for
 
     bucket = config.get("OBJECT_STORE_BUCKET")
     dem_file = config.get("CLASSIFIED_TPI_DEM_NAME")
-    key = f"/vsis3/{bucket}/dem/tpi/{dem_file}"
+    key = object_store_gdal_path(f"dem/tpi/{dem_file}", bucket)
     hfi_raster_filename = get_raster_tif_filename(for_date)
     hfi_raster_key = get_snow_masked_hfi_filepath(run_datetime, run_type, hfi_raster_filename)
-    hfi_key = f"/vsis3/{bucket}/{hfi_raster_key}"
+    hfi_key = object_store_gdal_path(hfi_raster_key, bucket)
     zone_path = BaseRasterAddresser().get_fire_zone_units_path()
     with gdal_s3_context(), tempfile.TemporaryDirectory() as temp_dir:
         warped_hfi_path = os.path.join(temp_dir, f"warp_{hfi_raster_filename}")

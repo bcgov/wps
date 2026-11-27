@@ -1,5 +1,7 @@
 import enum
 
+from wps_shared.utils.object_store_keys import object_store_key
+
 
 class ECCCModel(str, enum.Enum):
     """Enumerator for different kinds of supported ECCC weather models"""
@@ -29,9 +31,9 @@ class WX4PanelChartAddresser:
     def get_4panel_key(self, fh: int, fname: str):
         """The lowercase key a 4-panel chart is stored under. Charts use lowercase keys for GeoDrive."""
         key = f"{FOUR_PANEL_PREFIX}/{self._init_ymd}/{self._model_path}/{self._grid_size}/{self._init_hh}/{fh:03d}/{fname}"
-        return key.lower()
+        return object_store_key(key.lower())
 
     def get_grib_key(self, fh: int, fname: str):
         """The lowercase key a GRIB is read from. GRIBs are stored under lowercase keys for GeoDrive."""
         key = f"{WEATHER_MODEL_PREFIX}/{self._init_ymd}/{self._model_path}/{self._grid_size}/{self._init_hh}/{fh:03d}/{fname}"
-        return key.lower()
+        return object_store_key(key.lower())

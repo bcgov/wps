@@ -19,6 +19,7 @@ from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared.geospatial.geospatial import SpatialReferenceSystem
 from wps_shared.geospatial.polygonize import polygonize_in_memory
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import vancouver_tz
 from wps_shared.wps_logging import configure_logging
@@ -73,7 +74,15 @@ def get_pmtiles_filepath(for_date: date, filename: str) -> str:
         "psu", "pmtiles", "snow", for_date.strftime("%Y-%m-%d"), filename
     )
 
-    return pmtiles_filepath
+    return object_store_key(pmtiles_filepath)
+
+
+
+def get_clipped_snow_coverage_key(for_date: date) -> str:
+    """S3 key for the clipped snow-coverage mosaic written by this job and read by HFI snow masking."""
+    return object_store_key(
+        f"snow_coverage/{for_date.strftime('%Y-%m-%d')}/clipped_snow_coverage_{for_date.strftime('%Y-%m-%d')}_epsg4326.tif"
+    )
 
 
 def build_modis_sinu_wkt() -> str:
@@ -230,7 +239,7 @@ class ViirsSnowJob:
         """
         async with get_client() as (client, bucket):
             bc_boundary = await client.get_object(
-                Bucket=bucket, Key="bc_boundary/bc_boundary.geojson"
+                Bucket=bucket, Key=object_store_key("bc_boundary/bc_boundary.geojson")
             )
             data = await bc_boundary["Body"].read()
             bc_boundary_geojson_path = os.path.join(path, "bc_boundary.geojson")
@@ -246,7 +255,7 @@ class ViirsSnowJob:
         :type path: str
         """
         async with get_client() as (client, bucket):
-            key = f"snow_coverage/{for_date.strftime('%Y-%m-%d')}/clipped_snow_coverage_{for_date.strftime('%Y-%m-%d')}_epsg4326.tif"
+            key = get_clipped_snow_coverage_key(for_date)
             file_path = f"{path}/{RAW_SNOW_COVERAGE_CLIPPED_NAME}"
             with open(file_path, "rb") as file:
                 await client.put_object(Bucket=bucket, Key=key, Body=file)

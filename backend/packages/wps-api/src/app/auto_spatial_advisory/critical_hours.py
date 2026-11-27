@@ -44,6 +44,7 @@ from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
+from app.auto_spatial_advisory.critical_hours_key import get_critical_hours_key
 from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from app.fire_behaviour import cffdrs
@@ -51,6 +52,7 @@ from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, g
 from app.hourlies import get_hourly_readings_in_time_interval
 
 logger = logging.getLogger(__name__)
+
 
 DAYS_TO_RETAIN = 21
 
@@ -537,9 +539,7 @@ async def store_critical_hours_inputs_outputs(
                 json_data = json.dumps(to_jsonable_python(critical_hours_data), indent=2)
 
                 # json input/output stored by {for_date}/{run_parameter_id}_critical_hours.json
-                key = (
-                    f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json"
-                )
+                key = get_critical_hours_key(for_date, run_parameters_id)
 
                 logger.info(f"Writing {key} to s3")
                 (

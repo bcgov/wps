@@ -1,67 +1,97 @@
-version: "3.7"
-volumes:
-  # Create volumes for docker to store stuff in that doesn't clash with local!
-  node_modules:
-  static:
-  python_cache:
+x-backend-common: &backend-common
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    POSTGRES_WRITE_HOST: db
+    POSTGRES_READ_HOST: db
+    POSTGRES_WRITE_USER: ${POSTGRES_USER:-wps}
+    POSTGRES_READ_USER: ${POSTGRES_USER:-wps}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wps}
+    POSTGRES_DATABASE: ${POSTGRES_DATABASE:-wps}
+    POSTGRES_PORT: "5432"
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    NATS_SERVER: nats
+    ORIGINS: ${ORIGINS:-http://localhost http://localhost:3000}
+    SFMS_SECRET: ${SFMS_SECRET:-secret}
+    PYTHONPYCACHEPREFIX: /tmp/python_cache
+    UV_NO_CACHE: "1"
+  depends_on:
+    - db
+    - redis
+    - nats
+
+x-api-build: &api-build
+  context: .
+  dockerfile: Dockerfile
+  args:
+    DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-api-base:${tag:-latest}
+
 services:
   api:
-    build:
-      context: backend
-      dockerfile: packages/wps-api/Dockerfile
-    env_file:
-      - ./backend/packages/wps-api/src/app/.env.docker
-    environment:
-      - PYTHONPYCACHEPREFIX=python_cache
+    <<: *backend-common
+    build: *api-build
     ports:
       - "8080:8080"
-    volumes:
-      - ./backend:/app:delegated
-      - static:/app/static # point to docker volume for static files
-      - python_cache:/app/python_cache
-    networks:
-      - wps_network
-    command: bash -c "PYTHONPATH=. uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --reload --port 8080"
+    command: >
+      bash -c "
+      until python3 -c \"import socket; socket.create_connection(('db', 5432), 1).close()\" 2>/dev/null; do
+        sleep 1
+      done &&
+      ./start.sh
+      "
+
   redis:
-    image: redis
+    image: docker.io/library/redis:alpine
     ports:
       - "6379:6379"
-    networks:
-      - wps_network
+
   nats:
-    image: nats
-    # we need to run nats with jetstream
+    image: docker.io/library/nats:alpine
+    # JetStream is required by ASA Go / wps-api consumers
     command: -js
     ports:
-      - 4222:4222
-    networks:
-      - wps_network
-  # Application's local database container & service
+      - "4222:4222"
+
+  # Multi-arch PostGIS container (official postgis/postgis is amd64-only)
   db:
-    image: postgis/postgis
-    hostname: db
+    image: ghcr.io/baosystems/postgis:16-3.5
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
-      - POSTGRES_USER=wps
-      - POSTGRES_PASSWORD=wps
-      - POSTGRES_DB=wps
-      - POSTGRES_HOST_AUTH_METHOD="trust"
-    networks:
-      - wps_network
+      POSTGRES_USER: ${POSTGRES_USER:-wps}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wps}
+      POSTGRES_DB: ${POSTGRES_DATABASE:-wps}
+
   web:
     build:
-      context: web
-      dockerfile: Dockerfile
-    env_file:
-      - web/.env
+      context: .
+      dockerfile: Dockerfile.web
     ports:
       - "3000:3000"
-    volumes:
-      - ./web:/app:delegated # Volume optimizations https://engageinteractive.co.uk/blog/making-docker-faster-on-mac
-      - node_modules:/app/node_modules/ # point to docker volume for node_modules
-      - static:/app/build # point to docker volume for static output
-    command: bash -c "yarn run build & yarn run start"
-networks:
-  wps_network:
-    driver: bridge
+
+  # On-demand cronjob runners using the production images:
+  #   docker compose run --rm cronjob-jobs uv run --no-sync python -m weather_model_jobs.env_canada GDPS
+  #   docker compose run --rm cronjob-api uv run --package wps-api --no-sync python -m app.jobs.sfms_daily_actuals
+  #   docker compose run --rm cronjob-weather uv run --package wps-weather --no-sync python -m wps_weather.wx_4panel_charts.wx_4panel_charts --end_hour 48 --step 6 --model GDPS
+  cronjob-api:
+    <<: *backend-common
+    profiles: ["cronjobs"]
+    build: *api-build
+
+  cronjob-jobs:
+    <<: *backend-common
+    profiles: ["cronjobs"]
+    build:
+      context: .
+      dockerfile: Dockerfile.jobs
+      args:
+        DOCKER_IMAGE: ghcr.io/bcgov/wps/wps-jobs-base:${tag:-latest}
+
+  cronjob-weather:
+    <<: *backend-common
+    profiles: ["cronjobs"]
+    build:
+      context: .
+      dockerfile: backend/packages/wps-weather/Dockerfile

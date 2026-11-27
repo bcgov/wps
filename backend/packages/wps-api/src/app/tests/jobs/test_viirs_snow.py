@@ -26,6 +26,8 @@ from app.jobs.viirs_snow import (
     ViirsSnowJob,
     build_modis_sinu_wkt,
     compute_bounds_for_tile,
+    get_clipped_snow_coverage_key,
+    get_pmtiles_filepath,
     read_tile_indices,
     translate_assign_sinu,
 )
@@ -370,3 +372,32 @@ def test_classify_snow_coverage_preserves_georeferencing():
             assert classified.georeference == source.georeference
 
         source.close()
+
+
+def test_pmtiles_filepath_unchanged_when_prefix_unset(monkeypatch):
+    monkeypatch.delenv("OBJECT_STORE_KEY_PREFIX", raising=False)
+    assert (
+        get_pmtiles_filepath(date(2024, 10, 10), "snowCoverage20241010.pmtiles")
+        == "psu/pmtiles/snow/2024-10-10/snowCoverage20241010.pmtiles"
+    )
+
+
+def test_pmtiles_filepath_prefixed_when_set(monkeypatch):
+    monkeypatch.setenv("OBJECT_STORE_KEY_PREFIX", "local/tester")
+    assert get_pmtiles_filepath(date(2024, 10, 10), "snowCoverage20241010.pmtiles") == (
+        "local/tester/psu/pmtiles/snow/2024-10-10/snowCoverage20241010.pmtiles"
+    )
+
+
+def test_clipped_snow_coverage_key_unchanged_when_prefix_unset(monkeypatch):
+    monkeypatch.delenv("OBJECT_STORE_KEY_PREFIX", raising=False)
+    assert get_clipped_snow_coverage_key(date(2024, 10, 10)) == (
+        "snow_coverage/2024-10-10/clipped_snow_coverage_2024-10-10_epsg4326.tif"
+    )
+
+
+def test_clipped_snow_coverage_key_prefixed_when_set(monkeypatch):
+    monkeypatch.setenv("OBJECT_STORE_KEY_PREFIX", "local/tester")
+    assert get_clipped_snow_coverage_key(date(2024, 10, 10)) == (
+        "local/tester/snow_coverage/2024-10-10/clipped_snow_coverage_2024-10-10_epsg4326.tif"
+    )

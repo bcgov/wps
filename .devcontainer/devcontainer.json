@@ -1,42 +1,30 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.245.0/containers/docker-existing-dockerfile
 {
-	"name": "Existing Dockerfile",
-	// Sets the run context to one level up instead of the .devcontainer folder.
-	"context": "..",
-	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-	"dockerFile": "../Dockerfile",
-	// make sure you don't have any local .venv in wps/api or it won't work
-	// note: we don't use a workspace mount because then you'll only see the files in /api, when
-	// you probably want to see everything. This means you must cd from /workspace to /app in order
-	// to actually run things though. the following mount will at least make the /app folder in the
-	// docker container change when files in api change.
-	"mounts": [
-		"source=${localWorkspaceFolder}/api,target=/app,type=bind"
+	"name": "WPS Backend (API)",
+	"dockerComposeFile": [
+		"../docker-compose.yml",
+		"docker-compose.yml"
 	],
+	"service": "api",
+	"workspaceFolder": "/workspaces/wps",
 	"remoteUser": "worker",
-	"containerUser": "worker",
-	"updateRemoteUserUID": false, // without this you wind up as ubuntu user
-	// this lets the container access the database container. On linux I had to configure the db
-	// host to localhost for it to work in the .env file in api/app
-	// tested with the database running from the docker-compose file with `docker compose up db`
+	"updateRemoteUserUID": true,
+	"shutdownAction": "stopCompose",
 	"forwardPorts": [
 		8080
 	],
-	"runArgs": [
-		"--network=host",
-		"--platform",
-		"linux/amd64",
-		"--hostname=wps-dev",
-	],
-	// sets us in the correct location, and install dev requirements like pytest
-	"postCreateCommand": "echo 'cd /app' >> ~/.bashrc && cd /app && poetry install",
-	// by default the dockerfile sets the shell to /bin/sh - you can use whatever you like here
-	// but if you use bash, it will automatically set you in the /app folder rather than workspace
-	// when the terminal connects
+	"features": {
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+	},
+	"containerEnv": {
+		"CLASSPATH": "/workspaces/wps/backend/packages/wps-api/libs/REDapp_Lib.jar:/workspaces/wps/backend/packages/wps-api/libs/WTime.jar:/workspaces/wps/backend/packages/wps-api/libs/hss-java.jar",
+		"UV_PYTHON_DOWNLOADS": "never",
+		"VIRTUAL_ENV": "/workspaces/wps/backend/.venv"
+	},
+	"postCreateCommand": "cd /workspaces/wps/backend && uv sync --all-extras --locked && uv pip install setuptools && uv pip install --no-build-isolation --no-cache-dir gdal==$(gdal-config --version)",
 	"customizations": {
 		"vscode": {
 			"settings": {
+				"python.defaultInterpreterPath": "/workspaces/wps/backend/.venv/bin/python",
 				"terminal.integrated.defaultProfile.linux": "bash",
 				"terminal.integrated.profiles.linux": {
 					"bash": {

@@ -22,6 +22,7 @@ from wps_shared.geospatial.wps_dataset import WPSDataset
 from wps_shared.geospatial.zonal_stats import iter_aligned_raster_windows
 from wps_shared.run_type import RunType
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
+from wps_shared.utils.object_store_keys import object_store_gdal_path
 from wps_shared.utils.s3 import gdal_s3_context
 from wps_shared.utils.time import convert_to_sfms_timezone
 from wps_shared.wps_logging import configure_logging
@@ -37,9 +38,9 @@ WARNING_NAME = HfiClassificationThresholdEnum.WARNING.value
 def get_wind_spd_s3_key(run_type: RunType, run_datetime: datetime, for_date: date):
     bucket = config.get("OBJECT_STORE_BUCKET")
     sfms_run_datetime = convert_to_sfms_timezone(run_datetime)
-    return (
-        f"/vsis3/{bucket}/sfms/uploads/{run_type.value}/"
-        f"{sfms_run_datetime.date().isoformat()}/wind_speed{for_date:%Y%m%d}.tif"
+    return object_store_gdal_path(
+        f"sfms/uploads/{run_type.value}/{sfms_run_datetime.date().isoformat()}/wind_speed{for_date:%Y%m%d}.tif",
+        bucket,
     )
 
 
