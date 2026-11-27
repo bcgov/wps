@@ -46,7 +46,7 @@ jobs:
     name: Deployments
     needs: [build-image, deploy-requested]
     runs-on:
-      group: Larger Runners - OpenShift Static-IP
+      group: bcgov-azure-lz-live-github-managed-runners
     permissions:
       contents: read
     steps:
