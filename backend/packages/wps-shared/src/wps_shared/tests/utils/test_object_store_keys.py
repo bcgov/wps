@@ -45,3 +45,14 @@ def test_trailing_slash_normalization(monkeypatch, raw, expected_prefix):
     assert object_store_gdal_path(UNPREFIXED_KEY, bucket="some bucket") == (
         f"/vsis3/some bucket/{expected_prefix}{UNPREFIXED_KEY}"
     )
+
+
+def test_prefix_lookup_ignores_one_arg_config_get_stub(monkeypatch):
+    """Jobs tests stub config.get as a one-arg lambda on the shared module."""
+    monkeypatch.delenv("OBJECT_STORE_KEY_PREFIX", raising=False)
+    import wps_shared.config as shared_config
+
+    monkeypatch.setattr(shared_config, "get", lambda _key: "classified_tpi.tif")
+    assert object_store_key(UNPREFIXED_KEY) is UNPREFIXED_KEY
+    monkeypatch.setenv("OBJECT_STORE_KEY_PREFIX", "local/tester")
+    assert object_store_key(UNPREFIXED_KEY) == f"local/tester/{UNPREFIXED_KEY}"

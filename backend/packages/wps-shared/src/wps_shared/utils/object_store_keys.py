@@ -16,14 +16,20 @@ honor the prefix:
 - openshift/s3-backup/docker/prune.py (lists and deletes in ``AWS_BUCKET``)
 """
 
+import os
+
 from wps_shared import config
 
 OBJECT_STORE_KEY_PREFIX_ENV = "OBJECT_STORE_KEY_PREFIX"
 
 
 def get_object_store_key_prefix() -> str:
-    """Return the normalized prefix, or ``""`` when the env var is unset or empty."""
-    raw = config.get(OBJECT_STORE_KEY_PREFIX_ENV, default="")
+    """Return the normalized prefix, or ``""`` when the env var is unset or empty.
+
+    Reads ``os.environ`` directly so an unset value does not log a missing-variable
+    warning, and so stubs of ``config.get`` cannot break or hijack this lookup.
+    """
+    raw = os.environ.get(OBJECT_STORE_KEY_PREFIX_ENV, "")
     if raw is None:
         return ""
     normalized = str(raw).strip().strip("/")
