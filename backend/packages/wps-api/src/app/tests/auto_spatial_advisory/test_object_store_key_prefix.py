@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from app.auto_spatial_advisory.critical_hours import get_critical_hours_key
+from app.auto_spatial_advisory.critical_hours_key import get_critical_hours_key
 
 UNSET_KEY = "critical_hours/2024-10-10/42_critical_hours.json"
 

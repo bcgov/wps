@@ -3,7 +3,7 @@ import json
 from wps_shared.db.models.auto_spatial_advisory import RunParameters
 from wps_shared.utils.s3 import get_client, object_exists_v2
 
-from app.auto_spatial_advisory.critical_hours import get_critical_hours_key
+from app.auto_spatial_advisory.critical_hours_key import get_critical_hours_key
 
 
 async def get_critical_hours_json_from_s3(run_params: RunParameters):

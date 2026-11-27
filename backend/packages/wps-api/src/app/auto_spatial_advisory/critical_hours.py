@@ -39,12 +39,12 @@ from wps_shared.schemas.fba_calc import AdjustedFWIResult, CriticalHoursHFI
 from wps_shared.schemas.observations import WeatherStationHourlyReadings
 from wps_shared.schemas.stations import WFWXWeatherStation
 from wps_shared.sfms.raster_addresser import BaseRasterAddresser
-from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import gdal_s3_context, get_client
 from wps_shared.utils.time import get_hour_20_from_date, get_julian_date
 from wps_shared.wps_logging import configure_logging
 from wps_wf1.wfwx_api import WfwxApi
 
+from app.auto_spatial_advisory.critical_hours_key import get_critical_hours_key
 from app.auto_spatial_advisory.debug_critical_hours import get_critical_hours_json_from_s3
 from wps_shared.db.crud.fuel_layer import get_fuel_type_raster_by_year
 from app.fire_behaviour import cffdrs
@@ -52,12 +52,6 @@ from app.fire_behaviour.prediction import build_hourly_rh_dict, calculate_cfb, g
 from app.hourlies import get_hourly_readings_in_time_interval
 
 logger = logging.getLogger(__name__)
-
-
-def get_critical_hours_key(for_date: date, run_parameters_id: int) -> str:
-    return object_store_key(
-        f"critical_hours/{for_date.isoformat()}/{run_parameters_id}_critical_hours.json"
-    )
 
 
 DAYS_TO_RETAIN = 21
