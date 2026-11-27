@@ -9,6 +9,7 @@ import numpy as np
 from osgeo import gdal
 from wps_shared import config
 from wps_shared.geospatial.geospatial import COMPRESSED_TILED_GEOTIFF_OPTIONS
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import get_client
 
 CLASSIFIED_TPI_FILENAME = "bc_dem_50m_tpi_win100_classified.tif"
@@ -54,7 +55,7 @@ async def generate() -> None:
     written as a local tiled GeoTIFF.
     """
     async with get_client() as (client, bucket):
-        tpi_key = f"dem/tpi/{config.get('TPI_DEM_NAME')}"
+        tpi_key = object_store_key(f"dem/tpi/{config.get('TPI_DEM_NAME')}")
         response = await client.get_object(Bucket=bucket, Key=tpi_key)
         source_contents = await response["Body"].read()
 

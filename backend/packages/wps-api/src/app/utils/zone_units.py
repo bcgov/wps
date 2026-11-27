@@ -1,7 +1,9 @@
 
 import json
-from wps_shared import config
+
 from botocore.session import get_session
+from wps_shared import config
+from wps_shared.utils.object_store_keys import object_store_key
 
 
 def get_zone_units_geojson():
@@ -20,6 +22,6 @@ def get_zone_units_geojson():
                                    aws_secret_access_key=secret_key,
                                    aws_access_key_id=user_id)
 
-    fire_zone_units = client.get_object(Bucket=bucket, Key='zone-units/fire_zone_units.geojson')
+    fire_zone_units = client.get_object(Bucket=bucket, Key=object_store_key('zone-units/fire_zone_units.geojson'))
     data = json.loads(fire_zone_units['Body'].read().decode('utf-8'))
     return data

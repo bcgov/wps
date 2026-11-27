@@ -19,6 +19,7 @@ from wps_shared.db.models.snow import ProcessedSnow, SnowSourceEnum
 from wps_shared.geospatial.geospatial import SpatialReferenceSystem
 from wps_shared.geospatial.polygonize import polygonize_in_memory
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.utils.object_store_keys import object_store_key
 from wps_shared.utils.s3 import get_client
 from wps_shared.utils.time import vancouver_tz
 from wps_shared.wps_logging import configure_logging
@@ -230,7 +231,7 @@ class ViirsSnowJob:
         """
         async with get_client() as (client, bucket):
             bc_boundary = await client.get_object(
-                Bucket=bucket, Key="bc_boundary/bc_boundary.geojson"
+                Bucket=bucket, Key=object_store_key("bc_boundary/bc_boundary.geojson")
             )
             data = await bc_boundary["Body"].read()
             bc_boundary_geojson_path = os.path.join(path, "bc_boundary.geojson")

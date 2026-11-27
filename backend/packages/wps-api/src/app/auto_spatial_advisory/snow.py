@@ -6,6 +6,7 @@ from osgeo import gdal
 from wps_shared import config
 from wps_shared.db.models.snow import ProcessedSnow
 from wps_shared.geospatial.wps_dataset import WPSDataset
+from wps_shared.utils.object_store_keys import object_store_gdal_path
 from wps_shared.utils.s3 import gdal_s3_context
 
 MASKED_HFI_PATH_NAME = "masked_hfi.tif"
@@ -34,7 +35,10 @@ def apply_snow_mask(hfi_path: str, last_processed_snow: ProcessedSnow, temp_dir:
         # The filename of the snow coverage tiff in our object store, prepended with "vsis3" - which
         # tells GDAL to use it's S3 virtual file system driver to read the file.
         # https://gdal.org/user/virtual_file_systems.html
-        snow_key = f"/vsis3/{bucket}/snow_coverage/{for_date.strftime('%Y-%m-%d')}/clipped_snow_coverage_{for_date.strftime('%Y-%m-%d')}_epsg4326.tif"
+        snow_key = object_store_gdal_path(
+            f"snow_coverage/{for_date.strftime('%Y-%m-%d')}/clipped_snow_coverage_{for_date.strftime('%Y-%m-%d')}_epsg4326.tif",
+            bucket,
+        )
         masked_hfi_path = os.path.join(temp_dir, MASKED_HFI_PATH_NAME)
 
         with (
