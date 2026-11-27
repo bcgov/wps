@@ -10,6 +10,9 @@ on:
       - "Dockerfile"
       - "Dockerfile.jobs"
       - "backend/**"
+      - "openshift/wps-api-base/**"
+      - "openshift/wps-jobs-base/**"
+      - ".github/workflows/publish_docker_base.yml"
       - ".github/workflows/publish_arm64.yml"
   workflow_dispatch:
   pull_request:
@@ -19,6 +22,9 @@ on:
       - "Dockerfile"
       - "Dockerfile.jobs"
       - "backend/**"
+      - "openshift/wps-api-base/**"
+      - "openshift/wps-jobs-base/**"
+      - ".github/workflows/publish_docker_base.yml"
       - ".github/workflows/publish_arm64.yml"
 
 jobs:
@@ -42,6 +48,8 @@ jobs:
               backend/packages/wps-shared/
               backend/packages/wps-sfms/
               backend/packages/wps-wf1/
+              openshift/wps-api-base/
+              .github/workflows/publish_docker_base.yml
               .github/workflows/publish_arm64.yml
           - package: wps-jobs
             file: Dockerfile.jobs
@@ -54,6 +62,8 @@ jobs:
               backend/packages/wps-jobs/
               backend/packages/wps-shared/
               backend/packages/wps-wf1/
+              openshift/wps-jobs-base/
+              .github/workflows/publish_docker_base.yml
               .github/workflows/publish_arm64.yml
           - package: wps-weather
             file: backend/packages/wps-weather/Dockerfile
@@ -104,23 +114,76 @@ jobs:
             exit 0
           fi
 
-          # Wait for any same-commit base image publish run so PRs and main merges build against the fresh base.
+          # A same-SHA publish_docker_base.yml run is expected on every push to
+          # main (that workflow has no push path filters) and on pull requests
+          # whose diff touches the base image inputs.
+          expect_base=0
+          if [ "$EVENT_NAME" = "push" ]; then
+            expect_base=1
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            page=1
+            while :; do
+              files_url="${GITHUB_API_URL:-https://api.github.com}/repos/${REPO}/pulls/${PR_NUMBER}/files?per_page=100&page=${page}"
+              files_json="$(curl -fsS -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "$files_url")"
+              if printf '%s' "$files_json" | jq -e '
+                [.[].filename | select(
+                  startswith("openshift/wps-api-base/")
+                  or startswith("openshift/wps-jobs-base/")
+                  or . == ".github/workflows/publish_docker_base.yml"
+                )] | length > 0
+              ' >/dev/null; then
+                expect_base=1
+                break
+              fi
+              count="$(printf '%s' "$files_json" | jq 'length')"
+              if [ "$count" -lt 100 ]; then
+                break
+              fi
+              page=$((page + 1))
+            done
+          fi
+
+          # Grace-wait for a same-commit base publish so this job builds against
+          # the fresh base. Do not treat "no run yet" as success when a run is
+          # expected, and do not fall through on timeout.
           runs_url="${GITHUB_API_URL:-https://api.github.com}/repos/${REPO}/actions/workflows/publish_docker_base.yml/runs?head_sha=${HEAD_SHA}&per_page=10"
           deadline=$((SECONDS + 900))
+          in_progress=""
+          base_conclusion=""
           while [ "$SECONDS" -lt "$deadline" ]; do
             runs_json="$(curl -fsS -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "$runs_url")"
-            base_state="$(printf '%s' "$runs_json" | jq -r '[.workflow_runs[] | select(.status != "completed")][0].status // ""')"
-            if [ -z "$base_state" ]; then
-              base_conclusion="$(printf '%s' "$runs_json" | jq -r '.workflow_runs[0].conclusion // ""')"
-              if [ -n "$base_conclusion" ] && [ "$base_conclusion" != "success" ]; then
+            in_progress="$(printf '%s' "$runs_json" | jq -r '[.workflow_runs[] | select(.status != "completed")][0].status // ""')"
+            if [ -n "$in_progress" ]; then
+              echo "Waiting for publish_docker_base.yml (${in_progress}) on ${HEAD_SHA}..."
+              sleep 15
+              continue
+            fi
+            base_conclusion="$(printf '%s' "$runs_json" | jq -r '.workflow_runs[0].conclusion // ""')"
+            if [ -n "$base_conclusion" ]; then
+              if [ "$base_conclusion" != "success" ]; then
                 echo "::error::publish_docker_base.yml on ${HEAD_SHA} finished with conclusion '${base_conclusion}'."
                 exit 1
               fi
               break
             fi
-            echo "Waiting for publish_docker_base.yml (${base_state}) on ${HEAD_SHA}..."
-            sleep 15
+            if [ "$expect_base" = "1" ]; then
+              echo "Waiting for publish_docker_base.yml run to appear on ${HEAD_SHA}..."
+              sleep 15
+              continue
+            fi
+            break
           done
+
+          if [ "$base_conclusion" != "success" ]; then
+            if [ -n "$in_progress" ]; then
+              echo "::error::Timed out after 900s waiting for publish_docker_base.yml on ${HEAD_SHA} to finish (still ${in_progress})."
+              exit 1
+            fi
+            if [ "$expect_base" = "1" ]; then
+              echo "::error::Timed out after 900s waiting for a publish_docker_base.yml run to appear for ${HEAD_SHA}."
+              exit 1
+            fi
+          fi
 
           base_ref="ghcr.io/${REPO,,}/${BASE_PACKAGE}-arm64"
           if [ "$EVENT_NAME" = "pull_request" ] && docker manifest inspect "${base_ref}:pr-${PR_NUMBER}" >/dev/null 2>&1; then
